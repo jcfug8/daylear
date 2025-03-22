@@ -1,5 +1,5 @@
 <template>
-  <v-navigation-drawer permanent>
+  <v-navigation-drawer permanent v-if="isLoggedIn">
     <v-list nav>
       <v-list-group value="Meals">
         <template v-slot:activator="{ props }">
@@ -28,3 +28,11 @@
     </v-list>
   </v-navigation-drawer>
 </template>
+
+<script setup lang="ts">
+import { useAuthStore } from '@/stores/auth'
+import { storeToRefs } from 'pinia'
+
+const authStore = useAuthStore()
+const { isLoggedIn } = storeToRefs(authStore)
+</script>

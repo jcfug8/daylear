@@ -1,11 +1,3 @@
-<script setup lang="ts">
-import { VNavigationDrawer } from 'vuetify/components'
-
-import { ref } from 'vue'
-
-const drawer = ref(false)
-</script>
-
 <template>
   <v-app-bar>
     <v-app-bar-title>
@@ -13,12 +5,17 @@ const drawer = ref(false)
       <div class="text-caption">Plan It Make It Do It</div>
     </v-app-bar-title>
     <template v-slot:append>
-      <v-btn @click.stop="drawer = !drawer" stacked prepend-icon="mdi-account-circle">
+      <v-btn
+        @click.stop="drawer = !drawer"
+        stacked
+        prepend-icon="mdi-account-circle"
+        v-if="isLoggedIn"
+      >
         Jace Fugate
       </v-btn>
     </template>
   </v-app-bar>
-  <v-navigation-drawer location="right" v-model="drawer">
+  <v-navigation-drawer location="right" v-model="drawer" v-if="isLoggedIn">
     <v-list>
       <v-list-item
         prepend-icon="mdi-account-circle"
@@ -64,8 +61,28 @@ const drawer = ref(false)
     <template v-slot:append>
       <v-divider></v-divider>
       <div class="pa-2">
-        <v-btn block> Logout </v-btn>
+        <v-btn block @click="logOut"> Logout </v-btn>
       </div>
     </template>
   </v-navigation-drawer>
 </template>
+
+<script setup lang="ts">
+import { useAuthStore } from '@/stores/auth'
+import { VNavigationDrawer } from 'vuetify/components'
+import { storeToRefs } from 'pinia'
+import { useRouter } from 'vue-router'
+
+import { ref } from 'vue'
+
+const drawer = ref(false)
+const router = useRouter()
+
+const authStore = useAuthStore()
+const logOut = () => {
+  drawer.value = false
+  authStore.logOut()
+  router.push({ name: 'login' })
+}
+const { isLoggedIn } = storeToRefs(authStore)
+</script>

@@ -11,6 +11,7 @@ import {
   VBtn,
   VContainer,
   VDivider,
+  VForm,
   VIcon,
   VLayout,
   VList,
@@ -40,10 +41,11 @@ const vuetify = createVuetify({
     VMenu,
     VDivider,
     VIcon,
-    VSheet,
     VContainer,
     VLayout,
     VApp,
+    VSheet,
+    VForm,
   },
 })
 
