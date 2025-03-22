@@ -30,7 +30,6 @@ import router from './router'
 const vuetify = createVuetify({
   components: {
     VBtn,
-    VApp,
     VAppBar,
     VMain,
     VNavigationDrawer,
@@ -44,6 +43,7 @@ const vuetify = createVuetify({
     VSheet,
     VContainer,
     VLayout,
+    VApp,
   },
 })
 
