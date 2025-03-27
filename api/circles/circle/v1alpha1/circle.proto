@@ -1,0 +1,31 @@
+// (-- api-linter: core::0191::java-outer-classname=disabled
+//     aip.dev/not-precedent: I don't care about java. --)
+// (-- api-linter: core::0191::java-multiple-files=disabled
+//     aip.dev/not-precedent: I don't care about java. --)
+// (-- api-linter: core::0191::java-package=disabled
+//     aip.dev/not-precedent: I don't care about java. --)
+
+syntax = "proto3";
+
+package api.circles.circle.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+
+// the main user circle
+message Circle {
+  option (google.api.resource) = {
+    type: "api.meals.circle.v1alpha1/Circle"
+    pattern: "circles/{circle}"
+    plural: "circles"
+    singular: "circle"
+  };
+
+  // the name of the circle
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // the title of the circle
+  string title = 2 [(google.api.field_behavior) = REQUIRED];
+}

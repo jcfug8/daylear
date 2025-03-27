@@ -1,0 +1,133 @@
+package s3
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"net/url"
+
+	"github.com/jcfug8/daylear/server/core/errz"
+	"github.com/jcfug8/daylear/server/core/file"
+	pConfig "github.com/jcfug8/daylear/server/ports/config"
+	"github.com/rs/zerolog"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"go.uber.org/fx"
+)
+
+type Client struct {
+	log zerolog.Logger
+
+	s3Client          *s3.Client
+	presignClient     *s3.PresignClient
+	bucket            string
+	publicEndpointURL *url.URL
+}
+
+type NewClientParams struct {
+	fx.In
+
+	L            zerolog.Logger
+	ConfigClient pConfig.Client
+}
+
+func NewClient(params NewClientParams) (*Client, error) {
+	ctx := context.Background()
+
+	c := params.ConfigClient.GetConfig()["s3"].(map[string]interface{})
+	accessKey := c["accesskey"].(string)
+	secret := c["secret"].(string)
+	endpoint := c["endpoint"].(string)
+	publicEndpoint := c["publicendpoint"].(string)
+	bucket := c["bucket"].(string)
+
+	publicEndpointURL, err := url.Parse(publicEndpoint)
+	if err != nil {
+		return nil, errz.NewInternal("unable to parse public endpoint")
+	}
+
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithRegion("us-east-1"),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKey, secret, "")),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(endpoint)
+		o.UsePathStyle = true
+	})
+	presignClient := s3.NewPresignClient(s3Client)
+
+	client := &Client{
+		log:               params.L,
+		s3Client:          s3Client,
+		presignClient:     presignClient,
+		bucket:            bucket,
+		publicEndpointURL: publicEndpointURL,
+	}
+
+	// Ensure the bucket exists
+	if err := client.ensureBucketExists(ctx); err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+func (c *Client) ensureBucketExists(ctx context.Context) error {
+	c.log.Info().Msgf("Ensuring bucket %s exists", c.bucket)
+	_, err := c.s3Client.HeadBucket(ctx, &s3.HeadBucketInput{
+		Bucket: aws.String(c.bucket),
+	})
+	if err != nil {
+		c.log.Info().Msgf("Bucket %s does not exist, creating", c.bucket)
+		_, err := c.s3Client.CreateBucket(ctx, &s3.CreateBucketInput{
+			Bucket: aws.String(c.bucket),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create bucket: %w", err)
+		}
+	}
+	return nil
+}
+
+func (c *Client) UploadPublicFile(ctx context.Context, path string, file file.File) (string, error) {
+	_, err := c.s3Client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:        aws.String(c.bucket),
+		Key:           aws.String(path),
+		Body:          file,
+		ContentType:   aws.String(file.ContentType),
+		ContentLength: aws.Int64(file.ContentLength),
+		ACL:           types.ObjectCannedACLPublicRead,
+	})
+
+	publicEndpointURL := *c.publicEndpointURL
+	publicEndpointURL.Path = path
+
+	return publicEndpointURL.String(), err
+}
+
+func (c *Client) GetFile(ctx context.Context, path string) (io.ReadCloser, error) {
+	resp, err := c.s3Client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(c.bucket),
+		Key:    aws.String(path),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body, nil
+}
+
+func (c *Client) DeleteFile(ctx context.Context, path string) error {
+	_, err := c.s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(c.bucket),
+		Key:    aws.String(path),
+	})
+	return err
+}

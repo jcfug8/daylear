@@ -1,0 +1,14 @@
+name: devdaylear
+region: sfo
+services:
+  - environment_slug: go
+    image:
+      registry_type: GHCR
+      registry: ghcr.io
+      repository: jcfug8/daylear
+      tag: master
+    http_port: 8080
+    source_dir: server
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    name: daylear
