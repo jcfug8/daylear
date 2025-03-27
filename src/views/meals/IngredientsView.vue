@@ -1,7 +1,5 @@
 <template>
-  Ingredients
+  <v-container> Ingredients </v-container>
 </template>
 
-<style>
-
-</style>
+<style></style>

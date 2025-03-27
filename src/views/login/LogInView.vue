@@ -1,9 +1,10 @@
 <template>
-  <v-container class="d-flex justify-center align-center" style="height: 100vh">
+  <v-container class="d-flex justify-center align-center" style="height: 75vh">
     <v-sheet elevation="2" max-width="400" class="pa-4 ma-4">
       <v-form>
-        <h1>Login</h1>
-        <v-btn prepend-icon="mdi-google" @click="withGooge">Google</v-btn>
+        <h1 class="font-weight-thin text-center">Login</h1>
+        <v-divider class="mb-2"></v-divider>
+        <v-btn prepend-icon="mdi-google" @click="withGooge">Login With Google</v-btn>
       </v-form>
     </v-sheet>
   </v-container>

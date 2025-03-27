@@ -1,21 +1,50 @@
 <template>
   <v-app-bar>
-    <v-app-bar-title>
-      <div>Daylear</div>
+    <template #prepend>
+      <v-app-bar-nav-icon
+        @click.stop="navDrawer = !navDrawer"
+        v-if="isLoggedIn"
+      ></v-app-bar-nav-icon>
+    </template>
+    <v-app-bar-title class="d-flex justify-center align-center">
+      <div class="d-flex justify-center align-center">Daylear</div>
       <div class="text-caption">Plan It Make It Do It</div>
     </v-app-bar-title>
-    <template v-slot:append>
-      <v-btn
-        @click.stop="drawer = !drawer"
-        stacked
-        prepend-icon="mdi-account-circle"
-        v-if="isLoggedIn"
-      >
-        Jace Fugate
+    <template #append>
+      <v-btn icon @click.stop="accountDrawer = !accountDrawer" v-if="isLoggedIn">
+        <v-icon>mdi-account-circle</v-icon>
       </v-btn>
     </template>
   </v-app-bar>
-  <v-navigation-drawer location="right" v-model="drawer" v-if="isLoggedIn">
+  <v-navigation-drawer temporary v-if="isLoggedIn" v-model="navDrawer" density="compact">
+    <v-list nav>
+      <v-list-item
+        prepend-icon="mdi-calendar"
+        title="Calendar"
+        value="calendar"
+        :to="{ name: 'calendar' }"
+      ></v-list-item>
+      <v-list-group value="Meals">
+        <template v-slot:activator="{ props }">
+          <v-list-item v-bind="props" title="Meals" prepend-icon="mdi-food"></v-list-item>
+        </template>
+
+        <v-list-item
+          prepend-icon="mdi-book-open-page-variant"
+          title="Recipes"
+          value="recipes"
+          :to="{ name: 'recipes' }"
+        ></v-list-item>
+        <v-list-item
+          prepend-icon="mdi-food-apple"
+          title="Ingredients"
+          value="ingredients"
+          :to="{ name: 'ingredients' }"
+        ></v-list-item>
+      </v-list-group>
+    </v-list>
+  </v-navigation-drawer>
+  <v-navigation-drawer temporary location="right" v-model="accountDrawer" v-if="isLoggedIn">
     <v-list>
       <v-list-item
         prepend-icon="mdi-account-circle"
@@ -61,7 +90,7 @@
     <template v-slot:append>
       <v-divider></v-divider>
       <div class="pa-2">
-        <v-btn block @click="logOut"> Logout </v-btn>
+        <v-btn prepend-icon="mdi-logout" block @click="logOut"> Logout </v-btn>
       </div>
     </template>
   </v-navigation-drawer>
@@ -75,12 +104,13 @@ import { useRouter } from 'vue-router'
 
 import { ref } from 'vue'
 
-const drawer = ref(false)
+const accountDrawer = ref(false)
+const navDrawer = ref(false)
 const router = useRouter()
 
 const authStore = useAuthStore()
 const logOut = () => {
-  drawer.value = false
+  accountDrawer.value = false
   authStore.logOut()
   router.push({ name: 'login' })
 }

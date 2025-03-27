@@ -7,6 +7,7 @@ import { createVuetify } from 'vuetify'
 import {
   VApp,
   VAppBar,
+  VAppBarNavIcon,
   VAppBarTitle,
   VBtn,
   VContainer,
@@ -27,6 +28,7 @@ import '@mdi/font/css/materialdesignicons.css' // Import Material Design Icons
 
 import App from './App.vue'
 import router from './router'
+import { VCalendar } from 'vuetify/labs/components'
 
 const vuetify = createVuetify({
   components: {
@@ -46,6 +48,8 @@ const vuetify = createVuetify({
     VApp,
     VSheet,
     VForm,
+    VCalendar,
+    VAppBarNavIcon,
   },
 })
 

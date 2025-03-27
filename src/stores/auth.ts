@@ -3,6 +3,10 @@ import { defineStore } from 'pinia'
 
 export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = ref(false)
+
+  // const user = ref<User>({})
+  // const circles = ref<Circle[]>([])
+
   function logIn() {
     console.log('logIn')
     isLoggedIn.value = true
