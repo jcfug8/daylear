@@ -9,16 +9,30 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: LogInView,
+      meta: {
+        requiresNoAuth: true,
+      },
     },
     {
       path: '/login',
       name: 'login',
       component: () => import('../views/login/LogInView.vue'),
+      meta: {
+        requiresNoAuth: true,
+      },
     },
     {
       path: '/meals/recipes',
       name: 'recipes',
       component: () => import('../views/meals/RecipesView.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/meals/recipe/:recipeId',
+      name: 'recipe',
+      component: () => import('../views/meals/RecipeView.vue'),
       meta: {
         requiresAuth: true,
       },
@@ -83,6 +97,14 @@ router.beforeEach((to, from, next) => {
     } else {
       // User is not authenticated, redirect to login
       next('/login')
+    }
+  } else if (to.meta.requiresNoAuth) {
+    if (authStore.isLoggedIn) {
+      // User is authenticated, redirect to home
+      next('/calendar')
+    } else {
+      // User is not authenticated, allow access
+      next()
     }
   } else {
     // Non-protected route, allow access

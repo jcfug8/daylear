@@ -10,6 +10,10 @@ import {
   VAppBarNavIcon,
   VAppBarTitle,
   VBtn,
+  VCard,
+  VCardActions,
+  VCardText,
+  VCol,
   VContainer,
   VDivider,
   VForm,
@@ -21,7 +25,9 @@ import {
   VMain,
   VMenu,
   VNavigationDrawer,
+  VRow,
   VSheet,
+  VSpacer,
 } from 'vuetify/components'
 import 'vuetify/styles' // Import Vuetify styles
 import '@mdi/font/css/materialdesignicons.css' // Import Material Design Icons
@@ -50,6 +56,12 @@ const vuetify = createVuetify({
     VForm,
     VCalendar,
     VAppBarNavIcon,
+    VRow,
+    VCol,
+    VCard,
+    VCardActions,
+    VCardText,
+    VSpacer,
   },
 })
 

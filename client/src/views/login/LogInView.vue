@@ -13,14 +13,22 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import { watch } from 'vue'
 
-const { logIn } = useAuthStore()
 const router = useRouter()
+const authStore = useAuthStore()
+
+watch(
+  () => authStore.isLoggedIn,
+  (newValue: boolean) => {
+    if (newValue) {
+      router.push({ name: 'calendar' }) // Redirect to the home page or another route
+    }
+  },
+)
 
 const withGooge = () => {
-  logIn()
-  console.log('howdy')
-  router.push({ name: 'calendar' })
+  window.location.href = 'http://localhost:8080/auth/google'
 }
 </script>
 
