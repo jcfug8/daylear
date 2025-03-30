@@ -12,12 +12,14 @@ import {
   VBtn,
   VCard,
   VCardActions,
+  VCardSubtitle,
   VCardText,
   VCol,
   VContainer,
   VDivider,
   VForm,
   VIcon,
+  VImg,
   VLayout,
   VList,
   VListGroup,
@@ -62,6 +64,8 @@ const vuetify = createVuetify({
     VCardActions,
     VCardText,
     VSpacer,
+    VCardSubtitle,
+    VImg,
   },
 })
 
