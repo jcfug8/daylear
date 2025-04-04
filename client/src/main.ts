@@ -9,11 +9,13 @@ import {
   VAppBar,
   VAppBarNavIcon,
   VAppBarTitle,
+  VBreadcrumbs,
   VBtn,
   VCard,
   VCardActions,
   VCardSubtitle,
   VCardText,
+  VCardTitle,
   VCol,
   VContainer,
   VDivider,
@@ -30,6 +32,10 @@ import {
   VRow,
   VSheet,
   VSpacer,
+  VTab,
+  VTabs,
+  VTabsWindow,
+  VTabsWindowItem,
 } from 'vuetify/components'
 import 'vuetify/styles' // Import Vuetify styles
 import '@mdi/font/css/materialdesignicons.css' // Import Material Design Icons
@@ -61,11 +67,17 @@ const vuetify = createVuetify({
     VRow,
     VCol,
     VCard,
+    VCardTitle,
     VCardActions,
     VCardText,
     VSpacer,
     VCardSubtitle,
     VImg,
+    VBreadcrumbs,
+    VTab,
+    VTabs,
+    VTabsWindow,
+    VTabsWindowItem,
   },
 })
 

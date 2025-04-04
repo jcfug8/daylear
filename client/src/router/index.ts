@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LogInView from '../views/login/LogInView.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,6 +28,7 @@ const router = createRouter({
       component: () => import('../views/meals/RecipesView.vue'),
       meta: {
         requiresAuth: true,
+        breadcrumbs: true,
       },
     },
     {
@@ -35,6 +37,7 @@ const router = createRouter({
       component: () => import('../views/meals/RecipeView.vue'),
       meta: {
         requiresAuth: true,
+        breadcrumbs: true,
       },
     },
     {
@@ -43,6 +46,7 @@ const router = createRouter({
       component: () => import('../views/meals/IngredientsView.vue'),
       meta: {
         requiresAuth: true,
+        breadcrumbs: true,
       },
     },
     {
@@ -51,6 +55,7 @@ const router = createRouter({
       component: () => import('../views/calendar/CalendarView.vue'),
       meta: {
         requiresAuth: true,
+        breadcrumbs: true,
       },
     },
     {
@@ -59,6 +64,7 @@ const router = createRouter({
       component: () => import('../views/accounts/AccountSettingsView.vue'),
       meta: {
         requiresAuth: true,
+        breadcrumbs: true,
       },
     },
     {
@@ -67,6 +73,7 @@ const router = createRouter({
       component: () => import('../views/accounts/AccountView.vue'),
       meta: {
         requiresAuth: true,
+        breadcrumbs: true,
       },
     },
     {
@@ -75,6 +82,7 @@ const router = createRouter({
       component: () => import('../views/circles/CircleSettingsView.vue'),
       meta: {
         requiresAuth: true,
+        breadcrumbs: true,
       },
     },
     {
@@ -83,6 +91,7 @@ const router = createRouter({
       component: () => import('../views/circles/CircleView.vue'),
       meta: {
         requiresAuth: true,
+        breadcrumbs: true,
       },
     },
   ],

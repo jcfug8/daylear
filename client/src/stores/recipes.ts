@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { Recipe } from '@/genapi/api/meals/recipe/v1alpha1'
+import type { Recipe, Recipe_MeasurementType } from '@/genapi/api/meals/recipe/v1alpha1'
 
 export const useRecipesStore = defineStore('recipes', () => {
   const recipes = ref<Recipe[]>([])
@@ -12,8 +12,76 @@ export const useRecipesStore = defineStore('recipes', () => {
         name: 'users/1/recipes/1',
         title: 'Spaghetti Bolognese',
         description: 'A classic Italian pasta dish with a rich meat sauce.',
-        directions: undefined,
-        ingredientGroups: undefined,
+        directions: [
+          {
+            title: 'Step 1',
+            steps: [
+              'Cook the spaghetti according to package instructions.',
+              'In a separate pan, brown the ground beef over medium heat.',
+              'Add the tomato sauce to the beef and simmer for 10 minutes.',
+              'Serve the sauce over the cooked spaghetti.',
+              'Garnish with grated cheese and fresh basil.',
+            ],
+          },
+          {
+            title: 'Step 2',
+            steps: [
+              'Cook the spaghetti according to package instructions.',
+              'In a separate pan, brown the ground beef over medium heat.',
+              'Add the tomato sauce to the beef and simmer for 10 minutes.',
+              'Serve the sauce over the cooked spaghetti.',
+              'Garnish with grated cheese and fresh basil.',
+            ],
+          },
+        ],
+        ingredientGroups: [
+          {
+            title: 'Ingredients 1',
+            ingredients: [
+              {
+                title: 'Spaghetti',
+                measurementAmount: 10,
+                measurementType: 'MEASUREMENT_TYPE_TABLESPOON',
+                optional: false,
+              },
+              {
+                title: 'Ground Beef',
+                measurementAmount: 20,
+                measurementType: 'MEASUREMENT_TYPE_LITER',
+                optional: false,
+              },
+              {
+                title: 'Tomato Sauce',
+                measurementAmount: 15,
+                measurementType: 'MEASUREMENT_TYPE_TABLESPOON',
+                optional: true,
+              },
+            ],
+          },
+          {
+            title: 'Ingredients 2',
+            ingredients: [
+              {
+                title: 'Spaghetti',
+                measurementAmount: 10,
+                measurementType: 'MEASUREMENT_TYPE_TABLESPOON',
+                optional: false,
+              },
+              {
+                title: 'Ground Beef',
+                measurementAmount: 20,
+                measurementType: 'MEASUREMENT_TYPE_LITER',
+                optional: false,
+              },
+              {
+                title: 'Tomato Sauce',
+                measurementAmount: 15,
+                measurementType: 'MEASUREMENT_TYPE_TABLESPOON',
+                optional: true,
+              },
+            ],
+          },
+        ],
         imagePath: undefined,
         imageUri: 'https://healthfulblondie.com/wp-content/uploads/2022/05/Chicken-Bolognese.jpg',
       },
