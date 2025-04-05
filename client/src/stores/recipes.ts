@@ -14,7 +14,7 @@ export const useRecipesStore = defineStore('recipes', () => {
         description: 'A classic Italian pasta dish with a rich meat sauce.',
         directions: [
           {
-            title: 'Step 1',
+            title: 'Direction Group 1',
             steps: [
               'Cook the spaghetti according to package instructions.',
               'In a separate pan, brown the ground beef over medium heat.',
@@ -24,7 +24,7 @@ export const useRecipesStore = defineStore('recipes', () => {
             ],
           },
           {
-            title: 'Step 2',
+            title: 'Direction Group 2',
             steps: [
               'Cook the spaghetti according to package instructions.',
               'In a separate pan, brown the ground beef over medium heat.',

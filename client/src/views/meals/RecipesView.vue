@@ -27,8 +27,11 @@
 import { useRecipesStore } from '@/stores/recipes'
 import { storeToRefs } from 'pinia'
 import { onMounted } from 'vue'
+import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 
 const recipesStore = useRecipesStore()
+const breadcrumbStore = useBreadcrumbStore()
+breadcrumbStore.setBreadcrumbs([{ title: 'Recipes', href: '/meals/recipes' }])
 
 onMounted(() => {
   recipesStore.loadRecipes()

@@ -46,7 +46,6 @@ const router = createRouter({
       component: () => import('../views/meals/IngredientsView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -55,7 +54,6 @@ const router = createRouter({
       component: () => import('../views/calendar/CalendarView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -64,7 +62,6 @@ const router = createRouter({
       component: () => import('../views/accounts/AccountSettingsView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -73,7 +70,6 @@ const router = createRouter({
       component: () => import('../views/accounts/AccountView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -82,7 +78,6 @@ const router = createRouter({
       component: () => import('../views/circles/CircleSettingsView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -91,7 +86,6 @@ const router = createRouter({
       component: () => import('../views/circles/CircleView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
   ],

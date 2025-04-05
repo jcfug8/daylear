@@ -20,4 +20,4 @@ run_db:
 
 run_s3:
 	@docker rm -f $(S3_CONTAINER)
-	@docker run -d -p 9090:9090 -e initialBuckets=daylear -e debug=true -t $(S3_IMAGE) --name $(S3_CONTAINER)
+	@docker run -d -p 9090:9090 -e initialBuckets=daylear -e debug=true -t --name $(S3_CONTAINER) $(S3_IMAGE) 
