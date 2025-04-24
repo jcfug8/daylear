@@ -16,9 +16,11 @@ import {
   VCardSubtitle,
   VCardText,
   VCardTitle,
+  VCheckbox,
   VCol,
   VContainer,
   VDivider,
+  VFab,
   VForm,
   VIcon,
   VImg,
@@ -30,19 +32,22 @@ import {
   VMenu,
   VNavigationDrawer,
   VRow,
+  VSelect,
   VSheet,
   VSpacer,
   VTab,
   VTabs,
   VTabsWindow,
   VTabsWindowItem,
+  VTextarea,
+  VTextField,
 } from 'vuetify/components'
 import 'vuetify/styles' // Import Vuetify styles
 import '@mdi/font/css/materialdesignicons.css' // Import Material Design Icons
 
 import App from './App.vue'
 import router from './router'
-import { VCalendar } from 'vuetify/labs/components'
+import { VCalendar, VNumberInput } from 'vuetify/labs/components'
 
 const vuetify = createVuetify({
   components: {
@@ -78,6 +83,12 @@ const vuetify = createVuetify({
     VTabs,
     VTabsWindow,
     VTabsWindowItem,
+    VTextField,
+    VTextarea,
+    VSelect,
+    VNumberInput,
+    VCheckbox,
+    VFab,
   },
 })
 

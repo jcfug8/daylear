@@ -42,7 +42,9 @@
     </v-list>
   </v-navigation-drawer>
   <v-app-bar v-if="$route.meta.breadcrumbs && breadcrumbs.length > 0" flat density="compact">
-    <v-breadcrumbs :items="breadcrumbs"></v-breadcrumbs>
+    <v-breadcrumbs
+      :items="breadcrumbs.map((crumb) => ({ title: crumb.title, to: crumb.to }))"
+    ></v-breadcrumbs>
   </v-app-bar>
   <v-navigation-drawer temporary location="right" v-model="accountDrawer" v-if="isLoggedIn">
     <v-list>

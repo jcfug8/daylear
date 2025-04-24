@@ -6,6 +6,12 @@
         <v-tab value="ingredients" text="Ingredients"></v-tab>
         <v-tab value="directions" text="Directions"></v-tab>
       </v-tabs>
+      <template #append>
+        <v-btn
+          icon="mdi-pencil"
+          @click="router.push({ name: 'recipeEdit', params: { recipeId: recipe.name } })"
+        ></v-btn>
+      </template>
     </v-app-bar>
     <v-tabs-window v-model="tab">
       <v-tabs-window-item value="general">
@@ -142,8 +148,11 @@ onMounted(() => {
   recipesStore.loadRecipe(recipeId)
 
   breadcrumbStore.setBreadcrumbs([
-    { title: 'Recipes', href: '/meals/recipes' },
-    { title: recipe.value?.title || '', href: '' },
+    { title: 'Recipes', to: { name: 'recipes' } },
+    {
+      title: recipe.value?.title || '',
+      to: { name: 'recipe', params: { recipeId: recipe.value?.name } },
+    },
   ])
 })
 

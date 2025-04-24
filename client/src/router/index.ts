@@ -41,6 +41,15 @@ const router = createRouter({
       },
     },
     {
+      path: '/meals/recipes/:recipeId/edit',
+      name: 'recipeEdit',
+      component: () => import('../views/meals/RecipeEditView.vue'),
+      meta: {
+        requiresAuth: true,
+        breadcrumbs: true,
+      },
+    },
+    {
       path: '/meals/ingredients',
       name: 'ingredients',
       component: () => import('../views/meals/IngredientsView.vue'),

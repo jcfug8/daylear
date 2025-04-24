@@ -31,7 +31,7 @@ import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 
 const recipesStore = useRecipesStore()
 const breadcrumbStore = useBreadcrumbStore()
-breadcrumbStore.setBreadcrumbs([{ title: 'Recipes', href: '/meals/recipes' }])
+breadcrumbStore.setBreadcrumbs([{ title: 'Recipes', to: { name: 'recipes' } }])
 
 onMounted(() => {
   recipesStore.loadRecipes()
