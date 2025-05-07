@@ -2,14 +2,13 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { User } from '@/genapi/api/users/user/v1alpha1'
 import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
-
+import { userService } from '@/api/api'
 export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = ref(false)
   const user = ref<User>({
     name: '',
     email: '',
-    givenName: '',
-    familyName: '',
+    username: '',
   })
   const circles = ref<Circle[]>([])
   const activeAccount = ref<User | Circle | undefined>()
@@ -57,7 +56,7 @@ export const useAuthStore = defineStore('auth', () => {
     const token = sessionStorage.getItem('jwt') // Retrieve the JWT from sessionStorage
     if (token) {
       console.log('JWT found in sessionStorage')
-      _setupAuthData()
+      await _setupAuthData()
     } else {
       console.log('No JWT found in sessionStorage')
       _clearAuthData()
@@ -71,13 +70,11 @@ export const useAuthStore = defineStore('auth', () => {
    *
    * @private
    */
-  function _setupAuthData() {
-    user.value = {
+  async function _setupAuthData() {
+    user.value = await userService.GetUser({
       name: 'users/1',
-      email: 'jcfug8@gmail.com',
-      givenName: 'Jace',
-      familyName: 'Fugate',
-    }
+    })
+
     circles.value = [
       {
         name: 'circles/1',
@@ -104,8 +101,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = {
       name: '',
       email: '',
-      givenName: '',
-      familyName: '',
+      username: '',
     }
     circles.value = []
     activeAccount.value = undefined

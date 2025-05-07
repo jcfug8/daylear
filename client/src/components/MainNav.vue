@@ -32,12 +32,12 @@
           value="recipes"
           :to="{ name: 'recipes' }"
         ></v-list-item>
-        <v-list-item
+        <!-- <v-list-item
           prepend-icon="mdi-food-apple"
           title="Ingredients"
           value="ingredients"
           :to="{ name: 'ingredients' }"
-        ></v-list-item>
+        ></v-list-item> -->
       </v-list-group>
     </v-list>
   </v-navigation-drawer>
@@ -51,7 +51,7 @@
       <v-list-item
         :active="user?.name === activeAccount?.name"
         prepend-icon="mdi-account-circle"
-        :title="user?.givenName + ' ' + user?.familyName"
+        :title="user?.username"
         @click="activateAccount(user)"
       >
         <template #append>

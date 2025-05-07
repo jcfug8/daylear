@@ -25,7 +25,16 @@ const router = createRouter({
     {
       path: '/meals/recipes',
       name: 'recipes',
-      component: () => import('../views/meals/RecipesView.vue'),
+      component: () => import('../views/meals/recipes/RecipesView.vue'),
+      meta: {
+        requiresAuth: true,
+        breadcrumbs: true,
+      },
+    },
+    {
+      path: '/meals/recipes/create',
+      name: 'recipeCreate',
+      component: () => import('../views/meals/recipes/RecipeCreateView.vue'),
       meta: {
         requiresAuth: true,
         breadcrumbs: true,
@@ -34,7 +43,7 @@ const router = createRouter({
     {
       path: '/meals/recipes/:recipeId',
       name: 'recipe',
-      component: () => import('../views/meals/RecipeView.vue'),
+      component: () => import('../views/meals/recipes/RecipeView.vue'),
       meta: {
         requiresAuth: true,
         breadcrumbs: true,
@@ -43,7 +52,7 @@ const router = createRouter({
     {
       path: '/meals/recipes/:recipeId/edit',
       name: 'recipeEdit',
-      component: () => import('../views/meals/RecipeEditView.vue'),
+      component: () => import('../views/meals/recipes/RecipeEditView.vue'),
       meta: {
         requiresAuth: true,
         breadcrumbs: true,

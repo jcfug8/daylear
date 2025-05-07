@@ -1,0 +1,73 @@
+// (-- api-linter: core::0191::java-outer-classname=disabled
+//     aip.dev/not-precedent: I don't care about java. --)
+// (-- api-linter: core::0191::java-multiple-files=disabled
+//     aip.dev/not-precedent: I don't care about java. --)
+// (-- api-linter: core::0191::java-package=disabled
+//     aip.dev/not-precedent: I don't care about java. --)
+
+syntax = "proto3";
+
+package api.users.user.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+
+// the user service
+service PublicUserService {
+  // list a public user
+  rpc ListPublicUsers(ListPublicUsersRequest) returns (ListPublicUsersResponse) {
+    option (google.api.http) = {get: "/users/v1alpha1/publicUsers"};
+  }
+
+  // get a public user
+  rpc GetPublicUser(GetPublicUserRequest) returns (PublicUser) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {get: "/users/v1alpha1/{name=publicUsers/*}"};
+  }
+}
+
+// the main public user object
+message PublicUser {
+  option (google.api.resource) = {
+    type: "api.users.user.v1alpha1/PublicUser"
+    pattern: "publicUsers/{public_user}"
+    plural: "publicUsers"
+    singular: "publicUser"
+  };
+
+  // the name of the user
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // username
+  string username = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// the request to list public users
+message ListPublicUsersRequest {
+  // returned page
+  int32 page_size = 1 [(google.api.field_behavior) = OPTIONAL];
+  // used to specify the page token
+  string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+  // used to specify the filter
+  string filter = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// the response to list users
+message ListPublicUsersResponse {
+  // the users
+  repeated PublicUser public_users = 1;
+  // the next page token
+  string next_page_token = 2;
+}
+
+// the request to get a public user
+message GetPublicUserRequest {
+  // the name of the public user to get
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.users.user.v1alpha1/PublicUser"
+  ];
+}

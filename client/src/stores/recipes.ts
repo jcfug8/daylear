@@ -1,163 +1,102 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { Recipe, Recipe_MeasurementType } from '@/genapi/api/meals/recipe/v1alpha1'
+import { recipeService } from '@/api/api'
+import type {
+  Recipe,
+  ListRecipesRequest,
+  ListRecipesResponse,
+} from '@/genapi/api/meals/recipe/v1alpha1'
 
 export const useRecipesStore = defineStore('recipes', () => {
   const recipes = ref<Recipe[]>([])
   const recipe = ref<Recipe | undefined>()
 
-  function loadRecipes() {
-    recipes.value = [
-      {
-        name: 'users/1/recipes/1',
-        title: 'Spaghetti Bolognese',
-        description: 'A classic Italian pasta dish with a rich meat sauce.',
-        directions: [
-          {
-            title: 'Direction Group 1',
-            steps: [
-              'Cook the spaghetti according to package instructions.',
-              'In a separate pan, brown the ground beef over medium heat.',
-              'Add the tomato sauce to the beef and simmer for 10 minutes.',
-              'Serve the sauce over the cooked spaghetti.',
-              'Garnish with grated cheese and fresh basil.',
-            ],
-          },
-          {
-            title: 'Direction Group 2',
-            steps: [
-              'Cook the spaghetti according to package instructions.',
-              'In a separate pan, brown the ground beef over medium heat.',
-              'Add the tomato sauce to the beef and simmer for 10 minutes.',
-              'Serve the sauce over the cooked spaghetti.',
-              'Garnish with grated cheese and fresh basil.',
-            ],
-          },
-        ],
-        ingredientGroups: [
-          {
-            title: 'Ingredients 1',
-            ingredients: [
-              {
-                title: 'Spaghetti',
-                measurementAmount: 10,
-                measurementType: 'MEASUREMENT_TYPE_TABLESPOON',
-                optional: false,
-              },
-              {
-                title: 'Ground Beef',
-                measurementAmount: 20,
-                measurementType: 'MEASUREMENT_TYPE_LITER',
-                optional: false,
-              },
-              {
-                title: 'Tomato Sauce',
-                measurementAmount: 15,
-                measurementType: 'MEASUREMENT_TYPE_TABLESPOON',
-                optional: true,
-              },
-            ],
-          },
-          {
-            title: 'Ingredients 2',
-            ingredients: [
-              {
-                title: 'Spaghetti',
-                measurementAmount: 10,
-                measurementType: 'MEASUREMENT_TYPE_TABLESPOON',
-                optional: false,
-              },
-              {
-                title: 'Ground Beef',
-                measurementAmount: 20,
-                measurementType: 'MEASUREMENT_TYPE_LITER',
-                optional: false,
-              },
-              {
-                title: 'Tomato Sauce',
-                measurementAmount: 15,
-                measurementType: 'MEASUREMENT_TYPE_TABLESPOON',
-                optional: true,
-              },
-            ],
-          },
-        ],
-        imagePath: undefined,
-        imageUri: 'https://healthfulblondie.com/wp-content/uploads/2022/05/Chicken-Bolognese.jpg',
-      },
-      {
-        name: 'users/1/recipes/2',
-        title: 'Chicken Curry',
-        description: 'A spicy and flavorful chicken curry.',
-        directions: undefined,
-        ingredientGroups: undefined,
-        imagePath: undefined,
-        imageUri: 'https://upload.wikimedia.org/wikipedia/commons/7/76/Creamy_Chicken_Curry.jpg',
-      },
-      {
-        name: 'users/1/recipes/3',
-        title: 'Vegetable Stir Fry',
-        description: 'A quick and healthy vegetable stir fry.',
-        directions: undefined,
-        ingredientGroups: undefined,
-        imagePath: undefined,
-        imageUri: '',
-      },
-      {
-        name: 'users/1/recipes/4',
-        title: 'Beef Tacos',
-        description: 'Delicious beef tacos with fresh toppings.',
-        directions: undefined,
-        ingredientGroups: undefined,
-        imagePath: undefined,
-        imageUri:
-          'https://cdn12.picryl.com/photo/2016/12/31/taco-mexican-beef-food-drink-256d7b-1024.jpg',
-      },
-      {
-        name: 'users/1/recipes/5',
-        title: 'Caesar Salad',
-        description: 'A classic Caesar salad with romaine lettuce and croutons.',
-        directions: undefined,
-        ingredientGroups: undefined,
-        imagePath: undefined,
-        imageUri: '',
-      },
-      {
-        name: 'users/1/recipes/6',
-        title: 'Chocolate Cake',
-        description: 'A rich and moist chocolate cake.',
-        directions: undefined,
-        ingredientGroups: undefined,
-        imagePath: undefined,
-        imageUri:
-          'https://bakesbybrownsugar.com/wp-content/uploads/2024/02/Chocolate-Sour-Cream-Pound-Cake-22-360x360.jpg',
-      },
-      {
-        name: 'users/1/recipes/7',
-        title: 'Grilled Salmon',
-        description: 'Perfectly grilled salmon with lemon and herbs.',
-        directions: undefined,
-        ingredientGroups: undefined,
-        imagePath: undefined,
-        imageUri:
-          'https://freerangestock.com/sample/166079/grilled-salmon-with-veggies-on-stone-plate.jpg',
-      },
-    ]
+  async function loadRecipes(parent: string = 'users/1') {
+    try {
+      const request = {
+        parent,
+        pageSize: undefined,
+        pageToken: undefined,
+        filter: undefined,
+      }
+      const response = (await recipeService.ListRecipes(
+        request as ListRecipesRequest,
+      )) as ListRecipesResponse
+      recipes.value = response.recipes ?? []
+    } catch (error) {
+      console.error('Failed to load recipes:', error)
+      recipes.value = []
+    }
   }
 
-  function loadRecipe(recipeId: string) {
-    loadRecipes()
-    const recipeFound = recipes.value.find((r) => r.name === recipeId)
-    if (recipeFound) {
-      recipe.value = recipeFound
-    } else {
+  async function loadRecipe(recipeName: string) {
+    try {
+      const result = await recipeService.GetRecipe({ name: recipeName })
+      recipe.value = result
+    } catch (error) {
+      console.error('Failed to load recipe:', error)
       recipe.value = undefined
+    }
+  }
+
+  function initEmptyRecipe() {
+    recipe.value = {
+      name: undefined,
+      title: '',
+      description: '',
+      directions: [],
+      ingredientGroups: [],
+      imageUri: undefined,
+    }
+  }
+
+  async function createRecipe() {
+    if (!recipe.value) {
+      throw new Error('No recipe to create')
+    }
+    if (recipe.value.name) {
+      throw new Error('Recipe already has a name and cannot be created')
+    }
+    try {
+      const created = await recipeService.CreateRecipe({
+        parent: 'users/1',
+        recipe: recipe.value,
+        recipeId: crypto.randomUUID(),
+      })
+      recipe.value = created
+      return created
+    } catch (error) {
+      console.error('Failed to create recipe:', error)
+      throw error
+    }
+  }
+
+  async function updateRecipe() {
+    if (!recipe.value) {
+      throw new Error('No recipe to update')
+    }
+    if (!recipe.value.name) {
+      throw new Error('Recipe must have a name to be updated')
+    }
+    try {
+      const updated = await recipeService.UpdateRecipe({
+        recipe: recipe.value,
+        updateMask: undefined, // Optionally specify fields to update
+      })
+      recipe.value = updated
+      return updated
+    } catch (error) {
+      console.error('Failed to update recipe:', error)
+      throw error
     }
   }
 
   return {
     loadRecipes,
     loadRecipe,
+    initEmptyRecipe,
+    createRecipe,
+    updateRecipe,
     recipes,
     recipe,
   }

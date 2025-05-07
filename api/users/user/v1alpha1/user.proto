@@ -17,39 +17,21 @@ import "google/protobuf/field_mask.proto";
 
 // the user service
 service UserService {
-  // create a user
-  // rpc CreateUser(CreateUserRequest) returns (User) {
-  //   option (google.api.method_signature) = "user,user_id";
-  //   option (google.api.http) = {
-  //     post: "/users/v1alpha1/users"
-  //     body: "user"
-  //   };
-  // }
-
-  // list users
-  // rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
-  //   option (google.api.http) = {get: "/users/v1alpha1/users"};
-  // }
-
-  // update a user
-  // rpc UpdateUser(UpdateUserRequest) returns (User) {
-  //   option (google.api.method_signature) = "user,update_mask";
-  //   option (google.api.http) = {
-  //     patch: "/users/v1alpha1/{user.name=users/*}"
-  //     body: "user"
-  //   };
-  // }
-
-  // delete` a user
-  // rpc DeleteUser(DeleteUserRequest) returns (User) {
-  //   option (google.api.method_signature) = "name";
-  //   option (google.api.http) = {delete: "/users/v1alpha1/{name=users/*}"};
-  // }
-
   // get a user
   rpc GetUser(GetUserRequest) returns (User) {
     option (google.api.method_signature) = "name";
     option (google.api.http) = {get: "/users/v1alpha1/{name=users/*}"};
+  }
+
+  // list users
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+    option (google.api.http) = {get: "/users/v1alpha1/users"};
+  }
+
+  // update a user
+  rpc UpdateUser(UpdateUserRequest) returns (User) {
+    option (google.api.method_signature) = "user,update_mask";
+    option (google.api.http) = {patch: "/users/v1alpha1/{user.name=users/*}" body: "user"};
   }
 }
 
@@ -68,20 +50,17 @@ message User {
   // the email of the user
   string email = 2 [(google.api.field_behavior) = REQUIRED];
 
-  // the given name of the user
-  string given_name = 3 [(google.api.field_behavior) = REQUIRED];
-
-  // the family name of the user
-  string family_name = 4 [(google.api.field_behavior) = REQUIRED];
+  // the username of the user
+  string username = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
-// the request to create a user
-message CreateUserRequest {
-  // the user to create
-  User user = 1 [(google.api.field_behavior) = REQUIRED];
-
-  // the id of the user
-  string user_id = 2 [(google.api.field_behavior) = REQUIRED];
+// the request to get a user
+message GetUserRequest {
+  // the name of the user to get
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.meals.user.v1alpha1/User"
+  ];
 }
 
 // the request to list users
@@ -109,22 +88,4 @@ message UpdateUserRequest {
 
   // the fields to update
   google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
-}
-
-// the request to delete a user
-message DeleteUserRequest {
-  // the name of the user to delete
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).type = "api.meals.user.v1alpha1/User"
-  ];
-}
-
-// the request to get a user
-message GetUserRequest {
-  // the name of the user to get
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).type = "api.meals.user.v1alpha1/User"
-  ];
 }

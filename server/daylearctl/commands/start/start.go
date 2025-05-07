@@ -3,33 +3,32 @@ package start
 import (
 	"flag"
 
-	"github.com/jcfug8/daylear/server/adapters/config"
-	"github.com/jcfug8/daylear/server/adapters/gorm"
-	gorm_dialer "github.com/jcfug8/daylear/server/adapters/gorm/dialer"
-	"github.com/jcfug8/daylear/server/adapters/gorm/dialer/dialects/postgres"
-	"github.com/jcfug8/daylear/server/adapters/grpc/fieldbehaviorvalidator"
-	grpcRecipesV1alpha1 "github.com/jcfug8/daylear/server/adapters/grpc/meals/recipes/v1alpha1"
-	recipesV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/grpc/meals/recipes/v1alpha1/fieldmasker"
-	recipesV1alpha1Namer "github.com/jcfug8/daylear/server/adapters/grpc/meals/recipes/v1alpha1/namer"
-	grpcUsersV1alpha1 "github.com/jcfug8/daylear/server/adapters/grpc/users/user/v1alpha1"
-	usersV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/grpc/users/user/v1alpha1/fieldmasker"
-	usersV1alpha1Namer "github.com/jcfug8/daylear/server/adapters/grpc/users/user/v1alpha1/namer"
-	"github.com/jcfug8/daylear/server/adapters/http/auth"
-	"github.com/jcfug8/daylear/server/adapters/http/files"
-	"github.com/jcfug8/daylear/server/adapters/http/grpcgateway"
-	"github.com/jcfug8/daylear/server/adapters/http/oauth2"
-	"github.com/jcfug8/daylear/server/adapters/http/ping"
-	"github.com/jcfug8/daylear/server/adapters/jwt/token"
-	"github.com/jcfug8/daylear/server/adapters/mimetype"
-	"github.com/jcfug8/daylear/server/adapters/s3"
+	config "github.com/jcfug8/daylear/server/adapters/clients/config"
+	gorm "github.com/jcfug8/daylear/server/adapters/clients/gorm"
+	gorm_dialer "github.com/jcfug8/daylear/server/adapters/clients/gorm/dialer"
+	"github.com/jcfug8/daylear/server/adapters/clients/gorm/dialer/dialects/postgres"
+	tokenClient "github.com/jcfug8/daylear/server/adapters/clients/jwt/token"
+	mimetype "github.com/jcfug8/daylear/server/adapters/clients/mimetype"
+	s3 "github.com/jcfug8/daylear/server/adapters/clients/s3"
+	fieldbehaviorvalidator "github.com/jcfug8/daylear/server/adapters/services/grpc/fieldbehaviorvalidator"
+	grpcRecipesV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1"
+	recipesV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/fieldmasker"
+	recipesV1alpha1Namer "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/namer"
+	grpcUsersV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1"
+	usersV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1/fieldmasker"
+	usersV1alpha1Namer "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1/namer"
+	oauth2 "github.com/jcfug8/daylear/server/adapters/services/http/auth/oauth2"
+	tokenService "github.com/jcfug8/daylear/server/adapters/services/http/auth/token"
+	files "github.com/jcfug8/daylear/server/adapters/services/http/files"
+	grpcgateway "github.com/jcfug8/daylear/server/adapters/services/http/grpcgateway"
 
 	domain "github.com/jcfug8/daylear/server/domain"
 	"go.uber.org/fx"
 
 	// IRIOMO:CUSTOM_CODE_SLOT_START startImports
 
-	httpServer "github.com/jcfug8/daylear/server/adapters/http/server"
-	logger "github.com/jcfug8/daylear/server/adapters/zerolog/logger"
+	logger "github.com/jcfug8/daylear/server/adapters/clients/zerolog/logger"
+	httpServer "github.com/jcfug8/daylear/server/adapters/servers/http"
 	// IRIOMO:CUSTOM_CODE_SLOT_END
 )
 
@@ -57,9 +56,8 @@ func start(opts ...fx.Option) error {
 		fieldbehaviorvalidator.Module,
 
 		// driving/primary adapters
-		ping.Module,
 		oauth2.Module,
-		auth.Module,
+		tokenService.Module,
 		grpcgateway.Module,
 		files.Module,
 		// users
@@ -75,7 +73,7 @@ func start(opts ...fx.Option) error {
 		gorm.Module,
 		gorm_dialer.Module,
 		postgres.Module,
-		token.Module,
+		tokenClient.Module,
 		s3.Module,
 		mimetype.Module,
 

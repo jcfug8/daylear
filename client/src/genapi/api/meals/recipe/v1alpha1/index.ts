@@ -24,10 +24,6 @@ export type Recipe = {
   //
   // Behaviors: OPTIONAL
   ingredientGroups: Recipe_IngredientGroup[] | undefined;
-  // image path
-  //
-  // Behaviors: OUTPUT_ONLY
-  imagePath: string | undefined;
   // image url
   //
   // Behaviors: OPTIONAL

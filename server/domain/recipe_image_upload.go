@@ -7,7 +7,6 @@ import (
 	"path"
 	"strconv"
 
-	"github.com/jcfug8/daylear/server/core/errz"
 	model "github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	uuid "github.com/satori/go.uuid"
@@ -20,11 +19,11 @@ const (
 // UploadRecipeImage -
 func (d *Domain) UploadRecipeImage(ctx context.Context, parent model.RecipeParent, id model.RecipeId, imageReader io.Reader) (imageURI string, err error) {
 	if parent.UserId == 0 {
-		return "", errz.NewInvalidArgument("parent required")
+		return "", ErrInvalidArgument{Msg: "parent required"}
 	}
 
 	if id.RecipeId == 0 {
-		return "", errz.NewInvalidArgument("id required")
+		return "", ErrInvalidArgument{Msg: "id required"}
 	}
 
 	permission, err := d.repo.GetRecipeUserPermission(ctx, parent.UserId, id.RecipeId)
@@ -32,7 +31,7 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, parent model.RecipeParen
 		return "", err
 	}
 	if permission != pb.ShareRecipeRequest_RESOURCE_PERMISSION_WRITE {
-		return "", errz.NewPermissionDenied("user does not have write permission")
+		return "", ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 
 	recipe, err := d.GetRecipe(ctx, parent, id, []string{model.RecipeFields.ImageURI})

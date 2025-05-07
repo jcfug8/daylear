@@ -170,10 +170,8 @@ type Recipe struct {
 	Directions []*Recipe_Direction `protobuf:"bytes,4,rep,name=directions,proto3" json:"directions,omitempty"`
 	// the ingredient groups in the recipe
 	IngredientGroups []*Recipe_IngredientGroup `protobuf:"bytes,5,rep,name=ingredient_groups,json=ingredientGroups,proto3" json:"ingredient_groups,omitempty"`
-	// image path
-	ImagePath string `protobuf:"bytes,8,opt,name=image_path,json=imagePath,proto3" json:"image_path,omitempty"`
 	// image url
-	ImageUri      string `protobuf:"bytes,9,opt,name=image_uri,json=imageUri,proto3" json:"image_uri,omitempty"`
+	ImageUri      string `protobuf:"bytes,10,opt,name=image_uri,json=imageUri,proto3" json:"image_uri,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -241,13 +239,6 @@ func (x *Recipe) GetIngredientGroups() []*Recipe_IngredientGroup {
 		return x.IngredientGroups
 	}
 	return nil
-}
-
-func (x *Recipe) GetImagePath() string {
-	if x != nil {
-		return x.ImagePath
-	}
-	return ""
 }
 
 func (x *Recipe) GetImageUri() string {
@@ -885,7 +876,7 @@ var File_api_meals_recipe_v1alpha1_recipe_proto protoreflect.FileDescriptor
 
 const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\n" +
-	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\"\xe6\b\n" +
+	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\"\xc2\b\n" +
 	"\x06Recipe\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
@@ -893,10 +884,9 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\n" +
 	"directions\x18\x04 \x03(\v2+.api.meals.recipe.v1alpha1.Recipe.DirectionB\x03\xe0A\x01R\n" +
 	"directions\x12c\n" +
-	"\x11ingredient_groups\x18\x05 \x03(\v21.api.meals.recipe.v1alpha1.Recipe.IngredientGroupB\x03\xe0A\x01R\x10ingredientGroups\x12\"\n" +
-	"\n" +
-	"image_path\x18\b \x01(\tB\x03\xe0A\x03R\timagePath\x12 \n" +
-	"\timage_uri\x18\t \x01(\tB\x03\xe0A\x01R\bimageUri\x1aA\n" +
+	"\x11ingredient_groups\x18\x05 \x03(\v21.api.meals.recipe.v1alpha1.Recipe.IngredientGroupB\x03\xe0A\x01R\x10ingredientGroups\x12 \n" +
+	"\timage_uri\x18\n" +
+	" \x01(\tB\x03\xe0A\x01R\bimageUri\x1aA\n" +
 	"\tDirection\x12\x19\n" +
 	"\x05title\x18\x01 \x01(\tB\x03\xe0A\x01R\x05title\x12\x19\n" +
 	"\x05steps\x18\x02 \x03(\tB\x03\xe0A\x02R\x05steps\x1a\x81\x01\n" +

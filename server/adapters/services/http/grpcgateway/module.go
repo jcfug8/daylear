@@ -1,0 +1,16 @@
+package grpcgateway
+
+import (
+	server "github.com/jcfug8/daylear/server/adapters/servers/http"
+
+	"go.uber.org/fx"
+)
+
+var Module = fx.Module(
+	"userGrpcAdapter",
+	fx.Provide(
+		NewService,
+	),
+
+	server.ProvideAsService[*Service](),
+)

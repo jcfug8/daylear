@@ -4,18 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jcfug8/daylear/server/core/errz"
 	model "github.com/jcfug8/daylear/server/core/model"
 )
 
 // GetRecipe gets a recipe.
 func (d *Domain) GetRecipe(ctx context.Context, parent model.RecipeParent, id model.RecipeId, fieldMask []string) (model.Recipe, error) {
 	if parent.UserId == 0 {
-		return model.Recipe{}, errz.NewInvalidArgument("parent required")
+		return model.Recipe{}, ErrInvalidArgument{Msg: "parent required"}
 	}
 
 	if id.RecipeId == 0 {
-		return model.Recipe{}, errz.NewInvalidArgument("id required")
+		return model.Recipe{}, ErrInvalidArgument{Msg: "id required"}
 	}
 
 	_, err := d.repo.GetRecipeUserPermission(ctx, parent.UserId, id.RecipeId)

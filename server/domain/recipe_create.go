@@ -3,7 +3,6 @@ package domain
 import (
 	"context"
 
-	"github.com/jcfug8/daylear/server/core/errz"
 	model "github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	"github.com/jcfug8/daylear/server/ports/repository"
@@ -12,7 +11,7 @@ import (
 // CreateRecipe creates a new recipe.
 func (d *Domain) CreateRecipe(ctx context.Context, recipe model.Recipe) (model.Recipe, error) {
 	if recipe.Parent.UserId == 0 {
-		return model.Recipe{}, errz.NewInvalidArgument("parent required")
+		return model.Recipe{}, ErrInvalidArgument{Msg: "parent required"}
 	}
 
 	recipe.Id.RecipeId = 0

@@ -88,11 +88,8 @@ message Recipe {
   // the ingredient groups in the recipe
   repeated IngredientGroup ingredient_groups = 5 [(google.api.field_behavior) = OPTIONAL];
 
-  // image path
-  string image_path = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
-
   // image url
-  string image_uri = 9 [(google.api.field_behavior) = OPTIONAL];
+  string image_uri = 10 [(google.api.field_behavior) = OPTIONAL];
 
   // the directions to make the recipe
   message Direction {

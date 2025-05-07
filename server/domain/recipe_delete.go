@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jcfug8/daylear/server/core/errz"
 	model "github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 )
@@ -12,11 +11,11 @@ import (
 // DeleteRecipe deletes a recipe.
 func (d *Domain) DeleteRecipe(ctx context.Context, parent model.RecipeParent, id model.RecipeId) (model.Recipe, error) {
 	if parent.UserId == 0 {
-		return model.Recipe{}, errz.NewInvalidArgument("parent required")
+		return model.Recipe{}, ErrInvalidArgument{Msg: "parent required"}
 	}
 
 	if id.RecipeId == 0 {
-		return model.Recipe{}, errz.NewInvalidArgument("id required")
+		return model.Recipe{}, ErrInvalidArgument{Msg: "id required"}
 	}
 
 	permission, err := d.repo.GetRecipeUserPermission(ctx, parent.UserId, id.RecipeId)
@@ -24,7 +23,7 @@ func (d *Domain) DeleteRecipe(ctx context.Context, parent model.RecipeParent, id
 		return model.Recipe{}, err
 	}
 	if permission != pb.ShareRecipeRequest_RESOURCE_PERMISSION_WRITE {
-		return model.Recipe{}, errz.NewPermissionDenied("user does not have write permission")
+		return model.Recipe{}, ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 
 	tx, err := d.repo.Begin(ctx)

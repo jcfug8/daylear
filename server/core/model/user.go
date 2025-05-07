@@ -8,6 +8,7 @@ import (
 type User struct {
 	Id    UserId
 	Email string
+	Username string
 
 	AmazonId   string
 	FacebookId string
@@ -26,7 +27,7 @@ type UserId struct {
 var UserFields = userFields{
 	Id:    "id",
 	Email: "email",
-
+	Username: "username",
 	GoogleId:   "google_id",
 	FacebookId: "facebook_id",
 	AmazonId:   "amazon_id",
@@ -35,7 +36,7 @@ var UserFields = userFields{
 type userFields struct {
 	Id    string
 	Email string
-
+	Username string
 	GoogleId   string
 	FacebookId string
 	AmazonId   string
@@ -46,7 +47,7 @@ func (fields userFields) Mask() []string {
 	return []string{
 		fields.Id,
 		fields.Email,
-
+		fields.Username,
 		fields.GoogleId,
 		fields.FacebookId,
 		fields.AmazonId,
@@ -55,7 +56,9 @@ func (fields userFields) Mask() []string {
 
 // UpdateMask returns the subset of provided fields that can be updated.
 func (fields userFields) UpdateMask(mask []string) []string {
-	updatable := []string{}
+	updatable := []string{
+		fields.Username,
+	}
 
 	if len(mask) == 0 {
 		return updatable

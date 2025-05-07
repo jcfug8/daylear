@@ -37,10 +37,8 @@ type User struct {
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// the email of the user
 	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
-	// the given name of the user
-	GivenName string `protobuf:"bytes,3,opt,name=given_name,json=givenName,proto3" json:"given_name,omitempty"`
-	// the family name of the user
-	FamilyName    string `protobuf:"bytes,4,opt,name=family_name,json=familyName,proto3" json:"family_name,omitempty"`
+	// the username of the user
+	Username      string `protobuf:"bytes,3,opt,name=username,proto3" json:"username,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -89,45 +87,36 @@ func (x *User) GetEmail() string {
 	return ""
 }
 
-func (x *User) GetGivenName() string {
+func (x *User) GetUsername() string {
 	if x != nil {
-		return x.GivenName
+		return x.Username
 	}
 	return ""
 }
 
-func (x *User) GetFamilyName() string {
-	if x != nil {
-		return x.FamilyName
-	}
-	return ""
-}
-
-// the request to create a user
-type CreateUserRequest struct {
+// the request to get a user
+type GetUserRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// the user to create
-	User *User `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
-	// the id of the user
-	UserId        string `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	// the name of the user to get
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateUserRequest) Reset() {
-	*x = CreateUserRequest{}
+func (x *GetUserRequest) Reset() {
+	*x = GetUserRequest{}
 	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateUserRequest) String() string {
+func (x *GetUserRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateUserRequest) ProtoMessage() {}
+func (*GetUserRequest) ProtoMessage() {}
 
-func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
+func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -139,21 +128,14 @@ func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateUserRequest.ProtoReflect.Descriptor instead.
-func (*CreateUserRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetUserRequest.ProtoReflect.Descriptor instead.
+func (*GetUserRequest) Descriptor() ([]byte, []int) {
 	return file_api_users_user_v1alpha1_user_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CreateUserRequest) GetUser() *User {
+func (x *GetUserRequest) GetName() string {
 	if x != nil {
-		return x.User
-	}
-	return nil
-}
-
-func (x *CreateUserRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
+		return x.Name
 	}
 	return ""
 }
@@ -332,114 +314,19 @@ func (x *UpdateUserRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
 	return nil
 }
 
-// the request to delete a user
-type DeleteUserRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// the name of the user to delete
-	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DeleteUserRequest) Reset() {
-	*x = DeleteUserRequest{}
-	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DeleteUserRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DeleteUserRequest) ProtoMessage() {}
-
-func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
-func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
-	return file_api_users_user_v1alpha1_user_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *DeleteUserRequest) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-// the request to get a user
-type GetUserRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// the name of the user to get
-	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUserRequest) Reset() {
-	*x = GetUserRequest{}
-	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUserRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUserRequest) ProtoMessage() {}
-
-func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUserRequest.ProtoReflect.Descriptor instead.
-func (*GetUserRequest) Descriptor() ([]byte, []int) {
-	return file_api_users_user_v1alpha1_user_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *GetUserRequest) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
 var File_api_users_user_v1alpha1_user_proto protoreflect.FileDescriptor
 
 const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\n" +
-	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\"\xc2\x01\n" +
+	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\"\x99\x01\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
-	"\x05email\x18\x02 \x01(\tB\x03\xe0A\x02R\x05email\x12\"\n" +
-	"\n" +
-	"given_name\x18\x03 \x01(\tB\x03\xe0A\x02R\tgivenName\x12$\n" +
-	"\vfamily_name\x18\x04 \x01(\tB\x03\xe0A\x02R\n" +
-	"familyName:<\xeaA9\n" +
-	"\x1capi.meals.user.v1alpha1/User\x12\fusers/{user}*\x05users2\x04user\"i\n" +
-	"\x11CreateUserRequest\x126\n" +
-	"\x04user\x18\x01 \x01(\v2\x1d.api.users.user.v1alpha1.UserB\x03\xe0A\x02R\x04user\x12\x1c\n" +
-	"\auser_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x06userId\"u\n" +
+	"\x05email\x18\x02 \x01(\tB\x03\xe0A\x02R\x05email\x12\x1f\n" +
+	"\busername\x18\x03 \x01(\tB\x03\xe0A\x02R\busername:<\xeaA9\n" +
+	"\x1capi.meals.user.v1alpha1/User\x12\fusers/{user}*\x05users2\x04user\"J\n" +
+	"\x0eGetUserRequest\x128\n" +
+	"\x04name\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x1e\n" +
+	"\x1capi.meals.user.v1alpha1/UserR\x04name\"u\n" +
 	"\x10ListUsersRequest\x12 \n" +
 	"\tpage_size\x18\x01 \x01(\x05B\x03\xe0A\x01R\bpageSize\x12\"\n" +
 	"\n" +
@@ -451,15 +338,12 @@ const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\x11UpdateUserRequest\x126\n" +
 	"\x04user\x18\x01 \x01(\v2\x1d.api.users.user.v1alpha1.UserB\x03\xe0A\x02R\x04user\x12@\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x03\xe0A\x01R\n" +
-	"updateMask\"M\n" +
-	"\x11DeleteUserRequest\x128\n" +
-	"\x04name\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x1e\n" +
-	"\x1capi.meals.user.v1alpha1/UserR\x04name\"J\n" +
-	"\x0eGetUserRequest\x128\n" +
-	"\x04name\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x1e\n" +
-	"\x1capi.meals.user.v1alpha1/UserR\x04name2\x90\x01\n" +
+	"updateMask2\xb4\x03\n" +
 	"\vUserService\x12\x80\x01\n" +
-	"\aGetUser\x12'.api.users.user.v1alpha1.GetUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"-\xdaA\x04name\x82\xd3\xe4\x93\x02 \x12\x1e/users/v1alpha1/{name=users/*}B\xf5\x01\n" +
+	"\aGetUser\x12'.api.users.user.v1alpha1.GetUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"-\xdaA\x04name\x82\xd3\xe4\x93\x02 \x12\x1e/users/v1alpha1/{name=users/*}\x12\x81\x01\n" +
+	"\tListUsers\x12).api.users.user.v1alpha1.ListUsersRequest\x1a*.api.users.user.v1alpha1.ListUsersResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/users/v1alpha1/users\x12\x9d\x01\n" +
+	"\n" +
+	"UpdateUser\x12*.api.users.user.v1alpha1.UpdateUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"D\xdaA\x10user,update_mask\x82\xd3\xe4\x93\x02+:\x04user2#/users/v1alpha1/{user.name=users/*}B\xf5\x01\n" +
 	"\x1bcom.api.users.user.v1alpha1B\tUserProtoP\x01ZLgithub.com/jcfug8/daylear/server/genapi/api/users/user/v1alpha1;userv1alpha1\xa2\x02\x03AUU\xaa\x02\x17Api.Users.User.V1alpha1\xca\x02\x17Api\\Users\\User\\V1alpha1\xe2\x02#Api\\Users\\User\\V1alpha1\\GPBMetadata\xea\x02\x1aApi::Users::User::V1alpha1b\x06proto3"
 
 var (
@@ -474,29 +358,30 @@ func file_api_users_user_v1alpha1_user_proto_rawDescGZIP() []byte {
 	return file_api_users_user_v1alpha1_user_proto_rawDescData
 }
 
-var file_api_users_user_v1alpha1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_api_users_user_v1alpha1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_api_users_user_v1alpha1_user_proto_goTypes = []any{
 	(*User)(nil),                  // 0: api.users.user.v1alpha1.User
-	(*CreateUserRequest)(nil),     // 1: api.users.user.v1alpha1.CreateUserRequest
+	(*GetUserRequest)(nil),        // 1: api.users.user.v1alpha1.GetUserRequest
 	(*ListUsersRequest)(nil),      // 2: api.users.user.v1alpha1.ListUsersRequest
 	(*ListUsersResponse)(nil),     // 3: api.users.user.v1alpha1.ListUsersResponse
 	(*UpdateUserRequest)(nil),     // 4: api.users.user.v1alpha1.UpdateUserRequest
-	(*DeleteUserRequest)(nil),     // 5: api.users.user.v1alpha1.DeleteUserRequest
-	(*GetUserRequest)(nil),        // 6: api.users.user.v1alpha1.GetUserRequest
-	(*fieldmaskpb.FieldMask)(nil), // 7: google.protobuf.FieldMask
+	(*fieldmaskpb.FieldMask)(nil), // 5: google.protobuf.FieldMask
 }
 var file_api_users_user_v1alpha1_user_proto_depIdxs = []int32{
-	0, // 0: api.users.user.v1alpha1.CreateUserRequest.user:type_name -> api.users.user.v1alpha1.User
-	0, // 1: api.users.user.v1alpha1.ListUsersResponse.users:type_name -> api.users.user.v1alpha1.User
-	0, // 2: api.users.user.v1alpha1.UpdateUserRequest.user:type_name -> api.users.user.v1alpha1.User
-	7, // 3: api.users.user.v1alpha1.UpdateUserRequest.update_mask:type_name -> google.protobuf.FieldMask
-	6, // 4: api.users.user.v1alpha1.UserService.GetUser:input_type -> api.users.user.v1alpha1.GetUserRequest
-	0, // 5: api.users.user.v1alpha1.UserService.GetUser:output_type -> api.users.user.v1alpha1.User
-	5, // [5:6] is the sub-list for method output_type
-	4, // [4:5] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	0, // 0: api.users.user.v1alpha1.ListUsersResponse.users:type_name -> api.users.user.v1alpha1.User
+	0, // 1: api.users.user.v1alpha1.UpdateUserRequest.user:type_name -> api.users.user.v1alpha1.User
+	5, // 2: api.users.user.v1alpha1.UpdateUserRequest.update_mask:type_name -> google.protobuf.FieldMask
+	1, // 3: api.users.user.v1alpha1.UserService.GetUser:input_type -> api.users.user.v1alpha1.GetUserRequest
+	2, // 4: api.users.user.v1alpha1.UserService.ListUsers:input_type -> api.users.user.v1alpha1.ListUsersRequest
+	4, // 5: api.users.user.v1alpha1.UserService.UpdateUser:input_type -> api.users.user.v1alpha1.UpdateUserRequest
+	0, // 6: api.users.user.v1alpha1.UserService.GetUser:output_type -> api.users.user.v1alpha1.User
+	3, // 7: api.users.user.v1alpha1.UserService.ListUsers:output_type -> api.users.user.v1alpha1.ListUsersResponse
+	0, // 8: api.users.user.v1alpha1.UserService.UpdateUser:output_type -> api.users.user.v1alpha1.User
+	6, // [6:9] is the sub-list for method output_type
+	3, // [3:6] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_api_users_user_v1alpha1_user_proto_init() }
@@ -510,7 +395,7 @@ func file_api_users_user_v1alpha1_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_users_user_v1alpha1_user_proto_rawDesc), len(file_api_users_user_v1alpha1_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

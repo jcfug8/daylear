@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jcfug8/daylear/server/core/errz"
 	"github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/ports/domain"
 )
 
 func (d *Domain) IdentifyUser(ctx context.Context, user model.User) (model.User, error) {
@@ -25,11 +25,11 @@ func (d *Domain) IdentifyUser(ctx context.Context, user model.User) (model.User,
 	}
 
 	if len(users) > 1 {
-		return model.User{}, errz.NewInternal("Multiple users found")
+		return model.User{}, domain.ErrInternal{Msg: "Multiple users found"}
 	}
 
 	if len(users) == 0 {
-		return model.User{}, errz.NewNotFound("User not found")
+		return model.User{}, domain.ErrNotFound{Msg: "User not found"}
 	}
 
 	return users[0], nil

@@ -2,6 +2,118 @@
 /* eslint-disable camelcase */
 // @ts-nocheck
 
+// the main public user object
+export type PublicUser = {
+  // the name of the user
+  //
+  // Behaviors: IDENTIFIER
+  name: string | undefined;
+  // username
+  //
+  // Behaviors: REQUIRED
+  username: string | undefined;
+};
+
+// the request to list public users
+export type ListPublicUsersRequest = {
+  // returned page
+  //
+  // Behaviors: OPTIONAL
+  pageSize: number | undefined;
+  // used to specify the page token
+  //
+  // Behaviors: OPTIONAL
+  pageToken: string | undefined;
+  // used to specify the filter
+  //
+  // Behaviors: OPTIONAL
+  filter: string | undefined;
+};
+
+// the response to list users
+export type ListPublicUsersResponse = {
+  // the users
+  publicUsers: PublicUser[] | undefined;
+  // the next page token
+  nextPageToken: string | undefined;
+};
+
+// the request to get a public user
+export type GetPublicUserRequest = {
+  // the name of the public user to get
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the user service
+export interface PublicUserService {
+  // list a public user
+  ListPublicUsers(request: ListPublicUsersRequest): Promise<ListPublicUsersResponse>;
+  // get a public user
+  GetPublicUser(request: GetPublicUserRequest): Promise<PublicUser>;
+}
+
+type RequestType = {
+  path: string;
+  method: string;
+  body: string | null;
+};
+
+type RequestHandler = (request: RequestType, meta: { service: string, method: string }) => Promise<unknown>;
+
+export function createPublicUserServiceClient(
+  handler: RequestHandler
+): PublicUserService {
+  return {
+    ListPublicUsers(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `users/v1alpha1/publicusers`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.pageSize) {
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
+      }
+      if (request.pageToken) {
+        queryParams.push(`pageToken=${encodeURIComponent(request.pageToken.toString())}`)
+      }
+      if (request.filter) {
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "PublicUserService",
+        method: "ListPublicUsers",
+      }) as Promise<ListPublicUsersResponse>;
+    },
+    GetPublicUser(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `users/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "PublicUserService",
+        method: "GetPublicUser",
+      }) as Promise<PublicUser>;
+    },
+  };
+}
 // the main user object
 export type User = {
   // the name of the user
@@ -12,26 +124,18 @@ export type User = {
   //
   // Behaviors: REQUIRED
   email: string | undefined;
-  // the given name of the user
+  // the username of the user
   //
   // Behaviors: REQUIRED
-  givenName: string | undefined;
-  // the family name of the user
-  //
-  // Behaviors: REQUIRED
-  familyName: string | undefined;
+  username: string | undefined;
 };
 
-// the request to create a user
-export type CreateUserRequest = {
-  // the user to create
+// the request to get a user
+export type GetUserRequest = {
+  // the name of the user to get
   //
   // Behaviors: REQUIRED
-  user: User | undefined;
-  // the id of the user
-  //
-  // Behaviors: REQUIRED
-  userId: string | undefined;
+  name: string | undefined;
 };
 
 // the request to list users
@@ -98,35 +202,15 @@ export type UpdateUserRequest = {
 //     }
 type wellKnownFieldMask = string;
 
-// the request to delete a user
-export type DeleteUserRequest = {
-  // the name of the user to delete
-  //
-  // Behaviors: REQUIRED
-  name: string | undefined;
-};
-
-// the request to get a user
-export type GetUserRequest = {
-  // the name of the user to get
-  //
-  // Behaviors: REQUIRED
-  name: string | undefined;
-};
-
 // the user service
 export interface UserService {
   // get a user
   GetUser(request: GetUserRequest): Promise<User>;
+  // list users
+  ListUsers(request: ListUsersRequest): Promise<ListUsersResponse>;
+  // update a user
+  UpdateUser(request: UpdateUserRequest): Promise<User>;
 }
-
-type RequestType = {
-  path: string;
-  method: string;
-  body: string | null;
-};
-
-type RequestHandler = (request: RequestType, meta: { service: string, method: string }) => Promise<unknown>;
 
 export function createUserServiceClient(
   handler: RequestHandler
@@ -150,6 +234,55 @@ export function createUserServiceClient(
       }, {
         service: "UserService",
         method: "GetUser",
+      }) as Promise<User>;
+    },
+    ListUsers(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `users/v1alpha1/users`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.pageSize) {
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
+      }
+      if (request.pageToken) {
+        queryParams.push(`pageToken=${encodeURIComponent(request.pageToken.toString())}`)
+      }
+      if (request.filter) {
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "UserService",
+        method: "ListUsers",
+      }) as Promise<ListUsersResponse>;
+    },
+    UpdateUser(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.user?.name) {
+        throw new Error("missing required field request.user.name");
+      }
+      const path = `users/v1alpha1/${request.user.name}`; // eslint-disable-line quotes
+      const body = JSON.stringify(request?.user ?? {});
+      const queryParams: string[] = [];
+      if (request.updateMask) {
+        queryParams.push(`updateMask=${encodeURIComponent(request.updateMask.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "PATCH",
+        body,
+      }, {
+        service: "UserService",
+        method: "UpdateUser",
       }) as Promise<User>;
     },
   };
