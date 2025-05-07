@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1/namer"
+	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/ports/config"
 	"github.com/jcfug8/daylear/server/ports/domain"
 )
@@ -43,6 +44,7 @@ func NewService(domain domain.Domain, configClient config.Client) *Service {
 
 func (s *Service) Register(m *http.ServeMux) error {
 	m.Handle("/auth/token/", http.HandlerFunc(s.GetToken))
+	m.Handle("/auth/check/token/", headers.NewAuthTokenMiddleware(s.domain)(http.HandlerFunc(s.CheckToken)))
 	return nil
 }
 

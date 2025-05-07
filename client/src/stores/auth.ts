@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { User } from '@/genapi/api/users/user/v1alpha1'
 import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
-import { userService } from '@/api/api'
+import { authenticatedFetchHandler,userService } from '@/api/api'
 export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = ref(false)
   const user = ref<User>({
@@ -71,8 +71,24 @@ export const useAuthStore = defineStore('auth', () => {
    * @private
    */
   async function _setupAuthData() {
+    let userId: Number = 0
+    try {
+      let res = await authenticatedFetchHandler({
+        path: '/auth/check/token',
+        method: 'GET',
+        body: null,
+      })
+      if (!res.ok) {
+        throw new Error('Unauthorized')
+      }
+      let simpleUser = await res.json() 
+      userId = simpleUser.user_id
+    } catch (error) {
+      console.error('Error:', error)
+    }
+
     user.value = await userService.GetUser({
-      name: 'users/1',
+      name: `users/${userId}`,
     })
 
     circles.value = [

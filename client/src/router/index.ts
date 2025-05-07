@@ -75,17 +75,17 @@ const router = createRouter({
       },
     },
     {
-      path: '/account/:accountId/settings',
-      name: 'account-settings',
-      component: () => import('../views/accounts/AccountSettingsView.vue'),
+      path: '/user/:userId/settings',
+      name: 'user-settings',
+      component: () => import('../views/accounts/UserSettingsView.vue'),
       meta: {
         requiresAuth: true,
       },
     },
     {
-      path: '/account/:accountId',
-      name: 'account',
-      component: () => import('../views/accounts/AccountView.vue'),
+      path: '/user/:userId',
+      name: 'user',
+      component: () => import('../views/accounts/UserView.vue'),
       meta: {
         requiresAuth: true,
       },

@@ -4,9 +4,9 @@ import { createUserServiceClient } from '@/genapi/api/users/user/v1alpha1'
 const API_BASE_URL = 'http://localhost:8080/'
 
 // Generic fetch handler for the generated API client
-const authenticatedFetchHandler = async (
+export const authenticatedFetchHandler = async (
   request: { path: string; method: string; body: string | null },
-  _meta: { service: string; method: string },
+  _meta?: { service: string; method: string },
 ) => {
   const token = sessionStorage.getItem('jwt')
   const headers: Record<string, string> = {
