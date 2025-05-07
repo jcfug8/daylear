@@ -12,5 +12,5 @@ type User struct {
 
 // TableName -
 func (User) TableName() string {
-	return "public.user"
+	return "daylear_user"
 }

@@ -34,6 +34,7 @@ func (repo *Client) ListUsers(ctx context.Context, page *cmodel.PageToken[cmodel
 			cmodel.UserFields.GoogleId:   filtering.NewSQLField[string](gmodel.UserFields.GoogleId, "="),
 			cmodel.UserFields.FacebookId: filtering.NewSQLField[string](gmodel.UserFields.FacebookId, "="),
 			cmodel.UserFields.AmazonId:   filtering.NewSQLField[string](gmodel.UserFields.AmazonId, "="),
+			cmodel.UserFields.Username:   filtering.NewSQLField[string](gmodel.UserFields.Username, "="),
 		})
 
 	filterClause, _ /* info */, err := t.Transpile(filter)

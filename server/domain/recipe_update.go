@@ -8,17 +8,18 @@ import (
 
 	"github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+	"github.com/jcfug8/daylear/server/ports/domain"
 	"github.com/jcfug8/daylear/server/ports/repository"
 )
 
 // UpdateRecipe updates a recipe.
 func (d *Domain) UpdateRecipe(ctx context.Context, recipe model.Recipe, updateMask []string) (model.Recipe, error) {
 	if recipe.Parent.UserId == 0 {
-		return model.Recipe{}, ErrInvalidArgument{Msg: "parent required"}
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "parent required"}
 	}
 
 	if recipe.Id.RecipeId == 0 {
-		return model.Recipe{}, ErrInvalidArgument{Msg: "id required"}
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
 	permission, err := d.repo.GetRecipeUserPermission(ctx, recipe.Parent.UserId, recipe.Id.RecipeId)
@@ -26,7 +27,7 @@ func (d *Domain) UpdateRecipe(ctx context.Context, recipe model.Recipe, updateMa
 		return model.Recipe{}, err
 	}
 	if permission != pb.ShareRecipeRequest_RESOURCE_PERMISSION_WRITE {
-		return model.Recipe{}, ErrPermissionDenied{Msg: "user does not have write permission"}
+		return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 
 	tx, err := d.repo.Begin(ctx)

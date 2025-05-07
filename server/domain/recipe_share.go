@@ -8,18 +8,19 @@ import (
 
 	model "github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+	"github.com/jcfug8/daylear/server/ports/domain"
 )
 
 // ShareRecipe deletes a recipe.
 func (d *Domain) ShareRecipe(ctx context.Context, parent model.RecipeParent, parents []model.RecipeParent, id model.RecipeId, permission pb.ShareRecipeRequest_ResourcePermission) error {
 	for _, parent := range parents {
 		if parent.UserId == 0 {
-			return ErrInvalidArgument{Msg: "parent required"}
+			return domain.ErrInvalidArgument{Msg: "parent required"}
 		}
 	}
 
 	if id.RecipeId == 0 {
-		return ErrInvalidArgument{Msg: "id required"}
+		return domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
 	permission, err := d.repo.GetRecipeUserPermission(ctx, parent.UserId, id.RecipeId)
@@ -27,7 +28,7 @@ func (d *Domain) ShareRecipe(ctx context.Context, parent model.RecipeParent, par
 		return err
 	}
 	if permission != pb.ShareRecipeRequest_RESOURCE_PERMISSION_WRITE {
-		return ErrPermissionDenied{Msg: "user does not have write permission"}
+		return domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 
 	// filter out the the current parent

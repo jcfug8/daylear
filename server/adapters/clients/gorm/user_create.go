@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	"github.com/jcfug8/daylear/server/core/masks"
@@ -23,8 +22,6 @@ func (repo *Client) CreateUser(ctx context.Context, m cmodel.User) (cmodel.User,
 	}
 
 	fields := masks.RemovePaths(gmodel.UserFields.Mask())
-
-	gm.Username = uuid.New().String()
 
 	err = repo.db.WithContext(ctx).
 		Select(fields).

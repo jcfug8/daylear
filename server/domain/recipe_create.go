@@ -5,13 +5,14 @@ import (
 
 	model "github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+	domain "github.com/jcfug8/daylear/server/ports/domain"
 	"github.com/jcfug8/daylear/server/ports/repository"
 )
 
 // CreateRecipe creates a new recipe.
 func (d *Domain) CreateRecipe(ctx context.Context, recipe model.Recipe) (model.Recipe, error) {
 	if recipe.Parent.UserId == 0 {
-		return model.Recipe{}, ErrInvalidArgument{Msg: "parent required"}
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "parent required"}
 	}
 
 	recipe.Id.RecipeId = 0
