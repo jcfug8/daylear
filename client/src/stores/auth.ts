@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { User } from '@/genapi/api/users/user/v1alpha1'
 import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
-import { authenticatedFetchHandler,userService } from '@/api/api'
+import { userService, authService } from '@/api/api'
 export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = ref(false)
   const user = ref<User>({
@@ -45,9 +45,14 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (value) {
       try {
-        let res = await fetch(`http://localhost:8080/auth/token/${value}`)
-        let data = await res.json()
-        sessionStorage.setItem('jwt', data.token)
+        let res = await authService.ExchangeToken({
+          tokenKey: value,
+        })
+        if (res.token) {
+          sessionStorage.setItem('jwt', res.token)
+        } else {
+          throw new Error('No token returned from auth service')
+        }
       } catch (error) {
         console.error('Error:', error)
       }
@@ -73,16 +78,12 @@ export const useAuthStore = defineStore('auth', () => {
   async function _setupAuthData() {
     let userId: Number = 0
     try {
-      let res = await authenticatedFetchHandler({
-        path: '/auth/check/token',
-        method: 'GET',
-        body: null,
-      })
-      if (!res.ok) {
-        throw new Error('Unauthorized')
+      let res = await authService.CheckToken({})
+      if (res.userId) {
+        userId = res.userId
+      } else {
+        throw new Error('No user id returned from auth service')
       }
-      let simpleUser = await res.json() 
-      userId = simpleUser.user_id
     } catch (error) {
       console.error('Error:', error)
     }

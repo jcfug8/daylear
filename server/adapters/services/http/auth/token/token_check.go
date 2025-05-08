@@ -17,5 +17,5 @@ func (s *Service) CheckToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(fmt.Sprintf(`{"user_id": %d}`, tokenUser.Id.UserId)))
+	w.Write([]byte(fmt.Sprintf(`{"userId": %d}`, tokenUser.Id.UserId)))
 }
