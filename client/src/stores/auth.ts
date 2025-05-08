@@ -10,6 +10,8 @@ export const useAuthStore = defineStore('auth', () => {
     name: '',
     email: '',
     username: '',
+    givenName: '',
+    familyName: '',
   })
   const circles = ref<Circle[]>([])
   const activeAccount = ref<User | Circle | undefined>()
@@ -144,6 +146,8 @@ export const useAuthStore = defineStore('auth', () => {
       name: '',
       email: '',
       username: '',
+      givenName: '',
+      familyName: '',
     }
     circles.value = []
     activeAccount.value = undefined

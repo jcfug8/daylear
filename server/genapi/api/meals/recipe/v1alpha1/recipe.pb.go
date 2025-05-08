@@ -14,6 +14,7 @@
 package recipev1alpha1
 
 import (
+	types "github.com/jcfug8/daylear/server/genapi/api/types"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -102,59 +103,6 @@ func (x Recipe_MeasurementType) Number() protoreflect.EnumNumber {
 // Deprecated: Use Recipe_MeasurementType.Descriptor instead.
 func (Recipe_MeasurementType) EnumDescriptor() ([]byte, []int) {
 	return file_api_meals_recipe_v1alpha1_recipe_proto_rawDescGZIP(), []int{0, 0}
-}
-
-// the permission levels
-type ShareRecipeRequest_ResourcePermission int32
-
-const (
-	// the permission is not specified
-	ShareRecipeRequest_RESOURCE_PERMISSION_UNSPECIFIED ShareRecipeRequest_ResourcePermission = 0
-	// the permission is read
-	ShareRecipeRequest_RESOURCE_PERMISSION_READ ShareRecipeRequest_ResourcePermission = 100
-	// the permission is write
-	ShareRecipeRequest_RESOURCE_PERMISSION_WRITE ShareRecipeRequest_ResourcePermission = 200
-)
-
-// Enum value maps for ShareRecipeRequest_ResourcePermission.
-var (
-	ShareRecipeRequest_ResourcePermission_name = map[int32]string{
-		0:   "RESOURCE_PERMISSION_UNSPECIFIED",
-		100: "RESOURCE_PERMISSION_READ",
-		200: "RESOURCE_PERMISSION_WRITE",
-	}
-	ShareRecipeRequest_ResourcePermission_value = map[string]int32{
-		"RESOURCE_PERMISSION_UNSPECIFIED": 0,
-		"RESOURCE_PERMISSION_READ":        100,
-		"RESOURCE_PERMISSION_WRITE":       200,
-	}
-)
-
-func (x ShareRecipeRequest_ResourcePermission) Enum() *ShareRecipeRequest_ResourcePermission {
-	p := new(ShareRecipeRequest_ResourcePermission)
-	*p = x
-	return p
-}
-
-func (x ShareRecipeRequest_ResourcePermission) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (ShareRecipeRequest_ResourcePermission) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_meals_recipe_v1alpha1_recipe_proto_enumTypes[1].Descriptor()
-}
-
-func (ShareRecipeRequest_ResourcePermission) Type() protoreflect.EnumType {
-	return &file_api_meals_recipe_v1alpha1_recipe_proto_enumTypes[1]
-}
-
-func (x ShareRecipeRequest_ResourcePermission) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use ShareRecipeRequest_ResourcePermission.Descriptor instead.
-func (ShareRecipeRequest_ResourcePermission) EnumDescriptor() ([]byte, []int) {
-	return file_api_meals_recipe_v1alpha1_recipe_proto_rawDescGZIP(), []int{7, 0}
 }
 
 // the main recipe object
@@ -597,7 +545,7 @@ type ShareRecipeRequest struct {
 	// the permission level given to the recipients
 	// if it is not provided, permission will be revoked
 	// if it is provided, the permission will be granted
-	Permission    ShareRecipeRequest_ResourcePermission `protobuf:"varint,3,opt,name=permission,proto3,enum=api.meals.recipe.v1alpha1.ShareRecipeRequest_ResourcePermission" json:"permission,omitempty"`
+	Permission    types.PermissionLevel `protobuf:"varint,3,opt,name=permission,proto3,enum=api.types.PermissionLevel" json:"permission,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -646,11 +594,11 @@ func (x *ShareRecipeRequest) GetRecipients() []string {
 	return nil
 }
 
-func (x *ShareRecipeRequest) GetPermission() ShareRecipeRequest_ResourcePermission {
+func (x *ShareRecipeRequest) GetPermission() types.PermissionLevel {
 	if x != nil {
 		return x.Permission
 	}
-	return ShareRecipeRequest_RESOURCE_PERMISSION_UNSPECIFIED
+	return types.PermissionLevel(0)
 }
 
 // the response to share a recipe
@@ -876,7 +824,7 @@ var File_api_meals_recipe_v1alpha1_recipe_proto protoreflect.FileDescriptor
 
 const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\n" +
-	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\"\xc2\b\n" +
+	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\"\xc2\b\n" +
 	"\x06Recipe\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
@@ -931,20 +879,16 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	" api.meals.recipe.v1alpha1/RecipeR\x04name\"P\n" +
 	"\x10GetRecipeRequest\x12<\n" +
 	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\"\n" +
-	" api.meals.recipe.v1alpha1/RecipeR\x04name\"\xd7\x02\n" +
+	" api.meals.recipe.v1alpha1/RecipeR\x04name\"\xb8\x01\n" +
 	"\x12ShareRecipeRequest\x12<\n" +
 	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\"\n" +
 	" api.meals.recipe.v1alpha1/RecipeR\x04name\x12#\n" +
 	"\n" +
 	"recipients\x18\x02 \x03(\tB\x03\xe0A\x02R\n" +
-	"recipients\x12e\n" +
+	"recipients\x12?\n" +
 	"\n" +
-	"permission\x18\x03 \x01(\x0e2@.api.meals.recipe.v1alpha1.ShareRecipeRequest.ResourcePermissionB\x03\xe0A\x01R\n" +
-	"permission\"w\n" +
-	"\x12ResourcePermission\x12#\n" +
-	"\x1fRESOURCE_PERMISSION_UNSPECIFIED\x10\x00\x12\x1c\n" +
-	"\x18RESOURCE_PERMISSION_READ\x10d\x12\x1e\n" +
-	"\x19RESOURCE_PERMISSION_WRITE\x10\xc8\x01\"\x15\n" +
+	"permission\x18\x03 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x01R\n" +
+	"permission\"\x15\n" +
 	"\x13ShareRecipeResponse2\x9b\b\n" +
 	"\rRecipeService\x12\xb5\x01\n" +
 	"\fCreateRecipe\x12..api.meals.recipe.v1alpha1.CreateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"R\xdaA\x17parent,recipe,recipe_id\x82\xd3\xe4\x93\x022:\x06recipe\"(/meals/v1alpha1/{parent=users/*}/recipes\x12\xa7\x01\n" +
@@ -967,47 +911,47 @@ func file_api_meals_recipe_v1alpha1_recipe_proto_rawDescGZIP() []byte {
 	return file_api_meals_recipe_v1alpha1_recipe_proto_rawDescData
 }
 
-var file_api_meals_recipe_v1alpha1_recipe_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_api_meals_recipe_v1alpha1_recipe_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_api_meals_recipe_v1alpha1_recipe_proto_goTypes = []any{
-	(Recipe_MeasurementType)(0),                // 0: api.meals.recipe.v1alpha1.Recipe.MeasurementType
-	(ShareRecipeRequest_ResourcePermission)(0), // 1: api.meals.recipe.v1alpha1.ShareRecipeRequest.ResourcePermission
-	(*Recipe)(nil),                             // 2: api.meals.recipe.v1alpha1.Recipe
-	(*CreateRecipeRequest)(nil),                // 3: api.meals.recipe.v1alpha1.CreateRecipeRequest
-	(*ListRecipesRequest)(nil),                 // 4: api.meals.recipe.v1alpha1.ListRecipesRequest
-	(*ListRecipesResponse)(nil),                // 5: api.meals.recipe.v1alpha1.ListRecipesResponse
-	(*UpdateRecipeRequest)(nil),                // 6: api.meals.recipe.v1alpha1.UpdateRecipeRequest
-	(*DeleteRecipeRequest)(nil),                // 7: api.meals.recipe.v1alpha1.DeleteRecipeRequest
-	(*GetRecipeRequest)(nil),                   // 8: api.meals.recipe.v1alpha1.GetRecipeRequest
-	(*ShareRecipeRequest)(nil),                 // 9: api.meals.recipe.v1alpha1.ShareRecipeRequest
-	(*ShareRecipeResponse)(nil),                // 10: api.meals.recipe.v1alpha1.ShareRecipeResponse
-	(*Recipe_Direction)(nil),                   // 11: api.meals.recipe.v1alpha1.Recipe.Direction
-	(*Recipe_IngredientGroup)(nil),             // 12: api.meals.recipe.v1alpha1.Recipe.IngredientGroup
-	(*Recipe_Ingredient)(nil),                  // 13: api.meals.recipe.v1alpha1.Recipe.Ingredient
-	(*fieldmaskpb.FieldMask)(nil),              // 14: google.protobuf.FieldMask
+	(Recipe_MeasurementType)(0),    // 0: api.meals.recipe.v1alpha1.Recipe.MeasurementType
+	(*Recipe)(nil),                 // 1: api.meals.recipe.v1alpha1.Recipe
+	(*CreateRecipeRequest)(nil),    // 2: api.meals.recipe.v1alpha1.CreateRecipeRequest
+	(*ListRecipesRequest)(nil),     // 3: api.meals.recipe.v1alpha1.ListRecipesRequest
+	(*ListRecipesResponse)(nil),    // 4: api.meals.recipe.v1alpha1.ListRecipesResponse
+	(*UpdateRecipeRequest)(nil),    // 5: api.meals.recipe.v1alpha1.UpdateRecipeRequest
+	(*DeleteRecipeRequest)(nil),    // 6: api.meals.recipe.v1alpha1.DeleteRecipeRequest
+	(*GetRecipeRequest)(nil),       // 7: api.meals.recipe.v1alpha1.GetRecipeRequest
+	(*ShareRecipeRequest)(nil),     // 8: api.meals.recipe.v1alpha1.ShareRecipeRequest
+	(*ShareRecipeResponse)(nil),    // 9: api.meals.recipe.v1alpha1.ShareRecipeResponse
+	(*Recipe_Direction)(nil),       // 10: api.meals.recipe.v1alpha1.Recipe.Direction
+	(*Recipe_IngredientGroup)(nil), // 11: api.meals.recipe.v1alpha1.Recipe.IngredientGroup
+	(*Recipe_Ingredient)(nil),      // 12: api.meals.recipe.v1alpha1.Recipe.Ingredient
+	(*fieldmaskpb.FieldMask)(nil),  // 13: google.protobuf.FieldMask
+	(types.PermissionLevel)(0),     // 14: api.types.PermissionLevel
 }
 var file_api_meals_recipe_v1alpha1_recipe_proto_depIdxs = []int32{
-	11, // 0: api.meals.recipe.v1alpha1.Recipe.directions:type_name -> api.meals.recipe.v1alpha1.Recipe.Direction
-	12, // 1: api.meals.recipe.v1alpha1.Recipe.ingredient_groups:type_name -> api.meals.recipe.v1alpha1.Recipe.IngredientGroup
-	2,  // 2: api.meals.recipe.v1alpha1.CreateRecipeRequest.recipe:type_name -> api.meals.recipe.v1alpha1.Recipe
-	2,  // 3: api.meals.recipe.v1alpha1.ListRecipesResponse.recipes:type_name -> api.meals.recipe.v1alpha1.Recipe
-	2,  // 4: api.meals.recipe.v1alpha1.UpdateRecipeRequest.recipe:type_name -> api.meals.recipe.v1alpha1.Recipe
-	14, // 5: api.meals.recipe.v1alpha1.UpdateRecipeRequest.update_mask:type_name -> google.protobuf.FieldMask
-	1,  // 6: api.meals.recipe.v1alpha1.ShareRecipeRequest.permission:type_name -> api.meals.recipe.v1alpha1.ShareRecipeRequest.ResourcePermission
-	13, // 7: api.meals.recipe.v1alpha1.Recipe.IngredientGroup.ingredients:type_name -> api.meals.recipe.v1alpha1.Recipe.Ingredient
+	10, // 0: api.meals.recipe.v1alpha1.Recipe.directions:type_name -> api.meals.recipe.v1alpha1.Recipe.Direction
+	11, // 1: api.meals.recipe.v1alpha1.Recipe.ingredient_groups:type_name -> api.meals.recipe.v1alpha1.Recipe.IngredientGroup
+	1,  // 2: api.meals.recipe.v1alpha1.CreateRecipeRequest.recipe:type_name -> api.meals.recipe.v1alpha1.Recipe
+	1,  // 3: api.meals.recipe.v1alpha1.ListRecipesResponse.recipes:type_name -> api.meals.recipe.v1alpha1.Recipe
+	1,  // 4: api.meals.recipe.v1alpha1.UpdateRecipeRequest.recipe:type_name -> api.meals.recipe.v1alpha1.Recipe
+	13, // 5: api.meals.recipe.v1alpha1.UpdateRecipeRequest.update_mask:type_name -> google.protobuf.FieldMask
+	14, // 6: api.meals.recipe.v1alpha1.ShareRecipeRequest.permission:type_name -> api.types.PermissionLevel
+	12, // 7: api.meals.recipe.v1alpha1.Recipe.IngredientGroup.ingredients:type_name -> api.meals.recipe.v1alpha1.Recipe.Ingredient
 	0,  // 8: api.meals.recipe.v1alpha1.Recipe.Ingredient.measurement_type:type_name -> api.meals.recipe.v1alpha1.Recipe.MeasurementType
-	3,  // 9: api.meals.recipe.v1alpha1.RecipeService.CreateRecipe:input_type -> api.meals.recipe.v1alpha1.CreateRecipeRequest
-	4,  // 10: api.meals.recipe.v1alpha1.RecipeService.ListRecipes:input_type -> api.meals.recipe.v1alpha1.ListRecipesRequest
-	6,  // 11: api.meals.recipe.v1alpha1.RecipeService.UpdateRecipe:input_type -> api.meals.recipe.v1alpha1.UpdateRecipeRequest
-	7,  // 12: api.meals.recipe.v1alpha1.RecipeService.DeleteRecipe:input_type -> api.meals.recipe.v1alpha1.DeleteRecipeRequest
-	8,  // 13: api.meals.recipe.v1alpha1.RecipeService.GetRecipe:input_type -> api.meals.recipe.v1alpha1.GetRecipeRequest
-	9,  // 14: api.meals.recipe.v1alpha1.RecipeService.ShareRecipe:input_type -> api.meals.recipe.v1alpha1.ShareRecipeRequest
-	2,  // 15: api.meals.recipe.v1alpha1.RecipeService.CreateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	5,  // 16: api.meals.recipe.v1alpha1.RecipeService.ListRecipes:output_type -> api.meals.recipe.v1alpha1.ListRecipesResponse
-	2,  // 17: api.meals.recipe.v1alpha1.RecipeService.UpdateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	2,  // 18: api.meals.recipe.v1alpha1.RecipeService.DeleteRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	2,  // 19: api.meals.recipe.v1alpha1.RecipeService.GetRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	10, // 20: api.meals.recipe.v1alpha1.RecipeService.ShareRecipe:output_type -> api.meals.recipe.v1alpha1.ShareRecipeResponse
+	2,  // 9: api.meals.recipe.v1alpha1.RecipeService.CreateRecipe:input_type -> api.meals.recipe.v1alpha1.CreateRecipeRequest
+	3,  // 10: api.meals.recipe.v1alpha1.RecipeService.ListRecipes:input_type -> api.meals.recipe.v1alpha1.ListRecipesRequest
+	5,  // 11: api.meals.recipe.v1alpha1.RecipeService.UpdateRecipe:input_type -> api.meals.recipe.v1alpha1.UpdateRecipeRequest
+	6,  // 12: api.meals.recipe.v1alpha1.RecipeService.DeleteRecipe:input_type -> api.meals.recipe.v1alpha1.DeleteRecipeRequest
+	7,  // 13: api.meals.recipe.v1alpha1.RecipeService.GetRecipe:input_type -> api.meals.recipe.v1alpha1.GetRecipeRequest
+	8,  // 14: api.meals.recipe.v1alpha1.RecipeService.ShareRecipe:input_type -> api.meals.recipe.v1alpha1.ShareRecipeRequest
+	1,  // 15: api.meals.recipe.v1alpha1.RecipeService.CreateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	4,  // 16: api.meals.recipe.v1alpha1.RecipeService.ListRecipes:output_type -> api.meals.recipe.v1alpha1.ListRecipesResponse
+	1,  // 17: api.meals.recipe.v1alpha1.RecipeService.UpdateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	1,  // 18: api.meals.recipe.v1alpha1.RecipeService.DeleteRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	1,  // 19: api.meals.recipe.v1alpha1.RecipeService.GetRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	9,  // 20: api.meals.recipe.v1alpha1.RecipeService.ShareRecipe:output_type -> api.meals.recipe.v1alpha1.ShareRecipeResponse
 	15, // [15:21] is the sub-list for method output_type
 	9,  // [9:15] is the sub-list for method input_type
 	9,  // [9:9] is the sub-list for extension type_name
@@ -1025,7 +969,7 @@ func file_api_meals_recipe_v1alpha1_recipe_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc), len(file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc)),
-			NumEnums:      2,
+			NumEnums:      1,
 			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,

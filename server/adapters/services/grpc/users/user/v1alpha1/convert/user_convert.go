@@ -17,11 +17,12 @@ func ProtoToUser(UserNamer namer.UserNamer, proto *pb.User) (model.User, error) 
 			return user, err
 		}
 		user.Id = id
-
 	}
 
 	user.Email = proto.Email
 	user.Username = proto.Username
+	user.GivenName = proto.GivenName
+	user.FamilyName = proto.FamilyName
 
 	return user, nil
 }
@@ -37,6 +38,8 @@ func UserToProto(UserNamer namer.UserNamer, user model.User) (*pb.User, error) {
 
 	proto.Email = user.Email
 	proto.Username = user.Username
+	proto.GivenName = user.GivenName
+	proto.FamilyName = user.FamilyName
 
 	return proto, nil
 }

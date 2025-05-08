@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	model "github.com/jcfug8/daylear/server/core/model"
-	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+	permPb "github.com/jcfug8/daylear/server/genapi/api/types"
 	"github.com/jcfug8/daylear/server/ports/domain"
 )
 
 // ShareRecipe deletes a recipe.
-func (d *Domain) ShareRecipe(ctx context.Context, parent model.RecipeParent, parents []model.RecipeParent, id model.RecipeId, permission pb.ShareRecipeRequest_ResourcePermission) error {
+func (d *Domain) ShareRecipe(ctx context.Context, parent model.RecipeParent, parents []model.RecipeParent, id model.RecipeId, permission permPb.PermissionLevel) error {
 	for _, parent := range parents {
 		if parent.UserId == 0 {
 			return domain.ErrInvalidArgument{Msg: "parent required"}
@@ -27,7 +27,7 @@ func (d *Domain) ShareRecipe(ctx context.Context, parent model.RecipeParent, par
 	if err != nil {
 		return err
 	}
-	if permission != pb.ShareRecipeRequest_RESOURCE_PERMISSION_WRITE {
+	if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
 		return domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 
@@ -60,7 +60,7 @@ func (d *Domain) ShareRecipe(ctx context.Context, parent model.RecipeParent, par
 		return err
 	}
 
-	if permission != pb.ShareRecipeRequest_RESOURCE_PERMISSION_UNSPECIFIED {
+	if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_UNSPECIFIED {
 		err = tx.BulkCreateRecipeUsers(ctx, id, userIds, permission)
 		if err != nil {
 			return err

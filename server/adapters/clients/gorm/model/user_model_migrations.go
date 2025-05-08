@@ -3,11 +3,13 @@ package model
 // User -
 type User struct {
 	UserId     int64   `gorm:"primaryKey;bigint;not null;<-:false"`
-	Email      string  `gorm:"string;not null;uniqueIndex"`
-	Username   string  `gorm:"string;not null;uniqueIndex"`
-	AmazonId   *string `gorm:"string;->:false;<-:create;uniqueIndex"`
-	FacebookId *string `gorm:"string;->:false;<-:create;uniqueIndex"`
-	GoogleId   *string `gorm:"string;->:false;<-:create;uniqueIndex"`
+	Email      string  `gorm:"size:255;not null;uniqueIndex"`
+	Username   string  `gorm:"size:50;not null;uniqueIndex"`
+	GivenName  string  `gorm:"size:100"`
+	FamilyName string  `gorm:"size:100"`
+	AmazonId   *string `gorm:"size:255;->:false;<-:create;uniqueIndex"`
+	FacebookId *string `gorm:"size:255;->:false;<-:create;uniqueIndex"`
+	GoogleId   *string `gorm:"size:255;->:false;<-:create;uniqueIndex"`
 }
 
 // TableName -

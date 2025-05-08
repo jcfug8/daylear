@@ -31,7 +31,10 @@ service UserService {
   // update a user
   rpc UpdateUser(UpdateUserRequest) returns (User) {
     option (google.api.method_signature) = "user,update_mask";
-    option (google.api.http) = {patch: "/users/v1alpha1/{user.name=users/*}" body: "user"};
+    option (google.api.http) = {
+      patch: "/users/v1alpha1/{user.name=users/*}"
+      body: "user"
+    };
   }
 }
 
@@ -48,10 +51,19 @@ message User {
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
   // the email of the user
-  string email = 2 [(google.api.field_behavior) = REQUIRED, (google.api.field_behavior) = OUTPUT_ONLY];
+  string email = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
 
   // the username of the user
   string username = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // the given name of the user
+  string given_name = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // the family name of the user
+  string family_name = 5 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // the request to get a user

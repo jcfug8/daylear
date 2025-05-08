@@ -11,9 +11,11 @@ import (
 func UserFromCoreModel(m cmodel.User) (gmodel.User, error) {
 	// IRIOMO:CUSTOM_CODE_SLOT_START userFromCoreModel
 	u := gmodel.User{
-		UserId:   m.Id.UserId,
-		Email:    m.Email,
-		Username: m.Username,
+		UserId:     m.Id.UserId,
+		Email:      m.Email,
+		Username:   m.Username,
+		GivenName:  m.GivenName,
+		FamilyName: m.FamilyName,
 	}
 
 	if m.AmazonId != "" {
@@ -39,8 +41,10 @@ func UserToCoreModel(m gmodel.User) (cmodel.User, error) {
 		Id: cmodel.UserId{
 			UserId: m.UserId,
 		},
-		Email: m.Email,
-		Username: m.Username,
+		Email:      m.Email,
+		Username:   m.Username,
+		GivenName:  m.GivenName,
+		FamilyName: m.FamilyName,
 	}
 
 	if m.AmazonId != nil {

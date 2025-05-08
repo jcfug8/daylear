@@ -6,6 +6,22 @@
         <v-list>
           <v-list-item>
             <template v-slot:prepend>
+              <v-icon icon="mdi-account"></v-icon>
+            </template>
+            <v-list-item-title>Given Name</v-list-item-title>
+            <v-list-item-subtitle>{{ user.givenName || 'Not set' }}</v-list-item-subtitle>
+          </v-list-item>
+
+          <v-list-item>
+            <template v-slot:prepend>
+              <v-icon icon="mdi-account"></v-icon>
+            </template>
+            <v-list-item-title>Family Name</v-list-item-title>
+            <v-list-item-subtitle>{{ user.familyName || 'Not set' }}</v-list-item-subtitle>
+          </v-list-item>
+
+          <v-list-item>
+            <template v-slot:prepend>
               <v-icon icon="mdi-email"></v-icon>
             </template>
             <v-list-item-title>Email</v-list-item-title>

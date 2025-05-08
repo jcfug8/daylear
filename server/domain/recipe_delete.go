@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	model "github.com/jcfug8/daylear/server/core/model"
-	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+	permPb "github.com/jcfug8/daylear/server/genapi/api/types"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
 )
 
@@ -23,7 +23,7 @@ func (d *Domain) DeleteRecipe(ctx context.Context, parent model.RecipeParent, id
 	if err != nil {
 		return model.Recipe{}, err
 	}
-	if permission != pb.ShareRecipeRequest_RESOURCE_PERMISSION_WRITE {
+	if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
 		return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 

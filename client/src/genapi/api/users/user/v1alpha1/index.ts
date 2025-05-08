@@ -12,6 +12,14 @@ export type PublicUser = {
   //
   // Behaviors: OUTPUT_ONLY
   username: string | undefined;
+  // the given name of the user
+  //
+  // Behaviors: OUTPUT_ONLY
+  givenName: string | undefined;
+  // the family name of the user
+  //
+  // Behaviors: OUTPUT_ONLY
+  familyName: string | undefined;
 };
 
 // the request to list public users
@@ -128,6 +136,14 @@ export type User = {
   //
   // Behaviors: OPTIONAL
   username: string | undefined;
+  // the given name of the user
+  //
+  // Behaviors: OPTIONAL
+  givenName: string | undefined;
+  // the family name of the user
+  //
+  // Behaviors: OPTIONAL
+  familyName: string | undefined;
 };
 
 // the request to get a user

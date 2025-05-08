@@ -17,11 +17,12 @@ func ProtoToPublicUser(UserNamer namer.UserNamer, proto *pb.PublicUser) (model.U
 			return user, err
 		}
 		user.Id = id
-
 	}
 
 	// IRIOMO:CUSTOM_CODE_SLOT_START convertResourceProtoToDomain
 	user.Username = proto.Username
+	user.GivenName = proto.GivenName
+	user.FamilyName = proto.FamilyName
 	// IRIOMO:CUSTOM_CODE_SLOT_END
 
 	return user, nil
@@ -38,6 +39,8 @@ func PublicUserToProto(UserNamer namer.UserNamer, user model.User) (*pb.PublicUs
 
 	// IRIOMO:CUSTOM_CODE_SLOT_START convertResourceDomainToProto
 	proto.Username = user.Username
+	proto.GivenName = user.GivenName
+	proto.FamilyName = user.FamilyName
 	// IRIOMO:CUSTOM_CODE_SLOT_END
 
 	return proto, nil

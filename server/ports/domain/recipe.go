@@ -5,7 +5,7 @@ import (
 	"io"
 
 	model "github.com/jcfug8/daylear/server/core/model"
-	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+	permPb "github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
 type recipeDomain interface {
@@ -14,6 +14,6 @@ type recipeDomain interface {
 	GetRecipe(ctx context.Context, parent model.RecipeParent, id model.RecipeId, fieldMask []string) (model.Recipe, error)
 	ListRecipes(ctx context.Context, page *model.PageToken[model.Recipe], parent model.RecipeParent, filter string, fieldMask []string) ([]model.Recipe, error)
 	UpdateRecipe(ctx context.Context, recipe model.Recipe, updateMask []string) (model.Recipe, error)
-	ShareRecipe(ctx context.Context, parent model.RecipeParent, parents []model.RecipeParent, id model.RecipeId, permission pb.ShareRecipeRequest_ResourcePermission) error
+	ShareRecipe(ctx context.Context, parent model.RecipeParent, parents []model.RecipeParent, id model.RecipeId, permission permPb.PermissionLevel) error
 	UploadRecipeImage(ctx context.Context, parent model.RecipeParent, id model.RecipeId, imageReader io.Reader) (imageURI string, err error)
 }

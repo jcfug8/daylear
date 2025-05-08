@@ -43,6 +43,12 @@ message PublicUser {
 
   // username
   string username = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the given name of the user
+  string given_name = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the family name of the user
+  string family_name = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 // the request to list public users

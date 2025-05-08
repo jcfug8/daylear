@@ -6,9 +6,11 @@ import (
 
 // User defines the model for a user.
 type User struct {
-	Id    UserId
-	Email string
-	Username string
+	Id         UserId
+	Email      string
+	Username   string
+	GivenName  string
+	FamilyName string
 
 	AmazonId   string
 	FacebookId string
@@ -25,18 +27,22 @@ type UserId struct {
 
 // UserFields defines the user fields.
 var UserFields = userFields{
-	Id:    "id",
-	Email: "email",
-	Username: "username",
+	Id:         "id",
+	Email:      "email",
+	Username:   "username",
+	GivenName:  "given_name",
+	FamilyName: "family_name",
 	GoogleId:   "google_id",
 	FacebookId: "facebook_id",
 	AmazonId:   "amazon_id",
 }
 
 type userFields struct {
-	Id    string
-	Email string
-	Username string
+	Id         string
+	Email      string
+	Username   string
+	GivenName  string
+	FamilyName string
 	GoogleId   string
 	FacebookId string
 	AmazonId   string
@@ -48,6 +54,8 @@ func (fields userFields) Mask() []string {
 		fields.Id,
 		fields.Email,
 		fields.Username,
+		fields.GivenName,
+		fields.FamilyName,
 		fields.GoogleId,
 		fields.FacebookId,
 		fields.AmazonId,
@@ -58,6 +66,8 @@ func (fields userFields) Mask() []string {
 func (fields userFields) UpdateMask(mask []string) []string {
 	updatable := []string{
 		fields.Username,
+		fields.GivenName,
+		fields.FamilyName,
 	}
 
 	if len(mask) == 0 {

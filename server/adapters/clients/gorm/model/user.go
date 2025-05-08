@@ -13,13 +13,19 @@ var UserMap = masks.NewFieldMap().
 	MapFieldToFields(model.UserFields.Email,
 		UserFields.Email).
 	MapFieldToFields(model.UserFields.Username,
-		UserFields.Username)
+		UserFields.Username).
+	MapFieldToFields(model.UserFields.GivenName,
+		UserFields.GivenName).
+	MapFieldToFields(model.UserFields.FamilyName,
+		UserFields.FamilyName)
 
 // UserFields defines the user fields.
 var UserFields = userFields{
-	UserId:   "user_id",
-	Email:    "email",
-	Username: "username",
+	UserId:     "user_id",
+	Email:      "email",
+	Username:   "username",
+	GivenName:  "given_name",
+	FamilyName: "family_name",
 
 	AmazonId:   "amazon_id",
 	FacebookId: "facebook_id",
@@ -27,9 +33,11 @@ var UserFields = userFields{
 }
 
 type userFields struct {
-	UserId   string
-	Email    string
-	Username string
+	UserId     string
+	Email      string
+	Username   string
+	GivenName  string
+	FamilyName string
 
 	AmazonId   string
 	FacebookId string
@@ -39,9 +47,11 @@ type userFields struct {
 // Map maps the user fields to their corresponding model values.
 func (fields userFields) Map(m User) map[string]any {
 	return map[string]any{
-		fields.UserId:   m.UserId,
-		fields.Email:    m.Email,
-		fields.Username: m.Username,
+		fields.UserId:     m.UserId,
+		fields.Email:      m.Email,
+		fields.Username:   m.Username,
+		fields.GivenName:  m.GivenName,
+		fields.FamilyName: m.FamilyName,
 
 		fields.AmazonId:   m.AmazonId,
 		fields.FacebookId: m.FacebookId,
@@ -55,6 +65,8 @@ func (fields userFields) Mask() []string {
 		fields.UserId,
 		fields.Email,
 		fields.Username,
+		fields.GivenName,
+		fields.FamilyName,
 
 		fields.AmazonId,
 		fields.FacebookId,

@@ -206,11 +206,11 @@ export type ShareRecipeRequest = {
   // if it is provided, the permission will be granted
   //
   // Behaviors: OPTIONAL
-  permission: ShareRecipeRequest_ResourcePermission | undefined;
+  permission: apitypes_PermissionLevel | undefined;
 };
 
 // the permission levels
-export type ShareRecipeRequest_ResourcePermission =
+export type apitypes_PermissionLevel =
   // the permission is not specified
   | "RESOURCE_PERMISSION_UNSPECIFIED"
   // the permission is read

@@ -5,10 +5,10 @@ import (
 
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
-	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+	permPb "github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
-func (repo *Client) BulkCreateRecipeUsers(ctx context.Context, recipeId cmodel.RecipeId, userIds []int64, permission pb.ShareRecipeRequest_ResourcePermission) error {
+func (repo *Client) BulkCreateRecipeUsers(ctx context.Context, recipeId cmodel.RecipeId, userIds []int64, permission permPb.PermissionLevel) error {
 	if len(userIds) == 0 {
 		return nil
 	}

@@ -9,6 +9,7 @@ syntax = "proto3";
 
 package api.meals.recipe.v1alpha1;
 
+import "api/types/permission_level.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
@@ -217,17 +218,7 @@ message ShareRecipeRequest {
   // the permission level given to the recipients
   // if it is not provided, permission will be revoked
   // if it is provided, the permission will be granted
-  ResourcePermission permission = 3 [(google.api.field_behavior) = OPTIONAL];
-
-  // the permission levels
-  enum ResourcePermission {
-    // the permission is not specified
-    RESOURCE_PERMISSION_UNSPECIFIED = 0;
-    // the permission is read
-    RESOURCE_PERMISSION_READ = 100;
-    // the permission is write
-    RESOURCE_PERMISSION_WRITE = 200;
-  }
+  api.types.PermissionLevel permission = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // the response to share a recipe

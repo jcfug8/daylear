@@ -4,7 +4,7 @@ import (
 	"context"
 
 	model "github.com/jcfug8/daylear/server/core/model"
-	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+	permPb "github.com/jcfug8/daylear/server/genapi/api/types"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
 	"github.com/jcfug8/daylear/server/ports/repository"
 )
@@ -41,7 +41,7 @@ func (d *Domain) CreateRecipe(ctx context.Context, recipe model.Recipe) (model.R
 	}
 
 	// link to user
-	err = tx.BulkCreateRecipeUsers(ctx, dbRecipe.Id, []int64{dbRecipe.Parent.UserId}, pb.ShareRecipeRequest_RESOURCE_PERMISSION_WRITE)
+	err = tx.BulkCreateRecipeUsers(ctx, dbRecipe.Id, []int64{dbRecipe.Parent.UserId}, permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE)
 	if err != nil {
 		return model.Recipe{}, err
 	}

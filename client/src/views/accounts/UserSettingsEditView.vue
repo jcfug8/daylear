@@ -5,6 +5,16 @@
       <v-card-text>
         <v-form @submit.prevent="saveSettings">
           <v-text-field
+            v-model="editedUser.givenName"
+            label="Given Name"
+          ></v-text-field>
+
+          <v-text-field
+            v-model="editedUser.familyName"
+            label="Family Name"
+          ></v-text-field>
+
+          <v-text-field
             disabled
             v-model="editedUser.email"
             label="Email"
@@ -56,6 +66,8 @@ const editedUser = ref<User>({
   name: user.value.name,
   email: user.value.email,
   username: user.value.username,
+  givenName: user.value.givenName,
+  familyName: user.value.familyName,
 })
 
 function navigateBack() {

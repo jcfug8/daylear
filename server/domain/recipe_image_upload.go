@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	model "github.com/jcfug8/daylear/server/core/model"
-	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+	permPb "github.com/jcfug8/daylear/server/genapi/api/types"
 	"github.com/jcfug8/daylear/server/ports/domain"
 	uuid "github.com/satori/go.uuid"
 )
@@ -31,7 +31,7 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, parent model.RecipeParen
 	if err != nil {
 		return "", err
 	}
-	if permission != pb.ShareRecipeRequest_RESOURCE_PERMISSION_WRITE {
+	if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
 		return "", domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 

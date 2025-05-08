@@ -38,7 +38,11 @@ type User struct {
 	// the email of the user
 	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	// the username of the user
-	Username      string `protobuf:"bytes,3,opt,name=username,proto3" json:"username,omitempty"`
+	Username string `protobuf:"bytes,3,opt,name=username,proto3" json:"username,omitempty"`
+	// the given name of the user
+	GivenName string `protobuf:"bytes,4,opt,name=given_name,json=givenName,proto3" json:"given_name,omitempty"`
+	// the family name of the user
+	FamilyName    string `protobuf:"bytes,5,opt,name=family_name,json=familyName,proto3" json:"family_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -90,6 +94,20 @@ func (x *User) GetEmail() string {
 func (x *User) GetUsername() string {
 	if x != nil {
 		return x.Username
+	}
+	return ""
+}
+
+func (x *User) GetGivenName() string {
+	if x != nil {
+		return x.GivenName
+	}
+	return ""
+}
+
+func (x *User) GetFamilyName() string {
+	if x != nil {
+		return x.FamilyName
 	}
 	return ""
 }
@@ -318,11 +336,15 @@ var File_api_users_user_v1alpha1_user_proto protoreflect.FileDescriptor
 
 const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\n" +
-	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\"\x9c\x01\n" +
+	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\"\xe6\x01\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x1c\n" +
 	"\x05email\x18\x02 \x01(\tB\x06\xe0A\x02\xe0A\x03R\x05email\x12\x1f\n" +
-	"\busername\x18\x03 \x01(\tB\x03\xe0A\x01R\busername:<\xeaA9\n" +
+	"\busername\x18\x03 \x01(\tB\x03\xe0A\x01R\busername\x12\"\n" +
+	"\n" +
+	"given_name\x18\x04 \x01(\tB\x03\xe0A\x01R\tgivenName\x12$\n" +
+	"\vfamily_name\x18\x05 \x01(\tB\x03\xe0A\x01R\n" +
+	"familyName:<\xeaA9\n" +
 	"\x1capi.meals.user.v1alpha1/User\x12\fusers/{user}*\x05users2\x04user\"J\n" +
 	"\x0eGetUserRequest\x128\n" +
 	"\x04name\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x1e\n" +
