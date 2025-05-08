@@ -30,10 +30,10 @@ function saveRecipe() {
     .catch((err) => alert(err.message || err))
 }
 
-onMounted(() => {
+onMounted(async () => {
   // Load the recipe based on the route parameter
   const recipeId = route.params.recipeId as string
-  recipesStore.loadRecipe(recipeId)
+  await recipesStore.loadRecipe(recipeId)
 
   breadcrumbStore.setBreadcrumbs([
     { title: 'Recipes', to: { name: 'recipes' } },

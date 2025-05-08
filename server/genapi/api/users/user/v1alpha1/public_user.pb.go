@@ -258,7 +258,7 @@ const file_api_users_user_v1alpha1_public_user_proto_rawDesc = "" +
 	"\n" +
 	"PublicUser\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x1f\n" +
-	"\busername\x18\x02 \x01(\tB\x03\xe0A\x02R\busername:[\xeaAX\n" +
+	"\busername\x18\x02 \x01(\tB\x03\xe0A\x03R\busername:[\xeaAX\n" +
 	"\"api.users.user.v1alpha1/PublicUser\x12\x19publicUsers/{public_user}*\vpublicUsers2\n" +
 	"publicUser\"{\n" +
 	"\x16ListPublicUsersRequest\x12 \n" +
@@ -273,8 +273,8 @@ const file_api_users_user_v1alpha1_public_user_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\n" +
 	"\"api.users.user.v1alpha1/PublicUserR\x04name2\xca\x02\n" +
 	"\x11PublicUserService\x12\x99\x01\n" +
-	"\x0fListPublicUsers\x12/.api.users.user.v1alpha1.ListPublicUsersRequest\x1a0.api.users.user.v1alpha1.ListPublicUsersResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/users/v1alpha1/publicusers\x12\x98\x01\n" +
-	"\rGetPublicUser\x12-.api.users.user.v1alpha1.GetPublicUserRequest\x1a#.api.users.user.v1alpha1.PublicUser\"3\xdaA\x04name\x82\xd3\xe4\x93\x02&\x12$/users/v1alpha1/{name=publicusers/*}B\xfb\x01\n" +
+	"\x0fListPublicUsers\x12/.api.users.user.v1alpha1.ListPublicUsersRequest\x1a0.api.users.user.v1alpha1.ListPublicUsersResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/users/v1alpha1/publicUsers\x12\x98\x01\n" +
+	"\rGetPublicUser\x12-.api.users.user.v1alpha1.GetPublicUserRequest\x1a#.api.users.user.v1alpha1.PublicUser\"3\xdaA\x04name\x82\xd3\xe4\x93\x02&\x12$/users/v1alpha1/{name=publicUsers/*}B\xfb\x01\n" +
 	"\x1bcom.api.users.user.v1alpha1B\x0fPublicUserProtoP\x01ZLgithub.com/jcfug8/daylear/server/genapi/api/users/user/v1alpha1;userv1alpha1\xa2\x02\x03AUU\xaa\x02\x17Api.Users.User.V1alpha1\xca\x02\x17Api\\Users\\User\\V1alpha1\xe2\x02#Api\\Users\\User\\V1alpha1\\GPBMetadata\xea\x02\x1aApi::Users::User::V1alpha1b\x06proto3"
 
 var (

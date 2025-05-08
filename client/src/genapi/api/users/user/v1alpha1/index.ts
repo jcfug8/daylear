@@ -10,7 +10,7 @@ export type PublicUser = {
   name: string | undefined;
   // username
   //
-  // Behaviors: REQUIRED
+  // Behaviors: OUTPUT_ONLY
   username: string | undefined;
 };
 
@@ -67,7 +67,7 @@ export function createPublicUserServiceClient(
 ): PublicUserService {
   return {
     ListPublicUsers(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `users/v1alpha1/publicusers`; // eslint-disable-line quotes
+      const path = `users/v1alpha1/publicUsers`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.pageSize) {
@@ -122,11 +122,11 @@ export type User = {
   name: string | undefined;
   // the email of the user
   //
-  // Behaviors: REQUIRED
+  // Behaviors: REQUIRED, OUTPUT_ONLY
   email: string | undefined;
   // the username of the user
   //
-  // Behaviors: REQUIRED
+  // Behaviors: OPTIONAL
   username: string | undefined;
 };
 

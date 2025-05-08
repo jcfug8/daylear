@@ -48,10 +48,10 @@ message User {
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
   // the email of the user
-  string email = 2 [(google.api.field_behavior) = REQUIRED];
+  string email = 2 [(google.api.field_behavior) = REQUIRED, (google.api.field_behavior) = OUTPUT_ONLY];
 
   // the username of the user
-  string username = 3 [(google.api.field_behavior) = REQUIRED];
+  string username = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // the request to get a user

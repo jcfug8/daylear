@@ -117,7 +117,7 @@ func RegisterPublicUserServiceHandlerServer(ctx context.Context, mux *runtime.Se
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.users.user.v1alpha1.PublicUserService/ListPublicUsers", runtime.WithHTTPPathPattern("/users/v1alpha1/publicusers"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.users.user.v1alpha1.PublicUserService/ListPublicUsers", runtime.WithHTTPPathPattern("/users/v1alpha1/publicUsers"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -137,7 +137,7 @@ func RegisterPublicUserServiceHandlerServer(ctx context.Context, mux *runtime.Se
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.users.user.v1alpha1.PublicUserService/GetPublicUser", runtime.WithHTTPPathPattern("/users/v1alpha1/{name=publicusers/*}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.users.user.v1alpha1.PublicUserService/GetPublicUser", runtime.WithHTTPPathPattern("/users/v1alpha1/{name=publicUsers/*}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -195,7 +195,7 @@ func RegisterPublicUserServiceHandlerClient(ctx context.Context, mux *runtime.Se
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.users.user.v1alpha1.PublicUserService/ListPublicUsers", runtime.WithHTTPPathPattern("/users/v1alpha1/publicusers"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.users.user.v1alpha1.PublicUserService/ListPublicUsers", runtime.WithHTTPPathPattern("/users/v1alpha1/publicUsers"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -212,7 +212,7 @@ func RegisterPublicUserServiceHandlerClient(ctx context.Context, mux *runtime.Se
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.users.user.v1alpha1.PublicUserService/GetPublicUser", runtime.WithHTTPPathPattern("/users/v1alpha1/{name=publicusers/*}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.users.user.v1alpha1.PublicUserService/GetPublicUser", runtime.WithHTTPPathPattern("/users/v1alpha1/{name=publicUsers/*}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -229,8 +229,8 @@ func RegisterPublicUserServiceHandlerClient(ctx context.Context, mux *runtime.Se
 }
 
 var (
-	pattern_PublicUserService_ListPublicUsers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"users", "v1alpha1", "publicusers"}, ""))
-	pattern_PublicUserService_GetPublicUser_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3}, []string{"users", "v1alpha1", "publicusers", "name"}, ""))
+	pattern_PublicUserService_ListPublicUsers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"users", "v1alpha1", "publicUsers"}, ""))
+	pattern_PublicUserService_GetPublicUser_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3}, []string{"users", "v1alpha1", "publicUsers", "name"}, ""))
 )
 
 var (

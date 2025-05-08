@@ -39,8 +39,8 @@ const recipesStore = useRecipesStore()
 const breadcrumbStore = useBreadcrumbStore()
 breadcrumbStore.setBreadcrumbs([{ title: 'Recipes', to: { name: 'recipes' } }])
 
-onMounted(() => {
-  recipesStore.loadRecipes()
+onMounted(async () => {
+  await recipesStore.loadRecipes()
 })
 
 const { recipes } = storeToRefs(recipesStore)

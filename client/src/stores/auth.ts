@@ -5,6 +5,7 @@ import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
 import { userService, authService } from '@/api/api'
 export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = ref(false)
+  const userId = ref<number>(0)
   const user = ref<User>({
     name: '',
     email: '',
@@ -31,6 +32,33 @@ export const useAuthStore = defineStore('auth', () => {
   function setActiveAccount(account: User | Circle) {
     console.log('setActiveAccount', account)
     activeAccount.value = account
+  }
+
+  /**
+   * loadAuthUser
+   */
+  async function loadAuthUser() {
+    try {
+      user.value = await userService.GetUser({
+        name: `users/${userId.value}`,
+      })
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
+  /**
+   * updateAuthUser
+   */
+  async function updateAuthUser(editUser: User) {
+    try {
+      user.value = await userService.UpdateUser({
+        user: editUser,
+        updateMask: undefined,
+      })
+    } catch (error) {
+      console.error('Error:', error)
+    }
   }
 
   /**
@@ -76,11 +104,10 @@ export const useAuthStore = defineStore('auth', () => {
    * @private
    */
   async function _setupAuthData() {
-    let userId: Number = 0
     try {
       let res = await authService.CheckToken({})
       if (res.userId) {
-        userId = res.userId
+        userId.value = res.userId
       } else {
         throw new Error('No user id returned from auth service')
       }
@@ -88,9 +115,7 @@ export const useAuthStore = defineStore('auth', () => {
       console.error('Error:', error)
     }
 
-    user.value = await userService.GetUser({
-      name: `users/${userId}`,
-    })
+    await loadAuthUser()
 
     circles.value = [
       {
@@ -132,6 +157,8 @@ export const useAuthStore = defineStore('auth', () => {
     circles,
     activeAccount,
     isLoggedIn,
+    loadAuthUser,
+    updateAuthUser,
     logOut,
     setActiveAccount,
   }

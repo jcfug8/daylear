@@ -143,7 +143,7 @@ function convertMeasurementTypeToString(type: Recipe_MeasurementType | undefined
   return type ? measurementTypeToString[type] || '' : ''
 }
 
-onMounted(() => {
+onMounted(async () => {
   // First check URL hash
   const currentHash = route.hash
   if (currentHash in hashToTab) {
@@ -152,7 +152,7 @@ onMounted(() => {
 
   // Load the recipe based on the route parameter
   const recipeId = route.params.recipeId as string
-  recipesStore.loadRecipe(recipeId)
+  await recipesStore.loadRecipe(recipeId)
 
   breadcrumbStore.setBreadcrumbs([
     { title: 'Recipes', to: { name: 'recipes' } },

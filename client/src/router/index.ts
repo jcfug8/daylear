@@ -80,6 +80,16 @@ const router = createRouter({
       component: () => import('../views/accounts/UserSettingsView.vue'),
       meta: {
         requiresAuth: true,
+        breadcrumbs: true,
+      },
+    },
+    {
+      path: '/user/:userId/settings/edit',
+      name: 'user-settings-edit',
+      component: () => import('../views/accounts/UserSettingsEditView.vue'),
+      meta: {
+        requiresAuth: true,
+        breadcrumbs: true,
       },
     },
     {

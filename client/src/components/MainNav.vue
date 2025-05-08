@@ -59,7 +59,7 @@
             icon="mdi-cog"
             density="comfortable"
             @click.stop
-            :to="{ name: 'user', params: { userId: user?.name } }"
+            :to="{ name: 'user-settings', params: { userId: user?.name } }"
           ></v-btn>
         </template>
       </v-list-item>
