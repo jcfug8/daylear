@@ -1,5 +1,7 @@
 package model
 
+import pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+
 // RecipeIngredientFields defines the recipeIngredient fields.
 var RecipeIngredientFields = recipeIngredientFields{
 	RecipeIngredientId: "recipe_ingredient_id",
@@ -37,4 +39,19 @@ func (fields recipeIngredientFields) Mask() []string {
 		fields.MeasurementAmount,
 		fields.MeasurementType,
 	}
+}
+
+// RecipeIngredient -
+type RecipeIngredient struct {
+	RecipeIngredientId   int64 `gorm:"primaryKey;bigint;not null;<-:false"`
+	RecipeId             int64
+	IngredientId         int64
+	MeasurementAmount    float64
+	MeasurementType      pb.Recipe_MeasurementType
+	IngredientGroupIndex int
+}
+
+// TableName -
+func (RecipeIngredient) TableName() string {
+	return "recipe_ingredient"
 }

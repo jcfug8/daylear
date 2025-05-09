@@ -59,7 +59,7 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 	}
 	pageToken.PageSize = min(pageToken.PageSize, recipeMaxPageSize)
 
-	if s.domain.AuthorizeParent(ctx, authToken, parent) != nil {
+	if s.domain.AuthorizeRecipeParent(ctx, authToken, parent) != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "user not authorized")
 	}
 

@@ -34,7 +34,7 @@ func (s *RecipeService) UpdateRecipe(ctx context.Context, request *pb.UpdateReci
 		return nil, status.Errorf(codes.InvalidArgument, "invalid request data")
 	}
 
-	if s.domain.AuthorizeParent(ctx, authToken, mRecipe.Parent) != nil {
+	if s.domain.AuthorizeRecipeParent(ctx, authToken, mRecipe.Parent) != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "user not authorized")
 	}
 

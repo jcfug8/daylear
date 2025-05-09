@@ -32,7 +32,7 @@ func (s *RecipeService) ShareRecipe(ctx context.Context, request *pb.ShareRecipe
 		parents = append(parents, parent)
 	}
 
-	if s.domain.AuthorizeParent(ctx, authToken, parent) != nil {
+	if s.domain.AuthorizeRecipeParent(ctx, authToken, parent) != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "user not authorized")
 	}
 

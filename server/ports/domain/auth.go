@@ -7,5 +7,6 @@ import (
 )
 
 type authDomain interface {
-	AuthorizeParent(ctx context.Context, token string, parent model.RecipeParent) error
+	AuthorizeRecipeParent(ctx context.Context, token string, parent model.RecipeParent) error
+	AuthorizeCircleParent(ctx context.Context, token string, parent model.CircleParent) error
 }

@@ -58,7 +58,7 @@ func (s *Service) UploadRecipeImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call the domain to check the token
-	err = s.domain.AuthorizeParent(r.Context(), authToken, parent)
+	err = s.domain.AuthorizeRecipeParent(r.Context(), authToken, parent)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return

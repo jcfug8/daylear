@@ -14,5 +14,284 @@ export type Circle = {
   title: string | undefined;
 };
 
+// the request to create a circle
+export type CreateCircleRequest = {
+  // the parent of the circle
+  //
+  // Behaviors: REQUIRED
+  parent: string | undefined;
+  // the circle to create
+  //
+  // Behaviors: REQUIRED
+  circle: Circle | undefined;
+  // the id of the circle
+  //
+  // Behaviors: REQUIRED
+  circleId: string | undefined;
+};
+
+// the request to list circles
+export type ListCirclesRequest = {
+  // the parent of the circles
+  //
+  // Behaviors: REQUIRED
+  parent: string | undefined;
+  // the page size
+  //
+  // Behaviors: OPTIONAL
+  pageSize: number | undefined;
+  // the page token
+  //
+  // Behaviors: OPTIONAL
+  pageToken: string | undefined;
+  // used to specify the filter
+  //
+  // Behaviors: OPTIONAL
+  filter: string | undefined;
+};
+
+// the response to list circles
+export type ListCirclesResponse = {
+  // the circles
+  circles: Circle[] | undefined;
+  // the next page token
+  nextPageToken: string | undefined;
+};
+
+// the request to update a circle
+export type UpdateCircleRequest = {
+  // the circle to update
+  //
+  // Behaviors: REQUIRED
+  circle: Circle | undefined;
+  // the fields to update
+  //
+  // Behaviors: OPTIONAL
+  updateMask: wellKnownFieldMask | undefined;
+};
+
+// In JSON, a field mask is encoded as a single string where paths are
+// separated by a comma. Fields name in each path are converted
+// to/from lower-camel naming conventions.
+// As an example, consider the following message declarations:
+//
+//     message Profile {
+//       User user = 1;
+//       Photo photo = 2;
+//     }
+//     message User {
+//       string display_name = 1;
+//       string address = 2;
+//     }
+//
+// In proto a field mask for `Profile` may look as such:
+//
+//     mask {
+//       paths: "user.display_name"
+//       paths: "photo"
+//     }
+//
+// In JSON, the same mask is represented as below:
+//
+//     {
+//       mask: "user.displayName,photo"
+//     }
+type wellKnownFieldMask = string;
+
+// the request to delete a circle
+export type DeleteCircleRequest = {
+  // the name of the circle
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the request to get a circle
+export type GetCircleRequest = {
+  // the name of the circle
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the request to share a circle
+export type ShareCircleRequest = {
+  // the name of the circle
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the response to share a circle
+export type ShareCircleResponse = {
+  // the circle that was shared
+  circle: Circle | undefined;
+};
+
+// the circle service
+export interface CircleService {
+  // create a circle
+  CreateCircle(request: CreateCircleRequest): Promise<Circle>;
+  // list circles
+  ListCircles(request: ListCirclesRequest): Promise<ListCirclesResponse>;
+  // update a circle
+  UpdateCircle(request: UpdateCircleRequest): Promise<Circle>;
+  // delete` a circle
+  DeleteCircle(request: DeleteCircleRequest): Promise<Circle>;
+  // get a circle
+  GetCircle(request: GetCircleRequest): Promise<Circle>;
+  // share a circle
+  ShareCircle(request: ShareCircleRequest): Promise<ShareCircleResponse>;
+}
+
+type RequestType = {
+  path: string;
+  method: string;
+  body: string | null;
+};
+
+type RequestHandler = (request: RequestType, meta: { service: string, method: string }) => Promise<unknown>;
+
+export function createCircleServiceClient(
+  handler: RequestHandler
+): CircleService {
+  return {
+    CreateCircle(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.parent) {
+        throw new Error("missing required field request.parent");
+      }
+      const path = `meals/v1alpha1/${request.parent}/circles`; // eslint-disable-line quotes
+      const body = JSON.stringify(request?.circle ?? {});
+      const queryParams: string[] = [];
+      if (request.circleId) {
+        queryParams.push(`circleId=${encodeURIComponent(request.circleId.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "CircleService",
+        method: "CreateCircle",
+      }) as Promise<Circle>;
+    },
+    ListCircles(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.parent) {
+        throw new Error("missing required field request.parent");
+      }
+      const path = `meals/v1alpha1/${request.parent}/circles`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.pageSize) {
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
+      }
+      if (request.pageToken) {
+        queryParams.push(`pageToken=${encodeURIComponent(request.pageToken.toString())}`)
+      }
+      if (request.filter) {
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "CircleService",
+        method: "ListCircles",
+      }) as Promise<ListCirclesResponse>;
+    },
+    UpdateCircle(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.circle?.name) {
+        throw new Error("missing required field request.circle.name");
+      }
+      const path = `meals/v1alpha1/${request.circle.name}`; // eslint-disable-line quotes
+      const body = JSON.stringify(request?.circle ?? {});
+      const queryParams: string[] = [];
+      if (request.updateMask) {
+        queryParams.push(`updateMask=${encodeURIComponent(request.updateMask.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "PATCH",
+        body,
+      }, {
+        service: "CircleService",
+        method: "UpdateCircle",
+      }) as Promise<Circle>;
+    },
+    DeleteCircle(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `meals/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "CircleService",
+        method: "DeleteCircle",
+      }) as Promise<Circle>;
+    },
+    GetCircle(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `meals/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "CircleService",
+        method: "GetCircle",
+      }) as Promise<Circle>;
+    },
+    ShareCircle(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `meals/v1alpha1/${request.name}:share`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "CircleService",
+        method: "ShareCircle",
+      }) as Promise<ShareCircleResponse>;
+    },
+  };
+}
 
 // @@protoc_insertion_point(typescript-http-eof)

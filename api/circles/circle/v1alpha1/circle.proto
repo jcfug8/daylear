@@ -13,12 +13,61 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+
+// the circle service
+service CircleService {
+  // create a circle
+  rpc CreateCircle(CreateCircleRequest) returns (Circle) {
+    option (google.api.method_signature) = "parent,circle,circle_id";
+    option (google.api.http) = {
+      post: "/meals/v1alpha1/{parent=users/*}/circles"
+      body: "circle"
+    };
+  }
+
+  // list circles
+  rpc ListCircles(ListCirclesRequest) returns (ListCirclesResponse) {
+    option (google.api.method_signature) = "parent";
+    option (google.api.http) = {get: "/meals/v1alpha1/{parent=users/*}/circles"};
+  }
+
+  // update a circle
+  rpc UpdateCircle(UpdateCircleRequest) returns (Circle) {
+    option (google.api.method_signature) = "circle,update_mask";
+    option (google.api.http) = {
+      patch: "/meals/v1alpha1/{circle.name=users/*/circles/*}"
+      body: "circle"
+    };
+  }
+
+  // delete` a circle
+  rpc DeleteCircle(DeleteCircleRequest) returns (Circle) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {delete: "/meals/v1alpha1/{name=users/*/circles/*}"};
+  }
+
+  // get a circle
+  rpc GetCircle(GetCircleRequest) returns (Circle) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {get: "/meals/v1alpha1/{name=users/*/circles/*}"};
+  }
+
+  // share a circle
+  rpc ShareCircle(ShareCircleRequest) returns (ShareCircleResponse) {
+    option (google.api.method_signature) = "name,recipients";
+    option (google.api.http) = {
+      post: "/meals/v1alpha1/{name=users/*/circles/*}:share"
+      body: "*"
+    };
+  }
+}
 
 // the main user circle
 message Circle {
   option (google.api.resource) = {
     type: "api.meals.circle.v1alpha1/Circle"
-    pattern: "circles/{circle}"
+    pattern: "users/{user}/circles/{circle}"
     plural: "circles"
     singular: "circle"
   };
@@ -28,4 +77,90 @@ message Circle {
 
   // the title of the circle
   string title = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// the request to create a circle
+message CreateCircleRequest {
+  // the parent of the circle
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "api.meals.circle.v1alpha1/Circle"
+  ];
+
+  // the circle to create
+  Circle circle = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // the id of the circle
+  string circle_id = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// the request to list circles
+message ListCirclesRequest {
+  // the parent of the circles
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "api.meals.circle.v1alpha1/Circle"
+  ];
+
+  // the page size
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // the page token
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // used to specify the filter
+  string filter = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// the response to list circles
+message ListCirclesResponse {
+  // the circles
+  repeated Circle circles = 1;
+
+  // the next page token
+  string next_page_token = 2;
+}
+
+// the request to update a circle
+message UpdateCircleRequest {
+  // the circle to update
+  Circle circle = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // the fields to update
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// the request to delete a circle
+message DeleteCircleRequest {
+  // the name of the circle
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.meals.circle.v1alpha1/Circle"
+  ];
+}
+
+// the request to get a circle
+message GetCircleRequest {
+  // the name of the circle
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.meals.circle.v1alpha1/Circle"
+  ];
+}
+
+// the request to share a circle
+message ShareCircleRequest {
+  // the name of the circle
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.meals.circle.v1alpha1/Circle"
+  ];
+
+  // the recipients of the circle
+}
+
+// the response to share a circle
+message ShareCircleResponse {
+  // the circle that was shared
+  Circle circle = 1;
 }
