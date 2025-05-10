@@ -21,6 +21,12 @@
         value="calendar"
         :to="{ name: 'calendar' }"
       ></v-list-item>
+      <v-list-item
+        prepend-icon="mdi-account-group"
+        title="Circles"
+        value="circles"
+        :to="{ name: 'circles' }"
+      ></v-list-item>
       <v-list-group value="Meals">
         <template v-slot:activator="{ props }">
           <v-list-item v-bind="props" title="Meals" prepend-icon="mdi-food"></v-list-item>

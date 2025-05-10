@@ -141,6 +141,7 @@ func (repo *Client) ListCircles(ctx context.Context, page *cmodel.PageToken[cmod
 		map[string]filtering.Field[clause.Expression]{
 			"circle_id": filtering.NewSQLField[int64]("c.circle_id", "="),
 			"user_id":   filtering.NewSQLField[int64]("circle_user.user_id", "="),
+			"title":     filtering.NewSQLField[string]("c.title", "="),
 		})
 
 	filterClause, info, err := t.Transpile(filter)

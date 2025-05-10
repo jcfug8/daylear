@@ -10,6 +10,9 @@ import (
 	tokenClient "github.com/jcfug8/daylear/server/adapters/clients/jwt/token"
 	mimetype "github.com/jcfug8/daylear/server/adapters/clients/mimetype"
 	s3 "github.com/jcfug8/daylear/server/adapters/clients/s3"
+	grpcCirclesV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1"
+	circlesV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1/fieldmasker"
+	circlesV1alpha1Namer "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1/namer"
 	fieldbehaviorvalidator "github.com/jcfug8/daylear/server/adapters/services/grpc/fieldbehaviorvalidator"
 	grpcRecipesV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1"
 	recipesV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/fieldmasker"
@@ -68,6 +71,10 @@ func start(opts ...fx.Option) error {
 		grpcRecipesV1alpha1.Module,
 		recipesV1alpha1Namer.Module,
 		recipesV1alpha1Masker.Module,
+		// circles
+		grpcCirclesV1alpha1.Module,
+		circlesV1alpha1Namer.Module,
+		circlesV1alpha1Masker.Module,
 
 		// driven/secondary adapters
 		gorm.Module,

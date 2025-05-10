@@ -109,11 +109,30 @@ const router = createRouter({
       },
     },
     {
+      path: '/circles',
+      name: 'circles',
+      component: () => import('../views/circles/CirclesView.vue'),
+      meta: {
+        requiresAuth: true,
+        breadcrumbs: true,
+      },
+    },
+    {
+      path: '/circles/create',
+      name: 'circleCreate',
+      component: () => import('../views/circles/CircleCreateView.vue'),
+      meta: {
+        requiresAuth: true,
+        breadcrumbs: true,
+      },
+    },
+    {
       path: '/circle/:circleId',
       name: 'circle',
       component: () => import('../views/circles/CircleView.vue'),
       meta: {
         requiresAuth: true,
+        breadcrumbs: true,
       },
     },
   ],

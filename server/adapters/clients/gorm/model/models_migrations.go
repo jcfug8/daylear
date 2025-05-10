@@ -11,5 +11,7 @@ func AllModels() []interface{} {
 		&RecipeIngredient{},
 		&Ingredient{},
 		&User{},
+		&Circle{},
+		&CircleUser{},
 	}
 }

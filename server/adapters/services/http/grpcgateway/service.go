@@ -9,6 +9,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
+	circleV1alpha1 "github.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1"
 	recipesV1alpha1 "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	userV1alpha1 "github.com/jcfug8/daylear/server/genapi/api/users/user/v1alpha1"
 	"github.com/jcfug8/daylear/server/ports/domain"
@@ -17,7 +18,8 @@ import (
 type Service struct {
 	userV1alpha1Service    userV1alpha1.UserServiceServer
 	recipesV1alpha1Service recipesV1alpha1.RecipeServiceServer
-	domain                domain.Domain
+	circleV1alpha1Service  circleV1alpha1.CircleServiceServer
+	domain                 domain.Domain
 }
 
 type NewServiceParams struct {
@@ -25,14 +27,16 @@ type NewServiceParams struct {
 
 	UserV1alpha1Service    userV1alpha1.UserServiceServer
 	RecipesV1alpha1Service recipesV1alpha1.RecipeServiceServer
-	Domain                domain.Domain
+	CircleV1alpha1Service  circleV1alpha1.CircleServiceServer
+	Domain                 domain.Domain
 }
 
 func NewService(params NewServiceParams) *Service {
 	return &Service{
 		userV1alpha1Service:    params.UserV1alpha1Service,
 		recipesV1alpha1Service: params.RecipesV1alpha1Service,
-		domain:                params.Domain,
+		circleV1alpha1Service:  params.CircleV1alpha1Service,
+		domain:                 params.Domain,
 	}
 }
 
@@ -51,7 +55,10 @@ func (s *Service) Register(m *http.ServeMux) error {
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
 	}
-
+	err = circleV1alpha1.RegisterCircleServiceHandlerServer(ctx, mux, s.circleV1alpha1Service)
+	if err != nil {
+		log.Printf("Failed to register gRPC gateway: %v", err)
+	}
 
 	m.Handle("/", headers.NewAuthTokenMiddleware(s.domain)(mux))
 	// m.Handle("/", mux)

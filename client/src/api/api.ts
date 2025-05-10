@@ -1,5 +1,6 @@
 import { createRecipeServiceClient } from '@/genapi/api/meals/recipe/v1alpha1'
 import { createUserServiceClient } from '@/genapi/api/users/user/v1alpha1'
+import { createCircleServiceClient } from '@/genapi/api/circles/circle/v1alpha1'
 import { createAuthServiceClient } from './auth'
 
 const API_BASE_URL = 'http://localhost:8080/'
@@ -31,3 +32,4 @@ export const authenticatedFetchHandler = async (
 export const recipeService = createRecipeServiceClient(authenticatedFetchHandler)
 export const userService = createUserServiceClient(authenticatedFetchHandler)
 export const authService = createAuthServiceClient(authenticatedFetchHandler)
+export const circleService = createCircleServiceClient(authenticatedFetchHandler)

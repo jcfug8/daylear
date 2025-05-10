@@ -7,7 +7,7 @@ import (
 )
 
 var Module = fx.Module(
-	"userGrpcAdapter",
+	"grpcGateway",
 	fx.Provide(
 		NewService,
 	),
