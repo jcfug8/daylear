@@ -13,18 +13,22 @@ import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import RecipeForm from '@/views/meals/recipes/forms/RecipeForm.vue'
-
+import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const recipesStore = useRecipesStore()
 const breadcrumbStore = useBreadcrumbStore()
+const authStore = useAuthStore()
 
 function navigateBack() {
   router.push({ name: 'recipes' })
 }
 
 function saveRecipe() {
+  if (!authStore.user || !authStore.user.name) {
+    throw new Error('User not authenticated')
+  }
   recipesStore
-    .createRecipe()
+    .createRecipe(authStore.user.name)
     .then(() => navigateBack())
     .catch((err) => alert(err.message || err))
 }

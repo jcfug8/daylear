@@ -34,13 +34,18 @@ import { useRecipesStore } from '@/stores/recipes'
 import { storeToRefs } from 'pinia'
 import { onMounted } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
 const recipesStore = useRecipesStore()
 const breadcrumbStore = useBreadcrumbStore()
 breadcrumbStore.setBreadcrumbs([{ title: 'Recipes', to: { name: 'recipes' } }])
 
 onMounted(async () => {
-  await recipesStore.loadRecipes()
+  if (!authStore.user || !authStore.user.name) {
+    throw new Error('User not authenticated')
+  }
+  await recipesStore.loadRecipes(authStore.user.name)
 })
 
 const { recipes } = storeToRefs(recipesStore)

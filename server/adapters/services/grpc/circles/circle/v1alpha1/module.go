@@ -7,7 +7,7 @@ import (
 )
 
 var Module = fx.Module(
-	"userGrpcAdapter",
+	"circleGrpcAdapter",
 	fx.Provide(
 		NewCircleService,
 		func(s *CircleService) pb.CircleServiceServer { return s },

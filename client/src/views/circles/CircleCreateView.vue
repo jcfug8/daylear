@@ -22,9 +22,12 @@ import { useRouter } from 'vue-router'
 import { onMounted, computed } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { storeToRefs } from 'pinia'
+import { useAuthStore } from '@/stores/auth'
+
 const router = useRouter()
 const circlesStore = useCirclesStore()
 const breadcrumbStore = useBreadcrumbStore()
+const authStore = useAuthStore()
 
 const { circle } = storeToRefs(circlesStore)
 
@@ -33,8 +36,11 @@ function navigateBack() {
 }
 
 function saveCircle() {
+  if (!authStore.user || !authStore.user.name) {
+    throw new Error('User not authenticated')
+  }
   circlesStore
-    .createCircle()
+    .createCircle(authStore.user.name)
     .then(() => navigateBack())
     .catch((err) => alert(err.message || err))
 }

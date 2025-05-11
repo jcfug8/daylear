@@ -16,22 +16,6 @@ export const useCirclesStore = defineStore('circles', () => {
   const circle = ref<Circle | undefined>()
   const publicCircle = ref<PublicCircle | undefined>()
 
-  async function loadCircles(parent: string = 'users/1', filter?: string) {
-    try {
-      const request: ListCirclesRequest = {
-        parent,
-        pageSize: undefined,
-        pageToken: undefined,
-        filter: filter,
-      }
-      const response = (await circleService.ListCircles(request)) as ListCirclesResponse
-      circles.value = response.circles ?? []
-    } catch (error) {
-      console.error('Failed to load circles:', error)
-      circles.value = []
-    }
-  }
-
   async function loadPublicCircles(filter?: string) {
     try {
       const request: ListPublicCirclesRequest = {
@@ -75,7 +59,7 @@ export const useCirclesStore = defineStore('circles', () => {
     }
   }
 
-  async function createCircle() {
+  async function createCircle(parent: string) {
     if (!circle.value) {
       throw new Error('No circle to create')
     }
@@ -84,7 +68,7 @@ export const useCirclesStore = defineStore('circles', () => {
     }
     try {
       const created = await circleService.CreateCircle({
-        parent: 'users/1',
+        parent,
         circle: circle.value,
         circleId: crypto.randomUUID(),
       })
@@ -118,7 +102,6 @@ export const useCirclesStore = defineStore('circles', () => {
 
   return {
     loadCircle,
-    loadCircles,
     loadPublicCircles,
     loadPublicCircle,
     initEmptyCircle,

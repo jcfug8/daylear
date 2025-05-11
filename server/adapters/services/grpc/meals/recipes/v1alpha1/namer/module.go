@@ -6,7 +6,7 @@ import (
 
 // Module -
 var Module = fx.Module(
-	"domain",
+	"recipeNamer",
 	fx.Provide(
 		NewRecipeNamer,
 	),

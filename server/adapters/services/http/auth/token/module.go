@@ -7,7 +7,7 @@ import (
 )
 
 var Module = fx.Module(
-	"authAdapter",
+	"tokenAuthAdapter",
 	fx.Provide(
 		NewService,
 	),

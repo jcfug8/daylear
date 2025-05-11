@@ -7,7 +7,7 @@ import (
 )
 
 var Module = fx.Module(
-	"imagesAdapter",
+	"filesAdapter",
 	fx.Provide(
 		NewService,
 	),

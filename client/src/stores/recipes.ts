@@ -11,7 +11,7 @@ export const useRecipesStore = defineStore('recipes', () => {
   const recipes = ref<Recipe[]>([])
   const recipe = ref<Recipe | undefined>()
 
-  async function loadRecipes(parent: string = 'users/1') {
+  async function loadRecipes(parent: string) {
     try {
       const request = {
         parent,
@@ -50,7 +50,7 @@ export const useRecipesStore = defineStore('recipes', () => {
     }
   }
 
-  async function createRecipe() {
+  async function createRecipe(parent: string) {
     if (!recipe.value) {
       throw new Error('No recipe to create')
     }
@@ -59,7 +59,7 @@ export const useRecipesStore = defineStore('recipes', () => {
     }
     try {
       const created = await recipeService.CreateRecipe({
-        parent: 'users/1',
+        parent,
         recipe: recipe.value,
         recipeId: crypto.randomUUID(),
       })

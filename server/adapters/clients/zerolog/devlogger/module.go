@@ -14,7 +14,7 @@ const (
 
 // Module -
 var Module = fx.Module(
-	"logger",
+	"devlogger",
 	fx.Provide(
 		fx.Annotate(
 			NewWriter,

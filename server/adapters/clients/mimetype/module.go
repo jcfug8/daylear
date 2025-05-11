@@ -6,7 +6,7 @@ import (
 )
 
 var Module = fx.Module(
-	"fileFileInspector",
+	"mimetypeInspector",
 	fx.Provide(
 		fx.Annotate(
 			NewClient,
