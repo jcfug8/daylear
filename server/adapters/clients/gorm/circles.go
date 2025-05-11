@@ -147,6 +147,7 @@ func (repo *Client) ListCircles(ctx context.Context, page *cmodel.PageToken[cmod
 			"circle_id": filtering.NewSQLField[int64]("c.circle_id", "="),
 			"user_id":   filtering.NewSQLField[int64]("circle_user.user_id", "="),
 			"title":     filtering.NewSQLField[string]("c.title", "="),
+			"is_public": filtering.NewSQLField[bool]("c.is_public", "="),
 		})
 
 	filterClause, info, err := t.Transpile(filter)
@@ -156,8 +157,6 @@ func (repo *Client) ListCircles(ctx context.Context, page *cmodel.PageToken[cmod
 
 	if info.HasField("user_id") {
 		tx.Joins("JOIN circle_user ON circle_user.circle_id = c.circle_id")
-	} else {
-		tx = tx.Where("c.is_public = ?", true)
 	}
 
 	if filterClause != nil {
