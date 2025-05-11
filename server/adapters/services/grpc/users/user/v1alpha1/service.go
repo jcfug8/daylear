@@ -25,7 +25,6 @@ type NewUserServiceParams struct {
 
 // NewUserService creates a new UserService.
 func NewUserService(params NewUserServiceParams) *UserService {
-
 	return &UserService{
 		domain:                 params.Domain,
 		fieldBehaviorValidator: params.FieldValidator,
@@ -38,6 +37,7 @@ func NewUserService(params NewUserServiceParams) *UserService {
 // UserService defines the grpc handlers for the UserService.
 type UserService struct {
 	pb.UnimplementedUserServiceServer
+	pb.UnimplementedPublicUserServiceServer
 	domain                 domain.Domain
 	fieldBehaviorValidator fieldValidator.FieldBehaviorValidator
 	log                    zerolog.Logger
@@ -48,5 +48,6 @@ type UserService struct {
 // Register registers s to the grpc implementation of the service.
 func (s *UserService) Register(server *grpc.Server) error {
 	pb.RegisterUserServiceServer(server, s)
+	pb.RegisterPublicUserServiceServer(server, s)
 	return nil
 }

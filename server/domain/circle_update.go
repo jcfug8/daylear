@@ -18,7 +18,7 @@ func (d *Domain) UpdateCircle(ctx context.Context, circle model.Circle, updateMa
 	if err != nil {
 		return model.Circle{}, err
 	}
-	if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+	if permission < permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
 		return model.Circle{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 
@@ -32,6 +32,7 @@ func (d *Domain) UpdateCircle(ctx context.Context, circle model.Circle, updateMa
 	if err != nil {
 		return model.Circle{}, err
 	}
+	updated.Parent = circle.Parent
 
 	err = tx.Commit()
 	if err != nil {

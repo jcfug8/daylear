@@ -109,12 +109,11 @@ const router = createRouter({
       },
     },
     {
-      path: '/circles',
-      name: 'circles',
-      component: () => import('../views/circles/CirclesView.vue'),
+      path: '/circle/:circleId/settings/edit',
+      name: 'circle-settings-edit',
+      component: () => import('../views/circles/CircleSettingsEditView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -127,9 +126,18 @@ const router = createRouter({
       },
     },
     {
+      path: '/circles',
+      name: 'publicCircles',
+      component: () => import('../views/circles/PublicCirclesView.vue'),
+      meta: {
+        requiresAuth: true,
+        breadcrumbs: true,
+      },
+    },
+    {
       path: '/circle/:circleId',
-      name: 'circle',
-      component: () => import('../views/circles/CircleView.vue'),
+      name: 'publicCircle',
+      component: () => import('../views/circles/PublicCircleView.vue'),
       meta: {
         requiresAuth: true,
         breadcrumbs: true,

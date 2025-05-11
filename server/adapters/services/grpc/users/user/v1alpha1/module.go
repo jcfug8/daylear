@@ -11,5 +11,6 @@ var Module = fx.Module(
 	fx.Provide(
 		NewUserService,
 		func(s *UserService) pb.UserServiceServer { return s },
+		func(s *UserService) pb.PublicUserServiceServer { return s },
 	),
 )

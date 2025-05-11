@@ -20,6 +20,7 @@ func ProtoToCircle(CircleNamer namer.CircleNamer, proto *pb.Circle) (model.Circl
 		circle.Id = id
 	}
 	circle.Title = proto.Title
+	circle.IsPublic = proto.IsPublic
 	return circle, nil
 }
 
@@ -32,6 +33,7 @@ func CircleToProto(CircleNamer namer.CircleNamer, circle model.Circle) (*pb.Circ
 	}
 	proto.Name = name
 	proto.Title = circle.Title
+	proto.IsPublic = circle.IsPublic
 	return proto, nil
 }
 

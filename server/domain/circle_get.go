@@ -10,16 +10,18 @@ import (
 
 // GetCircle gets a circle.
 func (d *Domain) GetCircle(ctx context.Context, parent model.CircleParent, id model.CircleId, fieldMask []string) (model.Circle, error) {
-	if parent.UserId == 0 || id.CircleId == 0 {
-		return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent and id required"}
+	if id.CircleId == 0 {
+		return model.Circle{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	permission, err := d.repo.GetCircleUserPermission(ctx, parent.UserId, id.CircleId)
-	if err != nil {
-		return model.Circle{}, err
-	}
-	if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_READ {
-		return model.Circle{}, domain.ErrPermissionDenied{Msg: "user does not have read permission"}
+	if parent.UserId != 0 {
+		permission, err := d.repo.GetCircleUserPermission(ctx, parent.UserId, id.CircleId)
+		if err != nil {
+			return model.Circle{}, err
+		}
+		if permission < permPb.PermissionLevel_RESOURCE_PERMISSION_READ {
+			return model.Circle{}, domain.ErrPermissionDenied{Msg: "user does not have read permission"}
+		}
 	}
 
 	circle := model.Circle{Id: id, Parent: parent}

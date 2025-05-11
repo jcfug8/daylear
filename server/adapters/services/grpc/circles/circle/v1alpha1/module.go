@@ -11,5 +11,6 @@ var Module = fx.Module(
 	fx.Provide(
 		NewCircleService,
 		func(s *CircleService) pb.CircleServiceServer { return s },
+		func(s *CircleService) pb.PublicCircleServiceServer { return s },
 	),
 )

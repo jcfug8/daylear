@@ -21,10 +21,9 @@ func (repo *Client) CreateCircle(ctx context.Context, m cmodel.Circle) (cmodel.C
 		return cmodel.Circle{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid circle: %v", err)}
 	}
 
-	circleFields := []string{
-		gmodel.CircleFields.CircleId,
-		gmodel.CircleFields.Title,
-	}
+	circleFields := masks.RemovePaths(
+		gmodel.CircleFields.Mask(),
+	)
 
 	err = repo.db.
 		Select(circleFields).
@@ -71,15 +70,20 @@ func (repo *Client) GetCircle(ctx context.Context, m cmodel.Circle, fields []str
 		return cmodel.Circle{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid circle: %v", err)}
 	}
 
-	mask := fields
+	mask := masks.Map(fields, gmodel.CircleMap)
 	if len(mask) == 0 {
 		mask = gmodel.CircleFields.Mask()
 	}
 
-	err = repo.db.WithContext(ctx).
+	tx := repo.db.WithContext(ctx).
 		Select(mask).
-		Clauses(clause.Returning{}).
-		First(&gm).Error
+		Clauses(clause.Returning{})
+
+	if m.Parent.UserId == 0 {
+		tx = tx.Where("is_public = ?", true)
+	}
+
+	err = tx.First(&gm).Error
 	if err != nil {
 		return cmodel.Circle{}, ConvertGormError(err)
 	}
@@ -130,6 +134,7 @@ func (repo *Client) ListCircles(ctx context.Context, page *cmodel.PageToken[cmod
 	fields = masks.Map(fields, gmodel.CircleMap)
 
 	tx := repo.db.WithContext(ctx)
+
 	if len(fields) > 0 {
 		for i, field := range fields {
 			fields[i] = fmt.Sprintf("c.%s", field)
@@ -151,6 +156,8 @@ func (repo *Client) ListCircles(ctx context.Context, page *cmodel.PageToken[cmod
 
 	if info.HasField("user_id") {
 		tx.Joins("JOIN circle_user ON circle_user.circle_id = c.circle_id")
+	} else {
+		tx = tx.Where("c.is_public = ?", true)
 	}
 
 	if filterClause != nil {
@@ -160,14 +167,15 @@ func (repo *Client) ListCircles(ctx context.Context, page *cmodel.PageToken[cmod
 		tx = tx.Where(queryModel, args...)
 	}
 
-	if page != nil {
-		orders := []clause.OrderByColumn{{
-			Column: clause.Column{Name: "circle_id"},
-			Desc:   true,
-		}}
+	orders := []clause.OrderByColumn{{
+		Column: clause.Column{Name: "circle_id"},
+		Desc:   true,
+	}}
 
-		tx = tx.Order(clause.OrderBy{Columns: orders}).
-			Limit(int(page.PageSize)).
+	tx = tx.Order(clause.OrderBy{Columns: orders})
+
+	if page != nil {
+		tx = tx.Limit(int(page.PageSize)).
 			Offset(int(page.Skip))
 
 		if page.Tail != nil {

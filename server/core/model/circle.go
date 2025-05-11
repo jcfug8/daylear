@@ -6,9 +6,10 @@ import (
 
 // Circle defines the model for a circle.
 type Circle struct {
-	Id     CircleId
-	Parent CircleParent
-	Title  string
+	Id       CircleId
+	Parent   CircleParent
+	Title    string
+	IsPublic bool
 }
 
 // CircleId defines the identifier for a circle.
@@ -26,15 +27,17 @@ type CircleParent struct {
 
 // CircleFields defines the circle fields.
 var CircleFields = circleFields{
-	Id:     "id",
-	Title:  "title",
-	Parent: "parent",
+	Id:       "id",
+	Title:    "title",
+	Parent:   "parent",
+	IsPublic: "is_public",
 }
 
 type circleFields struct {
-	Id     string
-	Title  string
-	Parent string
+	Id       string
+	Title    string
+	Parent   string
+	IsPublic string
 }
 
 // Mask returns a FieldMask for the circle fields.
@@ -43,6 +46,7 @@ func (fields circleFields) Mask() []string {
 		fields.Id,
 		fields.Title,
 		fields.Parent,
+		fields.IsPublic,
 	}
 }
 
@@ -50,6 +54,7 @@ func (fields circleFields) Mask() []string {
 func (fields circleFields) UpdateMask(mask []string) []string {
 	updatable := []string{
 		fields.Title,
+		fields.IsPublic,
 	}
 
 	if len(mask) == 0 {

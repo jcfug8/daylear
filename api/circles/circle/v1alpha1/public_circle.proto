@@ -1,0 +1,78 @@
+// (-- api-linter: core::0191::java-outer-classname=disabled
+//     aip.dev/not-precedent: I don't care about java. --)
+// (-- api-linter: core::0191::java-multiple-files=disabled
+//     aip.dev/not-precedent: I don't care about java. --)
+// (-- api-linter: core::0191::java-package=disabled
+//     aip.dev/not-precedent: I don't care about java. --)
+
+syntax = "proto3";
+
+package api.circles.circle.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+
+// the public circle service
+service PublicCircleService {
+  // list public circles
+  rpc ListPublicCircles(ListPublicCirclesRequest) returns (ListPublicCirclesResponse) {
+    option (google.api.method_signature) = "parent";
+    option (google.api.http) = {get: "/circles/v1alpha1/publicCircles"};
+  }
+
+  // get a public circle
+  rpc GetPublicCircle(GetPublicCircleRequest) returns (PublicCircle) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {get: "/circles/v1alpha1/{name=publicCircles/*}"};
+  }
+}
+
+// the main public circle object
+message PublicCircle {
+  option (google.api.resource) = {
+    type: "api.circles.circle.v1alpha1/PublicCircle"
+    pattern: "publicCircles/{public_circle}"
+    plural: "publicCircles"
+    singular: "publicCircle"
+  };
+
+  // the name of the circle
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // the title of the circle
+  string title = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// the request to list circles
+message ListPublicCirclesRequest {
+  // the page size
+  int32 page_size = 1 [(google.api.field_behavior) = OPTIONAL];
+
+  // the page token
+  string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // used to specify the filter
+  string filter = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// the response to list circles
+message ListPublicCirclesResponse {
+  // the circles
+  repeated PublicCircle public_circles = 1;
+
+  // the next page token
+  string next_page_token = 2;
+}
+
+
+// the request to get a circle
+message GetPublicCircleRequest {
+  // the name of the circle
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.circles.circle.v1alpha1/Circle"
+  ];
+}

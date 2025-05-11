@@ -12,6 +12,10 @@ export type Circle = {
   //
   // Behaviors: REQUIRED
   title: string | undefined;
+  // if the circle is public
+  //
+  // Behaviors: OPTIONAL
+  isPublic: boolean | undefined;
 };
 
 // the request to create a circle
@@ -160,7 +164,7 @@ export function createCircleServiceClient(
       if (!request.parent) {
         throw new Error("missing required field request.parent");
       }
-      const path = `meals/v1alpha1/${request.parent}/circles`; // eslint-disable-line quotes
+      const path = `circles/v1alpha1/${request.parent}/circles`; // eslint-disable-line quotes
       const body = JSON.stringify(request?.circle ?? {});
       const queryParams: string[] = [];
       if (request.circleId) {
@@ -183,7 +187,7 @@ export function createCircleServiceClient(
       if (!request.parent) {
         throw new Error("missing required field request.parent");
       }
-      const path = `meals/v1alpha1/${request.parent}/circles`; // eslint-disable-line quotes
+      const path = `circles/v1alpha1/${request.parent}/circles`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.pageSize) {
@@ -212,7 +216,7 @@ export function createCircleServiceClient(
       if (!request.circle?.name) {
         throw new Error("missing required field request.circle.name");
       }
-      const path = `meals/v1alpha1/${request.circle.name}`; // eslint-disable-line quotes
+      const path = `circles/v1alpha1/${request.circle.name}`; // eslint-disable-line quotes
       const body = JSON.stringify(request?.circle ?? {});
       const queryParams: string[] = [];
       if (request.updateMask) {
@@ -235,7 +239,7 @@ export function createCircleServiceClient(
       if (!request.name) {
         throw new Error("missing required field request.name");
       }
-      const path = `meals/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const path = `circles/v1alpha1/${request.name}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
@@ -255,7 +259,7 @@ export function createCircleServiceClient(
       if (!request.name) {
         throw new Error("missing required field request.name");
       }
-      const path = `meals/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const path = `circles/v1alpha1/${request.name}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;
@@ -275,7 +279,7 @@ export function createCircleServiceClient(
       if (!request.name) {
         throw new Error("missing required field request.name");
       }
-      const path = `meals/v1alpha1/${request.name}:share`; // eslint-disable-line quotes
+      const path = `circles/v1alpha1/${request.name}:share`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
@@ -290,6 +294,110 @@ export function createCircleServiceClient(
         service: "CircleService",
         method: "ShareCircle",
       }) as Promise<ShareCircleResponse>;
+    },
+  };
+}
+// the main public circle object
+export type PublicCircle = {
+  // the name of the circle
+  //
+  // Behaviors: IDENTIFIER
+  name: string | undefined;
+  // the title of the circle
+  //
+  // Behaviors: REQUIRED
+  title: string | undefined;
+};
+
+// the request to list circles
+export type ListPublicCirclesRequest = {
+  // the page size
+  //
+  // Behaviors: OPTIONAL
+  pageSize: number | undefined;
+  // the page token
+  //
+  // Behaviors: OPTIONAL
+  pageToken: string | undefined;
+  // used to specify the filter
+  //
+  // Behaviors: OPTIONAL
+  filter: string | undefined;
+};
+
+// the response to list circles
+export type ListPublicCirclesResponse = {
+  // the circles
+  publicCircles: PublicCircle[] | undefined;
+  // the next page token
+  nextPageToken: string | undefined;
+};
+
+// the request to get a circle
+export type GetPublicCircleRequest = {
+  // the name of the circle
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the public circle service
+export interface PublicCircleService {
+  // list public circles
+  ListPublicCircles(request: ListPublicCirclesRequest): Promise<ListPublicCirclesResponse>;
+  // get a public circle
+  GetPublicCircle(request: GetPublicCircleRequest): Promise<PublicCircle>;
+}
+
+export function createPublicCircleServiceClient(
+  handler: RequestHandler
+): PublicCircleService {
+  return {
+    ListPublicCircles(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `circles/v1alpha1/publicCircles`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.pageSize) {
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
+      }
+      if (request.pageToken) {
+        queryParams.push(`pageToken=${encodeURIComponent(request.pageToken.toString())}`)
+      }
+      if (request.filter) {
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "PublicCircleService",
+        method: "ListPublicCircles",
+      }) as Promise<ListPublicCirclesResponse>;
+    },
+    GetPublicCircle(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `circles/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "PublicCircleService",
+        method: "GetPublicCircle",
+      }) as Promise<PublicCircle>;
     },
   };
 }

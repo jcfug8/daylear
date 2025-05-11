@@ -1,5 +1,5 @@
 <template>
-  <v-card class="mx-auto my-12" max-width="400">
+  <v-card v-if="circle" class="mx-auto my-12" max-width="400">
     <v-card-title>Create New Circle</v-card-title>
     <v-card-text>
       <v-text-field
@@ -7,6 +7,7 @@
         label="Circle Title"
         required
       />
+      <v-checkbox v-model="circle.isPublic" label="Public" />
     </v-card-text>
     <v-card-actions>
       <v-btn color="primary" @click="saveCircle">Save</v-btn>
@@ -20,15 +21,15 @@ import { useCirclesStore } from '@/stores/circles'
 import { useRouter } from 'vue-router'
 import { onMounted, computed } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
-
+import { storeToRefs } from 'pinia'
 const router = useRouter()
 const circlesStore = useCirclesStore()
 const breadcrumbStore = useBreadcrumbStore()
 
-const circle = computed(() => circlesStore.circle || { title: '' })
+const { circle } = storeToRefs(circlesStore)
 
 function navigateBack() {
-  router.push({ name: 'circles' })
+  router.push({ name: 'publicCircles' })
 }
 
 function saveCircle() {
@@ -41,7 +42,7 @@ function saveCircle() {
 onMounted(() => {
   circlesStore.initEmptyCircle()
   breadcrumbStore.setBreadcrumbs([
-    { title: 'Circles', to: { name: 'circles' } },
+    { title: 'Circles', to: { name: 'publicCircles' } },
     { title: 'Create New Circle', to: { name: 'circleCreate' } },
   ])
 })

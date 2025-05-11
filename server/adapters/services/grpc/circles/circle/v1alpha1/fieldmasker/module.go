@@ -17,6 +17,7 @@ var Module = fx.Module(
 	"fieldmasker",
 	fx.Provide(
 		NewCircleFieldMasker,
+		NewPublicCircleFieldMasker,
 	),
 )
 

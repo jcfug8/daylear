@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { User } from '@/genapi/api/users/user/v1alpha1'
 import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
-import { userService, authService } from '@/api/api'
+import { userService, authService, circleService } from '@/api/api'
 export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = ref(false)
   const userId = ref<number>(0)
@@ -44,6 +44,23 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = await userService.GetUser({
         name: `users/${userId.value}`,
       })
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
+  /**
+   * loadAuthCircles
+   */
+  async function loadAuthCircles() {
+    try {
+      let res = await circleService.ListCircles({
+        parent: `users/${userId.value}`,
+        pageSize: 100,
+        pageToken: '',
+        filter: '',
+      })
+      circles.value = res.circles ?? []
     } catch (error) {
       console.error('Error:', error)
     }
@@ -119,16 +136,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     await loadAuthUser()
 
-    circles.value = [
-      {
-        name: 'circles/1',
-        title: 'Circle 1',
-      },
-      {
-        name: 'circles/2',
-        title: 'Circle 2',
-      },
-    ]
+    await loadAuthCircles()
+
     if (activeAccount.value === undefined) {
       activeAccount.value = user.value
     }

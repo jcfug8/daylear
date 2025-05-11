@@ -48,6 +48,7 @@ func (d *Domain) UpdateRecipe(ctx context.Context, recipe model.Recipe, updateMa
 	if err != nil {
 		return model.Recipe{}, err
 	}
+	dbRecipe.Parent = recipe.Parent
 
 	for _, updateMaskField := range updateMask {
 		if updateMaskField == model.RecipeFields.IngredientGroups {

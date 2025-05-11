@@ -9,5 +9,6 @@ var Module = fx.Module(
 	"grpcCircleNamer",
 	fx.Provide(
 		NewCircleNamer,
+		NewPublicCircleNamer,
 	),
 )

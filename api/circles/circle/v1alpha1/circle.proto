@@ -21,7 +21,7 @@ service CircleService {
   rpc CreateCircle(CreateCircleRequest) returns (Circle) {
     option (google.api.method_signature) = "parent,circle,circle_id";
     option (google.api.http) = {
-      post: "/meals/v1alpha1/{parent=users/*}/circles"
+      post: "/circles/v1alpha1/{parent=users/*}/circles"
       body: "circle"
     };
   }
@@ -29,14 +29,14 @@ service CircleService {
   // list circles
   rpc ListCircles(ListCirclesRequest) returns (ListCirclesResponse) {
     option (google.api.method_signature) = "parent";
-    option (google.api.http) = {get: "/meals/v1alpha1/{parent=users/*}/circles"};
+    option (google.api.http) = {get: "/circles/v1alpha1/{parent=users/*}/circles"};
   }
 
   // update a circle
   rpc UpdateCircle(UpdateCircleRequest) returns (Circle) {
     option (google.api.method_signature) = "circle,update_mask";
     option (google.api.http) = {
-      patch: "/meals/v1alpha1/{circle.name=users/*/circles/*}"
+      patch: "/circles/v1alpha1/{circle.name=users/*/circles/*}"
       body: "circle"
     };
   }
@@ -44,20 +44,20 @@ service CircleService {
   // delete` a circle
   rpc DeleteCircle(DeleteCircleRequest) returns (Circle) {
     option (google.api.method_signature) = "name";
-    option (google.api.http) = {delete: "/meals/v1alpha1/{name=users/*/circles/*}"};
+    option (google.api.http) = {delete: "/circles/v1alpha1/{name=users/*/circles/*}"};
   }
 
   // get a circle
   rpc GetCircle(GetCircleRequest) returns (Circle) {
     option (google.api.method_signature) = "name";
-    option (google.api.http) = {get: "/meals/v1alpha1/{name=users/*/circles/*}"};
+    option (google.api.http) = {get: "/circles/v1alpha1/{name=users/*/circles/*}"};
   }
 
   // share a circle
   rpc ShareCircle(ShareCircleRequest) returns (ShareCircleResponse) {
     option (google.api.method_signature) = "name,recipients";
     option (google.api.http) = {
-      post: "/meals/v1alpha1/{name=users/*/circles/*}:share"
+      post: "/circles/v1alpha1/{name=users/*/circles/*}:share"
       body: "*"
     };
   }
@@ -66,7 +66,7 @@ service CircleService {
 // the main user circle
 message Circle {
   option (google.api.resource) = {
-    type: "api.meals.circle.v1alpha1/Circle"
+    type: "api.circles.circle.v1alpha1/Circle"
     pattern: "users/{user}/circles/{circle}"
     plural: "circles"
     singular: "circle"
@@ -77,6 +77,9 @@ message Circle {
 
   // the title of the circle
   string title = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // if the circle is public
+  bool is_public = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // the request to create a circle
@@ -84,7 +87,7 @@ message CreateCircleRequest {
   // the parent of the circle
   string parent = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).child_type = "api.meals.circle.v1alpha1/Circle"
+    (google.api.resource_reference).child_type = "api.circles.circle.v1alpha1/Circle"
   ];
 
   // the circle to create
@@ -99,7 +102,7 @@ message ListCirclesRequest {
   // the parent of the circles
   string parent = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).child_type = "api.meals.circle.v1alpha1/Circle"
+    (google.api.resource_reference).child_type = "api.circles.circle.v1alpha1/Circle"
   ];
 
   // the page size
@@ -135,7 +138,7 @@ message DeleteCircleRequest {
   // the name of the circle
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).type = "api.meals.circle.v1alpha1/Circle"
+    (google.api.resource_reference).type = "api.circles.circle.v1alpha1/Circle"
   ];
 }
 
@@ -144,7 +147,7 @@ message GetCircleRequest {
   // the name of the circle
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).type = "api.meals.circle.v1alpha1/Circle"
+    (google.api.resource_reference).type = "api.circles.circle.v1alpha1/Circle"
   ];
 }
 
@@ -153,7 +156,7 @@ message ShareCircleRequest {
   // the name of the circle
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).type = "api.meals.circle.v1alpha1/Circle"
+    (google.api.resource_reference).type = "api.circles.circle.v1alpha1/Circle"
   ];
 
   // the recipients of the circle

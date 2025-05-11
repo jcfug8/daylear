@@ -15,23 +15,23 @@ import (
 	// IRIOMO:CUSTOM_CODE_SLOT_END
 )
 
-var _ CircleFieldMasker = &defaultCircleFieldMasker{}
+var _ PublicCircleFieldMasker = &defaultPublicCircleFieldMasker{}
 
-// CircleFieldMasker is an interface for handling field masks for circle.
-type CircleFieldMasker interface {
+// PublicCircleFieldMasker is an interface for handling field masks for circle.
+type PublicCircleFieldMasker interface {
 	GetFieldMaskFromCtx(ctx context.Context) *fieldmaskpb.FieldMask
 	GetReadMask(*fieldmaskpb.FieldMask) ([]string, error)
 	GetWriteMask(*fieldmaskpb.FieldMask) ([]string, error)
 }
 
-type defaultCircleFieldMasker struct {
+type defaultPublicCircleFieldMasker struct {
 	fieldMaskFields map[string]fieldMaskField
 }
 
-// NewCircleFieldMasker creates a new CircleFieldMasker.
-func NewCircleFieldMasker() CircleFieldMasker {
+// NewPublicCircleFieldMasker creates a new PublicCircleFieldMasker.
+func NewPublicCircleFieldMasker() PublicCircleFieldMasker {
 	t := new(pb.Circle)
-	fm := &defaultCircleFieldMasker{
+	fm := &defaultPublicCircleFieldMasker{
 		fieldMaskFields: make(map[string]fieldMaskField),
 	}
 
@@ -41,13 +41,12 @@ func NewCircleFieldMasker() CircleFieldMasker {
 	// IRIOMO:CUSTOM_CODE_SLOT_START resourceNamerMapFields
 	fm.mapFieldMaskPathToDomainMasks("name", model.CircleFields.Id, model.CircleFields.Parent)
 	fm.mapFieldMaskPathToDomainMasks("title", model.CircleFields.Title)
-	fm.mapFieldMaskPathToDomainMasks("is_public", model.CircleFields.IsPublic)
 	// IRIOMO:CUSTOM_CODE_SLOT_END
 
 	return fm
 }
 
-func (f *defaultCircleFieldMasker) mapFieldMaskPathToDomainMasks(fieldMaskPath string, domainMasks ...string) {
+func (f *defaultPublicCircleFieldMasker) mapFieldMaskPathToDomainMasks(fieldMaskPath string, domainMasks ...string) {
 	if _, ok := f.fieldMaskFields[fieldMaskPath]; !ok {
 		panic(fmt.Sprintf("field mask path %s not found", fieldMaskPath))
 	}
@@ -58,7 +57,7 @@ func (f *defaultCircleFieldMasker) mapFieldMaskPathToDomainMasks(fieldMaskPath s
 }
 
 // GetFieldMaskFromCtx gets the field mask from the context.
-func (f *defaultCircleFieldMasker) GetFieldMaskFromCtx(ctx context.Context) *fieldmaskpb.FieldMask {
+func (f *defaultPublicCircleFieldMasker) GetFieldMaskFromCtx(ctx context.Context) *fieldmaskpb.FieldMask {
 	if ctx == nil {
 		return nil
 	}
@@ -82,7 +81,7 @@ func (f *defaultCircleFieldMasker) GetFieldMaskFromCtx(ctx context.Context) *fie
 }
 
 // GetReadMask gets the read mask.
-func (f *defaultCircleFieldMasker) GetReadMask(mask *fieldmaskpb.FieldMask) ([]string, error) {
+func (f *defaultPublicCircleFieldMasker) GetReadMask(mask *fieldmaskpb.FieldMask) ([]string, error) {
 	if len(mask.GetPaths()) == 0 || (len(mask.GetPaths()) == 1 && mask.GetPaths()[0] == "*") {
 		mask = &fieldmaskpb.FieldMask{}
 		for _, field := range f.fieldMaskFields {
@@ -97,7 +96,7 @@ func (f *defaultCircleFieldMasker) GetReadMask(mask *fieldmaskpb.FieldMask) ([]s
 }
 
 // GetWriteMask gets the write mask.
-func (f *defaultCircleFieldMasker) GetWriteMask(mask *fieldmaskpb.FieldMask) ([]string, error) {
+func (f *defaultPublicCircleFieldMasker) GetWriteMask(mask *fieldmaskpb.FieldMask) ([]string, error) {
 	if len(mask.GetPaths()) == 0 || (len(mask.GetPaths()) == 1 && mask.GetPaths()[0] == "*") {
 		mask = &fieldmaskpb.FieldMask{}
 		for _, field := range f.fieldMaskFields {
@@ -119,7 +118,7 @@ func (f *defaultCircleFieldMasker) GetWriteMask(mask *fieldmaskpb.FieldMask) ([]
 	return f.convertToDomainMask(mask)
 }
 
-func (f *defaultCircleFieldMasker) convertToDomainMask(mask *fieldmaskpb.FieldMask) ([]string, error) {
+func (f *defaultPublicCircleFieldMasker) convertToDomainMask(mask *fieldmaskpb.FieldMask) ([]string, error) {
 	domainMask := make([]string, 0, len(mask.GetPaths()))
 	for _, m := range mask.GetPaths() {
 		field, ok := f.fieldMaskFields[m]
