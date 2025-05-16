@@ -3,6 +3,12 @@ import { defineStore } from 'pinia'
 import type { User } from '@/genapi/api/users/user/v1alpha1'
 import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
 import { userService, authService, circleService } from '@/api/api'
+
+export enum AccountType {
+  USER = 'user',
+  CIRCLE = 'circle',
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = ref(false)
   const userId = ref<number>(0)
@@ -14,8 +20,10 @@ export const useAuthStore = defineStore('auth', () => {
     familyName: '',
   })
   const circles = ref<Circle[]>([])
-  const activeAccount = ref<User | Circle | undefined>()
-
+  const activeAccount = ref<User | Circle>()
+  const activeAccountName = ref<string>('')
+  const activeAccountTitle = ref<string>('')
+  const activeAccountType = ref<AccountType>(AccountType.USER)
   /**
    * Logs the user out by clearing authentication data and removing the JWT from sessionStorage.
    */
@@ -34,6 +42,14 @@ export const useAuthStore = defineStore('auth', () => {
   function setActiveAccount(account: User | Circle) {
     console.log('setActiveAccount', account)
     activeAccount.value = account
+    activeAccountName.value = account.name ?? ''
+    if ('username' in account) {
+      activeAccountType.value = AccountType.USER
+      activeAccountTitle.value = account.username ?? ''
+    } else {
+      activeAccountType.value = AccountType.CIRCLE
+      activeAccountTitle.value = account.title ?? ''
+    }
   }
 
   /**
@@ -169,8 +185,12 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     circles,
     activeAccount,
+    activeAccountName,
+    activeAccountType,
+    activeAccountTitle,
     isLoggedIn,
     loadAuthUser,
+    loadAuthCircles,
     updateAuthUser,
     logOut,
     setActiveAccount,

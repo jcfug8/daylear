@@ -41,7 +41,10 @@ function saveCircle() {
   }
   circlesStore
     .createCircle(authStore.user.name)
-    .then(() => navigateBack())
+    .then(() => {
+      authStore.loadAuthCircles()
+      navigateBack()
+    })
     .catch((err) => alert(err.message || err))
 }
 

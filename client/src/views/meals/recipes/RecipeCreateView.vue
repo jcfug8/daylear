@@ -28,7 +28,7 @@ function saveRecipe() {
     throw new Error('User not authenticated')
   }
   recipesStore
-    .createRecipe(authStore.user.name)
+    .createRecipe(authStore.activeAccountName)
     .then(() => navigateBack())
     .catch((err) => alert(err.message || err))
 }

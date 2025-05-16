@@ -8,8 +8,10 @@
       <div class="text-caption">Plan It Make It Do It</div>
     </v-app-bar-title>
     <template #append>
-      <v-btn icon @click.stop="toggleAccountDrawer" v-if="isLoggedIn">
-        <v-icon>mdi-account-circle</v-icon>
+      <v-btn icon @click.stop="toggleAccountDrawer" v-if="isLoggedIn" stacked>
+        <v-icon v-if="authStore.activeAccountType === AccountType.USER">mdi-account-circle</v-icon>
+        <v-icon v-if="authStore.activeAccountType === AccountType.CIRCLE">mdi-account-group</v-icon>
+        {{ authStore.activeAccountTitle }}
       </v-btn>
     </template>
   </v-app-bar>
@@ -22,6 +24,7 @@
         :to="{ name: 'calendar' }"
       ></v-list-item>
       <v-list-item
+        v-if="authStore.activeAccountType === AccountType.USER"
         prepend-icon="mdi-account-group"
         title="Circles"
         value="circles"
@@ -98,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore, AccountType } from '@/stores/auth'
 import { VNavigationDrawer } from 'vuetify/components'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'

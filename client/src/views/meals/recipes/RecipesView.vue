@@ -45,7 +45,7 @@ onMounted(async () => {
   if (!authStore.user || !authStore.user.name) {
     throw new Error('User not authenticated')
   }
-  await recipesStore.loadRecipes(authStore.user.name)
+  await recipesStore.loadRecipes(authStore.activeAccountName)
 })
 
 const { recipes } = storeToRefs(recipesStore)
