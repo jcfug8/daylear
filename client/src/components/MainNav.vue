@@ -8,10 +8,10 @@
       <div class="text-caption">Plan It Make It Do It</div>
     </v-app-bar-title>
     <template #append>
-      <v-btn icon @click.stop="toggleAccountDrawer" v-if="isLoggedIn" stacked>
+      <v-btn rounded="0" width="100" icon @click.stop="toggleAccountDrawer" v-if="isLoggedIn" stacked>
         <v-icon v-if="authStore.activeAccountType === AccountType.USER">mdi-account-circle</v-icon>
         <v-icon v-if="authStore.activeAccountType === AccountType.CIRCLE">mdi-account-group</v-icon>
-        {{ authStore.activeAccountTitle }}
+        <span class="text-caption">{{ authStore.activeAccountTitle }}</span>
       </v-btn>
     </template>
   </v-app-bar>
@@ -136,6 +136,7 @@ const toggleAccountDrawer = () => {
 
 const activateAccount = (account: User | Circle) => {
   authStore.setActiveAccount(account)
+  toggleAccountDrawer()
   router.push({ name: 'calendar' })
 }
 

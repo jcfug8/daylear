@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { User } from '@/genapi/api/users/user/v1alpha1'
 import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
@@ -21,9 +21,23 @@ export const useAuthStore = defineStore('auth', () => {
   })
   const circles = ref<Circle[]>([])
   const activeAccount = ref<User | Circle>()
-  const activeAccountName = ref<string>('')
-  const activeAccountTitle = ref<string>('')
-  const activeAccountType = ref<AccountType>(AccountType.USER)
+  const activeAccountName = computed(() => {
+    return activeAccount.value?.name ?? ''
+  })
+  const activeAccountTitle = computed(() => {
+    if (activeAccount.value && 'username' in activeAccount.value) {
+      return activeAccount.value.username
+    } else {
+      return activeAccount.value?.title ?? ''
+    }
+  })
+  const activeAccountType = computed(() => {
+    if (activeAccount.value && 'username' in activeAccount.value) {
+      return AccountType.USER
+    } else {
+      return AccountType.CIRCLE
+    }
+  })
   /**
    * Logs the user out by clearing authentication data and removing the JWT from sessionStorage.
    */
@@ -42,14 +56,6 @@ export const useAuthStore = defineStore('auth', () => {
   function setActiveAccount(account: User | Circle) {
     console.log('setActiveAccount', account)
     activeAccount.value = account
-    activeAccountName.value = account.name ?? ''
-    if ('username' in account) {
-      activeAccountType.value = AccountType.USER
-      activeAccountTitle.value = account.username ?? ''
-    } else {
-      activeAccountType.value = AccountType.CIRCLE
-      activeAccountTitle.value = account.title ?? ''
-    }
   }
 
   /**

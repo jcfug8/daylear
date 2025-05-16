@@ -106,6 +106,7 @@ const router = createRouter({
       component: () => import('../views/circles/CircleSettingsView.vue'),
       meta: {
         requiresAuth: true,
+        breadcrumbs: true,
       },
     },
     {
@@ -114,6 +115,7 @@ const router = createRouter({
       component: () => import('../views/circles/CircleSettingsEditView.vue'),
       meta: {
         requiresAuth: true,
+        breadcrumbs: true,
       },
     },
     {

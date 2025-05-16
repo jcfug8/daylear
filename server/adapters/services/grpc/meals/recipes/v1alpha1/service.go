@@ -21,7 +21,7 @@ type NewRecipeServiceParams struct {
 	FieldValidator    fieldValidator.FieldBehaviorValidator
 	Log               zerolog.Logger
 	RecipeFieldMasker fieldMasker.RecipeFieldMasker
-	RecipeNamer       namer.RecipeNamer
+	RecipeNamers      []namer.RecipeNamer `group:"recipeNamer"`
 }
 
 // NewRecipeService creates a new RecipeService.
@@ -32,7 +32,7 @@ func NewRecipeService(params NewRecipeServiceParams) *RecipeService {
 		fieldBehaviorValidator: params.FieldValidator,
 		log:                    params.Log,
 		recipeFieldMasker:      params.RecipeFieldMasker,
-		recipeNamer:            params.RecipeNamer,
+		recipeNamers:           params.RecipeNamers,
 	}
 }
 
@@ -43,6 +43,6 @@ type RecipeService struct {
 	fieldBehaviorValidator fieldValidator.FieldBehaviorValidator
 	log                    zerolog.Logger
 	recipeFieldMasker      fieldMasker.RecipeFieldMasker
-	recipeNamer            namer.RecipeNamer
+	recipeNamers           []namer.RecipeNamer
 	registered             atomic.Bool
 }

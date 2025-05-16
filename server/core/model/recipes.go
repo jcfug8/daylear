@@ -83,7 +83,8 @@ type RecipeId struct {
 
 // RecipeParent defines the owner for a recipe.
 type RecipeParent struct {
-	UserId int64
+	UserId   int64
+	CircleId int64
 }
 
 // ----------------------------------------------------------------------------
