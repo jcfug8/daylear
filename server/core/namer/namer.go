@@ -6,16 +6,6 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-type parentType interface {
-	GetVars(patternIndex int) []string
-	SetVars(patternIndex int, vars []string) parentType
-}
-
-type idType interface {
-	GetId(patternIndex int) string
-	SetId(patternIndex int, id string) idType
-}
-
 func getPatterns(resource proto.Message) []string {
 	resourceOption := proto.GetExtension(
 		resource.ProtoReflect().Descriptor().Options().(*descriptorpb.MessageOptions),

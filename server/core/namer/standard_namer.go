@@ -2,40 +2,59 @@ package namer
 
 import (
 	"fmt"
+	"strings"
 
 	"go.einride.tech/aip/resourcename"
 	"google.golang.org/protobuf/proto"
 )
 
+type StandardVarGetter[Parent any, Id any] func(parent Parent, id Id, patternIndex int) []string
+type StandardVarSetter[Parent any, Id any] func(vars []string, patternIndex int) (Parent, Id, error)
+type StandardParentSetter[Parent any, Id any] func(vars []string, patternIndex int) (Parent, error)
+
 // StandardNamer is a namer that can be used to format and parse the name
-// of a resource that has both a parent and an id.
-type StandardNamer[Parent parentType, Id idType] interface {
+// of a resource that has a parent and an id.
+type StandardNamer[Parent any, Id any] interface {
 	// Format formats the name of the resource using the aip pattern
 	// specified by the patternIndex.
 	Format(parent Parent, id Id, patternIndex int) (string, error)
 
-	// Parse parses the name of the resource returning the parent and id
-	// and the index of the aip pattern that was used to parse the name.
+	// Parse parses the name of the resource returning the parent structure,
+	// the id structure and the index of the aip pattern that was used to
+	// parse the name.
 	Parse(name string) (Parent, Id, int, error)
 
 	// ParseParent parses the parent of the resource returning the parent
-	// and the index of the aip pattern that was used to parse the parent.
-	ParseParent(name string) (Parent, int, error)
+	// structure and the index of the aip pattern that was used to parse
+	// the name.
+	ParseParent(parent string) (Parent, int, error)
 }
 
-func NewStandardNamer[Parent parentType, Id idType](resource proto.Message) (StandardNamer[Parent, Id], error) {
+// NewStandardNamer creates a new standard namer for the given resource type.
+func NewStandardNamer[Parent any, Id any](
+	resource proto.Message,
+	getter StandardVarGetter[Parent, Id],
+	setter StandardVarSetter[Parent, Id],
+	parentSetter StandardParentSetter[Parent, Id],
+) (StandardNamer[Parent, Id], error) {
 	patterns := getPatterns(resource)
 	if len(patterns) == 0 {
 		return nil, fmt.Errorf("no resource pattern found in %T", resource)
 	}
 
 	return &defaultStandardNamer[Parent, Id]{
-		patterns: patterns,
+		patterns:     patterns,
+		getter:       getter,
+		setter:       setter,
+		parentSetter: parentSetter,
 	}, nil
 }
 
-type defaultStandardNamer[Parent parentType, Id idType] struct {
-	patterns []string
+type defaultStandardNamer[Parent any, Id any] struct {
+	patterns     []string
+	getter       StandardVarGetter[Parent, Id]
+	setter       StandardVarSetter[Parent, Id]
+	parentSetter StandardParentSetter[Parent, Id]
 }
 
 func (n *defaultStandardNamer[Parent, Id]) Format(parent Parent, id Id, patternIndex int) (string, error) {
@@ -44,7 +63,7 @@ func (n *defaultStandardNamer[Parent, Id]) Format(parent Parent, id Id, patternI
 	}
 
 	pattern := n.patterns[patternIndex]
-	vars := append(parent.GetVars(patternIndex), id.GetId(patternIndex))
+	vars := n.getter(parent, id, patternIndex)
 
 	return resourcename.Sprint(pattern, vars...), nil
 }
@@ -67,7 +86,17 @@ func (n *defaultStandardNamer[Parent, Id]) Parse(name string) (Parent, Id, int, 
 	}
 
 	pattern := n.patterns[patternIndex]
-	vars := append(parent.GetVars(patternIndex), id.GetId(patternIndex))
+	var varCount int
+	var patternScanner resourcename.Scanner
+	patternScanner.Init(pattern)
+	for patternScanner.Scan() {
+		segment := patternScanner.Segment()
+		if segment.IsVariable() {
+			varCount++
+		}
+	}
+
+	vars := make([]string, varCount)
 	varsPtr := make([]*string, len(vars))
 	for i := range vars {
 		varsPtr[i] = &vars[i]
@@ -78,18 +107,63 @@ func (n *defaultStandardNamer[Parent, Id]) Parse(name string) (Parent, Id, int, 
 		return parent, id, 0, err
 	}
 
-	// Set the values and handle pointer types
-	parent = parent.SetVars(patternIndex, vars[:len(vars)-1]).(Parent)
-	id = id.SetId(patternIndex, vars[len(vars)-1]).(Id)
+	// Set the values
+	parent, id, err = n.setter(vars, patternIndex)
+	if err != nil {
+		return parent, id, 0, err
+	}
 
 	return parent, id, patternIndex, nil
 }
 
-func (n *defaultStandardNamer[Parent, Id]) ParseParent(name string) (Parent, int, error) {
-	var parent Parent
-	parsedParent, _, patternIndex, err := n.Parse(name)
-	if err != nil {
-		return parent, 0, err
+func (n *defaultStandardNamer[Parent, Id]) ParseParent(parent string) (Parent, int, error) {
+	var parentParent Parent
+
+	// find the pattern index
+	patternIndex := -1
+	for i, pattern := range n.patterns {
+		splitPattern := strings.Split(pattern, "/")
+		if len(splitPattern) < 4 {
+			continue
+		}
+		parentPattern := strings.Join(splitPattern[:len(splitPattern)-2], "/")
+		if !resourcename.Match(parentPattern, parent) {
+			continue
+		}
+		patternIndex = i
+		break
 	}
-	return parsedParent, patternIndex, nil
+
+	if patternIndex == -1 {
+		return parentParent, 0, fmt.Errorf("invalid parent: %s", parent)
+	}
+
+	pattern := n.patterns[patternIndex]
+	var varCount int
+	var patternScanner resourcename.Scanner
+	patternScanner.Init(pattern)
+	for patternScanner.Scan() {
+		segment := patternScanner.Segment()
+		if segment.IsVariable() {
+			varCount++
+		}
+	}
+
+	vars := make([]string, varCount)
+	varsPtr := make([]*string, len(vars))
+	for i := range vars {
+		varsPtr[i] = &vars[i]
+	}
+
+	err := resourcename.Sscan(parent, pattern, varsPtr...)
+	if err != nil {
+		return parentParent, 0, err
+	}
+
+	parentParent, err = n.parentSetter(vars, patternIndex)
+	if err != nil {
+		return parentParent, 0, err
+	}
+
+	return parentParent, patternIndex, nil
 }
