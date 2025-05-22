@@ -3,8 +3,9 @@ package v1alpha1
 import (
 	"context"
 
-	"github.com/jcfug8/daylear/server/adapters/services/grpc/metadata"
 	convert "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1/convert"
+	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
+	cmodel "github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/users/user/v1alpha1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -12,14 +13,9 @@ import (
 
 // GetPublicUser -
 func (s *UserService) GetPublicUser(ctx context.Context, request *pb.GetPublicUserRequest) (*pb.PublicUser, error) {
-	token, err := metadata.GetAuthToken(ctx)
-	if err != nil {
-		return nil, status.Error(codes.PermissionDenied, "unable to get token")
-	}
-
-	tokenUser, err := s.domain.ParseToken(ctx, token)
-	if err != nil {
-		return nil, status.Error(codes.PermissionDenied, "unable to parse token")
+	tokenUser, ok := ctx.Value(headers.UserKey).(cmodel.User)
+	if !ok {
+		return nil, status.Error(codes.PermissionDenied, "user not found")
 	}
 
 	id, err := s.userNamer.Parse(request.GetName())

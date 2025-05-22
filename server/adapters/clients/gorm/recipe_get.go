@@ -6,6 +6,7 @@ import (
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/core/masks"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/ports/repository"
 	"gorm.io/gorm/clause"
@@ -18,7 +19,7 @@ func (repo *Client) GetRecipe(ctx context.Context, m cmodel.Recipe, fields []str
 		return cmodel.Recipe{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid recipe: %v", err)}
 	}
 
-	mask := fields
+	mask := masks.Map(fields, gmodel.RecipeMap)
 	if len(mask) == 0 {
 		mask = gmodel.RecipeFields.Mask()
 	}

@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
+	"github.com/jcfug8/daylear/server/core/model"
 )
 
 const maxUploadSize = 2 * 1024 * 1024   // 2 MB
@@ -35,15 +37,11 @@ func (s *Service) UploadRecipeImage(w http.ResponseWriter, r *http.Request) {
 		body = file
 	}
 
-	// Retrieve the auth-token cookie
-	headers := r.Header["Authorization"]
-	if len(headers) != 1 {
-		// For any other error, return a bad request status
-		http.Error(w, "No Authorization Token", http.StatusUnauthorized)
+	user, ok := r.Context().Value(headers.UserKey).(model.User)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-
-	authToken := strings.TrimPrefix(headers[0], "Bearer ")
 
 	name, ok := mux.Vars(r)["name"]
 	if !ok {
@@ -58,7 +56,7 @@ func (s *Service) UploadRecipeImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call the domain to check the token
-	err = s.domain.AuthorizeRecipeParent(r.Context(), authToken, parent)
+	err = s.domain.AuthorizeRecipeParent(r.Context(), user, parent)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return

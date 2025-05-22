@@ -25,7 +25,7 @@ func NewGoogleService(l zerolog.Logger, configClient config.Client, domain domai
 		loginPath = "/auth/google"
 	}
 	callbackPath, ok := googleConfig["callbackpath"].(string)
-	if !ok || loginPath == "" {
+	if !ok || callbackPath == "" {
 		callbackPath = "/auth/google/callback"
 	}
 	clientId := googleConfig["clientid"].(string)

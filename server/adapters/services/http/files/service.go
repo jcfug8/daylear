@@ -5,6 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/namer"
+	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/ports/domain"
 	"github.com/rs/zerolog"
 )
@@ -28,8 +29,7 @@ func (s *Service) Register(m *http.ServeMux) error {
 
 	r.HandleFunc("/meals/v1alpha1/{name:users/[0-9]+/recipes/[0-9]+}/image", s.UploadRecipeImage).Methods(http.MethodPut)
 
-	// m.Handle("/files/", headers.NewAuthTokenMiddleware(s.domain)(http.StripPrefix("/files", r)))
-	m.Handle("/files/", http.StripPrefix("/files", r))
+	m.Handle("/files/", headers.NewAuthTokenMiddleware(s.domain)(http.StripPrefix("/files", r)))
 	return nil
 }
 

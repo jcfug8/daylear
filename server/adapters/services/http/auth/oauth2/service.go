@@ -47,7 +47,7 @@ type NewServiceParams struct {
 }
 
 func newService(params NewServiceParams) *service {
-	params.L.Printf("NewOauthServer: loginPath=%s, callbackPath=%s", params.LoginPath, params.CallbackPath)
+	params.L.Printf("NewOAuthServer: loginPath=%s, callbackPath=%s", params.LoginPath, params.CallbackPath)
 
 	uiDomainConfig := params.SystemConfig["uidomain"].(map[string]interface{})
 	uiScheme := uiDomainConfig["scheme"].(string)
@@ -97,7 +97,7 @@ func (s *service) Name() string {
 }
 
 func (s *service) Register(mux *http.ServeMux) error {
-	mux.HandleFunc(s.loginPath, s.GetConsetURL)
+	mux.HandleFunc(s.loginPath, s.GetConsentURL)
 	mux.HandleFunc(s.callbackPath, s.Callback)
 
 	return nil
@@ -107,7 +107,7 @@ func (s *service) Close() error {
 	return nil
 }
 
-func (s *service) GetConsetURL(w http.ResponseWriter, r *http.Request) {
+func (s *service) GetConsentURL(w http.ResponseWriter, r *http.Request) {
 	// Create oauthState cookie
 	var expiration = time.Now().Add(20 * time.Minute)
 
@@ -126,8 +126,6 @@ func (s *service) GetConsetURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *service) Callback(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	// Read oauthState from Cookie
 	oauthState, _ := r.Cookie("oauthstate")
 
 	if r.FormValue("state") != oauthState.Value {

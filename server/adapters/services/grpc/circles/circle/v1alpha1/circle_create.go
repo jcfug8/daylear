@@ -13,11 +13,6 @@ import (
 
 // CreateCircle -
 func (s *CircleService) CreateCircle(ctx context.Context, request *pb.CreateCircleRequest) (response *pb.Circle, err error) {
-	tokenUser, ok := ctx.Value(headers.UserKey).(model.User)
-	if !ok {
-		return nil, status.Error(codes.PermissionDenied, "user not authorized")
-	}
-
 	circleProto := request.GetCircle()
 
 	err = s.fieldBehaviorValidator.Validate(circleProto)
@@ -25,9 +20,7 @@ func (s *CircleService) CreateCircle(ctx context.Context, request *pb.CreateCirc
 		return nil, status.Errorf(codes.InvalidArgument, "invalid request data: %v", err)
 	}
 
-	circleProto.Name = ""
-
-	mCircle, err := convert.ProtoToCircle(s.circleNamer, circleProto)
+	mCircle, err := convert.ProtoToCircle(nil, circleProto)
 	if err != nil {
 		s.log.Warn().Err(err).Msg("unable to convert proto to model")
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
@@ -36,6 +29,11 @@ func (s *CircleService) CreateCircle(ctx context.Context, request *pb.CreateCirc
 	mCircle.Parent, err = s.circleNamer.ParseParent(request.GetParent())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
+	}
+
+	tokenUser, ok := ctx.Value(headers.UserKey).(model.User)
+	if !ok {
+		return nil, status.Error(codes.PermissionDenied, "user not authorized")
 	}
 
 	if s.domain.AuthorizeCircleParent(ctx, tokenUser, mCircle.Parent) != nil {

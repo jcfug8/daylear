@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package api.namer.v1;
+
+option java_multiple_files = true;
+option java_outer_classname = "RootNamedResourceProto";
+option java_package = "api.namer.v1";
+
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+
+// RootNamedResource is a resource that has a single child.
+message RootNamedResource {
+    option (google.api.resource) = {
+        type: "api.namer.v1/RootNamedResource"
+        pattern: "rootNamedResources/{root_named_resource}"
+        plural: "rootNamedResources"
+        singular: "rootNamedResource"
+    };
+
+    // name
+    string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+}

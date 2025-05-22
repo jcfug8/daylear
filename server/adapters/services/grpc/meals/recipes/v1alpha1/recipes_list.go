@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	convert "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/convert"
-	"github.com/jcfug8/daylear/server/adapters/services/grpc/metadata"
 	"github.com/jcfug8/daylear/server/adapters/services/grpc/pagination"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
@@ -25,12 +24,6 @@ const (
 
 // Listrecipes -
 func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipesRequest) (*pb.ListRecipesResponse, error) {
-	// Extract the Authorization header from the gRPC context
-	authToken, err := metadata.GetAuthToken(ctx)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "missing or invalid authorization token")
-	}
-
 	user, ok := ctx.Value(headers.UserKey).(cmodel.User)
 	if !ok {
 		return nil, status.Errorf(codes.Unauthenticated, "user not found")
@@ -59,7 +52,7 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 	}
 	pageToken.PageSize = min(pageToken.PageSize, recipeMaxPageSize)
 
-	if s.domain.AuthorizeRecipeParent(ctx, authToken, parent) != nil {
+	if s.domain.AuthorizeRecipeParent(ctx, user, parent) != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "user not authorized")
 	}
 

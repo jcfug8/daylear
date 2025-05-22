@@ -3,8 +3,9 @@ package v1alpha1
 import (
 	"context"
 
-	"github.com/jcfug8/daylear/server/adapters/services/grpc/metadata"
+	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/core/model"
+	cmodel "github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -12,10 +13,9 @@ import (
 
 // ShareRecipe -
 func (s *RecipeService) ShareRecipe(ctx context.Context, request *pb.ShareRecipeRequest) (*pb.ShareRecipeResponse, error) {
-	// Extract the Authorization header from the gRPC context
-	authToken, err := metadata.GetAuthToken(ctx)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "missing or invalid authorization token")
+	user, ok := ctx.Value(headers.UserKey).(cmodel.User)
+	if !ok {
+		return nil, status.Errorf(codes.Unauthenticated, "user not found")
 	}
 
 	parent, id, err := s.recipeNamer.Parse(request.GetName())
@@ -32,7 +32,7 @@ func (s *RecipeService) ShareRecipe(ctx context.Context, request *pb.ShareRecipe
 		parents = append(parents, parent)
 	}
 
-	if s.domain.AuthorizeRecipeParent(ctx, authToken, parent) != nil {
+	if s.domain.AuthorizeRecipeParent(ctx, user, parent) != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "user not authorized")
 	}
 

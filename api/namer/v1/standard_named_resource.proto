@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package api.namer.v1;
+
+option java_multiple_files = true;
+option java_outer_classname = "StandardNamedResourceProto";
+option java_package = "api.namer.v1";
+
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+
+// StandardNamedResource is a resource that has a parent and a child.
+message StandardNamedResource {
+    option (google.api.resource) = {
+        type: "api.namer.v1/StandardNamedResource"
+        pattern: "standardNamedResources/{standard_named_resource}"
+        pattern: "parentOnes/{parent_one}/parentTwos/{parent_two}/standardNamedResources/{standard_named_resource}"
+        pattern: "parentOnes/{parent_one}/parentThrees/{parent_three}/standardNamedResources/{standard_named_resource}"
+        pattern: "parentOnes/{parent_one}/standardNamedResources/{standard_named_resource}"
+        plural: "standardNamedResources"
+        singular: "standardNamedResource"
+    };
+
+    // name
+    string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+}
