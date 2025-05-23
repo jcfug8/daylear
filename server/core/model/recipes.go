@@ -78,13 +78,13 @@ func (r *Recipe) SetRecipeIngredients(recipeIngredients []RecipeIngredient) {
 
 // RecipeId defines the name for a recipe.
 type RecipeId struct {
-	RecipeId int64
+	RecipeId int64 `aip_pattern:"key=recipe"`
 }
 
 // RecipeParent defines the owner for a recipe.
 type RecipeParent struct {
-	UserId   int64
-	CircleId int64
+	UserId   int64 `aip_pattern:"key=user"`
+	CircleId int64 `aip_pattern:"key=circle"`
 }
 
 // ----------------------------------------------------------------------------

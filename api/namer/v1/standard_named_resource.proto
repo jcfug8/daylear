@@ -17,6 +17,7 @@ message StandardNamedResource {
         pattern: "parentOnes/{parent_one}/parentTwos/{parent_two}/standardNamedResources/{standard_named_resource}"
         pattern: "parentOnes/{parent_one}/parentThrees/{parent_three}/standardNamedResources/{standard_named_resource}"
         pattern: "parentOnes/{parent_one}/standardNamedResources/{standard_named_resource}"
+        pattern: "parentOnes/{parent_one}/parentTwos/{parent_two}/parentThrees/{parent_three}/standardNamedResources/{standard_named_resource}"
         plural: "standardNamedResources"
         singular: "standardNamedResource"
     };

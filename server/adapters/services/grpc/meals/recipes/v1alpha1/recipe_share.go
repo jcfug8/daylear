@@ -18,25 +18,25 @@ func (s *RecipeService) ShareRecipe(ctx context.Context, request *pb.ShareRecipe
 		return nil, status.Errorf(codes.Unauthenticated, "user not found")
 	}
 
-	parent, id, err := s.recipeNamer.Parse(request.GetName())
+	mRecipe, _, err := s.recipeNamer.Parse(request.GetName(), model.Recipe{})
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
 	parents := make([]model.RecipeParent, 0, len(request.GetRecipients()))
 	for _, recipient := range request.GetRecipients() {
-		parent, err := s.recipeNamer.ParseParent(recipient)
+		recipientRecipe, _, err := s.recipeNamer.ParseParent(recipient, model.Recipe{})
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid recipient: %v", recipient)
 		}
-		parents = append(parents, parent)
+		parents = append(parents, recipientRecipe.Parent)
 	}
 
-	if s.domain.AuthorizeRecipeParent(ctx, user, parent) != nil {
+	if s.domain.AuthorizeRecipeParent(ctx, user, mRecipe.Parent) != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "user not authorized")
 	}
 
-	err = s.domain.ShareRecipe(ctx, parent, parents, id, request.GetPermission())
+	err = s.domain.ShareRecipe(ctx, mRecipe.Parent, parents, mRecipe.Id, request.GetPermission())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}

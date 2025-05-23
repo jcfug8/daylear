@@ -49,20 +49,20 @@ func (s *Service) UploadRecipeImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	parent, id, err := s.recipeNamer.Parse(name)
+	mRecipe, _, err := s.recipeNamer.Parse(name, model.Recipe{})
 	if err != nil {
 		http.Error(w, "Invalid recipe name", http.StatusBadRequest)
 		return
 	}
 
 	// Call the domain to check the token
-	err = s.domain.AuthorizeRecipeParent(r.Context(), user, parent)
+	err = s.domain.AuthorizeRecipeParent(r.Context(), user, mRecipe.Parent)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	imageURI, err := s.domain.UploadRecipeImage(r.Context(), parent, id, body)
+	imageURI, err := s.domain.UploadRecipeImage(r.Context(), mRecipe.Parent, mRecipe.Id, body)
 	if err != nil {
 		s.log.Error().Err(err).Msg("unable to upload recipe image")
 		http.Error(w, "Interal Error", http.StatusInternalServerError)

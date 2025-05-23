@@ -4,8 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/namer"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
+	"github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/core/namer"
 	"github.com/jcfug8/daylear/server/ports/domain"
 	"github.com/rs/zerolog"
 )
@@ -13,10 +14,10 @@ import (
 type Service struct {
 	log         zerolog.Logger
 	domain      domain.Domain
-	recipeNamer namer.RecipeNamer
+	recipeNamer namer.ReflectNamer[model.Recipe]
 }
 
-func NewService(log zerolog.Logger, domain domain.Domain, recipeNamer namer.RecipeNamer) *Service {
+func NewService(log zerolog.Logger, domain domain.Domain, recipeNamer namer.ReflectNamer[model.Recipe]) *Service {
 	return &Service{
 		log:         log,
 		domain:      domain,

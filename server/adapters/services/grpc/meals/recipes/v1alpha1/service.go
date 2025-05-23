@@ -5,7 +5,8 @@ import (
 
 	fieldValidator "github.com/jcfug8/daylear/server/adapters/services/grpc/fieldbehaviorvalidator"
 	fieldMasker "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/fieldmasker"
-	namer "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/namer"
+	"github.com/jcfug8/daylear/server/core/model"
+	namer "github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
 
@@ -21,7 +22,7 @@ type NewRecipeServiceParams struct {
 	FieldValidator    fieldValidator.FieldBehaviorValidator
 	Log               zerolog.Logger
 	RecipeFieldMasker fieldMasker.RecipeFieldMasker
-	RecipeNamers      []namer.RecipeNamer `group:"recipeNamer"`
+	RecipeNamer       namer.ReflectNamer[model.Recipe]
 }
 
 // NewRecipeService creates a new RecipeService.
@@ -32,7 +33,7 @@ func NewRecipeService(params NewRecipeServiceParams) *RecipeService {
 		fieldBehaviorValidator: params.FieldValidator,
 		log:                    params.Log,
 		recipeFieldMasker:      params.RecipeFieldMasker,
-		recipeNamers:           params.RecipeNamers,
+		recipeNamer:            params.RecipeNamer,
 	}
 }
 
@@ -43,6 +44,6 @@ type RecipeService struct {
 	fieldBehaviorValidator fieldValidator.FieldBehaviorValidator
 	log                    zerolog.Logger
 	recipeFieldMasker      fieldMasker.RecipeFieldMasker
-	recipeNamers           []namer.RecipeNamer
+	recipeNamer            namer.ReflectNamer[model.Recipe]
 	registered             atomic.Bool
 }

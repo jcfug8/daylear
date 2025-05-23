@@ -7,20 +7,17 @@ import (
 	convert "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/convert"
 	"github.com/jcfug8/daylear/server/adapters/services/grpc/pagination"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
+	"github.com/jcfug8/daylear/server/core/model"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// IRIOMO:CUSTOM_CODE_SLOT_START recipeServiceListConstants
-
 const (
 	recipeMaxPageSize     int32 = 1000
 	recipeDefaultPageSize int32 = 100
 )
-
-// IRIOMO:CUSTOM_CODE_SLOT_END
 
 // Listrecipes -
 func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipesRequest) (*pb.ListRecipesResponse, error) {
@@ -32,7 +29,7 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 
 	fieldMask := s.recipeFieldMasker.GetFieldMaskFromCtx(ctx)
 
-	parent, err := s.recipeNamer.ParseParent(request.GetParent())
+	mRecipe, _, err := s.recipeNamer.ParseParent(request.GetParent(), model.Recipe{})
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "unable to parse parent: %v", request.GetParent())
 	}
@@ -52,13 +49,13 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 	}
 	pageToken.PageSize = min(pageToken.PageSize, recipeMaxPageSize)
 
-	if s.domain.AuthorizeRecipeParent(ctx, user, parent) != nil {
+	if s.domain.AuthorizeRecipeParent(ctx, user, mRecipe.Parent) != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "user not authorized")
 	}
 
-	res, err := s.domain.ListRecipes(ctx, pageToken, parent, request.GetFilter(), readMask)
+	res, err := s.domain.ListRecipes(ctx, pageToken, mRecipe.Parent, request.GetFilter(), readMask)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%s", err)
 	}
 
 	recipes, err := convert.RecipeListToProto(s.recipeNamer, res)

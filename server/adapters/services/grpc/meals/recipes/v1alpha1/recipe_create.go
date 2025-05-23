@@ -18,22 +18,22 @@ func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateReci
 		return nil, status.Error(codes.Unauthenticated, "user not found")
 	}
 
-	recipe := request.GetRecipe()
+	pbRecipe := request.GetRecipe()
 
-	err = s.fieldBehaviorValidator.Validate(recipe)
+	err = s.fieldBehaviorValidator.Validate(pbRecipe)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid request data: %v", err)
 	}
 
-	recipe.Name = ""
+	pbRecipe.Name = ""
 
-	mRecipe, err := convert.ProtoToRecipe(s.recipeNamer, recipe)
+	mRecipe, err := convert.ProtoToRecipe(s.recipeNamer, pbRecipe)
 	if err != nil {
 		s.log.Warn().Err(err).Msg("unable to convert proto to model")
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
 	}
 
-	mRecipe.Parent, err = s.recipeNamer.ParseParent(request.GetParent())
+	mRecipe, _, err = s.recipeNamer.ParseParent(request.GetParent(), mRecipe)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
 	}
@@ -47,10 +47,10 @@ func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateReci
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	recipe, err = convert.RecipeToProto(s.recipeNamer, mRecipe)
+	pbRecipe, err = convert.RecipeToProto(s.recipeNamer, mRecipe)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
-	return recipe, nil
+	return pbRecipe, nil
 }

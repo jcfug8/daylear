@@ -72,10 +72,10 @@ var File_api_namer_v1_standard_named_resource_proto protoreflect.FileDescriptor
 
 const file_api_namer_v1_standard_named_resource_proto_rawDesc = "" +
 	"\n" +
-	"*api/namer/v1/standard_named_resource.proto\x12\fapi.namer.v1\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\"\xce\x03\n" +
+	"*api/namer/v1/standard_named_resource.proto\x12\fapi.namer.v1\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\"\xcc\x04\n" +
 	"\x15StandardNamedResource\x12\x17\n" +
-	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name:\x9b\x03\xeaA\x97\x03\n" +
-	"\"api.namer.v1/StandardNamedResource\x120standardNamedResources/{standard_named_resource}\x12`parentOnes/{parent_one}/parentTwos/{parent_two}/standardNamedResources/{standard_named_resource}\x12dparentOnes/{parent_one}/parentThrees/{parent_three}/standardNamedResources/{standard_named_resource}\x12HparentOnes/{parent_one}/standardNamedResources/{standard_named_resource}*\x16standardNamedResources2\x15standardNamedResourceB\xbe\x01\n" +
+	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name:\x99\x04\xeaA\x95\x04\n" +
+	"\"api.namer.v1/StandardNamedResource\x120standardNamedResources/{standard_named_resource}\x12`parentOnes/{parent_one}/parentTwos/{parent_two}/standardNamedResources/{standard_named_resource}\x12dparentOnes/{parent_one}/parentThrees/{parent_three}/standardNamedResources/{standard_named_resource}\x12HparentOnes/{parent_one}/standardNamedResources/{standard_named_resource}\x12|parentOnes/{parent_one}/parentTwos/{parent_two}/parentThrees/{parent_three}/standardNamedResources/{standard_named_resource}*\x16standardNamedResources2\x15standardNamedResourceB\xbe\x01\n" +
 	"\x10com.api.namer.v1B\x1aStandardNamedResourceProtoP\x01Z<github.com/jcfug8/daylear/server/genapi/api/namer/v1;namerv1\xa2\x02\x03ANX\xaa\x02\fApi.Namer.V1\xca\x02\fApi\\Namer\\V1\xe2\x02\x18Api\\Namer\\V1\\GPBMetadata\xea\x02\x0eApi::Namer::V1b\x06proto3"
 
 var (

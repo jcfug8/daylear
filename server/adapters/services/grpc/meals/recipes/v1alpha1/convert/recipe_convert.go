@@ -1,21 +1,20 @@
 package convert
 
 import (
-	namer "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/namer"
 	model "github.com/jcfug8/daylear/server/core/model"
+	namer "github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 )
 
 // ProtoToRecipe converts a protobuf Recipe to a model Recipe
-func ProtoToRecipe(RecipeNamer namer.RecipeNamer, proto *pb.Recipe) (model.Recipe, error) {
+func ProtoToRecipe(RecipeNamer namer.ReflectNamer[model.Recipe], proto *pb.Recipe) (model.Recipe, error) {
 	recipe := model.Recipe{}
+	var err error
 	if proto.Name != "" {
-		parent, id, err := RecipeNamer.Parse(proto.Name)
+		recipe, _, err = RecipeNamer.Parse(proto.Name, recipe)
 		if err != nil {
 			return recipe, err
 		}
-		recipe.Id = id
-		recipe.Parent = parent
 	}
 
 	recipe.Title = proto.Title
@@ -28,9 +27,9 @@ func ProtoToRecipe(RecipeNamer namer.RecipeNamer, proto *pb.Recipe) (model.Recip
 }
 
 // RecipeToProto converts a model Recipe to a protobuf Recipe
-func RecipeToProto(RecipeNamer namer.RecipeNamer, recipe model.Recipe) (*pb.Recipe, error) {
+func RecipeToProto(RecipeNamer namer.ReflectNamer[model.Recipe], recipe model.Recipe) (*pb.Recipe, error) {
 	proto := &pb.Recipe{}
-	name, err := RecipeNamer.Format(recipe.Parent, recipe.Id)
+	name, err := RecipeNamer.Format(0, recipe)
 	if err != nil {
 		return proto, err
 	}
@@ -46,7 +45,7 @@ func RecipeToProto(RecipeNamer namer.RecipeNamer, recipe model.Recipe) (*pb.Reci
 }
 
 // RecipeListToProto converts a slice of model Recipes to a slice of protobuf OmniRecipes
-func RecipeListToProto(RecipeNamer namer.RecipeNamer, recipes []model.Recipe) ([]*pb.Recipe, error) {
+func RecipeListToProto(RecipeNamer namer.ReflectNamer[model.Recipe], recipes []model.Recipe) ([]*pb.Recipe, error) {
 	protos := make([]*pb.Recipe, len(recipes))
 	for i, recipe := range recipes {
 		proto := &pb.Recipe{}
@@ -60,7 +59,7 @@ func RecipeListToProto(RecipeNamer namer.RecipeNamer, recipes []model.Recipe) ([
 }
 
 // ProtosToRecipe converts a slice of protobuf OmniRecipes to a slice of model Recipes
-func ProtosToRecipe(RecipeNamer namer.RecipeNamer, protos []*pb.Recipe) ([]model.Recipe, error) {
+func ProtosToRecipe(RecipeNamer namer.ReflectNamer[model.Recipe], protos []*pb.Recipe) ([]model.Recipe, error) {
 	res := make([]model.Recipe, len(protos))
 	for i, proto := range protos {
 		recipe := model.Recipe{}

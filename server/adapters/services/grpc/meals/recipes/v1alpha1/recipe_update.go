@@ -23,13 +23,9 @@ func (s *RecipeService) UpdateRecipe(ctx context.Context, request *pb.UpdateReci
 		return nil, status.Errorf(codes.InvalidArgument, "invalid field mask")
 	}
 
-	recipe := request.GetRecipe()
+	pbRecipe := request.GetRecipe()
 
-	if !s.recipeNamer.IsMatch(recipe.GetName()) {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %s", recipe.GetName())
-	}
-
-	mRecipe, err := convert.ProtoToRecipe(s.recipeNamer, recipe)
+	mRecipe, err := convert.ProtoToRecipe(s.recipeNamer, pbRecipe)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid request data")
 	}
@@ -43,10 +39,10 @@ func (s *RecipeService) UpdateRecipe(ctx context.Context, request *pb.UpdateReci
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	recipe, err = convert.RecipeToProto(s.recipeNamer, mRecipe)
+	pbRecipe, err = convert.RecipeToProto(s.recipeNamer, mRecipe)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to prepare response")
 	}
 
-	return recipe, nil
+	return pbRecipe, nil
 }

@@ -1,6 +1,6 @@
 module github.com/jcfug8/daylear/server
 
-go 1.23
+go 1.24
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.32.8
@@ -10,7 +10,6 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.8
 	github.com/goccy/go-yaml v1.15.12
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.25.1
 	github.com/joho/godotenv v1.5.1

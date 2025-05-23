@@ -1,13 +1,19 @@
 package namer
 
 import (
+	"github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/core/namer"
+	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	"go.uber.org/fx"
 )
 
-// Module -
 var Module = fx.Module(
-	"recipeNamer",
+	"recipe_namer",
 	fx.Provide(
-		NewRecipeNamer,
+		func() (namer.ReflectNamer[model.Recipe], error) {
+			return namer.NewReflectNamer[model.Recipe](
+				&pb.Recipe{},
+			)
+		},
 	),
 )
