@@ -31,7 +31,23 @@ type ReflectNamer[T any] interface {
 	ParseParent(parent string, in T) (T, int, error)
 }
 
-// NewParentIDNamer creates a namer for the given resource type that can be used to format and parse the name
+// FieldIndexPath is a slice of ints representing the path to a struct field (for nested fields).
+type FieldIndexPath []int
+
+// patternVar holds metadata for a pattern variable.
+type patternVar struct {
+	patternKey string
+	numField   FieldIndexPath
+	fieldType  reflect.Type
+}
+
+// defaultReflectNamer implements ReflectNamer using reflection.
+type defaultReflectNamer[T any] struct {
+	patterns      []string
+	patternVarMap map[string]patternVar
+}
+
+// NewReflectNamer creates a namer for the given resource type that can be used to format and parse the name
 // of a resource that has a parent and an id.
 func NewReflectNamer[T any](
 	resource proto.Message,
@@ -42,18 +58,13 @@ func NewReflectNamer[T any](
 	}
 
 	// loop over the patterns and get all the keys we need to parse any name
-	patternKeys := map[string]patternVar{}
+	patternVarMap := map[string]patternVar{}
 	for _, pattern := range patterns {
-		var patternScanner resourcename.Scanner
-		patternScanner.Init(pattern)
-		for patternScanner.Scan() {
-			segment := patternScanner.Segment()
-			if segment.IsVariable() {
-				patternKeys[segment.Literal().ResourceID()] = patternVar{
-					patternKey: segment.Literal().ResourceID(),
-					numField:   []int{},
-					fieldType:  nil,
-				}
+		for _, key := range extractPatternVars(pattern) {
+			patternVarMap[key] = patternVar{
+				patternKey: key,
+				numField:   FieldIndexPath{},
+				fieldType:  nil,
 			}
 		}
 	}
@@ -67,22 +78,133 @@ func NewReflectNamer[T any](
 		return nil, fmt.Errorf("type T must be a struct")
 	}
 
-	patternKeys, err := determineFullPatternVars(t, typ, patternKeys)
+	patternVarMap, err := determineFullPatternVars(t, typ, patternVarMap)
 	if err != nil {
 		return nil, err
 	}
 
 	return &defaultReflectNamer[T]{
-		patterns:    patterns,
-		patternKeys: patternKeys,
+		patterns:      patterns,
+		patternVarMap: patternVarMap,
 	}, nil
 }
 
-func determineFullPatternVars[T any](t T, typ reflect.Type, patternKeys map[string]patternVar) (map[string]patternVar, error) {
-	return determineFullPatternVarsRec(t, typ, patternKeys, nil)
+// Format formats the name of the resource using the aip pattern specified by the patternIndex.
+// If patternIndex is -1, it will format using the first pattern that is possible.
+func (n *defaultReflectNamer[T]) Format(patternIndex int, in T) (string, error) {
+	tryPatterns := []int{}
+	if patternIndex == -1 {
+		for i := range n.patterns {
+			tryPatterns = append(tryPatterns, i)
+		}
+	} else {
+		tryPatterns = append(tryPatterns, patternIndex)
+	}
+
+	var lastErr error
+	for _, idx := range tryPatterns {
+		pattern := n.patterns[idx]
+		vars, err := n.extractPatternValues(pattern, in)
+		if err == nil {
+			return resourcename.Sprint(pattern, vars...), nil
+		}
+		lastErr = err
+	}
+	if lastErr == nil {
+		lastErr = fmt.Errorf("no suitable pattern found for type %T", in)
+	}
+	return "", lastErr
 }
 
-func determineFullPatternVarsRec[T any](t T, typ reflect.Type, patternKeys map[string]patternVar, parentIndex []int) (map[string]patternVar, error) {
+// extractPatternValues returns the values for the variables in the pattern from the input struct.
+// Returns error if any variable is missing or zero/empty.
+func (n *defaultReflectNamer[T]) extractPatternValues(pattern string, in T) ([]string, error) {
+	var vars []string
+	for _, patternKey := range extractPatternVars(pattern) {
+		patternVar, err := n.getPatternVar(patternKey)
+		if err != nil {
+			return nil, err
+		}
+		value, err := getFieldValue(in, patternVar)
+		if err != nil {
+			return nil, err
+		}
+		formatted, err := formatReflectValue(value)
+		if err != nil {
+			return nil, err
+		}
+		vars = append(vars, formatted)
+	}
+	return vars, nil
+}
+
+// getPatternVar returns the patternVar for a given key, or an error if not found.
+func (n *defaultReflectNamer[T]) getPatternVar(key string) (patternVar, error) {
+	pv, ok := n.patternVarMap[key]
+	if !ok || len(pv.numField) == 0 {
+		return patternVar{}, fmt.Errorf("pattern key %s not found in type", key)
+	}
+	return pv, nil
+}
+
+// getFieldValue returns the reflect.Value for the field specified by patternVar in the input struct.
+func getFieldValue[T any](in T, pv patternVar) (reflect.Value, error) {
+	val := reflect.ValueOf(in)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	if !val.IsValid() {
+		return reflect.Value{}, fmt.Errorf("invalid value for input struct")
+	}
+	field := val.FieldByIndex(pv.numField)
+	if field.Kind() != pv.fieldType.Kind() {
+		return reflect.Value{}, fmt.Errorf("field %s is not of type %s", pv.patternKey, pv.fieldType.Kind())
+	}
+	return field, nil
+}
+
+// formatReflectValue formats a reflect.Value as a string, or returns an error if zero/empty/unsupported.
+func formatReflectValue(value reflect.Value) (string, error) {
+	switch value.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		if value.Int() == 0 {
+			return "", fmt.Errorf("int field is zero")
+		}
+		return strconv.FormatInt(value.Int(), 10), nil
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		if value.Uint() == 0 {
+			return "", fmt.Errorf("uint field is zero")
+		}
+		return strconv.FormatUint(value.Uint(), 10), nil
+	case reflect.String:
+		if value.String() == "" {
+			return "", fmt.Errorf("string field is empty")
+		}
+		return value.String(), nil
+	default:
+		return "", fmt.Errorf("unsupported type %s", value.Kind())
+	}
+}
+
+// extractPatternVars returns the variable keys from a pattern string.
+func extractPatternVars(pattern string) []string {
+	var keys []string
+	var scanner resourcename.Scanner
+	scanner.Init(pattern)
+	for scanner.Scan() {
+		segment := scanner.Segment()
+		if segment.IsVariable() {
+			keys = append(keys, segment.Literal().ResourceID())
+		}
+	}
+	return keys
+}
+
+func determineFullPatternVars[T any](t T, typ reflect.Type, patternVarMap map[string]patternVar) (map[string]patternVar, error) {
+	return determineFullPatternVarsRec(t, typ, patternVarMap, nil)
+}
+
+func determineFullPatternVarsRec[T any](t T, typ reflect.Type, patternVarMap map[string]patternVar, parentIndex []int) (map[string]patternVar, error) {
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
 		tag := field.Tag.Get("aip_pattern")
@@ -101,7 +223,7 @@ func determineFullPatternVarsRec[T any](t T, typ reflect.Type, patternKeys map[s
 				} else if field.Type.Kind() == reflect.Func {
 					return nil, fmt.Errorf("field %s in type %T is a function", field.Name, t)
 				}
-				patternKeys[parts[1]] = patternVar{
+				patternVarMap[parts[1]] = patternVar{
 					patternKey: parts[1],
 					numField:   currentIndex,
 					fieldType:  field.Type,
@@ -112,103 +234,13 @@ func determineFullPatternVarsRec[T any](t T, typ reflect.Type, patternKeys map[s
 		if field.Type.Kind() == reflect.Struct && field.Type.PkgPath() != "time" {
 			var zero T
 			var err error
-			patternKeys, err = determineFullPatternVarsRec(zero, field.Type, patternKeys, currentIndex)
+			patternVarMap, err = determineFullPatternVarsRec(zero, field.Type, patternVarMap, currentIndex)
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
-	return patternKeys, nil
-}
-
-type defaultReflectNamer[T any] struct {
-	patterns    []string
-	patternKeys map[string]patternVar
-}
-
-type patternVar struct {
-	patternKey string
-	numField   []int
-	fieldType  reflect.Type
-}
-
-func (n *defaultReflectNamer[T]) Format(patternIndex int, in T) (string, error) {
-	tryPatterns := []int{}
-	if patternIndex == -1 {
-		for i := range n.patterns {
-			tryPatterns = append(tryPatterns, i)
-		}
-	} else {
-		tryPatterns = append(tryPatterns, patternIndex)
-	}
-
-	var lastErr error
-	for _, idx := range tryPatterns {
-		pattern := n.patterns[idx]
-		var patternScanner resourcename.Scanner
-		vars := []string{}
-		patternScanner.Init(pattern)
-		missingData := false
-		for patternScanner.Scan() {
-			segment := patternScanner.Segment()
-			if segment.IsVariable() {
-				patternKey := segment.Literal().ResourceID()
-				patternVar, ok := n.patternKeys[patternKey]
-				if !ok || len(patternVar.numField) == 0 {
-					missingData = true
-					lastErr = fmt.Errorf("pattern key %s not found in type %T", patternKey, in)
-					break
-				}
-
-				value := reflect.ValueOf(in).FieldByIndex(patternVar.numField)
-				if value.Kind() != patternVar.fieldType.Kind() {
-					missingData = true
-					lastErr = fmt.Errorf("field %s in type %T is not of type %s", patternKey, in, patternVar.fieldType.Kind())
-					break
-				}
-
-				formattedValue := ""
-				switch value.Kind() {
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					if value.Int() == 0 {
-						missingData = true
-						lastErr = fmt.Errorf("field %s in type %T is zero", patternKey, in)
-						break
-					}
-					formattedValue = strconv.FormatInt(value.Int(), 10)
-				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-					if value.Uint() == 0 {
-						missingData = true
-						lastErr = fmt.Errorf("field %s in type %T is zero", patternKey, in)
-						break
-					}
-					formattedValue = strconv.FormatUint(value.Uint(), 10)
-				case reflect.String:
-					if value.String() == "" {
-						missingData = true
-						lastErr = fmt.Errorf("field %s in type %T is empty", patternKey, in)
-						break
-					}
-					formattedValue = value.String()
-				default:
-					missingData = true
-					lastErr = fmt.Errorf("unsupported type %s", value.Kind())
-					break
-				}
-				if missingData {
-					break
-				}
-				vars = append(vars, formattedValue)
-			}
-		}
-		if !missingData {
-			return resourcename.Sprint(pattern, vars...), nil
-		}
-	}
-	if lastErr == nil {
-		lastErr = fmt.Errorf("no suitable pattern found for type %T", in)
-	}
-	return "", lastErr
+	return patternVarMap, nil
 }
 
 func (n *defaultReflectNamer[T]) Parse(name string, in T) (T, int, error) {
@@ -217,7 +249,7 @@ func (n *defaultReflectNamer[T]) Parse(name string, in T) (T, int, error) {
 		return in, 0, err
 	}
 
-	in, err = n._parse(name, pattern, n.patternKeys, in)
+	in, err = n._parse(name, pattern, in)
 	if err != nil {
 		return in, 0, err
 	}
@@ -231,7 +263,7 @@ func (n *defaultReflectNamer[T]) ParseParent(parent string, in T) (T, int, error
 		return in, 0, err
 	}
 
-	in, err = n._parse(parent, pattern, n.patternKeys, in)
+	in, err = n._parse(parent, pattern, in)
 	if err != nil {
 		return in, 0, err
 	}
@@ -239,7 +271,7 @@ func (n *defaultReflectNamer[T]) ParseParent(parent string, in T) (T, int, error
 	return in, patternIndex, nil
 }
 
-func (n *defaultReflectNamer[T]) _parse(name string, pattern string, patternKeys map[string]patternVar, in T) (T, error) {
+func (n *defaultReflectNamer[T]) _parse(name string, pattern string, in T) (T, error) {
 	var ptrIn reflect.Value
 	val := reflect.ValueOf(in)
 	typ := val.Type()
@@ -258,7 +290,7 @@ func (n *defaultReflectNamer[T]) _parse(name string, pattern string, patternKeys
 			continue
 		}
 		patternKey := splitPattern[i][1 : len(splitPattern[i])-1]
-		patternVar, ok := n.patternKeys[patternKey]
+		patternVar, ok := n.patternVarMap[patternKey]
 		if !ok {
 			return in, fmt.Errorf("pattern key %s not found in type %T", patternKey, in)
 		}
