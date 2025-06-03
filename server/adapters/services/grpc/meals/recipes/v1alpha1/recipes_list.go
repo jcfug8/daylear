@@ -29,7 +29,8 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 
 	fieldMask := s.recipeFieldMasker.GetFieldMaskFromCtx(ctx)
 
-	mRecipe, _, err := s.recipeNamer.ParseParent(request.GetParent(), model.Recipe{})
+	mRecipe := model.Recipe{}
+	_, err := s.recipeNamer.ParseParent(request.GetParent(), &mRecipe)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "unable to parse parent: %v", request.GetParent())
 	}

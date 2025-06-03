@@ -14,7 +14,7 @@ import (
 )
 
 // ListRecipes lists recipes.
-func (repo *Client) ListRecipes(ctx context.Context, page *cmodel.PageToken[cmodel.Recipe], filter string, fields []string) ([]cmodel.Recipe, error) {
+func (repo *Client) ListRecipes(ctx context.Context, page *cmodel.PageToken[cmodel.Recipe], parent cmodel.RecipeParent, filter string, fields []string) ([]cmodel.Recipe, error) {
 	queryModel := gmodel.Recipe{}
 
 	args := make([]any, 0, 1)
@@ -32,16 +32,21 @@ func (repo *Client) ListRecipes(ctx context.Context, page *cmodel.PageToken[cmod
 	t := filtering.NewSQLTranspiler(
 		map[string]filtering.Field[clause.Expression]{
 			"recipe_id": filtering.NewSQLField[int64]("r.recipe_id", "="),
-			"user_id":   filtering.NewSQLField[int64]("recipe_user.user_id", "="),
 		})
 
-	filterClause, info, err := t.Transpile(filter)
+	filterClause, _, err := t.Transpile(filter)
 	if err != nil {
 		return nil, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid filter: %v", err)}
 	}
 
-	if info.HasField("user_id") {
-		tx.Joins("JOIN recipe_user ON recipe_user.recipe_id = r.recipe_id")
+	if parent.CircleId != 0 {
+		tx.Joins("JOIN recipe_circle ON recipe_circle.recipe_id = r.recipe_id AND recipe_circle.circle_id = ?", parent.CircleId)
+	} else if parent.UserId != 0 {
+		tx.Joins("JOIN recipe_user ON recipe_user.recipe_id = r.recipe_id AND recipe_user.user_id = ?", parent.UserId)
+	}
+
+	if parent.UserId != 0 && parent.CircleId != 0 {
+		tx.Joins("JOIN circle_user ON circle_user.circle_id = recipe_circle.circle_id AND circle_user.user_id = ?", parent.UserId)
 	}
 
 	if filterClause != nil {
@@ -53,7 +58,7 @@ func (repo *Client) ListRecipes(ctx context.Context, page *cmodel.PageToken[cmod
 
 	if page != nil {
 		orders := []clause.OrderByColumn{{
-			Column: clause.Column{Name: "recipe_id"},
+			Column: clause.Column{Name: "r.recipe_id"},
 			Desc:   true,
 		}}
 

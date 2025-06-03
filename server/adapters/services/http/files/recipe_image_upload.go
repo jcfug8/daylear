@@ -49,7 +49,8 @@ func (s *Service) UploadRecipeImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mRecipe, _, err := s.recipeNamer.Parse(name, model.Recipe{})
+	mRecipe := model.Recipe{}
+	_, err := s.recipeNamer.Parse(name, &mRecipe)
 	if err != nil {
 		http.Error(w, "Invalid recipe name", http.StatusBadRequest)
 		return

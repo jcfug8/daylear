@@ -33,7 +33,7 @@ func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateReci
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
 	}
 
-	mRecipe, _, err = s.recipeNamer.ParseParent(request.GetParent(), mRecipe)
+	_, err = s.recipeNamer.ParseParent(request.GetParent(), &mRecipe)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
 	}

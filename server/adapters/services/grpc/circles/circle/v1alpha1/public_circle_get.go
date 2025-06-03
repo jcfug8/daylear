@@ -13,7 +13,8 @@ import (
 
 // GetPublicCircle -
 func (s *CircleService) GetPublicCircle(ctx context.Context, request *pb.GetPublicCircleRequest) (*pb.PublicCircle, error) {
-	id, err := s.publicCircleNamer.Parse(request.GetName())
+	var mCircle model.Circle
+	_, err := s.publicCircleNamer.Parse(request.GetName(), &mCircle)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
@@ -24,7 +25,7 @@ func (s *CircleService) GetPublicCircle(ctx context.Context, request *pb.GetPubl
 		return nil, status.Error(codes.InvalidArgument, "invalid field mask")
 	}
 
-	mCircle, err := s.domain.GetCircle(ctx, model.CircleParent{}, id, readMask)
+	mCircle, err = s.domain.GetCircle(ctx, model.CircleParent{}, mCircle.Id, readMask)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}

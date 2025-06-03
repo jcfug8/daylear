@@ -19,7 +19,8 @@ func (s *RecipeService) DeleteRecipe(ctx context.Context, request *pb.DeleteReci
 		return nil, status.Errorf(codes.Unauthenticated, "user not found")
 	}
 
-	mRecipe, _, err := s.recipeNamer.Parse(request.GetName(), model.Recipe{})
+	mRecipe := model.Recipe{}
+	_, err := s.recipeNamer.Parse(request.GetName(), &mRecipe)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}

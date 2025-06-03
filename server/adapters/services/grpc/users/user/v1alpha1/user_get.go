@@ -5,6 +5,7 @@ import (
 
 	convert "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1/convert"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
+	"github.com/jcfug8/daylear/server/core/model"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/users/user/v1alpha1"
 	"google.golang.org/grpc/codes"
@@ -18,12 +19,13 @@ func (s *UserService) GetUser(ctx context.Context, request *pb.GetUserRequest) (
 		return nil, status.Errorf(codes.Unauthenticated, "user not found")
 	}
 
-	id, err := s.userNamer.Parse(request.GetName())
+	mUser := model.User{}
+	_, err := s.userNamer.Parse(request.GetName(), &mUser)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	if tokenUser.Id != id {
+	if tokenUser.Id != mUser.Id {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 
@@ -34,7 +36,7 @@ func (s *UserService) GetUser(ctx context.Context, request *pb.GetUserRequest) (
 		return nil, status.Error(codes.InvalidArgument, "invalid field mask")
 	}
 
-	mUser, err := s.domain.GetUser(ctx, id, readMask)
+	mUser, err = s.domain.GetUser(ctx, mUser.Id, readMask)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}

@@ -19,7 +19,7 @@ type User struct {
 
 // UserId defines the name for a user.
 type UserId struct {
-	UserId int64
+	UserId int64 `aip_pattern:"key=user,public_user"`
 }
 
 // ----------------------------------------------------------------------------

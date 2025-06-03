@@ -19,12 +19,13 @@ func (s *CircleService) UpdateCircle(ctx context.Context, request *pb.UpdateCirc
 	}
 
 	circleProto := request.GetCircle()
-	parent, id, err := s.circleNamer.Parse(circleProto.GetName())
+	var mCircle model.Circle
+	_, err := s.circleNamer.Parse(circleProto.GetName(), &mCircle)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", circleProto.GetName())
 	}
 
-	if s.domain.AuthorizeCircleParent(ctx, tokenUser, parent) != nil {
+	if s.domain.AuthorizeCircleParent(ctx, tokenUser, mCircle.Parent) != nil {
 		return nil, status.Error(codes.PermissionDenied, "user not authorized")
 	}
 
@@ -34,13 +35,13 @@ func (s *CircleService) UpdateCircle(ctx context.Context, request *pb.UpdateCirc
 		return nil, status.Error(codes.InvalidArgument, "invalid field mask")
 	}
 
-	mCircle, err := convert.ProtoToCircle(s.circleNamer, circleProto)
+	mCircle, err = convert.ProtoToCircle(s.circleNamer, circleProto)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	mCircle.Parent = parent
-	mCircle.Id = id
+	mCircle.Parent = mCircle.Parent
+	mCircle.Id = mCircle.Id
 
 	mCircle, err = s.domain.UpdateCircle(ctx, mCircle, updateMask)
 	if err != nil {

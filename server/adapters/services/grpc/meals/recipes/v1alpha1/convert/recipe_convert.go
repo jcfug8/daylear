@@ -11,7 +11,7 @@ func ProtoToRecipe(RecipeNamer namer.ReflectNamer[model.Recipe], proto *pb.Recip
 	recipe := model.Recipe{}
 	var err error
 	if proto.Name != "" {
-		recipe, _, err = RecipeNamer.Parse(proto.Name, recipe)
+		_, err = RecipeNamer.Parse(proto.Name, &recipe)
 		if err != nil {
 			return recipe, err
 		}
@@ -29,7 +29,7 @@ func ProtoToRecipe(RecipeNamer namer.ReflectNamer[model.Recipe], proto *pb.Recip
 // RecipeToProto converts a model Recipe to a protobuf Recipe
 func RecipeToProto(RecipeNamer namer.ReflectNamer[model.Recipe], recipe model.Recipe) (*pb.Recipe, error) {
 	proto := &pb.Recipe{}
-	name, err := RecipeNamer.Format(0, recipe)
+	name, err := RecipeNamer.Format(recipe)
 	if err != nil {
 		return proto, err
 	}

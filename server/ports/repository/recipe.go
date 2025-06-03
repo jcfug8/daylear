@@ -13,7 +13,7 @@ type recipeClient interface {
 	DeleteRecipe(context.Context, model.Recipe) (model.Recipe, error)
 	GetRecipe(context.Context, model.Recipe, []string) (model.Recipe, error)
 	UpdateRecipe(context.Context, model.Recipe, []string) (model.Recipe, error)
-	ListRecipes(context.Context, *model.PageToken[model.Recipe], string, []string) ([]model.Recipe, error)
+	ListRecipes(context.Context, *model.PageToken[model.Recipe], model.RecipeParent, string, []string) ([]model.Recipe, error)
 
 	BulkCreateRecipeUsers(context.Context, model.RecipeId, []int64, permPb.PermissionLevel) error
 	BulkDeleteRecipeUsers(context.Context, string) error

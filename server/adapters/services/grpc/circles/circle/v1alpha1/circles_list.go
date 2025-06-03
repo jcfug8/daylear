@@ -13,7 +13,8 @@ import (
 
 // ListCircles -
 func (s *CircleService) ListCircles(ctx context.Context, request *pb.ListCirclesRequest) (*pb.ListCirclesResponse, error) {
-	parent, err := s.circleNamer.ParseParent(request.GetParent())
+	var mCircle model.Circle
+	_, err := s.circleNamer.ParseParent(request.GetParent(), &mCircle)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
 	}
@@ -23,7 +24,7 @@ func (s *CircleService) ListCircles(ctx context.Context, request *pb.ListCircles
 		return nil, status.Error(codes.PermissionDenied, "user not authorized")
 	}
 
-	if s.domain.AuthorizeCircleParent(ctx, tokenUser, parent) != nil {
+	if s.domain.AuthorizeCircleParent(ctx, tokenUser, mCircle.Parent) != nil {
 		return nil, status.Error(codes.PermissionDenied, "user not authorized")
 	}
 
@@ -34,7 +35,7 @@ func (s *CircleService) ListCircles(ctx context.Context, request *pb.ListCircles
 	}
 
 	// TODO: handle pagination and page_token
-	circles, err := s.domain.ListCircles(ctx, nil, parent, request.GetFilter(), readMask)
+	circles, err := s.domain.ListCircles(ctx, nil, mCircle.Parent, request.GetFilter(), readMask)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}

@@ -22,19 +22,22 @@ type NewRecipeServiceParams struct {
 	FieldValidator    fieldValidator.FieldBehaviorValidator
 	Log               zerolog.Logger
 	RecipeFieldMasker fieldMasker.RecipeFieldMasker
-	RecipeNamer       namer.ReflectNamer[model.Recipe]
 }
 
 // NewRecipeService creates a new RecipeService.
-func NewRecipeService(params NewRecipeServiceParams) *RecipeService {
+func NewRecipeService(params NewRecipeServiceParams) (*RecipeService, error) {
+	recipeNamer, err := namer.NewReflectNamer[model.Recipe, *pb.Recipe]()
+	if err != nil {
+		return nil, err
+	}
 
 	return &RecipeService{
 		domain:                 params.Domain,
 		fieldBehaviorValidator: params.FieldValidator,
 		log:                    params.Log,
 		recipeFieldMasker:      params.RecipeFieldMasker,
-		recipeNamer:            params.RecipeNamer,
-	}
+		recipeNamer:            recipeNamer,
+	}, nil
 }
 
 // RecipeService defines the grpc handlers for the RecipeService.

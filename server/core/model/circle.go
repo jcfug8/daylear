@@ -14,12 +14,12 @@ type Circle struct {
 
 // CircleId defines the identifier for a circle.
 type CircleId struct {
-	CircleId int64
+	CircleId int64 `aip_pattern:"key=circle,public_circle"`
 }
 
 // CircleParent defines the parent for a circle.
 type CircleParent struct {
-	UserId int64
+	UserId int64 `aip_pattern:"key=user"`
 }
 
 // ----------------------------------------------------------------------------

@@ -7,7 +7,9 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/core/namer"
+	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	"github.com/jcfug8/daylear/server/ports/domain"
+
 	"github.com/rs/zerolog"
 )
 
@@ -17,12 +19,17 @@ type Service struct {
 	recipeNamer namer.ReflectNamer[model.Recipe]
 }
 
-func NewService(log zerolog.Logger, domain domain.Domain, recipeNamer namer.ReflectNamer[model.Recipe]) *Service {
+func NewService(log zerolog.Logger, domain domain.Domain) (*Service, error) {
+	recipeNamer, err := namer.NewReflectNamer[model.Recipe, *pb.Recipe]()
+	if err != nil {
+		return nil, err
+	}
+
 	return &Service{
 		log:         log,
 		domain:      domain,
 		recipeNamer: recipeNamer,
-	}
+	}, nil
 }
 
 func (s *Service) Register(m *http.ServeMux) error {

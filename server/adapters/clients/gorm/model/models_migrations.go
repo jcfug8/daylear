@@ -7,6 +7,7 @@ func AllModels() []interface{} {
 		// &Family{},
 		// &Meal{},
 		&Recipe{},
+		&RecipeCircle{},
 		&RecipeUser{},
 		&RecipeIngredient{},
 		&Ingredient{},

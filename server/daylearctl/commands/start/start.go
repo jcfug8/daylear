@@ -12,14 +12,11 @@ import (
 	s3 "github.com/jcfug8/daylear/server/adapters/clients/s3"
 	grpcCirclesV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1"
 	circlesV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1/fieldmasker"
-	circlesV1alpha1Namer "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1/namer"
 	fieldbehaviorvalidator "github.com/jcfug8/daylear/server/adapters/services/grpc/fieldbehaviorvalidator"
 	grpcRecipesV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1"
 	recipesV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/fieldmasker"
-	recipesV1alpha1Namer "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/namer"
 	grpcUsersV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1"
 	usersV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1/fieldmasker"
-	usersV1alpha1Namer "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1/namer"
 	oauth2 "github.com/jcfug8/daylear/server/adapters/services/http/auth/oauth2"
 	tokenService "github.com/jcfug8/daylear/server/adapters/services/http/auth/token"
 	files "github.com/jcfug8/daylear/server/adapters/services/http/files"
@@ -65,15 +62,12 @@ func start(opts ...fx.Option) error {
 		files.Module,
 		// users
 		grpcUsersV1alpha1.Module,
-		usersV1alpha1Namer.Module,
 		usersV1alpha1Masker.Module,
 		// recipes
 		grpcRecipesV1alpha1.Module,
-		recipesV1alpha1Namer.Module,
 		recipesV1alpha1Masker.Module,
 		// circles
 		grpcCirclesV1alpha1.Module,
-		circlesV1alpha1Namer.Module,
 		circlesV1alpha1Masker.Module,
 
 		// driven/secondary adapters

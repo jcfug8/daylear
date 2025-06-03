@@ -18,13 +18,14 @@ func (s *CircleService) GetCircle(ctx context.Context, request *pb.GetCircleRequ
 		return nil, status.Error(codes.PermissionDenied, "user not authorized")
 	}
 
-	parent, id, err := s.circleNamer.Parse(request.GetName())
+	var mCircle model.Circle
+	_, err := s.circleNamer.Parse(request.GetName(), &mCircle)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
 	// Authorization
-	if s.domain.AuthorizeCircleParent(ctx, tokenUser, parent) != nil {
+	if s.domain.AuthorizeCircleParent(ctx, tokenUser, mCircle.Parent) != nil {
 		return nil, status.Error(codes.PermissionDenied, "user not authorized")
 	}
 
@@ -34,7 +35,7 @@ func (s *CircleService) GetCircle(ctx context.Context, request *pb.GetCircleRequ
 		return nil, status.Error(codes.InvalidArgument, "invalid field mask")
 	}
 
-	mCircle, err := s.domain.GetCircle(ctx, parent, id, readMask)
+	mCircle, err = s.domain.GetCircle(ctx, mCircle.Parent, mCircle.Id, readMask)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}

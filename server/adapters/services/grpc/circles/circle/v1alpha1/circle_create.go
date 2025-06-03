@@ -26,7 +26,7 @@ func (s *CircleService) CreateCircle(ctx context.Context, request *pb.CreateCirc
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
 	}
 
-	mCircle.Parent, err = s.circleNamer.ParseParent(request.GetParent())
+	_, err = s.circleNamer.ParseParent(request.GetParent(), &mCircle)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
 	}
