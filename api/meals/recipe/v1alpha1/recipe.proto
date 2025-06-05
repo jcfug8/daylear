@@ -24,10 +24,11 @@ service RecipeService {
     option (google.api.method_signature) = "parent,recipe,recipe_id";
     option (google.api.http) = {
       post: "/meals/v1alpha1/{parent=users/*}/recipes"
+      body: "recipe"
       additional_bindings {
         post: "/meals/v1alpha1/{parent=users/*/circles/*}/recipes"
+        body: "recipe"
       }
-      body: "recipe"
     };
   }
 
@@ -47,10 +48,11 @@ service RecipeService {
     option (google.api.method_signature) = "recipe,update_mask";
     option (google.api.http) = {
       patch: "/meals/v1alpha1/{recipe.name=users/*/recipes/*}"
+      body: "recipe"
       additional_bindings {
         patch: "/meals/v1alpha1/{recipe.name=users/*/circles/*/recipes/*}"
+        body: "recipe"
       }
-      body: "recipe"
     };
   }
 
@@ -81,10 +83,11 @@ service RecipeService {
     option (google.api.method_signature) = "name,recipients";
     option (google.api.http) = {
       post: "/meals/v1alpha1/{name=users/*/recipes/*}:share"
+      body: "*"
       additional_bindings {
         post: "/meals/v1alpha1/{name=users/*/circles/*/recipes/*}:share"
+        body: "*"
       }
-      body: "*"
     };
   }
 }

@@ -75,7 +75,6 @@ func (s *Service) Register(m *http.ServeMux) error {
 	}
 
 	m.Handle("/", headers.NewAuthTokenMiddleware(s.domain)(mux))
-	// m.Handle("/", mux)
 	return nil
 }
 

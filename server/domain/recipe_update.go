@@ -22,12 +22,30 @@ func (d *Domain) UpdateRecipe(ctx context.Context, recipe model.Recipe, updateMa
 		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	permission, err := d.repo.GetRecipeUserPermission(ctx, recipe.Parent.UserId, recipe.Id.RecipeId)
-	if err != nil {
-		return model.Recipe{}, err
-	}
-	if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
-		return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
+	if recipe.Parent.CircleId != 0 {
+		permission, err := d.repo.GetCircleUserPermission(ctx, recipe.Parent.UserId, recipe.Parent.CircleId)
+		if err != nil {
+			return model.Recipe{}, err
+		}
+		if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+			return model.Recipe{}, domain.ErrPermissionDenied{Msg: "circle does not have write permission"}
+		}
+
+		permission, err = d.repo.GetCircleUserPermission(ctx, recipe.Parent.UserId, recipe.Parent.CircleId)
+		if err != nil {
+			return model.Recipe{}, err
+		}
+		if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+			return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
+		}
+	} else {
+		permission, err := d.repo.GetRecipeUserPermission(ctx, recipe.Parent.UserId, recipe.Id.RecipeId)
+		if err != nil {
+			return model.Recipe{}, err
+		}
+		if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+			return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
+		}
 	}
 
 	tx, err := d.repo.Begin(ctx)

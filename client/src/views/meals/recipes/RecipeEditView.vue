@@ -23,11 +23,13 @@ function navigateBack() {
   router.push({ name: 'recipe', params: { recipeId: route.params.recipeId } })
 }
 
-function saveRecipe() {
-  recipesStore
-    .updateRecipe()
-    .then(() => navigateBack())
-    .catch((err) => alert(err.message || err))
+async function saveRecipe() {
+  try {
+    await recipesStore.updateRecipe()
+    navigateBack()
+  } catch (err) {
+    alert(err instanceof Error ? err.message : String(err))
+  }
 }
 
 onMounted(async () => {

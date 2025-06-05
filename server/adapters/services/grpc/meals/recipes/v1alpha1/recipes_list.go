@@ -2,7 +2,6 @@ package v1alpha1
 
 import (
 	"context"
-	"fmt"
 
 	convert "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/convert"
 	"github.com/jcfug8/daylear/server/adapters/services/grpc/pagination"
@@ -25,12 +24,11 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 	if !ok {
 		return nil, status.Errorf(codes.Unauthenticated, "user not found")
 	}
-	fmt.Println(user)
 
 	fieldMask := s.recipeFieldMasker.GetFieldMaskFromCtx(ctx)
 
 	mRecipe := model.Recipe{}
-	_, err := s.recipeNamer.ParseParent(request.GetParent(), &mRecipe)
+	parentIndex, err := s.recipeNamer.ParseParent(request.GetParent(), &mRecipe)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "unable to parse parent: %v", request.GetParent())
 	}
@@ -59,7 +57,7 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 		return nil, status.Errorf(codes.Internal, "%s", err)
 	}
 
-	recipes, err := convert.RecipeListToProto(s.recipeNamer, res)
+	recipes, err := convert.RecipeListToProto(s.recipeNamer, res, parentIndex)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to prepare response")
 	}

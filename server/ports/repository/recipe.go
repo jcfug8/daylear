@@ -19,6 +19,10 @@ type recipeClient interface {
 	BulkDeleteRecipeUsers(context.Context, string) error
 	GetRecipeUserPermission(ctx context.Context, userId int64, recipeId int64) (permPb.PermissionLevel, error)
 
+	BulkCreateRecipeCircles(context.Context, model.RecipeId, []int64, permPb.PermissionLevel) error
+	BulkDeleteRecipeCircles(context.Context, string) error
+	GetRecipeCirclePermission(ctx context.Context, circleId int64, recipeId int64) (permPb.PermissionLevel, error)
+
 	SetRecipeIngredients(context.Context, model.RecipeId, []model.IngredientGroup) error
 	ListRecipeIngredients(context.Context, *model.PageToken[model.RecipeIngredient], string, []string) ([]model.RecipeIngredient, error)
 	BulkDeleteRecipeIngredients(context.Context, string) ([]model.RecipeIngredient, error)

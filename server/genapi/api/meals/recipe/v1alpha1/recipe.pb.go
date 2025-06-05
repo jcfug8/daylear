@@ -889,15 +889,14 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\n" +
 	"permission\x18\x03 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x01R\n" +
 	"permission\"\x15\n" +
-	"\x13ShareRecipeResponse2\xef\n" +
-	"\n" +
-	"\rRecipeService\x12\xec\x01\n" +
-	"\fCreateRecipe\x12..api.meals.recipe.v1alpha1.CreateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x88\x01\xdaA\x17parent,recipe,recipe_id\x82\xd3\xe4\x93\x02h:\x06recipeZ4\"2/meals/v1alpha1/{parent=users/*/circles/*}/recipes\"(/meals/v1alpha1/{parent=users/*}/recipes\x12\xdd\x01\n" +
-	"\vListRecipes\x12-.api.meals.recipe.v1alpha1.ListRecipesRequest\x1a..api.meals.recipe.v1alpha1.ListRecipesResponse\"o\xdaA\x06parent\x82\xd3\xe4\x93\x02`Z4\x122/meals/v1alpha1/{parent=users/*/circles/*}/recipes\x12(/meals/v1alpha1/{parent=users/*}/recipes\x12\xf5\x01\n" +
-	"\fUpdateRecipe\x12..api.meals.recipe.v1alpha1.UpdateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x91\x01\xdaA\x12recipe,update_mask\x82\xd3\xe4\x93\x02v:\x06recipeZ;29/meals/v1alpha1/{recipe.name=users/*/circles/*/recipes/*}2//meals/v1alpha1/{recipe.name=users/*/recipes/*}\x12\xd0\x01\n" +
+	"\x13ShareRecipeResponse2\x82\v\n" +
+	"\rRecipeService\x12\xf4\x01\n" +
+	"\fCreateRecipe\x12..api.meals.recipe.v1alpha1.CreateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x90\x01\xdaA\x17parent,recipe,recipe_id\x82\xd3\xe4\x93\x02p:\x06recipeZ<:\x06recipe\"2/meals/v1alpha1/{parent=users/*/circles/*}/recipes\"(/meals/v1alpha1/{parent=users/*}/recipes\x12\xdd\x01\n" +
+	"\vListRecipes\x12-.api.meals.recipe.v1alpha1.ListRecipesRequest\x1a..api.meals.recipe.v1alpha1.ListRecipesResponse\"o\xdaA\x06parent\x82\xd3\xe4\x93\x02`Z4\x122/meals/v1alpha1/{parent=users/*/circles/*}/recipes\x12(/meals/v1alpha1/{parent=users/*}/recipes\x12\xfd\x01\n" +
+	"\fUpdateRecipe\x12..api.meals.recipe.v1alpha1.UpdateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x99\x01\xdaA\x12recipe,update_mask\x82\xd3\xe4\x93\x02~:\x06recipeZC:\x06recipe29/meals/v1alpha1/{recipe.name=users/*/circles/*/recipes/*}2//meals/v1alpha1/{recipe.name=users/*/recipes/*}\x12\xd0\x01\n" +
 	"\fDeleteRecipe\x12..api.meals.recipe.v1alpha1.DeleteRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"m\xdaA\x04name\x82\xd3\xe4\x93\x02`Z4*2/meals/v1alpha1/{name=users/*/circles/*/recipes/*}*(/meals/v1alpha1/{name=users/*/recipes/*}\x12\xca\x01\n" +
-	"\tGetRecipe\x12+.api.meals.recipe.v1alpha1.GetRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"m\xdaA\x04name\x82\xd3\xe4\x93\x02`Z4\x122/meals/v1alpha1/{name=users/*/circles/*/recipes/*}\x12(/meals/v1alpha1/{name=users/*/recipes/*}\x12\xf6\x01\n" +
-	"\vShareRecipe\x12-.api.meals.recipe.v1alpha1.ShareRecipeRequest\x1a..api.meals.recipe.v1alpha1.ShareRecipeResponse\"\x87\x01\xdaA\x0fname,recipients\x82\xd3\xe4\x93\x02o:\x01*Z:\"8/meals/v1alpha1/{name=users/*/circles/*/recipes/*}:share\"./meals/v1alpha1/{name=users/*/recipes/*}:shareB\x85\x02\n" +
+	"\tGetRecipe\x12+.api.meals.recipe.v1alpha1.GetRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"m\xdaA\x04name\x82\xd3\xe4\x93\x02`Z4\x122/meals/v1alpha1/{name=users/*/circles/*/recipes/*}\x12(/meals/v1alpha1/{name=users/*/recipes/*}\x12\xf9\x01\n" +
+	"\vShareRecipe\x12-.api.meals.recipe.v1alpha1.ShareRecipeRequest\x1a..api.meals.recipe.v1alpha1.ShareRecipeResponse\"\x8a\x01\xdaA\x0fname,recipients\x82\xd3\xe4\x93\x02r:\x01*Z=:\x01*\"8/meals/v1alpha1/{name=users/*/circles/*/recipes/*}:share\"./meals/v1alpha1/{name=users/*/recipes/*}:shareB\x85\x02\n" +
 	"\x1dcom.api.meals.recipe.v1alpha1B\vRecipeProtoP\x01ZPgithub.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1;recipev1alpha1\xa2\x02\x03AMR\xaa\x02\x19Api.Meals.Recipe.V1alpha1\xca\x02\x19Api\\Meals\\Recipe\\V1alpha1\xe2\x02%Api\\Meals\\Recipe\\V1alpha1\\GPBMetadata\xea\x02\x1cApi::Meals::Recipe::V1alpha1b\x06proto3"
 
 var (

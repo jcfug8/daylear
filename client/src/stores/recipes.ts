@@ -42,7 +42,7 @@ export const useRecipesStore = defineStore('recipes', () => {
   function initEmptyRecipe() {
     recipe.value = {
       name: undefined,
-      title: '',
+      title: undefined,
       description: '',
       directions: [],
       ingredientGroups: [],
@@ -57,6 +57,8 @@ export const useRecipesStore = defineStore('recipes', () => {
     if (recipe.value.name) {
       throw new Error('Recipe already has a name and cannot be created')
     }
+    console.log('Creating recipe with data:', recipe.value)
+    console.log('Parent path:', parent)
     try {
       const created = await recipeService.CreateRecipe({
         parent,

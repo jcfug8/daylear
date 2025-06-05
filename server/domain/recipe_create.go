@@ -41,7 +41,11 @@ func (d *Domain) CreateRecipe(ctx context.Context, recipe model.Recipe) (model.R
 	}
 
 	// link to user
-	err = tx.BulkCreateRecipeUsers(ctx, dbRecipe.Id, []int64{dbRecipe.Parent.UserId}, permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE)
+	if dbRecipe.Parent.CircleId != 0 {
+		err = tx.BulkCreateRecipeCircles(ctx, dbRecipe.Id, []int64{dbRecipe.Parent.CircleId}, permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE)
+	} else {
+		err = tx.BulkCreateRecipeUsers(ctx, dbRecipe.Id, []int64{dbRecipe.Parent.UserId}, permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE)
+	}
 	if err != nil {
 		return model.Recipe{}, err
 	}

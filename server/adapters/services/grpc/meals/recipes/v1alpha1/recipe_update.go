@@ -25,7 +25,7 @@ func (s *RecipeService) UpdateRecipe(ctx context.Context, request *pb.UpdateReci
 
 	pbRecipe := request.GetRecipe()
 
-	mRecipe, err := convert.ProtoToRecipe(s.recipeNamer, pbRecipe)
+	mRecipe, nameIndex, err := convert.ProtoToRecipe(s.recipeNamer, pbRecipe)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid request data")
 	}
@@ -39,7 +39,7 @@ func (s *RecipeService) UpdateRecipe(ctx context.Context, request *pb.UpdateReci
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	pbRecipe, err = convert.RecipeToProto(s.recipeNamer, mRecipe)
+	pbRecipe, err = convert.RecipeToProto(s.recipeNamer, mRecipe, nameIndex)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to prepare response")
 	}

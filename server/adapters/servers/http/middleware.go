@@ -46,13 +46,15 @@ func (m *MiddlewareMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		hlog.FromRequest(r).Debug().
+		hlog.FromRequest(r).Info().
 			Str("method", r.Method).
 			Stringer("url", r.URL).
 			Int("status", status).
 			Int("size", size).
 			Dur("duration", duration).
-			Msg("")
+			Str("content_type", r.Header.Get("Content-Type")).
+			Str("content_length", r.Header.Get("Content-Length")).
+			Msg("HTTP Request")
 	}))
 
 	c = c.Append(hlog.RemoteAddrHandler("ip"))

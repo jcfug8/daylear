@@ -26,6 +26,7 @@ type DomainParams struct {
 	TokenClient   token.Client
 	ImageStore    filestorage.Client
 	FileInspector fileinspector.Client
+	FileRetriever fileretriever.Client
 }
 
 // NewDomain creates a new domain.
@@ -38,6 +39,7 @@ func NewDomain(params DomainParams) domainPort.Domain {
 		tokenStore:    &sync.Map{},
 		fileStore:     params.ImageStore,
 		fileInspector: params.FileInspector,
+		fileRetriever: params.FileRetriever,
 	}
 	return d
 }

@@ -14,12 +14,15 @@
           <v-btn icon="mdi-close" @click="$emit('close')"></v-btn>
         </template>
         <template #append>
-          <v-btn icon="mdi-content-save" @click="$emit('save')"></v-btn>
+          <v-btn icon="mdi-content-save" @click="handleSave"></v-btn>
         </template>
       </v-app-bar>
       <v-tabs-window v-model="tab">
         <v-tabs-window-item value="general">
-          <recipe-general-form v-model="recipe" />
+          <recipe-general-form 
+            v-model="recipe" 
+            @image-selected="handleImageSelected"
+          />
         </v-tabs-window-item>
         <v-tabs-window-item value="ingredients">
           <recipe-ingredients-form v-model="recipe" />
@@ -33,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch, onBeforeUnmount } from 'vue'
+import { computed, onMounted, watch, onBeforeUnmount, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import type { Recipe } from '@/genapi/api/meals/recipe/v1alpha1'
@@ -62,6 +65,9 @@ const router = useRouter()
 const recipeFormStore = useRecipeFormStore()
 const { activeTab } = storeToRefs(recipeFormStore)
 
+// Store the selected image file for later upload
+const pendingImageFile = ref<File | null>(null)
+
 // Use the store's activeTab as our local tab
 const tab = computed({
   get: () => activeTab.value,
@@ -86,6 +92,38 @@ const tabToHash: Record<string, string> = {
   general: '#general',
   ingredients: '#ingredients',
   directions: '#directions',
+}
+
+function handleImageSelected(file: File | null, url: string | null) {
+  pendingImageFile.value = file
+}
+
+async function handleSave() {
+  // First emit save to create/update the recipe
+  emit('save')
+  
+  // After recipe is created/updated, upload the image if there's a pending file
+  if (pendingImageFile.value && recipe.value.name) {
+    try {
+      const formData = new FormData()
+      formData.append('file', pendingImageFile.value)
+      
+      const response = await fetch(`/files/meals/v1alpha1/${recipe.value.name}/image`, {
+        method: 'PUT',
+        body: formData,
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload image')
+      }
+      
+      const data = await response.json()
+      recipe.value.imageUri = data.image_uri
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      alert('Failed to upload image. Please try again.')
+    }
+  }
 }
 
 onMounted(() => {

@@ -23,14 +23,16 @@ function navigateBack() {
   router.push({ name: 'recipes' })
 }
 
-function saveRecipe() {
+async function saveRecipe() {
   if (!authStore.user || !authStore.user.name) {
     throw new Error('User not authenticated')
   }
-  recipesStore
-    .createRecipe(authStore.activeAccountName)
-    .then(() => navigateBack())
-    .catch((err) => alert(err.message || err))
+  try {
+    await recipesStore.createRecipe(authStore.activeAccountName)
+    navigateBack()
+  } catch (err) {
+    alert(err instanceof Error ? err.message : String(err))
+  }
 }
 
 onMounted(() => {

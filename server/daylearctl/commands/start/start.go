@@ -7,6 +7,7 @@ import (
 	gorm "github.com/jcfug8/daylear/server/adapters/clients/gorm"
 	gorm_dialer "github.com/jcfug8/daylear/server/adapters/clients/gorm/dialer"
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/dialer/dialects/postgres"
+	"github.com/jcfug8/daylear/server/adapters/clients/http/fileretriever"
 	tokenClient "github.com/jcfug8/daylear/server/adapters/clients/jwt/token"
 	mimetype "github.com/jcfug8/daylear/server/adapters/clients/mimetype"
 	s3 "github.com/jcfug8/daylear/server/adapters/clients/s3"
@@ -58,8 +59,8 @@ func start(opts ...fx.Option) error {
 		// driving/primary adapters
 		oauth2.Module,
 		tokenService.Module,
-		grpcgateway.Module,
 		files.Module,
+		grpcgateway.Module,
 		// users
 		grpcUsersV1alpha1.Module,
 		usersV1alpha1Masker.Module,
@@ -77,6 +78,7 @@ func start(opts ...fx.Option) error {
 		tokenClient.Module,
 		s3.Module,
 		mimetype.Module,
+		fileretriever.Module,
 
 		// domain
 		domain.Module,

@@ -27,7 +27,7 @@ func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateReci
 
 	pbRecipe.Name = ""
 
-	mRecipe, err := convert.ProtoToRecipe(s.recipeNamer, pbRecipe)
+	mRecipe, nameIndex, err := convert.ProtoToRecipe(s.recipeNamer, pbRecipe)
 	if err != nil {
 		s.log.Warn().Err(err).Msg("unable to convert proto to model")
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
@@ -47,7 +47,7 @@ func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateReci
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	pbRecipe, err = convert.RecipeToProto(s.recipeNamer, mRecipe)
+	pbRecipe, err = convert.RecipeToProto(s.recipeNamer, mRecipe, nameIndex)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}

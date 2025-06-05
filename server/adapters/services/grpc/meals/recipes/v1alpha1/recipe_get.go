@@ -27,7 +27,7 @@ func (s *RecipeService) GetRecipe(ctx context.Context, request *pb.GetRecipeRequ
 	}
 
 	mRecipe := model.Recipe{}
-	_, err = s.recipeNamer.Parse(request.GetName(), &mRecipe)
+	nameIndex, err := s.recipeNamer.Parse(request.GetName(), &mRecipe)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
@@ -41,7 +41,7 @@ func (s *RecipeService) GetRecipe(ctx context.Context, request *pb.GetRecipeRequ
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, mRecipe)
+	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, mRecipe, nameIndex)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to prepare response")
 	}
