@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"path"
 
 	"github.com/jcfug8/daylear/server/core/file"
 	pConfig "github.com/jcfug8/daylear/server/ports/config"
@@ -97,10 +98,10 @@ func (c *Client) ensureBucketExists(ctx context.Context) error {
 	return nil
 }
 
-func (c *Client) UploadPublicFile(ctx context.Context, path string, file file.File) (string, error) {
+func (c *Client) UploadPublicFile(ctx context.Context, filePath string, file file.File) (string, error) {
 	_, err := c.s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:        aws.String(c.bucket),
-		Key:           aws.String(path),
+		Key:           aws.String(filePath),
 		Body:          file,
 		ContentType:   aws.String(file.ContentType),
 		ContentLength: aws.Int64(file.ContentLength),
@@ -108,15 +109,15 @@ func (c *Client) UploadPublicFile(ctx context.Context, path string, file file.Fi
 	})
 
 	publicEndpointURL := *c.publicEndpointURL
-	publicEndpointURL.Path = path
+	publicEndpointURL.Path = path.Join(c.bucket, filePath)
 
 	return publicEndpointURL.String(), err
 }
 
-func (c *Client) GetFile(ctx context.Context, path string) (io.ReadCloser, error) {
+func (c *Client) GetFile(ctx context.Context, filePath string) (io.ReadCloser, error) {
 	resp, err := c.s3Client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(c.bucket),
-		Key:    aws.String(path),
+		Key:    aws.String(filePath),
 	})
 	if err != nil {
 		return nil, err

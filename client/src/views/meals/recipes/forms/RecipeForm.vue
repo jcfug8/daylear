@@ -44,6 +44,7 @@ import RecipeGeneralForm from './RecipeGeneralForm.vue'
 import RecipeIngredientsForm from './RecipeIngredientsForm.vue'
 import RecipeDirectionsForm from './RecipeDirectionsForm.vue'
 import { useRecipeFormStore } from '@/stores/recipeForm'
+import { fileService } from '@/api/api'
 
 const props = defineProps<{
   modelValue: Recipe
@@ -51,7 +52,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: Recipe): void
-  (e: 'save'): void
+  (e: 'save', pendingImageFile: File | null): void
   (e: 'close'): void
 }>()
 
@@ -99,31 +100,9 @@ function handleImageSelected(file: File | null, url: string | null) {
 }
 
 async function handleSave() {
-  // First emit save to create/update the recipe
-  emit('save')
-  
-  // After recipe is created/updated, upload the image if there's a pending file
-  if (pendingImageFile.value && recipe.value.name) {
-    try {
-      const formData = new FormData()
-      formData.append('file', pendingImageFile.value)
-      
-      const response = await fetch(`/files/meals/v1alpha1/${recipe.value.name}/image`, {
-        method: 'PUT',
-        body: formData,
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to upload image')
-      }
-      
-      const data = await response.json()
-      recipe.value.imageUri = data.image_uri
-    } catch (error) {
-      console.error('Error uploading image:', error)
-      alert('Failed to upload image. Please try again.')
-    }
-  }
+  // Emit save with the pending image file
+  emit('save', pendingImageFile.value)
+  pendingImageFile.value = null
 }
 
 onMounted(() => {
