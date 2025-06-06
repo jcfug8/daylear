@@ -18,7 +18,7 @@ func (repo *Client) ListRecipeIngredients(ctx context.Context, page *cmodel.Page
 
 	t := filtering.NewSQLTranspiler(
 		map[string]filtering.Field[clause.Expression]{
-			"recipe_id": filtering.NewSQLField[int64]("recipe_id", "="),
+			"recipe_id": filtering.NewSQLField[int64]("recipe_ingredient.recipe_id", "="),
 		})
 
 	filterClause, _ /* info */, err := t.Transpile(filter)
@@ -30,8 +30,12 @@ func (repo *Client) ListRecipeIngredients(ctx context.Context, page *cmodel.Page
 		tx = tx.Clauses(filterClause)
 	}
 
+	// Join with recipe table to get the title and select the title
+	tx = tx.Joins("JOIN recipe ON recipe.recipe_id = recipe_ingredient.recipe_id").
+		Select("recipe_ingredient.*, recipe.title as recipe_title")
+
 	var dbRecipeIngredients []gmodel.RecipeIngredient
-	err = tx.Clauses(clause.Returning{}).Find(&dbRecipeIngredients).Error
+	err = tx.Find(&dbRecipeIngredients).Error
 	if err != nil {
 		return nil, ConvertGormError(err)
 	}

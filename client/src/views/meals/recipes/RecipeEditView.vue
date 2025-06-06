@@ -30,9 +30,6 @@ async function saveRecipe(pendingImageFile: File | null) {
     
     // Upload image if there's a pending file
     if (pendingImageFile && recipesStore.recipe?.name) {
-      // const formData = new FormData()
-      // formData.append('file', pendingImageFile)
-      
       const response = await fileService.UploadRecipeImage({
         name: recipesStore.recipe.name,
         file: pendingImageFile,

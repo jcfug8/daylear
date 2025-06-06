@@ -24,6 +24,7 @@ func RecipeIngredientToCoreModel(m gmodel.RecipeIngredient) cmodel.RecipeIngredi
 		IngredientGroupIndex: m.IngredientGroupIndex,
 		Ingredient: cmodel.Ingredient{
 			IngredientId: m.IngredientId,
+			Title:        m.RecipeTitle,
 		},
 	}
 	return cm
