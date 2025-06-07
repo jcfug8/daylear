@@ -6,7 +6,6 @@ import (
 	convert "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/convert"
 	"github.com/jcfug8/daylear/server/adapters/services/grpc/pagination"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
-	"github.com/jcfug8/daylear/server/core/model"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	"google.golang.org/grpc/codes"
@@ -25,13 +24,19 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 		return nil, status.Errorf(codes.Unauthenticated, "user not found")
 	}
 
-	fieldMask := s.recipeFieldMasker.GetFieldMaskFromCtx(ctx)
-
-	mRecipe := model.Recipe{}
-	parentIndex, err := s.recipeNamer.ParseParent(request.GetParent(), &mRecipe)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "unable to parse parent: %v", request.GetParent())
+	mRecipe := cmodel.Recipe{}
+	var parentIndex int
+	var err error
+	if request.GetParent() != "" {
+		parentIndex, err = s.recipeNamer.ParseParent(request.GetParent(), &mRecipe)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "unable to parse parent: %v", request.GetParent())
+		}
 	}
+
+	mRecipe.Parent.UserId = user.Id.UserId
+
+	fieldMask := s.recipeFieldMasker.GetFieldMaskFromCtx(ctx)
 
 	readMask, err := s.recipeFieldMasker.GetReadMask(fieldMask)
 	if err != nil {
@@ -47,10 +52,6 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 		pageToken.PageSize = recipeDefaultPageSize
 	}
 	pageToken.PageSize = min(pageToken.PageSize, recipeMaxPageSize)
-
-	if s.domain.AuthorizeRecipeParent(ctx, user, mRecipe.Parent) != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "user not authorized")
-	}
 
 	res, err := s.domain.ListRecipes(ctx, pageToken, mRecipe.Parent, request.GetFilter(), readMask)
 	if err != nil {

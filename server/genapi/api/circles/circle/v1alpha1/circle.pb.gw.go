@@ -35,24 +35,15 @@ var (
 	_ = metadata.Join
 )
 
-var filter_CircleService_CreateCircle_0 = &utilities.DoubleArray{Encoding: map[string]int{"circle": 0, "parent": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
+var filter_CircleService_CreateCircle_0 = &utilities.DoubleArray{Encoding: map[string]int{"circle": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 
 func request_CircleService_CreateCircle_0(ctx context.Context, marshaler runtime.Marshaler, client CircleServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq CreateCircleRequest
 		metadata runtime.ServerMetadata
-		err      error
 	)
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq.Circle); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	val, ok := pathParams["parent"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "parent")
-	}
-	protoReq.Parent, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "parent", err)
 	}
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -68,18 +59,9 @@ func local_request_CircleService_CreateCircle_0(ctx context.Context, marshaler r
 	var (
 		protoReq CreateCircleRequest
 		metadata runtime.ServerMetadata
-		err      error
 	)
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq.Circle); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	val, ok := pathParams["parent"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "parent")
-	}
-	protoReq.Parent, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "parent", err)
 	}
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -91,23 +73,14 @@ func local_request_CircleService_CreateCircle_0(ctx context.Context, marshaler r
 	return msg, metadata, err
 }
 
-var filter_CircleService_ListCircles_0 = &utilities.DoubleArray{Encoding: map[string]int{"parent": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+var filter_CircleService_ListCircles_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_CircleService_ListCircles_0(ctx context.Context, marshaler runtime.Marshaler, client CircleServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ListCirclesRequest
 		metadata runtime.ServerMetadata
-		err      error
 	)
 	io.Copy(io.Discard, req.Body)
-	val, ok := pathParams["parent"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "parent")
-	}
-	protoReq.Parent, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "parent", err)
-	}
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -122,16 +95,7 @@ func local_request_CircleService_ListCircles_0(ctx context.Context, marshaler ru
 	var (
 		protoReq ListCirclesRequest
 		metadata runtime.ServerMetadata
-		err      error
 	)
-	val, ok := pathParams["parent"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "parent")
-	}
-	protoReq.Parent, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "parent", err)
-	}
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -348,7 +312,7 @@ func RegisterCircleServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/CreateCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{parent=users/*}/circles"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/CreateCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/circles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -368,7 +332,7 @@ func RegisterCircleServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/ListCircles", runtime.WithHTTPPathPattern("/circles/v1alpha1/{parent=users/*}/circles"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/ListCircles", runtime.WithHTTPPathPattern("/circles/v1alpha1/circles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -388,7 +352,7 @@ func RegisterCircleServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/UpdateCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{circle.name=users/*/circles/*}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/UpdateCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{circle.name=circles/*}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -408,7 +372,7 @@ func RegisterCircleServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/DeleteCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{name=users/*/circles/*}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/DeleteCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{name=circles/*}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -428,7 +392,7 @@ func RegisterCircleServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/GetCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{name=users/*/circles/*}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/GetCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{name=circles/*}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -448,7 +412,7 @@ func RegisterCircleServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/ShareCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{name=users/*/circles/*}:share"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/ShareCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{name=circles/*}:share"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -506,7 +470,7 @@ func RegisterCircleServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/CreateCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{parent=users/*}/circles"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/CreateCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/circles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -523,7 +487,7 @@ func RegisterCircleServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/ListCircles", runtime.WithHTTPPathPattern("/circles/v1alpha1/{parent=users/*}/circles"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/ListCircles", runtime.WithHTTPPathPattern("/circles/v1alpha1/circles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -540,7 +504,7 @@ func RegisterCircleServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/UpdateCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{circle.name=users/*/circles/*}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/UpdateCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{circle.name=circles/*}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -557,7 +521,7 @@ func RegisterCircleServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/DeleteCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{name=users/*/circles/*}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/DeleteCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{name=circles/*}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -574,7 +538,7 @@ func RegisterCircleServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/GetCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{name=users/*/circles/*}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/GetCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{name=circles/*}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -591,7 +555,7 @@ func RegisterCircleServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/ShareCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{name=users/*/circles/*}:share"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.circles.circle.v1alpha1.CircleService/ShareCircle", runtime.WithHTTPPathPattern("/circles/v1alpha1/{name=circles/*}:share"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -608,12 +572,12 @@ func RegisterCircleServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 }
 
 var (
-	pattern_CircleService_CreateCircle_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3, 2, 0}, []string{"circles", "v1alpha1", "users", "parent"}, ""))
-	pattern_CircleService_ListCircles_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3, 2, 0}, []string{"circles", "v1alpha1", "users", "parent"}, ""))
-	pattern_CircleService_UpdateCircle_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 0, 1, 0, 4, 4, 5, 3}, []string{"circles", "v1alpha1", "users", "circle.name"}, ""))
-	pattern_CircleService_DeleteCircle_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 0, 1, 0, 4, 4, 5, 3}, []string{"circles", "v1alpha1", "users", "name"}, ""))
-	pattern_CircleService_GetCircle_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 0, 1, 0, 4, 4, 5, 3}, []string{"circles", "v1alpha1", "users", "name"}, ""))
-	pattern_CircleService_ShareCircle_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 0, 1, 0, 4, 4, 5, 3}, []string{"circles", "v1alpha1", "users", "name"}, "share"))
+	pattern_CircleService_CreateCircle_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 0}, []string{"circles", "v1alpha1"}, ""))
+	pattern_CircleService_ListCircles_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 0}, []string{"circles", "v1alpha1"}, ""))
+	pattern_CircleService_UpdateCircle_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 0, 1, 0, 4, 2, 5, 2}, []string{"circles", "v1alpha1", "circle.name"}, ""))
+	pattern_CircleService_DeleteCircle_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 0, 1, 0, 4, 2, 5, 2}, []string{"circles", "v1alpha1", "name"}, ""))
+	pattern_CircleService_GetCircle_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 0, 1, 0, 4, 2, 5, 2}, []string{"circles", "v1alpha1", "name"}, ""))
+	pattern_CircleService_ShareCircle_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 0, 1, 0, 4, 2, 5, 2}, []string{"circles", "v1alpha1", "name"}, "share"))
 )
 
 var (

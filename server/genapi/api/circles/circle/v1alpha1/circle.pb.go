@@ -97,8 +97,6 @@ func (x *Circle) GetIsPublic() bool {
 // the request to create a circle
 type CreateCircleRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// the parent of the circle
-	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// the circle to create
 	Circle *Circle `protobuf:"bytes,2,opt,name=circle,proto3" json:"circle,omitempty"`
 	// the id of the circle
@@ -137,13 +135,6 @@ func (*CreateCircleRequest) Descriptor() ([]byte, []int) {
 	return file_api_circles_circle_v1alpha1_circle_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CreateCircleRequest) GetParent() string {
-	if x != nil {
-		return x.Parent
-	}
-	return ""
-}
-
 func (x *CreateCircleRequest) GetCircle() *Circle {
 	if x != nil {
 		return x.Circle
@@ -161,8 +152,6 @@ func (x *CreateCircleRequest) GetCircleId() string {
 // the request to list circles
 type ListCirclesRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// the parent of the circles
-	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// the page size
 	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	// the page token
@@ -201,13 +190,6 @@ func (x *ListCirclesRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ListCirclesRequest.ProtoReflect.Descriptor instead.
 func (*ListCirclesRequest) Descriptor() ([]byte, []int) {
 	return file_api_circles_circle_v1alpha1_circle_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *ListCirclesRequest) GetParent() string {
-	if x != nil {
-		return x.Parent
-	}
-	return ""
 }
 
 func (x *ListCirclesRequest) GetPageSize() int32 {
@@ -529,18 +511,16 @@ var File_api_circles_circle_v1alpha1_circle_proto protoreflect.FileDescriptor
 
 const file_api_circles_circle_v1alpha1_circle_proto_rawDesc = "" +
 	"\n" +
-	"(api/circles/circle/v1alpha1/circle.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\"\xb7\x01\n" +
+	"(api/circles/circle/v1alpha1/circle.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\"\xaa\x01\n" +
 	"\x06Circle\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12 \n" +
-	"\tis_public\x18\x03 \x01(\bB\x03\xe0A\x01R\bisPublic:W\xeaAT\n" +
-	"\"api.circles.circle.v1alpha1/Circle\x12\x1dusers/{user}/circles/{circle}*\acircles2\x06circle\"\xbd\x01\n" +
-	"\x13CreateCircleRequest\x12B\n" +
-	"\x06parent\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\x12\"api.circles.circle.v1alpha1/CircleR\x06parent\x12@\n" +
+	"\tis_public\x18\x03 \x01(\bB\x03\xe0A\x01R\bisPublic:J\xeaAG\n" +
+	"\"api.circles.circle.v1alpha1/Circle\x12\x10circles/{circle}*\acircles2\x06circle\"y\n" +
+	"\x13CreateCircleRequest\x12@\n" +
 	"\x06circle\x18\x02 \x01(\v2#.api.circles.circle.v1alpha1.CircleB\x03\xe0A\x02R\x06circle\x12 \n" +
-	"\tcircle_id\x18\x03 \x01(\tB\x03\xe0A\x02R\bcircleId\"\xbb\x01\n" +
-	"\x12ListCirclesRequest\x12B\n" +
-	"\x06parent\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\x12\"api.circles.circle.v1alpha1/CircleR\x06parent\x12 \n" +
+	"\tcircle_id\x18\x03 \x01(\tB\x03\xe0A\x02R\bcircleId\"w\n" +
+	"\x12ListCirclesRequest\x12 \n" +
 	"\tpage_size\x18\x02 \x01(\x05B\x03\xe0A\x01R\bpageSize\x12\"\n" +
 	"\n" +
 	"page_token\x18\x03 \x01(\tB\x03\xe0A\x01R\tpageToken\x12\x1b\n" +
@@ -562,14 +542,14 @@ const file_api_circles_circle_v1alpha1_circle_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\n" +
 	"\"api.circles.circle.v1alpha1/CircleR\x04name\"R\n" +
 	"\x13ShareCircleResponse\x12;\n" +
-	"\x06circle\x18\x01 \x01(\v2#.api.circles.circle.v1alpha1.CircleR\x06circle2\xbf\b\n" +
-	"\rCircleService\x12\xbb\x01\n" +
-	"\fCreateCircle\x120.api.circles.circle.v1alpha1.CreateCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"T\xdaA\x17parent,circle,circle_id\x82\xd3\xe4\x93\x024:\x06circle\"*/circles/v1alpha1/{parent=users/*}/circles\x12\xad\x01\n" +
-	"\vListCircles\x12/.api.circles.circle.v1alpha1.ListCirclesRequest\x1a0.api.circles.circle.v1alpha1.ListCirclesResponse\";\xdaA\x06parent\x82\xd3\xe4\x93\x02,\x12*/circles/v1alpha1/{parent=users/*}/circles\x12\xbd\x01\n" +
-	"\fUpdateCircle\x120.api.circles.circle.v1alpha1.UpdateCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"V\xdaA\x12circle,update_mask\x82\xd3\xe4\x93\x02;:\x06circle21/circles/v1alpha1/{circle.name=users/*/circles/*}\x12\xa0\x01\n" +
-	"\fDeleteCircle\x120.api.circles.circle.v1alpha1.DeleteCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"9\xdaA\x04name\x82\xd3\xe4\x93\x02,**/circles/v1alpha1/{name=users/*/circles/*}\x12\x9a\x01\n" +
-	"\tGetCircle\x12-.api.circles.circle.v1alpha1.GetCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"9\xdaA\x04name\x82\xd3\xe4\x93\x02,\x12*/circles/v1alpha1/{name=users/*/circles/*}\x12\xbf\x01\n" +
-	"\vShareCircle\x12/.api.circles.circle.v1alpha1.ShareCircleRequest\x1a0.api.circles.circle.v1alpha1.ShareCircleResponse\"M\xdaA\x0fname,recipients\x82\xd3\xe4\x93\x025:\x01*\"0/circles/v1alpha1/{name=users/*/circles/*}:shareB\x91\x02\n" +
+	"\x06circle\x18\x01 \x01(\v2#.api.circles.circle.v1alpha1.CircleR\x06circle2\xed\a\n" +
+	"\rCircleService\x12\xa3\x01\n" +
+	"\fCreateCircle\x120.api.circles.circle.v1alpha1.CreateCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"<\xdaA\x10circle,circle_id\x82\xd3\xe4\x93\x02#:\x06circle\"\x19/circles/v1alpha1/circles\x12\x93\x01\n" +
+	"\vListCircles\x12/.api.circles.circle.v1alpha1.ListCirclesRequest\x1a0.api.circles.circle.v1alpha1.ListCirclesResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/circles/v1alpha1/circles\x12\xb5\x01\n" +
+	"\fUpdateCircle\x120.api.circles.circle.v1alpha1.UpdateCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"N\xdaA\x12circle,update_mask\x82\xd3\xe4\x93\x023:\x06circle2)/circles/v1alpha1/{circle.name=circles/*}\x12\x98\x01\n" +
+	"\fDeleteCircle\x120.api.circles.circle.v1alpha1.DeleteCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"1\xdaA\x04name\x82\xd3\xe4\x93\x02$*\"/circles/v1alpha1/{name=circles/*}\x12\x92\x01\n" +
+	"\tGetCircle\x12-.api.circles.circle.v1alpha1.GetCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"1\xdaA\x04name\x82\xd3\xe4\x93\x02$\x12\"/circles/v1alpha1/{name=circles/*}\x12\xb7\x01\n" +
+	"\vShareCircle\x12/.api.circles.circle.v1alpha1.ShareCircleRequest\x1a0.api.circles.circle.v1alpha1.ShareCircleResponse\"E\xdaA\x0fname,recipients\x82\xd3\xe4\x93\x02-:\x01*\"(/circles/v1alpha1/{name=circles/*}:shareB\x91\x02\n" +
 	"\x1fcom.api.circles.circle.v1alpha1B\vCircleProtoP\x01ZRgithub.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1;circlev1alpha1\xa2\x02\x03ACC\xaa\x02\x1bApi.Circles.Circle.V1alpha1\xca\x02\x1bApi\\Circles\\Circle\\V1alpha1\xe2\x02'Api\\Circles\\Circle\\V1alpha1\\GPBMetadata\xea\x02\x1eApi::Circles::Circle::V1alpha1b\x06proto3"
 
 var (

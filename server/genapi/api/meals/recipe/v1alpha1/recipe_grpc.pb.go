@@ -26,12 +26,13 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	RecipeService_CreateRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/CreateRecipe"
-	RecipeService_ListRecipes_FullMethodName  = "/api.meals.recipe.v1alpha1.RecipeService/ListRecipes"
-	RecipeService_UpdateRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/UpdateRecipe"
-	RecipeService_DeleteRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/DeleteRecipe"
-	RecipeService_GetRecipe_FullMethodName    = "/api.meals.recipe.v1alpha1.RecipeService/GetRecipe"
-	RecipeService_ShareRecipe_FullMethodName  = "/api.meals.recipe.v1alpha1.RecipeService/ShareRecipe"
+	RecipeService_CreateRecipe_FullMethodName  = "/api.meals.recipe.v1alpha1.RecipeService/CreateRecipe"
+	RecipeService_ListRecipes_FullMethodName   = "/api.meals.recipe.v1alpha1.RecipeService/ListRecipes"
+	RecipeService_UpdateRecipe_FullMethodName  = "/api.meals.recipe.v1alpha1.RecipeService/UpdateRecipe"
+	RecipeService_DeleteRecipe_FullMethodName  = "/api.meals.recipe.v1alpha1.RecipeService/DeleteRecipe"
+	RecipeService_GetRecipe_FullMethodName     = "/api.meals.recipe.v1alpha1.RecipeService/GetRecipe"
+	RecipeService_ShareRecipe_FullMethodName   = "/api.meals.recipe.v1alpha1.RecipeService/ShareRecipe"
+	RecipeService_UnshareRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/UnshareRecipe"
 )
 
 // RecipeServiceClient is the client API for RecipeService service.
@@ -52,6 +53,8 @@ type RecipeServiceClient interface {
 	GetRecipe(ctx context.Context, in *GetRecipeRequest, opts ...grpc.CallOption) (*Recipe, error)
 	// share a recipe
 	ShareRecipe(ctx context.Context, in *ShareRecipeRequest, opts ...grpc.CallOption) (*ShareRecipeResponse, error)
+	// unshare a recipe
+	UnshareRecipe(ctx context.Context, in *UnshareRecipeRequest, opts ...grpc.CallOption) (*UnshareRecipeResponse, error)
 }
 
 type recipeServiceClient struct {
@@ -122,6 +125,16 @@ func (c *recipeServiceClient) ShareRecipe(ctx context.Context, in *ShareRecipeRe
 	return out, nil
 }
 
+func (c *recipeServiceClient) UnshareRecipe(ctx context.Context, in *UnshareRecipeRequest, opts ...grpc.CallOption) (*UnshareRecipeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnshareRecipeResponse)
+	err := c.cc.Invoke(ctx, RecipeService_UnshareRecipe_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RecipeServiceServer is the server API for RecipeService service.
 // All implementations must embed UnimplementedRecipeServiceServer
 // for forward compatibility.
@@ -140,6 +153,8 @@ type RecipeServiceServer interface {
 	GetRecipe(context.Context, *GetRecipeRequest) (*Recipe, error)
 	// share a recipe
 	ShareRecipe(context.Context, *ShareRecipeRequest) (*ShareRecipeResponse, error)
+	// unshare a recipe
+	UnshareRecipe(context.Context, *UnshareRecipeRequest) (*UnshareRecipeResponse, error)
 	mustEmbedUnimplementedRecipeServiceServer()
 }
 
@@ -167,6 +182,9 @@ func (UnimplementedRecipeServiceServer) GetRecipe(context.Context, *GetRecipeReq
 }
 func (UnimplementedRecipeServiceServer) ShareRecipe(context.Context, *ShareRecipeRequest) (*ShareRecipeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ShareRecipe not implemented")
+}
+func (UnimplementedRecipeServiceServer) UnshareRecipe(context.Context, *UnshareRecipeRequest) (*UnshareRecipeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnshareRecipe not implemented")
 }
 func (UnimplementedRecipeServiceServer) mustEmbedUnimplementedRecipeServiceServer() {}
 func (UnimplementedRecipeServiceServer) testEmbeddedByValue()                       {}
@@ -297,6 +315,24 @@ func _RecipeService_ShareRecipe_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RecipeService_UnshareRecipe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnshareRecipeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecipeServiceServer).UnshareRecipe(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RecipeService_UnshareRecipe_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecipeServiceServer).UnshareRecipe(ctx, req.(*UnshareRecipeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RecipeService_ServiceDesc is the grpc.ServiceDesc for RecipeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -327,6 +363,10 @@ var RecipeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ShareRecipe",
 			Handler:    _RecipeService_ShareRecipe_Handler,
+		},
+		{
+			MethodName: "UnshareRecipe",
+			Handler:    _RecipeService_UnshareRecipe_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

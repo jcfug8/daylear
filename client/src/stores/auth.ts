@@ -22,7 +22,11 @@ export const useAuthStore = defineStore('auth', () => {
   const circles = ref<Circle[]>([])
   const activeAccount = ref<User | Circle>()
   const activeAccountName = computed(() => {
-    return activeAccount.value?.name ?? ''
+    if (activeAccountType.value === AccountType.USER) {
+      return `` // the user name is not needed when getting resrouces
+    } else {
+      return activeAccount.value?.name ?? ''
+    }
   })
   const activeAccountTitle = computed(() => {
     if (activeAccount.value && 'username' in activeAccount.value) {
@@ -77,7 +81,6 @@ export const useAuthStore = defineStore('auth', () => {
   async function loadAuthCircles() {
     try {
       let res = await circleService.ListCircles({
-        parent: `users/${userId.value}`,
         pageSize: 100,
         pageToken: '',
         filter: '',

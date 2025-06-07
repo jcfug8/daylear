@@ -13,20 +13,18 @@ import (
 
 // ShareCircle -
 func (s *CircleService) ShareCircle(ctx context.Context, request *pb.ShareCircleRequest) (*pb.ShareCircleResponse, error) {
-	tokenUser, ok := ctx.Value(headers.UserKey).(model.User)
-	if !ok {
-		return nil, status.Error(codes.PermissionDenied, "user not authorized")
-	}
-
 	var mCircle model.Circle
 	_, err := s.circleNamer.Parse(request.GetName(), &mCircle)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	if s.domain.AuthorizeCircleParent(ctx, tokenUser, mCircle.Parent) != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "user not authorized")
+	tokenUser, ok := ctx.Value(headers.UserKey).(model.User)
+	if !ok {
+		return nil, status.Error(codes.PermissionDenied, "user not authorized")
 	}
+
+	mCircle.Parent.UserId = tokenUser.Id.UserId
 
 	// Recipients are not defined in proto, so just pass empty for now
 	err = s.domain.ShareCircle(ctx, mCircle.Parent, nil, mCircle.Id, 0)

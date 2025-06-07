@@ -1,5 +1,5 @@
 import { createRecipeServiceClient } from '@/genapi/api/meals/recipe/v1alpha1'
-import { createUserServiceClient } from '@/genapi/api/users/user/v1alpha1'
+import { createPublicUserServiceClient, createUserServiceClient } from '@/genapi/api/users/user/v1alpha1'
 import { createCircleServiceClient, createPublicCircleServiceClient } from '@/genapi/api/circles/circle/v1alpha1'
 import { createAuthServiceClient } from './auth'
 import { createFileServiceClient } from './files'
@@ -34,6 +34,7 @@ export const authenticatedFetchHandler = function(contentType: string = 'applica
 
 export const recipeService = createRecipeServiceClient(authenticatedFetchHandler())
 export const userService = createUserServiceClient(authenticatedFetchHandler())
+export const publicUserService = createPublicUserServiceClient(authenticatedFetchHandler())
 export const authService = createAuthServiceClient(authenticatedFetchHandler())
 export const circleService = createCircleServiceClient(authenticatedFetchHandler())
 export const publicCircleService = createPublicCircleServiceClient(authenticatedFetchHandler())

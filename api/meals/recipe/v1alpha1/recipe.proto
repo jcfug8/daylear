@@ -23,10 +23,10 @@ service RecipeService {
   rpc CreateRecipe(CreateRecipeRequest) returns (Recipe) {
     option (google.api.method_signature) = "parent,recipe,recipe_id";
     option (google.api.http) = {
-      post: "/meals/v1alpha1/{parent=users/*}/recipes"
+      post: "/meals/v1alpha1/recipes"
       body: "recipe"
       additional_bindings {
-        post: "/meals/v1alpha1/{parent=users/*/circles/*}/recipes"
+        post: "/meals/v1alpha1/{parent=circles/*}/recipes"
         body: "recipe"
       }
     };
@@ -36,9 +36,9 @@ service RecipeService {
   rpc ListRecipes(ListRecipesRequest) returns (ListRecipesResponse) {
     option (google.api.method_signature) = "parent";
     option (google.api.http) = {
-      get: "/meals/v1alpha1/{parent=users/*}/recipes"
+      get: "/meals/v1alpha1/recipes"
       additional_bindings {
-        get: "/meals/v1alpha1/{parent=users/*/circles/*}/recipes"
+        get: "/meals/v1alpha1/{parent=circles/*}/recipes"
       }
     };
   }
@@ -47,10 +47,10 @@ service RecipeService {
   rpc UpdateRecipe(UpdateRecipeRequest) returns (Recipe) {
     option (google.api.method_signature) = "recipe,update_mask";
     option (google.api.http) = {
-      patch: "/meals/v1alpha1/{recipe.name=users/*/recipes/*}"
+      patch: "/meals/v1alpha1/{recipe.name=recipes/*}"
       body: "recipe"
       additional_bindings {
-        patch: "/meals/v1alpha1/{recipe.name=users/*/circles/*/recipes/*}"
+        patch: "/meals/v1alpha1/{recipe.name=circles/*/recipes/*}"
         body: "recipe"
       }
     };
@@ -60,9 +60,9 @@ service RecipeService {
   rpc DeleteRecipe(DeleteRecipeRequest) returns (Recipe) {
     option (google.api.method_signature) = "name";
     option (google.api.http) = {
-      delete: "/meals/v1alpha1/{name=users/*/recipes/*}"
+      delete: "/meals/v1alpha1/{name=recipes/*}"
       additional_bindings {
-        delete: "/meals/v1alpha1/{name=users/*/circles/*/recipes/*}"
+        delete: "/meals/v1alpha1/{name=circles/*/recipes/*}"
       }
     };
   }
@@ -71,21 +71,34 @@ service RecipeService {
   rpc GetRecipe(GetRecipeRequest) returns (Recipe) {
     option (google.api.method_signature) = "name";
     option (google.api.http) = {
-      get: "/meals/v1alpha1/{name=users/*/recipes/*}"
+      get: "/meals/v1alpha1/{name=recipes/*}"
       additional_bindings {
-        get: "/meals/v1alpha1/{name=users/*/circles/*/recipes/*}"
+        get: "/meals/v1alpha1/{name=circles/*/recipes/*}"
       }
     };
   }
 
   // share a recipe
   rpc ShareRecipe(ShareRecipeRequest) returns (ShareRecipeResponse) {
-    option (google.api.method_signature) = "name,recipients";
+    option (google.api.method_signature) = "name,recipients,permission";
     option (google.api.http) = {
-      post: "/meals/v1alpha1/{name=users/*/recipes/*}:share"
+      post: "/meals/v1alpha1/{name=recipes/*}:share"
       body: "*"
       additional_bindings {
-        post: "/meals/v1alpha1/{name=users/*/circles/*/recipes/*}:share"
+        post: "/meals/v1alpha1/{name=circles/*/recipes/*}:share"
+        body: "*"
+      }
+    };
+  }
+
+  // unshare a recipe
+  rpc UnshareRecipe(UnshareRecipeRequest) returns (UnshareRecipeResponse) {
+    option (google.api.method_signature) = "name,recipients";
+    option (google.api.http) = {
+      post: "/meals/v1alpha1/{name=recipes/*}:unshare"
+      body: "*"
+      additional_bindings {
+        post: "/meals/v1alpha1/{name=circles/*/recipes/*}:unshare"
         body: "*"
       }
     };
@@ -96,8 +109,8 @@ service RecipeService {
 message Recipe {
   option (google.api.resource) = {
     type: "api.meals.recipe.v1alpha1/Recipe"
-    pattern: "users/{user}/recipes/{recipe}"
-    pattern: "users/{user}/circles/{circle}/recipes/{recipe}"
+    pattern: "recipes/{recipe}"
+    pattern: "circles/{circle}/recipes/{recipe}"
     plural: "recipes"
     singular: "recipe"
   };
@@ -172,7 +185,7 @@ message Recipe {
 message CreateRecipeRequest {
   // the parent of the recipe
   string parent = 1 [
-    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = OPTIONAL,
     (google.api.resource_reference).child_type = "api.meals.recipe.v1alpha1/Recipe"
   ];
   // the recipe to create
@@ -186,7 +199,7 @@ message CreateRecipeRequest {
 message ListRecipesRequest {
   // the parent of the recipe
   string parent = 1 [
-    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = OPTIONAL,
     (google.api.resource_reference).child_type = "api.meals.recipe.v1alpha1/Recipe"
   ];
   // returned page
@@ -244,10 +257,23 @@ message ShareRecipeRequest {
   repeated string recipients = 2 [(google.api.field_behavior) = REQUIRED];
 
   // the permission level given to the recipients
-  // if it is not provided, permission will be revoked
-  // if it is provided, the permission will be granted
-  api.types.PermissionLevel permission = 3 [(google.api.field_behavior) = OPTIONAL];
+  api.types.PermissionLevel permission = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 // the response to share a recipe
 message ShareRecipeResponse {}
+
+// the request to unshare a recipe
+message UnshareRecipeRequest {
+  // the name of the recipe to unshare
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.meals.recipe.v1alpha1/Recipe"
+  ];
+
+  // the recipients to remove from the recipe
+  repeated string recipients = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// the response to unshare a recipe
+message UnshareRecipeResponse {}

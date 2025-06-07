@@ -30,13 +30,12 @@ func (s *RecipeService) UpdateRecipe(ctx context.Context, request *pb.UpdateReci
 		return nil, status.Errorf(codes.InvalidArgument, "invalid request data")
 	}
 
-	if s.domain.AuthorizeRecipeParent(ctx, user, mRecipe.Parent) != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "user not authorized")
-	}
+	mRecipe.Parent.UserId = user.Id.UserId
 
 	mRecipe, err = s.domain.UpdateRecipe(ctx, mRecipe, modelMask)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		s.log.Warn().Err(err).Msg("unable to update recipe")
+		return nil, status.Errorf(codes.Internal, "unable to update recipe")
 	}
 
 	pbRecipe, err = convert.RecipeToProto(s.recipeNamer, mRecipe, nameIndex)

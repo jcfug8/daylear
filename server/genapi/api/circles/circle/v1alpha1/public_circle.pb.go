@@ -269,9 +269,9 @@ const file_api_circles_circle_v1alpha1_public_circle_proto_rawDesc = "" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"X\n" +
 	"\x16GetPublicCircleRequest\x12>\n" +
 	"\x04name\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\n" +
-	"\"api.circles.circle.v1alpha1/CircleR\x04name2\xf9\x02\n" +
-	"\x13PublicCircleService\x12\xb4\x01\n" +
-	"\x11ListPublicCircles\x125.api.circles.circle.v1alpha1.ListPublicCirclesRequest\x1a6.api.circles.circle.v1alpha1.ListPublicCirclesResponse\"0\xdaA\x06parent\x82\xd3\xe4\x93\x02!\x12\x1f/circles/v1alpha1/publicCircles\x12\xaa\x01\n" +
+	"\"api.circles.circle.v1alpha1/CircleR\x04name2\xf0\x02\n" +
+	"\x13PublicCircleService\x12\xab\x01\n" +
+	"\x11ListPublicCircles\x125.api.circles.circle.v1alpha1.ListPublicCirclesRequest\x1a6.api.circles.circle.v1alpha1.ListPublicCirclesResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/circles/v1alpha1/publicCircles\x12\xaa\x01\n" +
 	"\x0fGetPublicCircle\x123.api.circles.circle.v1alpha1.GetPublicCircleRequest\x1a).api.circles.circle.v1alpha1.PublicCircle\"7\xdaA\x04name\x82\xd3\xe4\x93\x02*\x12(/circles/v1alpha1/{name=publicCircles/*}B\x97\x02\n" +
 	"\x1fcom.api.circles.circle.v1alpha1B\x11PublicCircleProtoP\x01ZRgithub.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1;circlev1alpha1\xa2\x02\x03ACC\xaa\x02\x1bApi.Circles.Circle.V1alpha1\xca\x02\x1bApi\\Circles\\Circle\\V1alpha1\xe2\x02'Api\\Circles\\Circle\\V1alpha1\\GPBMetadata\xea\x02\x1eApi::Circles::Circle::V1alpha1b\x06proto3"
 

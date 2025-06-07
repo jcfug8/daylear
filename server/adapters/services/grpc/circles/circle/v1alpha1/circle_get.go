@@ -24,10 +24,7 @@ func (s *CircleService) GetCircle(ctx context.Context, request *pb.GetCircleRequ
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	// Authorization
-	if s.domain.AuthorizeCircleParent(ctx, tokenUser, mCircle.Parent) != nil {
-		return nil, status.Error(codes.PermissionDenied, "user not authorized")
-	}
+	mCircle.Parent.UserId = tokenUser.Id.UserId
 
 	fieldMask := s.circleFieldMasker.GetFieldMaskFromCtx(ctx)
 	readMask, err := s.circleFieldMasker.GetReadMask(fieldMask)

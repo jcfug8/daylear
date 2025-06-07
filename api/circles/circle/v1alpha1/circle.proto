@@ -19,24 +19,23 @@ import "google/protobuf/field_mask.proto";
 service CircleService {
   // create a circle
   rpc CreateCircle(CreateCircleRequest) returns (Circle) {
-    option (google.api.method_signature) = "parent,circle,circle_id";
+    option (google.api.method_signature) = "circle,circle_id";
     option (google.api.http) = {
-      post: "/circles/v1alpha1/{parent=users/*}/circles"
+      post: "/circles/v1alpha1/circles"
       body: "circle"
     };
   }
 
   // list circles
   rpc ListCircles(ListCirclesRequest) returns (ListCirclesResponse) {
-    option (google.api.method_signature) = "parent";
-    option (google.api.http) = {get: "/circles/v1alpha1/{parent=users/*}/circles"};
+    option (google.api.http) = {get: "/circles/v1alpha1/circles"};
   }
 
   // update a circle
   rpc UpdateCircle(UpdateCircleRequest) returns (Circle) {
     option (google.api.method_signature) = "circle,update_mask";
     option (google.api.http) = {
-      patch: "/circles/v1alpha1/{circle.name=users/*/circles/*}"
+      patch: "/circles/v1alpha1/{circle.name=circles/*}"
       body: "circle"
     };
   }
@@ -44,20 +43,20 @@ service CircleService {
   // delete` a circle
   rpc DeleteCircle(DeleteCircleRequest) returns (Circle) {
     option (google.api.method_signature) = "name";
-    option (google.api.http) = {delete: "/circles/v1alpha1/{name=users/*/circles/*}"};
+    option (google.api.http) = {delete: "/circles/v1alpha1/{name=circles/*}"};
   }
 
   // get a circle
   rpc GetCircle(GetCircleRequest) returns (Circle) {
     option (google.api.method_signature) = "name";
-    option (google.api.http) = {get: "/circles/v1alpha1/{name=users/*/circles/*}"};
+    option (google.api.http) = {get: "/circles/v1alpha1/{name=circles/*}"};
   }
 
   // share a circle
   rpc ShareCircle(ShareCircleRequest) returns (ShareCircleResponse) {
     option (google.api.method_signature) = "name,recipients";
     option (google.api.http) = {
-      post: "/circles/v1alpha1/{name=users/*/circles/*}:share"
+      post: "/circles/v1alpha1/{name=circles/*}:share"
       body: "*"
     };
   }
@@ -67,7 +66,7 @@ service CircleService {
 message Circle {
   option (google.api.resource) = {
     type: "api.circles.circle.v1alpha1/Circle"
-    pattern: "users/{user}/circles/{circle}"
+    pattern: "circles/{circle}"
     plural: "circles"
     singular: "circle"
   };
@@ -84,12 +83,6 @@ message Circle {
 
 // the request to create a circle
 message CreateCircleRequest {
-  // the parent of the circle
-  string parent = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).child_type = "api.circles.circle.v1alpha1/Circle"
-  ];
-
   // the circle to create
   Circle circle = 2 [(google.api.field_behavior) = REQUIRED];
 
@@ -99,12 +92,6 @@ message CreateCircleRequest {
 
 // the request to list circles
 message ListCirclesRequest {
-  // the parent of the circles
-  string parent = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).child_type = "api.circles.circle.v1alpha1/Circle"
-  ];
-
   // the page size
   int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
 

@@ -20,10 +20,6 @@ export type Circle = {
 
 // the request to create a circle
 export type CreateCircleRequest = {
-  // the parent of the circle
-  //
-  // Behaviors: REQUIRED
-  parent: string | undefined;
   // the circle to create
   //
   // Behaviors: REQUIRED
@@ -36,10 +32,6 @@ export type CreateCircleRequest = {
 
 // the request to list circles
 export type ListCirclesRequest = {
-  // the parent of the circles
-  //
-  // Behaviors: REQUIRED
-  parent: string | undefined;
   // the page size
   //
   // Behaviors: OPTIONAL
@@ -161,10 +153,7 @@ export function createCircleServiceClient(
 ): CircleService {
   return {
     CreateCircle(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      if (!request.parent) {
-        throw new Error("missing required field request.parent");
-      }
-      const path = `circles/v1alpha1/${request.parent}/circles`; // eslint-disable-line quotes
+      const path = `circles/v1alpha1/circles`; // eslint-disable-line quotes
       const body = JSON.stringify(request?.circle ?? {});
       const queryParams: string[] = [];
       if (request.circleId) {
@@ -184,10 +173,7 @@ export function createCircleServiceClient(
       }) as Promise<Circle>;
     },
     ListCircles(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      if (!request.parent) {
-        throw new Error("missing required field request.parent");
-      }
-      const path = `circles/v1alpha1/${request.parent}/circles`; // eslint-disable-line quotes
+      const path = `circles/v1alpha1/circles`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.pageSize) {

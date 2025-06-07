@@ -32,13 +32,12 @@ func (s *RecipeService) GetRecipe(ctx context.Context, request *pb.GetRecipeRequ
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	if s.domain.AuthorizeRecipeParent(ctx, user, mRecipe.Parent) != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "user not authorized")
-	}
+	mRecipe.Parent.UserId = user.Id.UserId
 
 	mRecipe, err = s.domain.GetRecipe(ctx, mRecipe.Parent, mRecipe.Id, readMask)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		s.log.Warn().Err(err).Msg("unable to get recipe")
+		return nil, status.Errorf(codes.Internal, "unable to get recipe")
 	}
 
 	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, mRecipe, nameIndex)

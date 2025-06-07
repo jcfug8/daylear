@@ -38,9 +38,7 @@ func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateReci
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
 	}
 
-	if s.domain.AuthorizeRecipeParent(ctx, user, mRecipe.Parent) != nil {
-		return nil, status.Error(codes.PermissionDenied, "user not authorized")
-	}
+	mRecipe.Parent.UserId = user.Id.UserId
 
 	mRecipe, err = s.domain.CreateRecipe(ctx, mRecipe)
 	if err != nil {

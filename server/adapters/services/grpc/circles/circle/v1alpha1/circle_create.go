@@ -26,19 +26,12 @@ func (s *CircleService) CreateCircle(ctx context.Context, request *pb.CreateCirc
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
 	}
 
-	_, err = s.circleNamer.ParseParent(request.GetParent(), &mCircle)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
-	}
-
 	tokenUser, ok := ctx.Value(headers.UserKey).(model.User)
 	if !ok {
 		return nil, status.Error(codes.PermissionDenied, "user not authorized")
 	}
 
-	if s.domain.AuthorizeCircleParent(ctx, tokenUser, mCircle.Parent) != nil {
-		return nil, status.Error(codes.PermissionDenied, "user not authorized")
-	}
+	mCircle.Parent.UserId = tokenUser.Id.UserId
 
 	mCircle, err = s.domain.CreateCircle(ctx, mCircle)
 	if err != nil {

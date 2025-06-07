@@ -24,9 +24,7 @@ func (s *CircleService) DeleteCircle(ctx context.Context, request *pb.DeleteCirc
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	if s.domain.AuthorizeCircleParent(ctx, tokenUser, mCircle.Parent) != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "user not authorized")
-	}
+	mCircle.Parent.UserId = tokenUser.Id.UserId
 
 	mCircle, err = s.domain.DeleteCircle(ctx, mCircle.Parent, mCircle.Id)
 	if err != nil {

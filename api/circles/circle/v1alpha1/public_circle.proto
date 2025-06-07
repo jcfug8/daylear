@@ -19,7 +19,6 @@ import "google/protobuf/field_mask.proto";
 service PublicCircleService {
   // list public circles
   rpc ListPublicCircles(ListPublicCirclesRequest) returns (ListPublicCirclesResponse) {
-    option (google.api.method_signature) = "parent";
     option (google.api.http) = {get: "/circles/v1alpha1/publicCircles"};
   }
 

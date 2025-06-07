@@ -95,7 +95,7 @@ export type Recipe_MeasurementType =
 export type CreateRecipeRequest = {
   // the parent of the recipe
   //
-  // Behaviors: REQUIRED
+  // Behaviors: OPTIONAL
   parent: string | undefined;
   // the recipe to create
   //
@@ -111,7 +111,7 @@ export type CreateRecipeRequest = {
 export type ListRecipesRequest = {
   // the parent of the recipe
   //
-  // Behaviors: REQUIRED
+  // Behaviors: OPTIONAL
   parent: string | undefined;
   // returned page
   //
@@ -202,10 +202,8 @@ export type ShareRecipeRequest = {
   // Behaviors: REQUIRED
   recipients: string[] | undefined;
   // the permission level given to the recipients
-  // if it is not provided, permission will be revoked
-  // if it is provided, the permission will be granted
   //
-  // Behaviors: OPTIONAL
+  // Behaviors: REQUIRED
   permission: apitypes_PermissionLevel | undefined;
 };
 
@@ -219,6 +217,22 @@ export type apitypes_PermissionLevel =
   | "RESOURCE_PERMISSION_WRITE";
 // the response to share a recipe
 export type ShareRecipeResponse = {
+};
+
+// the request to unshare a recipe
+export type UnshareRecipeRequest = {
+  // the name of the recipe to unshare
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+  // the recipients to remove from the recipe
+  //
+  // Behaviors: REQUIRED
+  recipients: string[] | undefined;
+};
+
+// the response to unshare a recipe
+export type UnshareRecipeResponse = {
 };
 
 // the recipe service
@@ -235,6 +249,8 @@ export interface RecipeService {
   GetRecipe(request: GetRecipeRequest): Promise<Recipe>;
   // share a recipe
   ShareRecipe(request: ShareRecipeRequest): Promise<ShareRecipeResponse>;
+  // unshare a recipe
+  UnshareRecipe(request: UnshareRecipeRequest): Promise<UnshareRecipeResponse>;
 }
 
 type RequestType = {
@@ -250,12 +266,12 @@ export function createRecipeServiceClient(
 ): RecipeService {
   return {
     CreateRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      if (!request.parent) {
-        throw new Error("missing required field request.parent");
-      }
-      const path = `meals/v1alpha1/${request.parent}/recipes`; // eslint-disable-line quotes
+      const path = `meals/v1alpha1/recipes`; // eslint-disable-line quotes
       const body = JSON.stringify(request?.recipe ?? {});
       const queryParams: string[] = [];
+      if (request.parent) {
+        queryParams.push(`parent=${encodeURIComponent(request.parent.toString())}`)
+      }
       if (request.recipeId) {
         queryParams.push(`recipeId=${encodeURIComponent(request.recipeId.toString())}`)
       }
@@ -273,12 +289,12 @@ export function createRecipeServiceClient(
       }) as Promise<Recipe>;
     },
     ListRecipes(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      if (!request.parent) {
-        throw new Error("missing required field request.parent");
-      }
-      const path = `meals/v1alpha1/${request.parent}/recipes`; // eslint-disable-line quotes
+      const path = `meals/v1alpha1/recipes`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
+      if (request.parent) {
+        queryParams.push(`parent=${encodeURIComponent(request.parent.toString())}`)
+      }
       if (request.pageSize) {
         queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
@@ -383,6 +399,26 @@ export function createRecipeServiceClient(
         service: "RecipeService",
         method: "ShareRecipe",
       }) as Promise<ShareRecipeResponse>;
+    },
+    UnshareRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `meals/v1alpha1/${request.name}:unshare`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "RecipeService",
+        method: "UnshareRecipe",
+      }) as Promise<UnshareRecipeResponse>;
     },
   };
 }
