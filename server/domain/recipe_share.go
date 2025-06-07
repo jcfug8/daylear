@@ -86,6 +86,7 @@ func (d *Domain) ShareRecipe(ctx context.Context, parent model.RecipeParent, par
 
 	// Create new shares
 	if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_UNSPECIFIED {
+		// TODO: check if the user or circle exists
 		if len(userIds) > 0 {
 			err = tx.BulkCreateRecipeUsers(ctx, id, userIds, permission)
 			if err != nil {

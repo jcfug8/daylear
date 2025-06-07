@@ -28,12 +28,15 @@ func (s *RecipeService) ShareRecipe(ctx context.Context, request *pb.ShareRecipe
 
 	parents := make([]model.RecipeParent, 0, len(request.GetRecipients()))
 	for _, recipient := range request.GetRecipients() {
-		recipientRecipe := model.Recipe{}
-		_, err := s.recipeNamer.ParseParent(recipient, &recipientRecipe)
+		recipientRecipeParent := model.RecipeParent{}
+		_, err := s.recipeNamer_User.ParseParent(recipient, &recipientRecipeParent)
 		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid recipient: %v", recipient)
+			_, err := s.recipeNamer_Circle.ParseParent(recipient, &recipientRecipeParent)
+			if err != nil {
+				return nil, status.Errorf(codes.InvalidArgument, "invalid recipient: %v", recipient)
+			}
 		}
-		parents = append(parents, recipientRecipe.Parent)
+		parents = append(parents, recipientRecipeParent)
 	}
 
 	err = s.domain.ShareRecipe(ctx, mRecipe.Parent, parents, mRecipe.Id, request.GetPermission())
@@ -65,18 +68,21 @@ func (s *RecipeService) UnshareRecipe(ctx context.Context, request *pb.UnshareRe
 	// Parse recipients
 	parents := make([]model.RecipeParent, 0, len(request.GetRecipients()))
 	for _, recipient := range request.GetRecipients() {
-		recipe := model.Recipe{}
-		_, err := s.recipeNamer.ParseParent(recipient, &recipe)
+		recipientRecipeParent := model.RecipeParent{}
+		_, err := s.recipeNamer_User.ParseParent(recipient, &recipientRecipeParent)
 		if err != nil {
-
-			return nil, status.Errorf(codes.InvalidArgument, "invalid recipient: %v", recipient)
+			_, err := s.recipeNamer_Circle.ParseParent(recipient, &recipientRecipeParent)
+			if err != nil {
+				return nil, status.Errorf(codes.InvalidArgument, "invalid recipient: %v", recipient)
+			}
 		}
-		parents = append(parents, recipe.Parent)
+		parents = append(parents, recipientRecipeParent)
 	}
 
 	err = s.domain.UnshareRecipe(ctx, mRecipe.Parent, parents, mRecipe.Id)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		s.log.Warn().Err(err).Msg("unable to unshare recipe")
+		return nil, status.Errorf(codes.Internal, "unable to unshare recipe")
 	}
 
 	return &pb.UnshareRecipeResponse{}, nil
