@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package api.meals.recipe.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "api/types/permission_level.proto";
+
+// The recipe recipient list service
+service RecipeRecipientsService {
+  // Get the list of recipients for a recipe
+  rpc GetRecipeRecipients(GetRecipeRecipientsRequest) returns (RecipeRecipients) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {
+      get: "/meals/v1alpha1/{name=recipes/*}/recipients"
+      additional_bindings {
+        get: "/meals/v1alpha1/{name=circles/*/recipes/*}/recipients"
+      }
+    };
+  }
+}
+
+// The recipe recipient list resource
+message RecipeRecipients {
+  option (google.api.resource) = {
+    type: "api.meals.recipe.v1alpha1/RecipeRecipients"
+    pattern: "recipes/{recipe}/recipients"
+    pattern: "circles/{circle}/recipes/{recipe}/recipients"
+    plural: "recipeRecipients"
+    singular: "recipeRecipient"
+  };
+
+  // The name of the recipe recipient list
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The list of recipients
+  repeated Recipient recipients = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  message Recipient {
+    // The name of the recipient
+    string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // title of the recipient
+    string title = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // The permission of the recipient
+    api.types.PermissionLevel permission = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+}
+
+// The request to get a recipe recipient list
+message GetRecipeRecipientsRequest {
+  // The name of the recipe recipient list to get
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.meals.recipe.v1alpha1/RecipeRecipients"
+  ];
+} 

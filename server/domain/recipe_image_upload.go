@@ -27,6 +27,13 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, parent model.RecipeParen
 		return "", domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
+	recipient, err := d.repo.GetRecipeRecipient(ctx, parent, id)
+	if err != nil {
+		return "", err
+	}
+	if recipient.PermissionLevel != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+		return "", domain.ErrPermissionDenied{Msg: "user does not have write permission"}
+	}
 	if parent.CircleId != 0 {
 		permission, err := d.repo.GetCircleUserPermission(ctx, parent.UserId, parent.CircleId)
 		if err != nil {
@@ -36,21 +43,6 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, parent model.RecipeParen
 			return "", domain.ErrPermissionDenied{Msg: "circle does not have write permission"}
 		}
 
-		permission, err = d.repo.GetCircleUserPermission(ctx, parent.UserId, parent.CircleId)
-		if err != nil {
-			return "", err
-		}
-		if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
-			return "", domain.ErrPermissionDenied{Msg: "user does not have write permission"}
-		}
-	} else {
-		permission, err := d.repo.GetRecipeUserPermission(ctx, parent.UserId, id.RecipeId)
-		if err != nil {
-			return "", err
-		}
-		if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
-			return "", domain.ErrPermissionDenied{Msg: "user does not have write permission"}
-		}
 	}
 
 	recipe, err := d.GetRecipe(ctx, parent, id, []string{model.RecipeFields.ImageURI})

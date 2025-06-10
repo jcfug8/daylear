@@ -422,5 +422,72 @@ export function createRecipeServiceClient(
     },
   };
 }
+// The recipe recipient list resource
+export type RecipeRecipients = {
+  // The name of the recipe recipient list
+  //
+  // Behaviors: IDENTIFIER
+  name: string | undefined;
+  // The list of recipients
+  //
+  // Behaviors: OUTPUT_ONLY
+  recipients: RecipeRecipients_Recipient[] | undefined;
+};
+
+export type RecipeRecipients_Recipient = {
+  // The name of the recipient
+  //
+  // Behaviors: OUTPUT_ONLY
+  name: string | undefined;
+  // title of the recipient
+  //
+  // Behaviors: OUTPUT_ONLY
+  title: string | undefined;
+  // The permission of the recipient
+  //
+  // Behaviors: OUTPUT_ONLY
+  permission: apitypes_PermissionLevel | undefined;
+};
+
+// The request to get a recipe recipient list
+export type GetRecipeRecipientsRequest = {
+  // The name of the recipe recipient list to get
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// The recipe recipient list service
+export interface RecipeRecipientsService {
+  // Get the list of recipients for a recipe
+  GetRecipeRecipients(request: GetRecipeRecipientsRequest): Promise<RecipeRecipients>;
+}
+
+export function createRecipeRecipientsServiceClient(
+  handler: RequestHandler
+): RecipeRecipientsService {
+  return {
+    GetRecipeRecipients(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `meals/v1alpha1/${request.name}/recipients`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "RecipeRecipientsService",
+        method: "GetRecipeRecipients",
+      }) as Promise<RecipeRecipients>;
+    },
+  };
+}
 
 // @@protoc_insertion_point(typescript-http-eof)

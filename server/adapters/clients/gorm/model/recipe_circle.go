@@ -8,6 +8,7 @@ var RecipeCircleFields = recipeCircleFields{
 	RecipeId:        "recipe_id",
 	CircleId:        "circle_id",
 	PermissionLevel: "permission_level",
+	Title:           "title",
 }
 
 type recipeCircleFields struct {
@@ -15,6 +16,7 @@ type recipeCircleFields struct {
 	RecipeId        string
 	CircleId        string
 	PermissionLevel string
+	Title           string
 }
 
 // Map maps the recipeCircle fields to their corresponding model values.
@@ -24,6 +26,7 @@ func (fields recipeCircleFields) Map(m RecipeCircle) map[string]any {
 		fields.RecipeId:        m.RecipeId,
 		fields.CircleId:        m.CircleId,
 		fields.PermissionLevel: m.PermissionLevel,
+		fields.Title:           m.Title,
 	}
 }
 
@@ -34,6 +37,7 @@ func (fields recipeCircleFields) Mask() []string {
 		fields.RecipeId,
 		fields.CircleId,
 		fields.PermissionLevel,
+		fields.Title,
 	}
 }
 
@@ -43,6 +47,7 @@ type RecipeCircle struct {
 	RecipeId        int64                  `gorm:"not null;index"`
 	CircleId        int64                  `gorm:"not null;index"`
 	PermissionLevel permPb.PermissionLevel `gorm:"default:100"`
+	Title           string                 `gorm:"->"` // read only from join
 }
 
 // TableName -

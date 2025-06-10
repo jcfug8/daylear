@@ -15,13 +15,10 @@ type recipeClient interface {
 	UpdateRecipe(context.Context, model.Recipe, []string) (model.Recipe, error)
 	ListRecipes(context.Context, *model.PageToken[model.Recipe], model.RecipeParent, string, []string) ([]model.Recipe, error)
 
-	BulkCreateRecipeUsers(context.Context, model.RecipeId, []int64, permPb.PermissionLevel) error
-	BulkDeleteRecipeUsers(context.Context, string) error
-	GetRecipeUserPermission(ctx context.Context, userId int64, recipeId int64) (permPb.PermissionLevel, error)
-
-	BulkCreateRecipeCircles(context.Context, model.RecipeId, []int64, permPb.PermissionLevel) error
-	BulkDeleteRecipeCircles(context.Context, string) error
-	GetRecipeCirclePermission(ctx context.Context, circleId int64, recipeId int64) (permPb.PermissionLevel, error)
+	GetRecipeRecipient(ctx context.Context, parent model.RecipeParent, id model.RecipeId) (model.RecipeRecipient, error)
+	ListRecipeRecipients(ctx context.Context, id model.RecipeId) ([]model.RecipeRecipient, error)
+	BulkCreateRecipeRecipients(ctx context.Context, parents []model.RecipeParent, id model.RecipeId, permission permPb.PermissionLevel) error
+	BulkDeleteRecipeRecipients(ctx context.Context, parents []model.RecipeParent, id model.RecipeId) error
 
 	SetRecipeIngredients(context.Context, model.RecipeId, []model.IngredientGroup) error
 	ListRecipeIngredients(context.Context, *model.PageToken[model.RecipeIngredient], string, []string) ([]model.RecipeIngredient, error)

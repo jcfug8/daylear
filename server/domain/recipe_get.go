@@ -18,18 +18,12 @@ func (d *Domain) GetRecipe(ctx context.Context, parent model.RecipeParent, id mo
 		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
+	_, err := d.repo.GetRecipeRecipient(ctx, parent, id)
+	if err != nil {
+		return model.Recipe{}, err
+	}
 	if parent.CircleId != 0 {
 		_, err := d.repo.GetCircleUserPermission(ctx, parent.UserId, parent.CircleId)
-		if err != nil {
-			return model.Recipe{}, err
-		}
-
-		_, err = d.repo.GetCircleUserPermission(ctx, parent.UserId, parent.CircleId)
-		if err != nil {
-			return model.Recipe{}, err
-		}
-	} else {
-		_, err := d.repo.GetRecipeUserPermission(ctx, parent.UserId, id.RecipeId)
 		if err != nil {
 			return model.Recipe{}, err
 		}
