@@ -55,6 +55,7 @@ func NewRecipeService(params NewRecipeServiceParams) (*RecipeService, error) {
 // RecipeService defines the grpc handlers for the RecipeService.
 type RecipeService struct {
 	pb.UnimplementedRecipeServiceServer
+	pb.UnimplementedRecipeRecipientsServiceServer
 	domain                 domain.Domain
 	fieldBehaviorValidator fieldValidator.FieldBehaviorValidator
 	log                    zerolog.Logger

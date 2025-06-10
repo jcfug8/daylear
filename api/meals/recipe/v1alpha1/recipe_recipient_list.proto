@@ -14,9 +14,9 @@ service RecipeRecipientsService {
   rpc GetRecipeRecipients(GetRecipeRecipientsRequest) returns (RecipeRecipients) {
     option (google.api.method_signature) = "name";
     option (google.api.http) = {
-      get: "/meals/v1alpha1/{name=recipes/*}/recipients"
+      get: "/meals/v1alpha1/{name=recipes/*}/recipeRecipients"
       additional_bindings {
-        get: "/meals/v1alpha1/{name=circles/*/recipes/*}/recipients"
+        get: "/meals/v1alpha1/{name=circles/*/recipes/*}/recipeRecipients"
       }
     };
   }
@@ -26,8 +26,8 @@ service RecipeRecipientsService {
 message RecipeRecipients {
   option (google.api.resource) = {
     type: "api.meals.recipe.v1alpha1/RecipeRecipients"
-    pattern: "recipes/{recipe}/recipients"
-    pattern: "circles/{circle}/recipes/{recipe}/recipients"
+    pattern: "recipes/{recipe}/recipeRecipients"
+    pattern: "circles/{circle}/recipes/{recipe}/recipeRecipients"
     plural: "recipeRecipients"
     singular: "recipeRecipient"
   };

@@ -471,7 +471,7 @@ export function createRecipeRecipientsServiceClient(
       if (!request.name) {
         throw new Error("missing required field request.name");
       }
-      const path = `meals/v1alpha1/${request.name}/recipients`; // eslint-disable-line quotes
+      const path = `meals/v1alpha1/${request.name}/recipeRecipients`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       let uri = path;

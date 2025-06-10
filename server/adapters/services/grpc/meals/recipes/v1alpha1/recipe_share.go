@@ -61,9 +61,7 @@ func (s *RecipeService) UnshareRecipe(ctx context.Context, request *pb.UnshareRe
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	if s.domain.AuthorizeRecipeParent(ctx, user, mRecipe.Parent) != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "user not authorized")
-	}
+	mRecipe.Parent.UserId = user.Id.UserId
 
 	// Parse recipients
 	parents := make([]model.RecipeParent, 0, len(request.GetRecipients()))

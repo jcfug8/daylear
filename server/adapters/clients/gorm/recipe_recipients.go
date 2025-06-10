@@ -35,7 +35,7 @@ func (c *Client) GetRecipeRecipient(ctx context.Context, parent cmodel.RecipePar
 		if err := c.db.WithContext(ctx).
 			Table("recipe_user ru").
 			Select("ru.*, u.username as title").
-			Joins("JOIN users u ON ru.user_id = u.user_id").
+			Joins("JOIN daylear_user u ON ru.user_id = u.user_id").
 			Where("ru.recipe_id = ? AND ru.user_id = ?", id.RecipeId, parent.UserId).
 			Find(&recipeUser).Error; err != nil {
 			return cmodel.RecipeRecipient{}, ConvertGormError(err)
@@ -64,7 +64,7 @@ func (c *Client) ListRecipeRecipients(ctx context.Context, id cmodel.RecipeId) (
 	if err := c.db.WithContext(ctx).
 		Table("recipe_user ru").
 		Select("ru.*, u.username as title").
-		Joins("JOIN users u ON ru.user_id = u.user_id").
+		Joins("JOIN daylear_user u ON ru.user_id = u.user_id").
 		Where("ru.recipe_id = ?", id.RecipeId).
 		Find(&recipeUsers).Error; err != nil {
 		return nil, ConvertGormError(err)
@@ -73,7 +73,7 @@ func (c *Client) ListRecipeRecipients(ctx context.Context, id cmodel.RecipeId) (
 	if err := c.db.WithContext(ctx).
 		Table("recipe_circle rc").
 		Select("rc.*, c.title").
-		Joins("Join circles c ON rc.circle_id = c.circle_id").
+		Joins("JOIN circle c ON rc.circle_id = c.circle_id").
 		Where("rc.recipe_id = ?", id.RecipeId).
 		Find(&recipeCircles).Error; err != nil {
 		return nil, ConvertGormError(err)
@@ -141,12 +141,16 @@ func (repo *Client) BulkCreateRecipeRecipients(ctx context.Context, parents []cm
 		}
 	}
 
-	if err := repo.db.WithContext(ctx).Create(&recipeUsers).Error; err != nil {
-		return ConvertGormError(err)
+	if len(recipeUsers) > 0 {
+		if err := repo.db.WithContext(ctx).Create(&recipeUsers).Error; err != nil {
+			return ConvertGormError(err)
+		}
 	}
 
-	if err := repo.db.WithContext(ctx).Create(&recipeCircles).Error; err != nil {
-		return ConvertGormError(err)
+	if len(recipeCircles) > 0 {
+		if err := repo.db.WithContext(ctx).Create(&recipeCircles).Error; err != nil {
+			return ConvertGormError(err)
+		}
 	}
 
 	return nil
@@ -176,12 +180,16 @@ func (repo *Client) BulkDeleteRecipeRecipients(ctx context.Context, parents []cm
 		}
 	}
 
-	if err := repo.db.WithContext(ctx).Where("recipe_id = ? AND user_id IN ?", id.RecipeId, userIds).Delete(&model.RecipeUser{}).Error; err != nil {
-		return ConvertGormError(err)
+	if len(userIds) > 0 {
+		if err := repo.db.WithContext(ctx).Where("recipe_id = ? AND user_id IN ?", id.RecipeId, userIds).Delete(&model.RecipeUser{}).Error; err != nil {
+			return ConvertGormError(err)
+		}
 	}
 
-	if err := repo.db.WithContext(ctx).Where("recipe_id = ? AND circle_id IN ?", id.RecipeId, circleIds).Delete(&model.RecipeCircle{}).Error; err != nil {
-		return ConvertGormError(err)
+	if len(circleIds) > 0 {
+		if err := repo.db.WithContext(ctx).Where("recipe_id = ? AND circle_id IN ?", id.RecipeId, circleIds).Delete(&model.RecipeCircle{}).Error; err != nil {
+			return ConvertGormError(err)
+		}
 	}
 
 	return nil

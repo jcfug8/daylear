@@ -191,7 +191,7 @@ var File_api_meals_recipe_v1alpha1_recipe_recipient_list_proto protoreflect.File
 
 const file_api_meals_recipe_v1alpha1_recipe_recipient_list_proto_rawDesc = "" +
 	"\n" +
-	"5api/meals/recipe/v1alpha1/recipe_recipient_list.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a api/types/permission_level.proto\"\xab\x03\n" +
+	"5api/meals/recipe/v1alpha1/recipe_recipient_list.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a api/types/permission_level.proto\"\xb7\x03\n" +
 	"\x10RecipeRecipients\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12Z\n" +
 	"\n" +
@@ -202,13 +202,13 @@ const file_api_meals_recipe_v1alpha1_recipe_recipient_list_proto_rawDesc = "" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x03R\x05title\x12?\n" +
 	"\n" +
 	"permission\x18\x03 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x03R\n" +
-	"permission:\x9e\x01\xeaA\x9a\x01\n" +
-	"*api.meals.recipe.v1alpha1/RecipeRecipients\x12\x1brecipes/{recipe}/recipients\x12,circles/{circle}/recipes/{recipe}/recipients*\x10recipeRecipients2\x0frecipeRecipient\"d\n" +
+	"permission:\xaa\x01\xeaA\xa6\x01\n" +
+	"*api.meals.recipe.v1alpha1/RecipeRecipients\x12!recipes/{recipe}/recipeRecipients\x122circles/{circle}/recipes/{recipe}/recipeRecipients*\x10recipeRecipients2\x0frecipeRecipient\"d\n" +
 	"\x1aGetRecipeRecipientsRequest\x12F\n" +
 	"\x04name\x18\x01 \x01(\tB2\xe0A\x02\xfaA,\n" +
-	"*api.meals.recipe.v1alpha1/RecipeRecipientsR\x04name2\x8a\x02\n" +
-	"\x17RecipeRecipientsService\x12\xee\x01\n" +
-	"\x13GetRecipeRecipients\x125.api.meals.recipe.v1alpha1.GetRecipeRecipientsRequest\x1a+.api.meals.recipe.v1alpha1.RecipeRecipients\"s\xdaA\x04name\x82\xd3\xe4\x93\x02fZ7\x125/meals/v1alpha1/{name=circles/*/recipes/*}/recipients\x12+/meals/v1alpha1/{name=recipes/*}/recipientsB\x92\x02\n" +
+	"*api.meals.recipe.v1alpha1/RecipeRecipientsR\x04name2\x96\x02\n" +
+	"\x17RecipeRecipientsService\x12\xfa\x01\n" +
+	"\x13GetRecipeRecipients\x125.api.meals.recipe.v1alpha1.GetRecipeRecipientsRequest\x1a+.api.meals.recipe.v1alpha1.RecipeRecipients\"\x7f\xdaA\x04name\x82\xd3\xe4\x93\x02rZ=\x12;/meals/v1alpha1/{name=circles/*/recipes/*}/recipeRecipients\x121/meals/v1alpha1/{name=recipes/*}/recipeRecipientsB\x92\x02\n" +
 	"\x1dcom.api.meals.recipe.v1alpha1B\x18RecipeRecipientListProtoP\x01ZPgithub.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1;recipev1alpha1\xa2\x02\x03AMR\xaa\x02\x19Api.Meals.Recipe.V1alpha1\xca\x02\x19Api\\Meals\\Recipe\\V1alpha1\xe2\x02%Api\\Meals\\Recipe\\V1alpha1\\GPBMetadata\xea\x02\x1cApi::Meals::Recipe::V1alpha1b\x06proto3"
 
 var (

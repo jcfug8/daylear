@@ -121,7 +121,7 @@ func RegisterRecipeRecipientsServiceHandlerServer(ctx context.Context, mux *runt
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeRecipientsService/GetRecipeRecipients", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=recipes/*}/recipients"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeRecipientsService/GetRecipeRecipients", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=recipes/*}/recipeRecipients"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -141,7 +141,7 @@ func RegisterRecipeRecipientsServiceHandlerServer(ctx context.Context, mux *runt
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeRecipientsService/GetRecipeRecipients", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=circles/*/recipes/*}/recipients"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeRecipientsService/GetRecipeRecipients", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=circles/*/recipes/*}/recipeRecipients"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -199,7 +199,7 @@ func RegisterRecipeRecipientsServiceHandlerClient(ctx context.Context, mux *runt
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeRecipientsService/GetRecipeRecipients", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=recipes/*}/recipients"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeRecipientsService/GetRecipeRecipients", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=recipes/*}/recipeRecipients"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -216,7 +216,7 @@ func RegisterRecipeRecipientsServiceHandlerClient(ctx context.Context, mux *runt
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeRecipientsService/GetRecipeRecipients", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=circles/*/recipes/*}/recipients"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeRecipientsService/GetRecipeRecipients", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=circles/*/recipes/*}/recipeRecipients"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -233,8 +233,8 @@ func RegisterRecipeRecipientsServiceHandlerClient(ctx context.Context, mux *runt
 }
 
 var (
-	pattern_RecipeRecipientsService_GetRecipeRecipients_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3, 2, 4}, []string{"meals", "v1alpha1", "recipes", "name", "recipients"}, ""))
-	pattern_RecipeRecipientsService_GetRecipeRecipients_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 3, 1, 0, 4, 4, 5, 4, 2, 5}, []string{"meals", "v1alpha1", "circles", "recipes", "name", "recipients"}, ""))
+	pattern_RecipeRecipientsService_GetRecipeRecipients_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3, 2, 4}, []string{"meals", "v1alpha1", "recipes", "name", "recipeRecipients"}, ""))
+	pattern_RecipeRecipientsService_GetRecipeRecipients_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 3, 1, 0, 4, 4, 5, 4, 2, 5}, []string{"meals", "v1alpha1", "circles", "recipes", "name", "recipeRecipients"}, ""))
 )
 
 var (

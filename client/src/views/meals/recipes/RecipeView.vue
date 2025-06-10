@@ -182,7 +182,7 @@ import { useRecipeFormStore } from '@/stores/recipeForm'
 import { storeToRefs } from 'pinia'
 import { onMounted, onBeforeUnmount, watch, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { publicUserService, publicCircleService, recipeService } from '@/api/api'
+import { publicUserService, publicCircleService, recipeService, recipeRecipientsService } from '@/api/api'
 import type { PublicUser, ListPublicUsersRequest } from '@/genapi/api/users/user/v1alpha1'
 import type { PublicCircle, ListPublicCirclesRequest } from '@/genapi/api/circles/circle/v1alpha1'
 
@@ -284,10 +284,7 @@ const isLoadingUsername = ref(false)
 const isLoadingCircle = ref(false)
 
 // Current shares state
-const currentShares = ref<Array<{ id: string; name: string; type: 'user' | 'circle' }>>([
-  { id: '1', name: 'john_doe', type: 'user' },
-  { id: '1', name: 'Family', type: 'circle' }
-])
+const currentShares = ref<Array<{ id: string; name: string; type: 'user' | 'circle' }>>([])
 
 // Debounce timers
 let usernameDebounceTimer: number | null = null
@@ -421,15 +418,19 @@ function validateCircle(value: string): boolean | string {
   return true // Validation is now handled by the API call
 }
 
-function shareRecipe() {
+async function shareRecipe() {
   if (!selectedUser.value && !selectedCircle.value) return
 
   sharing.value = true
-  // Implement sharing logic here
-  // This should make API calls to share with selected user/circle
-  setTimeout(() => {
-    sharing.value = false
-    showShareDialog.value = false
+  try {
+    const request = {
+      name: recipe.value?.name || '',
+      recipients: [selectedUser.value?.name || selectedCircle.value?.name || ''],
+      permission: 'RESOURCE_PERMISSION_READ' as const
+    }
+    await recipeService.ShareRecipe(request)
+    // Refresh the recipients list
+    await fetchRecipeRecipients()
     // Reset selections and inputs after sharing
     selectedUser.value = null
     selectedCircle.value = null
@@ -437,7 +438,13 @@ function shareRecipe() {
     circleInput.value = ''
     isValidUsername.value = false
     isValidCircle.value = false
-  }, 1000)
+    showShareDialog.value = false
+  } catch (error) {
+    console.error('Error sharing recipe:', error)
+    // You might want to show an error notification here
+  } finally {
+    sharing.value = false
+  }
 }
 
 async function removeShare(shareId: string) {
@@ -454,4 +461,32 @@ async function removeShare(shareId: string) {
     // You might want to show an error notification here
   }
 }
+
+// Function to fetch recipe recipients
+async function fetchRecipeRecipients() {
+  if (!recipe.value?.name) return
+  
+  try {
+    const response = await recipeRecipientsService.GetRecipeRecipients({
+      name: recipe.value.name
+    })
+    
+    if (response.recipients) {
+      currentShares.value = response.recipients.map(recipient => ({
+        id: recipient.name || '',
+        name: recipient.title || '',
+        type: recipient.name?.includes('circles') ? 'circle' : 'user'
+      }))
+    }
+  } catch (error) {
+    console.error('Error fetching recipe recipients:', error)
+  }
+}
+
+// Fetch recipients when recipe is loaded
+watch(recipe, (newRecipe) => {
+  if (newRecipe) {
+    fetchRecipeRecipients()
+  }
+}, { immediate: true })
 </script>
