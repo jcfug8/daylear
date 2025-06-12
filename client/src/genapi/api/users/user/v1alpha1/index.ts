@@ -128,6 +128,10 @@ export type User = {
   //
   // Behaviors: IDENTIFIER
   name: string | undefined;
+  // the public name of the user
+  //
+  // Behaviors: OUTPUT_ONLY
+  publicName: string | undefined;
   // the email of the user
   //
   // Behaviors: REQUIRED, OUTPUT_ONLY

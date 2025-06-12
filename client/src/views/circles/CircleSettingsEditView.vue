@@ -42,12 +42,14 @@ import { onMounted, ref, watch } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRouter, useRoute } from 'vue-router'
 import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const route = useRoute()
 const circlesStore = useCirclesStore()
 const { circle } = storeToRefs(circlesStore)
 const breadcrumbStore = useBreadcrumbStore()
+const authStore = useAuthStore()
 
 const editedCircle = ref<Circle>({
   name: '',
@@ -63,6 +65,7 @@ async function saveSettings() {
   try {
     circlesStore.circle = editedCircle.value
     await circlesStore.updateCircle()
+    authStore.loadAuthCircles()
     navigateBack()
   } catch (error) {
     console.error('Error saving settings:', error)

@@ -44,7 +44,7 @@ func (s *UserService) ListPublicUsers(ctx context.Context, request *pb.ListPubli
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	users, err := convert.PublicUserListToProto(s.userNamer, res)
+	users, err := convert.PublicUserListToProto(s.publicUserNamer, res)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to prepare response")
 	}

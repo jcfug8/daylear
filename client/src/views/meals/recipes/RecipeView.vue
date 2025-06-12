@@ -7,15 +7,6 @@
         <v-tab value="directions" text="Directions"></v-tab>
       </v-tabs>
       <template #append>
-        <v-btn
-          icon="mdi-share-variant"
-          @click="showShareDialog = true"
-          class="mr-2"
-        ></v-btn>
-        <v-btn
-          icon="mdi-pencil"
-          @click="router.push({ name: 'recipeEdit', params: { recipeId: recipe.name } })"
-        ></v-btn>
       </template>
     </v-app-bar>
     <v-tabs-window v-model="tab">
@@ -34,12 +25,7 @@
           <v-row>
             <v-spacer></v-spacer>
             <v-col align-self="auto" cols="12" sm="8">
-              <v-img
-                class="mt-1"
-                style="background-color: lightgray"
-                :src="recipe.imageUri"
-                cover
-              ></v-img>
+              <v-img class="mt-1" style="background-color: lightgray" :src="recipe.imageUri" cover></v-img>
             </v-col>
             <v-spacer></v-spacer>
           </v-row>
@@ -47,20 +33,12 @@
       </v-tabs-window-item>
       <v-tabs-window-item value="ingredients">
         <v-container max-width="600">
-          <v-card
-            class="my-4 mx-1 pa-2"
-            v-for="(ingredientGroup, i) in recipe.ingredientGroups"
-            :key="i"
-          >
+          <v-card class="my-4 mx-1 pa-2" v-for="(ingredientGroup, i) in recipe.ingredientGroups" :key="i">
             <v-card-title v-if="ingredientGroup.title">{{ ingredientGroup.title }}</v-card-title>
             <v-card-text>
               <v-list>
-                <v-list-item
-                  slim
-                  prepend-icon="mdi-circle-small"
-                  v-for="(ingredient, j) in ingredientGroup.ingredients"
-                  :key="j"
-                >
+                <v-list-item slim prepend-icon="mdi-circle-small" v-for="(ingredient, j) in ingredientGroup.ingredients"
+                  :key="j">
                   {{ ingredient.measurementAmount }}
                   {{ convertMeasurementTypeToString(ingredient.measurementType) }}
                   {{ ingredient.title }} <span v-if="ingredient.optional">(optional)</span>
@@ -76,11 +54,7 @@
             <v-card-title v-if="direction.title">{{ direction.title }}</v-card-title>
             <v-card-text>
               <v-list>
-                <v-list-item
-                  slim
-                  prepend-icon="mdi-circle-small"
-                  v-for="(step, n) in direction.steps"
-                >
+                <v-list-item slim prepend-icon="mdi-circle-small" v-for="(step, n) in direction.steps">
                   <div class="font-weight-bold">Step {{ n + 1 }}</div>
                   {{ step }}
                 </v-list-item>
@@ -90,7 +64,45 @@
         </v-container>
       </v-tabs-window-item>
     </v-tabs-window>
+
+
+    <!-- Speed Dial -->
+    <v-fab location="bottom right" app color="primary"  icon @click="speedDialOpen = !speedDialOpen">
+      <v-icon>mdi-dots-horizontal</v-icon>
+      <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
+        <v-btn key="edit" v-if="permissionLevel === 'RESOURCE_PERMISSION_WRITE' && recipe && recipe.name" icon="mdi-pencil"
+        @click="router.push({ name: 'recipeEdit', params: { recipeId: recipe.name } })" color="primary"></v-btn>
+
+        <v-btn key="share" v-if="permissionLevel === 'RESOURCE_PERMISSION_WRITE'" icon="mdi-share-variant"
+          @click="showShareDialog = true" color="primary"></v-btn>
+  
+        <v-btn key="remove-access" icon="mdi-link-variant-off" @click="showRemoveAccessDialog = true" color="warning"></v-btn>
+  
+        <v-btn key="delete" v-if="permissionLevel === 'RESOURCE_PERMISSION_WRITE' && recipe && recipe.name" icon="mdi-delete"
+          @click="showDeleteDialog = true" color="error"></v-btn>
+      </v-speed-dial>
+    </v-fab>
   </v-container>
+  <!-- Remove Access Dialog -->
+  <v-dialog v-model="showRemoveAccessDialog" max-width="500">
+    <v-card>
+      <v-card-title class="text-h5">
+        Remove Access
+      </v-card-title>
+      <v-card-text>
+        Are you sure you want to remove your access to this recipe? You will no longer be able to view it.
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="grey" variant="text" @click="showRemoveAccessDialog = false">
+          Cancel
+        </v-btn>
+        <v-btn color="error" @click="handleRemoveAccess" :loading="removingAccess">
+          Remove Access
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 
   <!-- Share Dialog -->
   <v-dialog v-model="showShareDialog" max-width="500">
@@ -106,27 +118,15 @@
 
         <v-window v-model="shareTab">
           <v-window-item value="users">
-            <v-text-field
-              v-model="usernameInput"
-              label="Enter Username"
-              :rules="[validateUsername]"
-              :append-inner-icon="getUsernameIcon"
-              :color="getUsernameColor"
-              :loading="isLoadingUsername"
-              @update:model-value="handleUsernameInput"
-            ></v-text-field>
+            <v-text-field v-model="usernameInput" label="Enter Username" :rules="[validateUsername]"
+              :append-inner-icon="getUsernameIcon" :color="getUsernameColor" :loading="isLoadingUsername"
+              @update:model-value="handleUsernameInput"></v-text-field>
           </v-window-item>
 
           <v-window-item value="circles">
-            <v-text-field
-              v-model="circleInput"
-              label="Enter Circle Name"
-              :rules="[validateCircle]"
-              :append-inner-icon="getCircleIcon"
-              :color="getCircleColor"
-              :loading="isLoadingCircle"
-              @update:model-value="handleCircleInput"
-            ></v-text-field>
+            <v-text-field v-model="circleInput" label="Enter Circle Name" :rules="[validateCircle]"
+              :append-inner-icon="getCircleIcon" :color="getCircleColor" :loading="isLoadingCircle"
+              @update:model-value="handleCircleInput"></v-text-field>
           </v-window-item>
         </v-window>
 
@@ -135,18 +135,9 @@
         <div v-if="currentShares.length > 0">
           <div class="text-subtitle-1 mb-2">Current Shares</div>
           <v-list>
-            <v-list-item
-              v-for="share in currentShares"
-              :key="share.id"
-              :title="share.name"
-              :subtitle="share.type"
-            >
+            <v-list-item v-for="share in currentShares" :key="share.id" :title="share.name" :subtitle="share.type">
               <template #append>
-                <v-btn
-                  icon="mdi-delete"
-                  variant="text"
-                  @click="removeShare(share.id)"
-                ></v-btn>
+                <v-btn icon="mdi-delete" variant="text" @click="removeShare(share.id)"></v-btn>
               </template>
             </v-list-item>
           </v-list>
@@ -154,20 +145,34 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn
-          color="grey"
-          variant="text"
-          @click="showShareDialog = false"
-        >
+        <v-btn color="grey" variant="text" @click="showShareDialog = false">
           Close
         </v-btn>
-        <v-btn
-          color="primary"
-          @click="shareRecipe"
-          :loading="sharing"
-          :disabled="!isValidUsername && !isValidCircle"
-        >
+        <v-btn color="primary" @click="shareRecipe" :loading="sharing" :disabled="!isValidUsername && !isValidCircle">
           Share
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Delete Dialog -->
+  <v-dialog v-model="showDeleteDialog" max-width="500">
+    <v-card>
+      <v-card-title class="text-h5">
+        Delete Recipe
+      </v-card-title>
+      <v-card-text>
+        Are you sure you want to delete this recipe? This action will also delete the recipe for any users or circles
+        that
+        can view it.
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="grey" variant="text" @click="showDeleteDialog = false">
+          Cancel
+        </v-btn>
+        <v-btn color="error" @click="handleDelete" :loading="deleting">
+          Delete
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -185,14 +190,18 @@ import { useRoute, useRouter } from 'vue-router'
 import { publicUserService, publicCircleService, recipeService, recipeRecipientsService } from '@/api/api'
 import type { PublicUser, ListPublicUsersRequest } from '@/genapi/api/users/user/v1alpha1'
 import type { PublicCircle, ListPublicCirclesRequest } from '@/genapi/api/circles/circle/v1alpha1'
+import { useAuthStore } from '@/stores/auth'
+import type { PermissionLevel } from '@/genapi/api/types'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 
 const recipesStore = useRecipesStore()
 const recipeFormStore = useRecipeFormStore()
 const { recipe } = storeToRefs(recipesStore)
 const { activeTab } = storeToRefs(recipeFormStore)
+var permissionLevel = ref<PermissionLevel | undefined>(undefined)
 
 // Use the store's activeTab as our local tab
 const tab = computed({
@@ -332,7 +341,7 @@ async function checkUsername(username: string) {
     }
     const response = await publicUserService.ListPublicUsers(request)
 
-    if (response.publicUsers?.length === 1) {
+    if (response.publicUsers?.length === 1 && response.publicUsers[0].name !== authStore.activeAccount?.publicName) {
       selectedUser.value = response.publicUsers[0]
       isValidUsername.value = true
     } else {
@@ -364,7 +373,7 @@ async function checkCircle(circleName: string) {
     }
     const response = await publicCircleService.ListPublicCircles(request)
 
-    if (response.publicCircles?.length === 1) {
+    if (response.publicCircles?.length === 1 && response.publicCircles[0].name !== authStore.activeAccount?.publicName) {
       selectedCircle.value = response.publicCircles[0]
       isValidCircle.value = true
     } else {
@@ -465,14 +474,20 @@ async function removeShare(shareId: string) {
 // Function to fetch recipe recipients
 async function fetchRecipeRecipients() {
   if (!recipe.value?.name) return
-  
+
   try {
     const response = await recipeRecipientsService.GetRecipeRecipients({
       name: recipe.value.name
     })
-    
+
     if (response.recipients) {
-      currentShares.value = response.recipients.map(recipient => ({
+      currentShares.value = response.recipients.filter(recipient => {
+        if (recipient.name === authStore.activeAccount?.name) {
+          permissionLevel.value = recipient.permission
+          return false
+        }
+        return true
+      }).map(recipient => ({
         id: recipient.name || '',
         name: recipient.title || '',
         type: recipient.name?.includes('circles') ? 'circle' : 'user'
@@ -489,4 +504,51 @@ watch(recipe, (newRecipe) => {
     fetchRecipeRecipients()
   }
 }, { immediate: true })
+
+// Remove access dialog state
+const showRemoveAccessDialog = ref(false)
+const removingAccess = ref(false)
+
+async function handleRemoveAccess() {
+  if (!recipe.value?.name) return
+
+  removingAccess.value = true
+  try {
+    const request = {
+      name: recipe.value.name,
+      recipients: [authStore.activeAccount?.name || '']
+    }
+    await recipeService.UnshareRecipe(request)
+    router.push({ name: 'recipes' })
+  } catch (error) {
+    console.error('Error removing access:', error)
+    alert(error instanceof Error ? error.message : String(error))
+  } finally {
+    removingAccess.value = false
+    showRemoveAccessDialog.value = false
+  }
+}
+
+// Speed dial state
+const speedDialOpen = ref(false)
+const showDeleteDialog = ref(false)
+const deleting = ref(false)
+
+async function handleDelete() {
+  if (!recipe.value?.name) return
+
+  deleting.value = true
+  try {
+    await recipeService.DeleteRecipe({
+      name: recipe.value.name
+    })
+    router.push({ name: 'recipes' })
+  } catch (error) {
+    console.error('Error deleting recipe:', error)
+    alert(error instanceof Error ? error.message : String(error))
+  } finally {
+    deleting.value = false
+    showDeleteDialog.value = false
+  }
+}
 </script>

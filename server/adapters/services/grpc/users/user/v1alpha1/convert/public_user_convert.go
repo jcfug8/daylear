@@ -28,9 +28,9 @@ func ProtoToPublicUser(userNamer namer.ReflectNamer[model.User], proto *pb.Publi
 }
 
 // PublicUserToProto converts a model User to a protobuf PublicUser
-func PublicUserToProto(userNamer namer.ReflectNamer[model.User], user model.User) (*pb.PublicUser, error) {
+func PublicUserToProto(publicUserNamer namer.ReflectNamer[model.User], user model.User) (*pb.PublicUser, error) {
 	proto := &pb.PublicUser{}
-	name, err := userNamer.Format(user)
+	name, err := publicUserNamer.Format(user)
 	if err != nil {
 		return proto, err
 	}

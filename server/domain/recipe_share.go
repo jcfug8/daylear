@@ -18,6 +18,13 @@ func (d *Domain) ShareRecipe(ctx context.Context, parent model.RecipeParent, rec
 		return domain.ErrInvalidArgument{Msg: "recipients required"}
 	}
 
+	// remove the parent from the recipients
+	for _, recipient := range recipients {
+		if recipient.UserId == parent.UserId || (parent.CircleId != 0 && recipient.CircleId == parent.CircleId) {
+			return domain.ErrInvalidArgument{Msg: "cannot (un)share with self"}
+		}
+	}
+
 	// Check if the user has permission to share the recipe
 	recipient, err := d.repo.GetRecipeRecipient(ctx, parent, id)
 	if err != nil {

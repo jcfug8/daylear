@@ -10,8 +10,12 @@ import (
 
 // UpdateCircle updates a circle.
 func (d *Domain) UpdateCircle(ctx context.Context, circle model.Circle, updateMask []string) (model.Circle, error) {
-	if circle.Parent.UserId == 0 || circle.Id.CircleId == 0 {
-		return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent and id required"}
+	if circle.Parent.UserId == 0 {
+		return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent required"}
+	}
+
+	if circle.Id.CircleId == 0 {
+		return model.Circle{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
 	permission, err := d.repo.GetCircleUserPermission(ctx, circle.Parent.UserId, circle.Id.CircleId)

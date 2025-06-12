@@ -83,8 +83,8 @@ type RecipeId struct {
 
 // RecipeParent defines the owner for a recipe.
 type RecipeParent struct {
-	UserId   int64 `aip_pattern:"key=user"`
-	CircleId int64 `aip_pattern:"key=circle"`
+	UserId   int64 `aip_pattern:"key=user,public_user"`
+	CircleId int64 `aip_pattern:"key=circle,public_circle,circle"`
 }
 
 // ----------------------------------------------------------------------------

@@ -31,7 +31,7 @@ func NewRecipeService(params NewRecipeServiceParams) (*RecipeService, error) {
 		return nil, err
 	}
 
-	recipeNamer_Circle, err := namer.NewReflectNamer[model.RecipeParent, *circlePb.Circle]()
+	recipeNamer_PublicCircle, err := namer.NewReflectNamer[model.RecipeParent, *circlePb.PublicCircle]()
 	if err != nil {
 		return nil, err
 	}
@@ -41,14 +41,26 @@ func NewRecipeService(params NewRecipeServiceParams) (*RecipeService, error) {
 		return nil, err
 	}
 
+	recipeNamer_Circle, err := namer.NewReflectNamer[model.RecipeParent, *circlePb.Circle]()
+	if err != nil {
+		return nil, err
+	}
+
+	recipeNamer_PublicUser, err := namer.NewReflectNamer[model.RecipeParent, *userPb.PublicUser]()
+	if err != nil {
+		return nil, err
+	}
+
 	return &RecipeService{
-		domain:                 params.Domain,
-		fieldBehaviorValidator: params.FieldValidator,
-		log:                    params.Log,
-		recipeFieldMasker:      params.RecipeFieldMasker,
-		recipeNamer:            recipeNamer,
-		recipeNamer_Circle:     recipeNamer_Circle,
-		recipeNamer_User:       recipeNamer_User,
+		domain:                   params.Domain,
+		fieldBehaviorValidator:   params.FieldValidator,
+		log:                      params.Log,
+		recipeFieldMasker:        params.RecipeFieldMasker,
+		recipeNamer:              recipeNamer,
+		recipeNamer_PublicCircle: recipeNamer_PublicCircle,
+		recipeNamer_User:         recipeNamer_User,
+		recipeNamer_Circle:       recipeNamer_Circle,
+		recipeNamer_PublicUser:   recipeNamer_PublicUser,
 	}, nil
 }
 
@@ -56,11 +68,13 @@ func NewRecipeService(params NewRecipeServiceParams) (*RecipeService, error) {
 type RecipeService struct {
 	pb.UnimplementedRecipeServiceServer
 	pb.UnimplementedRecipeRecipientsServiceServer
-	domain                 domain.Domain
-	fieldBehaviorValidator fieldValidator.FieldBehaviorValidator
-	log                    zerolog.Logger
-	recipeFieldMasker      fieldMasker.RecipeFieldMasker
-	recipeNamer            namer.ReflectNamer[model.Recipe]
-	recipeNamer_Circle     namer.ReflectNamer[model.RecipeParent]
-	recipeNamer_User       namer.ReflectNamer[model.RecipeParent]
+	domain                   domain.Domain
+	fieldBehaviorValidator   fieldValidator.FieldBehaviorValidator
+	log                      zerolog.Logger
+	recipeFieldMasker        fieldMasker.RecipeFieldMasker
+	recipeNamer              namer.ReflectNamer[model.Recipe]
+	recipeNamer_PublicCircle namer.ReflectNamer[model.RecipeParent]
+	recipeNamer_Circle       namer.ReflectNamer[model.RecipeParent]
+	recipeNamer_User         namer.ReflectNamer[model.RecipeParent]
+	recipeNamer_PublicUser   namer.ReflectNamer[model.RecipeParent]
 }

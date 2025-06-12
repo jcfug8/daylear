@@ -8,6 +8,10 @@ export type Circle = {
   //
   // Behaviors: IDENTIFIER
   name: string | undefined;
+  // the public name of the circle
+  //
+  // Behaviors: OUTPUT_ONLY
+  publicName: string | undefined;
   // the title of the circle
   //
   // Behaviors: REQUIRED

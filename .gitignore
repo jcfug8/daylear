@@ -28,3 +28,5 @@ daylear.yaml
 *.sln
 *.sw?
 __debug_*
+
+todo.md

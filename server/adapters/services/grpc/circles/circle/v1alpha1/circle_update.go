@@ -25,8 +25,6 @@ func (s *CircleService) UpdateCircle(ctx context.Context, request *pb.UpdateCirc
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", circleProto.GetName())
 	}
 
-	mCircle.Parent.UserId = tokenUser.Id.UserId
-
 	fieldMask := s.circleFieldMasker.GetFieldMaskFromCtx(ctx)
 	updateMask, err := s.circleFieldMasker.GetWriteMask(fieldMask)
 	if err != nil {
@@ -38,12 +36,14 @@ func (s *CircleService) UpdateCircle(ctx context.Context, request *pb.UpdateCirc
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
+	mCircle.Parent.UserId = tokenUser.Id.UserId
+
 	mCircle, err = s.domain.UpdateCircle(ctx, mCircle, updateMask)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	circleProto, err = convert.CircleToProto(s.circleNamer, mCircle)
+	circleProto, err = convert.CircleToProto(s.circleNamer, s.publicCircleNamer, mCircle)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}

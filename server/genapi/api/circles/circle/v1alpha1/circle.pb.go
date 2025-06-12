@@ -35,10 +35,12 @@ type Circle struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// the name of the circle
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// the public name of the circle
+	PublicName string `protobuf:"bytes,2,opt,name=public_name,json=publicName,proto3" json:"public_name,omitempty"`
 	// the title of the circle
-	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Title string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
 	// if the circle is public
-	IsPublic      bool `protobuf:"varint,3,opt,name=is_public,json=isPublic,proto3" json:"is_public,omitempty"`
+	IsPublic      bool `protobuf:"varint,4,opt,name=is_public,json=isPublic,proto3" json:"is_public,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -76,6 +78,13 @@ func (*Circle) Descriptor() ([]byte, []int) {
 func (x *Circle) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *Circle) GetPublicName() string {
+	if x != nil {
+		return x.PublicName
 	}
 	return ""
 }
@@ -511,11 +520,13 @@ var File_api_circles_circle_v1alpha1_circle_proto protoreflect.FileDescriptor
 
 const file_api_circles_circle_v1alpha1_circle_proto_rawDesc = "" +
 	"\n" +
-	"(api/circles/circle/v1alpha1/circle.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\"\xaa\x01\n" +
+	"(api/circles/circle/v1alpha1/circle.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\"\xd0\x01\n" +
 	"\x06Circle\x12\x17\n" +
-	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
-	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12 \n" +
-	"\tis_public\x18\x03 \x01(\bB\x03\xe0A\x01R\bisPublic:J\xeaAG\n" +
+	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12$\n" +
+	"\vpublic_name\x18\x02 \x01(\tB\x03\xe0A\x03R\n" +
+	"publicName\x12\x19\n" +
+	"\x05title\x18\x03 \x01(\tB\x03\xe0A\x02R\x05title\x12 \n" +
+	"\tis_public\x18\x04 \x01(\bB\x03\xe0A\x01R\bisPublic:J\xeaAG\n" +
 	"\"api.circles.circle.v1alpha1/Circle\x12\x10circles/{circle}*\acircles2\x06circle\"y\n" +
 	"\x13CreateCircleRequest\x12@\n" +
 	"\x06circle\x18\x02 \x01(\v2#.api.circles.circle.v1alpha1.CircleB\x03\xe0A\x02R\x06circle\x12 \n" +

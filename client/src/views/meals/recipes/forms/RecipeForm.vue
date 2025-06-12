@@ -10,12 +10,6 @@
             :text="tabItem.text"
           ></v-tab>
         </v-tabs>
-        <template #prepend>
-          <v-btn icon="mdi-close" @click="$emit('close')"></v-btn>
-        </template>
-        <template #append>
-          <v-btn icon="mdi-content-save" @click="handleSave"></v-btn>
-        </template>
       </v-app-bar>
       <v-tabs-window v-model="tab">
         <v-tabs-window-item value="general">
@@ -32,6 +26,22 @@
         </v-tabs-window-item>
       </v-tabs-window>
     </v-container>
+
+    <!-- Close FAB -->
+    <v-btn
+      color="primary"
+      icon="mdi-close"
+      style="position: fixed; bottom: 16px; left: 16px"
+      @click="$emit('close')"
+    ></v-btn>
+
+    <!-- Save FAB -->
+    <v-btn
+      color="primary"
+      icon="mdi-content-save"
+      style="position: fixed; bottom: 16px; right: 16px"
+      @click="handleSave"
+    ></v-btn>
   </v-form>
 </template>
 

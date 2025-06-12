@@ -34,7 +34,7 @@ func (s *CircleService) ListCircles(ctx context.Context, request *pb.ListCircles
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	circleProtos, err := convert.CircleListToProto(s.circleNamer, circles)
+	circleProtos, err := convert.CircleListToProto(s.circleNamer, s.publicCircleNamer, circles)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}

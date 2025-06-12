@@ -37,7 +37,7 @@ func (s *CircleService) ShareCircle(ctx context.Context, request *pb.ShareCircle
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	circleProto, err := convert.CircleToProto(s.circleNamer, mCircle)
+	circleProto, err := convert.CircleToProto(s.circleNamer, s.publicCircleNamer, mCircle)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to prepare response")
 	}

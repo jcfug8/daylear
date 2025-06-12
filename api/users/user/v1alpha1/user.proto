@@ -50,20 +50,23 @@ message User {
   // the name of the user
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
+  // the public name of the user
+  string public_name = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
   // the email of the user
-  string email = 2 [
+  string email = 3 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.field_behavior) = OUTPUT_ONLY
   ];
 
   // the username of the user
-  string username = 3 [(google.api.field_behavior) = OPTIONAL];
+  string username = 4 [(google.api.field_behavior) = OPTIONAL];
 
   // the given name of the user
-  string given_name = 4 [(google.api.field_behavior) = OPTIONAL];
+  string given_name = 5 [(google.api.field_behavior) = OPTIONAL];
 
   // the family name of the user
-  string family_name = 5 [(google.api.field_behavior) = OPTIONAL];
+  string family_name = 6 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // the request to get a user

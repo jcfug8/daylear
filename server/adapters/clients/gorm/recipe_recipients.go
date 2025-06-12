@@ -16,7 +16,7 @@ func (c *Client) GetRecipeRecipient(ctx context.Context, parent cmodel.RecipePar
 	var recipeUser model.RecipeUser
 	var recipeCircle model.RecipeCircle
 	title := ""
-
+	permissionLevel := permPb.PermissionLevel_RESOURCE_PERMISSION_READ
 	if id.RecipeId == 0 {
 		return cmodel.RecipeRecipient{}, repository.ErrInvalidArgument{Msg: "recipe id is required"}
 	}
@@ -25,12 +25,13 @@ func (c *Client) GetRecipeRecipient(ctx context.Context, parent cmodel.RecipePar
 		if err := c.db.WithContext(ctx).
 			Table("recipe_circle rc").
 			Select("rc.*, c.title").
-			Joins("Join circles c ON rc.circle_id = c.circle_id").
+			Joins("JOIN circle c ON rc.circle_id = c.circle_id").
 			Where("rc.recipe_id = ? AND rc.circle_id = ?", id.RecipeId, parent.CircleId).
 			Find(&recipeCircle).Error; err != nil {
 			return cmodel.RecipeRecipient{}, ConvertGormError(err)
 		}
 		title = recipeCircle.Title
+		permissionLevel = recipeCircle.PermissionLevel
 	} else if parent.UserId != 0 {
 		if err := c.db.WithContext(ctx).
 			Table("recipe_user ru").
@@ -41,6 +42,7 @@ func (c *Client) GetRecipeRecipient(ctx context.Context, parent cmodel.RecipePar
 			return cmodel.RecipeRecipient{}, ConvertGormError(err)
 		}
 		title = recipeUser.Title
+		permissionLevel = recipeUser.PermissionLevel
 	} else {
 		return cmodel.RecipeRecipient{}, repository.ErrInvalidArgument{Msg: "invalid parent"}
 	}
@@ -48,7 +50,7 @@ func (c *Client) GetRecipeRecipient(ctx context.Context, parent cmodel.RecipePar
 	return cmodel.RecipeRecipient{
 		RecipeId:        id,
 		RecipeParent:    parent,
-		PermissionLevel: recipeUser.PermissionLevel,
+		PermissionLevel: permissionLevel,
 		Title:           title,
 	}, nil
 }
@@ -94,7 +96,7 @@ func (c *Client) ListRecipeRecipients(ctx context.Context, id cmodel.RecipeId) (
 	}
 
 	for i, rc := range recipeCircles {
-		result[i] = cmodel.RecipeRecipient{
+		result[len(recipeUsers)+i] = cmodel.RecipeRecipient{
 			RecipeId: cmodel.RecipeId{
 				RecipeId: rc.RecipeId,
 			},

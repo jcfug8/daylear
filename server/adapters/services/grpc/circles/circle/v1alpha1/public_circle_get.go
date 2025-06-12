@@ -30,7 +30,6 @@ func (s *CircleService) GetPublicCircle(ctx context.Context, request *pb.GetPubl
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	// TODO: implement convert.PublicCircleToProto
 	circle, err := convert.PublicCircleToProto(s.publicCircleNamer, mCircle)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "unable to prepare response")

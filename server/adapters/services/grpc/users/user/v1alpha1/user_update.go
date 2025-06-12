@@ -46,7 +46,7 @@ func (s *UserService) UpdateUser(ctx context.Context, request *pb.UpdateUserRequ
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	user, err := convert.UserToProto(s.userNamer, mUser)
+	user, err := convert.UserToProto(s.userNamer, s.publicUserNamer, mUser)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}

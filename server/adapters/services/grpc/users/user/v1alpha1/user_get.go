@@ -41,7 +41,7 @@ func (s *UserService) GetUser(ctx context.Context, request *pb.GetUserRequest) (
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	user, err := convert.UserToProto(s.userNamer, mUser)
+	user, err := convert.UserToProto(s.userNamer, s.publicUserNamer, mUser)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}

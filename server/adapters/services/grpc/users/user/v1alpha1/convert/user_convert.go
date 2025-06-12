@@ -27,13 +27,19 @@ func ProtoToUser(userNamer namer.ReflectNamer[model.User], proto *pb.User) (mode
 }
 
 // UserToProto converts a model User to a protobuf User
-func UserToProto(userNamer namer.ReflectNamer[model.User], user model.User) (*pb.User, error) {
+func UserToProto(userNamer namer.ReflectNamer[model.User], publicUserNamer namer.ReflectNamer[model.User], user model.User) (*pb.User, error) {
 	proto := &pb.User{}
 	name, err := userNamer.Format(user)
 	if err != nil {
 		return proto, err
 	}
 	proto.Name = name
+
+	publicName, err := publicUserNamer.Format(user)
+	if err != nil {
+		return proto, err
+	}
+	proto.PublicName = publicName
 
 	proto.Email = user.Email
 	proto.Username = user.Username
@@ -44,12 +50,12 @@ func UserToProto(userNamer namer.ReflectNamer[model.User], user model.User) (*pb
 }
 
 // UserListToProto converts a slice of model Users to a slice of protobuf OmniUsers
-func UserListToProto(userNamer namer.ReflectNamer[model.User], users []model.User) ([]*pb.User, error) {
+func UserListToProto(userNamer namer.ReflectNamer[model.User], publicUserNamer namer.ReflectNamer[model.User], users []model.User) ([]*pb.User, error) {
 	protos := make([]*pb.User, len(users))
 	for i, user := range users {
 		proto := &pb.User{}
 		var err error
-		if proto, err = UserToProto(userNamer, user); err != nil {
+		if proto, err = UserToProto(userNamer, publicUserNamer, user); err != nil {
 			return nil, err
 		}
 		protos[i] = proto

@@ -74,8 +74,11 @@ message Circle {
   // the name of the circle
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
+  // the public name of the circle
+  string public_name = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
   // the title of the circle
-  string title = 2 [(google.api.field_behavior) = REQUIRED];
+  string title = 3 [(google.api.field_behavior) = REQUIRED];
 
   // if the circle is public
   bool is_public = 3 [(google.api.field_behavior) = OPTIONAL];
