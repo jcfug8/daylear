@@ -51,6 +51,7 @@ import {
   VWindowItem,
   VAutocomplete,
   VSpeedDial,
+  VChip,
 } from 'vuetify/components'
 import 'vuetify/styles' // Import Vuetify styles
 import '@mdi/font/css/materialdesignicons.css' // Import Material Design Icons
@@ -109,6 +110,7 @@ const vuetify = createVuetify({
     VWindowItem,
     VAutocomplete,
     VSpeedDial,
+    VChip,
   },
 })
 

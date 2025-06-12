@@ -18,13 +18,6 @@ func (d *Domain) ShareRecipe(ctx context.Context, parent model.RecipeParent, rec
 		return domain.ErrInvalidArgument{Msg: "recipients required"}
 	}
 
-	// remove the parent from the recipients
-	for _, recipient := range recipients {
-		if recipient.UserId == parent.UserId || (parent.CircleId != 0 && recipient.CircleId == parent.CircleId) {
-			return domain.ErrInvalidArgument{Msg: "cannot (un)share with self"}
-		}
-	}
-
 	// Check if the user has permission to share the recipe
 	recipient, err := d.repo.GetRecipeRecipient(ctx, parent, id)
 	if err != nil {
@@ -76,5 +69,59 @@ func (d *Domain) ShareRecipe(ctx context.Context, parent model.RecipeParent, rec
 
 // UnshareRecipe removes sharing permissions for a recipe.
 func (d *Domain) UnshareRecipe(ctx context.Context, parent model.RecipeParent, parents []model.RecipeParent, id model.RecipeId) error {
-	return d.ShareRecipe(ctx, parent, parents, id, permPb.PermissionLevel_RESOURCE_PERMISSION_UNSPECIFIED)
+	if id.RecipeId == 0 {
+		return domain.ErrInvalidArgument{Msg: "id required"}
+	}
+
+	if len(parents) == 0 {
+		return domain.ErrInvalidArgument{Msg: "recipients required"}
+	}
+
+	// Allow self-unsharing regardless of permissions
+	isSelfUnshare := false
+	for _, p := range parents {
+		if p.UserId == parent.UserId && p.CircleId == 0 {
+			isSelfUnshare = true
+			break
+		}
+	}
+
+	// If not self-unsharing, check permissions
+	if !isSelfUnshare {
+		recipient, err := d.repo.GetRecipeRecipient(ctx, parent, id)
+		if err != nil {
+			return err
+		}
+		if recipient.PermissionLevel != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+			return domain.ErrPermissionDenied{Msg: "user does not have write permission"}
+		}
+		if parent.CircleId != 0 {
+			permission, err := d.repo.GetCircleUserPermission(ctx, parent.UserId, parent.CircleId)
+			if err != nil {
+				return err
+			}
+			if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+				return domain.ErrPermissionDenied{Msg: "circle does not have write permission"}
+			}
+		}
+	}
+
+	tx, err := d.repo.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Remove existing shares for users
+	err = tx.BulkDeleteRecipeRecipients(ctx, parents, id)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

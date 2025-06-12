@@ -119,14 +119,32 @@
         <v-window v-model="shareTab">
           <v-window-item value="users">
             <v-text-field v-model="usernameInput" label="Enter Username" :rules="[validateUsername]"
-              :append-inner-icon="getUsernameIcon" :color="getUsernameColor" :loading="isLoadingUsername"
+              :prepend-inner-icon="getUsernameIcon" :color="getUsernameColor" :loading="isLoadingUsername"
               @update:model-value="handleUsernameInput"></v-text-field>
+            <v-select
+              v-model="selectedPermission"
+              :items="permissionOptions"
+              label="Permission Level"
+              class="mt-2"
+            ></v-select>
+            <v-btn block color="primary" @click="shareRecipe" :loading="sharing" :disabled="!isValidUsername" class="mt-2">
+              Share with User
+            </v-btn>
           </v-window-item>
 
           <v-window-item value="circles">
             <v-text-field v-model="circleInput" label="Enter Circle Name" :rules="[validateCircle]"
-              :append-inner-icon="getCircleIcon" :color="getCircleColor" :loading="isLoadingCircle"
+              :prepend-inner-icon="getCircleIcon" :color="getCircleColor" :loading="isLoadingCircle"
               @update:model-value="handleCircleInput"></v-text-field>
+            <v-select
+              v-model="selectedPermission"
+              :items="permissionOptions"
+              label="Permission Level"
+              class="mt-2"
+            ></v-select>
+            <v-btn block color="primary" @click="shareRecipe" :loading="sharing" :disabled="!isValidCircle" class="mt-2">
+              Share with Circle
+            </v-btn>
           </v-window-item>
         </v-window>
 
@@ -137,7 +155,12 @@
           <v-list>
             <v-list-item v-for="share in currentShares" :key="share.id" :title="share.name" :subtitle="share.type">
               <template #append>
-                <v-btn icon="mdi-delete" variant="text" @click="removeShare(share.id)"></v-btn>
+                <div class="d-flex align-center gap-2">
+                  <v-chip size="small" :color="share.permission === 'RESOURCE_PERMISSION_WRITE' ? 'primary' : 'grey'">
+                    {{ share.permission === 'RESOURCE_PERMISSION_WRITE' ? 'Read & Write' : 'Read Only' }}
+                  </v-chip>
+                  <v-btn icon="mdi-delete" variant="text" @click="removeShare(share.id)"></v-btn>
+                </div>
               </template>
             </v-list-item>
           </v-list>
@@ -147,9 +170,6 @@
         <v-spacer></v-spacer>
         <v-btn color="grey" variant="text" @click="showShareDialog = false">
           Close
-        </v-btn>
-        <v-btn color="primary" @click="shareRecipe" :loading="sharing" :disabled="!isValidUsername && !isValidCircle">
-          Share
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -293,7 +313,12 @@ const isLoadingUsername = ref(false)
 const isLoadingCircle = ref(false)
 
 // Current shares state
-const currentShares = ref<Array<{ id: string; name: string; type: 'user' | 'circle' }>>([])
+const currentShares = ref<Array<{ 
+  id: string; 
+  name: string; 
+  type: 'user' | 'circle';
+  permission: PermissionLevel;
+}>>([])
 
 // Debounce timers
 let usernameDebounceTimer: number | null = null
@@ -427,6 +452,15 @@ function validateCircle(value: string): boolean | string {
   return true // Validation is now handled by the API call
 }
 
+// Add these new refs and constants
+const selectedPermission = ref<PermissionLevel>('RESOURCE_PERMISSION_READ')
+
+const permissionOptions = [
+  { title: 'Read Only', value: 'RESOURCE_PERMISSION_READ' },
+  { title: 'Read & Write', value: 'RESOURCE_PERMISSION_WRITE' },
+]
+
+// Update the shareRecipe function
 async function shareRecipe() {
   if (!selectedUser.value && !selectedCircle.value) return
 
@@ -435,7 +469,7 @@ async function shareRecipe() {
     const request = {
       name: recipe.value?.name || '',
       recipients: [selectedUser.value?.name || selectedCircle.value?.name || ''],
-      permission: 'RESOURCE_PERMISSION_READ' as const
+      permission: selectedPermission.value
     }
     await recipeService.ShareRecipe(request)
     // Refresh the recipients list
@@ -447,7 +481,7 @@ async function shareRecipe() {
     circleInput.value = ''
     isValidUsername.value = false
     isValidCircle.value = false
-    showShareDialog.value = false
+    selectedPermission.value = 'RESOURCE_PERMISSION_READ' // Reset to default
   } catch (error) {
     console.error('Error sharing recipe:', error)
     // You might want to show an error notification here
@@ -490,7 +524,8 @@ async function fetchRecipeRecipients() {
       }).map(recipient => ({
         id: recipient.name || '',
         name: recipient.title || '',
-        type: recipient.name?.includes('circles') ? 'circle' : 'user'
+        type: recipient.name?.includes('circles') ? 'circle' : 'user',
+        permission: recipient.permission || 'RESOURCE_PERMISSION_READ'
       }))
     }
   } catch (error) {
