@@ -49,7 +49,7 @@ type RecipeIngredient struct {
 	MeasurementAmount    float64
 	MeasurementType      pb.Recipe_MeasurementType
 	IngredientGroupIndex int
-	RecipeTitle          string `gorm:"->"` // Read-only field from join
+	IngredientTitle      string `gorm:"->"` // Read-only field from join
 }
 
 // TableName -

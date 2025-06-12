@@ -81,7 +81,7 @@ message Circle {
   string title = 3 [(google.api.field_behavior) = REQUIRED];
 
   // if the circle is public
-  bool is_public = 3 [(google.api.field_behavior) = OPTIONAL];
+  bool is_public = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // the request to create a circle
