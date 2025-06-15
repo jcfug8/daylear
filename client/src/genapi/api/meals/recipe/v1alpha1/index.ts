@@ -422,6 +422,264 @@ export function createRecipeServiceClient(
     },
   };
 }
+// This represents the data about a user's or circle's access to a recipe
+export type Access = {
+  // The name of the access
+  //
+  // Behaviors: IDENTIFIER
+  name: string | undefined;
+  // the name of the issuer
+  //
+  // Behaviors: OUTPUT_ONLY
+  issuer: Access_IssuerOrRecipient | undefined;
+  // the name of the recipient
+  //
+  // Behaviors: OUTPUT_ONLY
+  recipient: Access_IssuerOrRecipient | undefined;
+  // the permission level of the access
+  //
+  // Behaviors: OUTPUT_ONLY
+  level: Access_Level | undefined;
+  // the status of the access
+  //
+  // Behaviors: OUTPUT_ONLY
+  state: Access_State | undefined;
+};
+
+// the issuer or recipient of the access
+export type Access_IssuerOrRecipient = {
+  // the name of the user
+  user?: string;
+  // the name of the circle
+  circle?: string;
+};
+
+// the permission level of the access
+export type Access_Level =
+  // This status should only get returned when the access is because the recipe
+  // has the public plag set to true.
+  // 
+  // The recipe details can be viewed by anyone.
+  | "LEVEL_UNSPECIFIED"
+  // The recipe details can be viewed.
+  | "LEVEL_READ"
+  // The recipe details can be viewed and edited.
+  // The recipe access can be managed.
+  | "LEVEL_WRITE"
+  // The recipe details can be viewed, edited, and deleted.
+  // The recipe access can be managed.
+  | "LEVEL_ADMIN";
+// the status of the access
+export type Access_State =
+  // This status should never get used.
+  | "STATE_UNSPECIFIED"
+  // The access is pending and can either be accepted or deleted.
+  | "STATE_PENDING"
+  // The access is accepted and can be deleted.
+  | "STATE_ACCEPTED";
+// The request to create an access to a recipe
+export type CreateAccessRequest = {
+  // parent
+  //
+  // Behaviors: REQUIRED
+  parent: string | undefined;
+  // The access to create
+  //
+  // Behaviors: REQUIRED
+  access: Access | undefined;
+};
+
+// The request to delete an access to a recipe
+export type DeleteAccessRequest = {
+  // name
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// The request to get an access to a recipe
+export type GetAccessRequest = {
+  // name
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// The request to list accesses to a recipe
+export type ListAccessesRequest = {
+  // parent
+  //
+  // Behaviors: REQUIRED
+  parent: string | undefined;
+  // The filter to apply to the list
+  //
+  // Behaviors: OPTIONAL
+  filter: string | undefined;
+  // The page size to apply to the list
+  //
+  // Behaviors: OPTIONAL
+  pageSize: number | undefined;
+  // The page token to apply to the list
+  //
+  // Behaviors: OPTIONAL
+  pageToken: string | undefined;
+};
+
+// The response to list accesses to a recipe
+export type ListAccessesResponse = {
+  // The list of accesses
+  accesses: Access[] | undefined;
+  // The next page token
+  nextPageToken: string | undefined;
+};
+
+// The request to update an access to a recipe
+export type UpdateAccessRequest = {
+  // access
+  //
+  // Behaviors: REQUIRED
+  access: Access | undefined;
+  // update mask
+  //
+  // Behaviors: OPTIONAL
+  updateMask: wellKnownFieldMask | undefined;
+};
+
+// The recipe recipient list service
+export interface RecipeAccessService {
+  // Create an access to a recipe
+  CreateAccess(request: CreateAccessRequest): Promise<Access>;
+  // Delete an access to a recipe
+  DeleteAccess(request: DeleteAccessRequest): Promise<wellKnownEmpty>;
+  // Get an access to a recipe
+  GetAccess(request: GetAccessRequest): Promise<Access>;
+  // List accesses to a recipe
+  ListAccesses(request: ListAccessesRequest): Promise<ListAccessesResponse>;
+  // Update an access to a recipe
+  UpdateAccess(request: UpdateAccessRequest): Promise<Access>;
+}
+
+export function createRecipeAccessServiceClient(
+  handler: RequestHandler
+): RecipeAccessService {
+  return {
+    CreateAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.parent) {
+        throw new Error("missing required field request.parent");
+      }
+      const path = `meals/v1alpha1/${request.parent}/accesses`; // eslint-disable-line quotes
+      const body = JSON.stringify(request?.access ?? {});
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "RecipeAccessService",
+        method: "CreateAccess",
+      }) as Promise<Access>;
+    },
+    DeleteAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `meals/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "RecipeAccessService",
+        method: "DeleteAccess",
+      }) as Promise<wellKnownEmpty>;
+    },
+    GetAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `meals/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "RecipeAccessService",
+        method: "GetAccess",
+      }) as Promise<Access>;
+    },
+    ListAccesses(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.parent) {
+        throw new Error("missing required field request.parent");
+      }
+      const path = `meals/v1alpha1/${request.parent}/accesses`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.filter) {
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
+      }
+      if (request.pageSize) {
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
+      }
+      if (request.pageToken) {
+        queryParams.push(`pageToken=${encodeURIComponent(request.pageToken.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "RecipeAccessService",
+        method: "ListAccesses",
+      }) as Promise<ListAccessesResponse>;
+    },
+    UpdateAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.access?.name) {
+        throw new Error("missing required field request.access.name");
+      }
+      const path = `meals/v1alpha1/${request.access.name}`; // eslint-disable-line quotes
+      const body = JSON.stringify(request?.access ?? {});
+      const queryParams: string[] = [];
+      if (request.updateMask) {
+        queryParams.push(`updateMask=${encodeURIComponent(request.updateMask.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "PATCH",
+        body,
+      }, {
+        service: "RecipeAccessService",
+        method: "UpdateAccess",
+      }) as Promise<Access>;
+    },
+  };
+}
+// An empty JSON object
+type wellKnownEmpty = Record<never, never>;
+
 // The recipe recipient list resource
 export type RecipeRecipients = {
   // The name of the recipe recipient list

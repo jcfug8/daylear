@@ -15,10 +15,20 @@ type recipeClient interface {
 	UpdateRecipe(context.Context, model.Recipe, []string) (model.Recipe, error)
 	ListRecipes(context.Context, *model.PageToken[model.Recipe], model.RecipeParent, string, []string) ([]model.Recipe, error)
 
+	// depricated in favor of recipe access
 	GetRecipeRecipient(ctx context.Context, parent model.RecipeParent, id model.RecipeId) (model.RecipeRecipient, error)
+	// depricated in favor of recipe access
 	ListRecipeRecipients(ctx context.Context, id model.RecipeId) ([]model.RecipeRecipient, error)
+	// depricated in favor of recipe access
 	BulkCreateRecipeRecipients(ctx context.Context, parents []model.RecipeParent, id model.RecipeId, permission permPb.PermissionLevel) error
+	// depricated in favor of recipe access
 	BulkDeleteRecipeRecipients(ctx context.Context, parents []model.RecipeParent, id model.RecipeId) error
+
+	CreateRecipeAccess(ctx context.Context, access model.RecipeAccess) (model.RecipeAccess, error)
+	DeleteRecipeAccess(ctx context.Context, parent model.RecipeParent, id model.RecipeId) error
+	GetRecipeAccess(ctx context.Context, parent model.RecipeParent, id model.RecipeId) (model.RecipeAccess, error)
+	ListRecipeAccesses(ctx context.Context, parent model.RecipeParent, pageSize int64, pageOffset int64, filter string) ([]model.RecipeAccess, error)
+	UpdateRecipeAccess(ctx context.Context, access model.RecipeAccess) (model.RecipeAccess, error)
 
 	SetRecipeIngredients(context.Context, model.RecipeId, []model.IngredientGroup) error
 	ListRecipeIngredients(context.Context, *model.PageToken[model.RecipeIngredient], string, []string) ([]model.RecipeIngredient, error)

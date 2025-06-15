@@ -1,6 +1,6 @@
 # Access
 The main fields are:
-- the "target" - the circle that is being accessed
+- the "target" - the resource that is being accessed
 - the "issuer" - user/circle that gave the access
 - the "recipient" - user/circle that received the access
 - the "status" - the status of the access

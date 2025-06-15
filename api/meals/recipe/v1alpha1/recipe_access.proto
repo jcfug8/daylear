@@ -1,0 +1,183 @@
+syntax = "proto3";
+
+package api.meals.recipe.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+
+// The recipe recipient list service
+service RecipeAccessService {
+  // Create an access to a recipe
+  rpc CreateAccess(CreateAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "parent,access";
+    option (google.api.http) = {
+      post: "/meals/v1alpha1/{parent=recipes/*}/accesses"
+      body: "access"
+    };
+  }
+
+  // Delete an access to a recipe
+  rpc DeleteAccess(DeleteAccessRequest) returns (google.protobuf.Empty) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {
+      delete: "/meals/v1alpha1/{name=recipes/*/accesses/*}"
+    };
+  }
+
+  // Get an access to a recipe
+  rpc GetAccess(GetAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {
+      get: "/meals/v1alpha1/{name=recipes/*/accesses/*}"
+    };
+  }
+
+  // List accesses to a recipe
+  rpc ListAccesses(ListAccessesRequest) returns (ListAccessesResponse) {
+    option (google.api.method_signature) = "parent";
+    option (google.api.http) = {
+      get: "/meals/v1alpha1/{parent=recipes/*}/accesses"
+    };
+  }
+  
+  // Update an access to a recipe
+  rpc UpdateAccess(UpdateAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "access,update_mask";
+    option (google.api.http) = {
+      patch: "/meals/v1alpha1/{access.name=recipes/*/accesses/*}"
+      body: "access"
+    };
+  }
+}
+
+// This represents the data about a user's or circle's access to a recipe
+message Access {
+  option (google.api.resource) = {
+    type: "api.meals.recipe.v1alpha1/Access"
+    pattern: "recipes/{recipe}/accesses/{access}"
+    plural: "accesses"
+    singular: "access"
+  };
+
+  // The name of the access
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // the name of the issuer
+  IssuerOrRecipient issuer = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the name of the recipient
+  IssuerOrRecipient recipient = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the permission level of the access 
+  Level level = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the status of the access
+  State state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the issuer or recipient of the access
+  message IssuerOrRecipient {
+    oneof name {
+      // the name of the user
+      string user = 1;
+      // the name of the circle
+      string circle = 2;
+    }
+  }
+
+  // the permission level of the access 
+  enum Level {
+    // This status should only get returned when the access is because the recipe
+    // has the public plag set to true. 
+    // 
+    // The recipe details can be viewed by anyone.
+    LEVEL_UNSPECIFIED = 0;
+    // The recipe details can be viewed.
+    LEVEL_READ = 100;
+    // The recipe details can be viewed and edited.
+    // The recipe access can be managed.
+    LEVEL_WRITE = 200;
+    // The recipe details can be viewed, edited, and deleted.
+    // The recipe access can be managed.
+    LEVEL_ADMIN = 300;
+  }
+
+  // the status of the access
+  enum State {
+    // This status should never get used.
+    STATE_UNSPECIFIED = 0;
+    // The access is pending and can either be accepted or deleted.
+    STATE_PENDING = 100;
+    // The access is accepted and can be deleted.
+    STATE_ACCEPTED = 200;
+  }
+}
+
+// The request to create an access to a recipe
+message CreateAccessRequest {
+  // parent
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.meals.recipe.v1alpha1/Recipe"
+  ];
+
+  // The access to create
+  Access access = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request to delete an access to a recipe
+message DeleteAccessRequest {
+  // name
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.meals.recipe.v1alpha1/Access"
+  ];
+}
+
+// The request to get an access to a recipe
+message GetAccessRequest {
+  // name
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.meals.recipe.v1alpha1/Access"
+  ];
+}
+
+// The request to list accesses to a recipe
+message ListAccessesRequest {
+  // parent
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.meals.recipe.v1alpha1/Recipe"
+  ];
+
+  // The filter to apply to the list
+  string filter = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // The page size to apply to the list
+  int32 page_size = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // The page token to apply to the list
+  string page_token = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The response to list accesses to a recipe  
+message ListAccessesResponse {
+  // The list of accesses
+  repeated Access accesses = 1;
+
+  // The next page token
+  string next_page_token = 2;
+}
+
+// The request to update an access to a recipe
+message UpdateAccessRequest { 
+  // access
+  Access access = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // update mask
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}

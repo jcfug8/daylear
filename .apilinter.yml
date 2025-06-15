@@ -1,0 +1,4 @@
+- included_paths:
+    - 'api/meals/recipe/v1alpha1/recipe_access.proto'
+  disabled_rules:
+    - 'core::0133::request-id-field'

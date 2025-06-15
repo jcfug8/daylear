@@ -51,6 +51,11 @@ func NewRecipeService(params NewRecipeServiceParams) (*RecipeService, error) {
 		return nil, err
 	}
 
+	accessNamer, err := namer.NewReflectNamer[model.RecipeAccess, *pb.Access]()
+	if err != nil {
+		return nil, err
+	}
+
 	return &RecipeService{
 		domain:                   params.Domain,
 		fieldBehaviorValidator:   params.FieldValidator,
@@ -61,6 +66,7 @@ func NewRecipeService(params NewRecipeServiceParams) (*RecipeService, error) {
 		recipeNamer_User:         recipeNamer_User,
 		recipeNamer_Circle:       recipeNamer_Circle,
 		recipeNamer_PublicUser:   recipeNamer_PublicUser,
+		accessNamer:              accessNamer,
 	}, nil
 }
 
@@ -77,4 +83,6 @@ type RecipeService struct {
 	recipeNamer_Circle       namer.ReflectNamer[model.RecipeParent]
 	recipeNamer_User         namer.ReflectNamer[model.RecipeParent]
 	recipeNamer_PublicUser   namer.ReflectNamer[model.RecipeParent]
+
+	accessNamer namer.ReflectNamer[model.RecipeAccess]
 }
