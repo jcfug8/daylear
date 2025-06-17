@@ -36,9 +36,9 @@ func (s *RecipeService) GetRecipeRecipients(ctx context.Context, req *pb.GetReci
 	pbRecipients := make([]*pb.RecipeRecipients_Recipient, len(recipients))
 	for i, recipient := range recipients {
 		// Try to format as user first, then circle
-		name, err := s.recipeNamer_User.Format(recipient.RecipeParent)
+		name, err := s.userNamer.Format(recipient.RecipeParent)
 		if err != nil {
-			name, err = s.recipeNamer_Circle.Format(recipient.RecipeParent)
+			name, err = s.circleNamer.Format(recipient.RecipeParent)
 			if err != nil {
 				s.log.Warn().Err(err).Msg("unable to format recipient name")
 				return nil, status.Errorf(codes.Internal, "unable to format recipient name")

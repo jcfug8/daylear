@@ -5,7 +5,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
-	"github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	"github.com/jcfug8/daylear/server/ports/domain"
@@ -16,11 +15,11 @@ import (
 type Service struct {
 	log         zerolog.Logger
 	domain      domain.Domain
-	recipeNamer namer.ReflectNamer[model.Recipe]
+	recipeNamer namer.ReflectNamer
 }
 
 func NewService(log zerolog.Logger, domain domain.Domain) (*Service, error) {
-	recipeNamer, err := namer.NewReflectNamer[model.Recipe, *pb.Recipe]()
+	recipeNamer, err := namer.NewReflectNamer[*pb.Recipe]()
 	if err != nil {
 		return nil, err
 	}

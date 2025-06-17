@@ -9,7 +9,7 @@ import (
 )
 
 // ProtoToPublicUser converts a protobuf User to a model User
-func ProtoToPublicUser(userNamer namer.ReflectNamer[model.User], proto *pb.PublicUser) (model.User, error) {
+func ProtoToPublicUser(userNamer namer.ReflectNamer, proto *pb.PublicUser) (model.User, error) {
 	user := model.User{}
 	if proto.Name != "" {
 		_, err := userNamer.Parse(proto.Name, &user)
@@ -28,7 +28,7 @@ func ProtoToPublicUser(userNamer namer.ReflectNamer[model.User], proto *pb.Publi
 }
 
 // PublicUserToProto converts a model User to a protobuf PublicUser
-func PublicUserToProto(publicUserNamer namer.ReflectNamer[model.User], user model.User) (*pb.PublicUser, error) {
+func PublicUserToProto(publicUserNamer namer.ReflectNamer, user model.User) (*pb.PublicUser, error) {
 	proto := &pb.PublicUser{}
 	name, err := publicUserNamer.Format(user)
 	if err != nil {
@@ -46,7 +46,7 @@ func PublicUserToProto(publicUserNamer namer.ReflectNamer[model.User], user mode
 }
 
 // PublicUserListToProto converts a slice of model Users to a slice of protobuf PublicUsers
-func PublicUserListToProto(publicUserNamer namer.ReflectNamer[model.User], users []model.User) ([]*pb.PublicUser, error) {
+func PublicUserListToProto(publicUserNamer namer.ReflectNamer, users []model.User) ([]*pb.PublicUser, error) {
 	protos := make([]*pb.PublicUser, len(users))
 	for i, user := range users {
 		proto := &pb.PublicUser{}
@@ -60,7 +60,7 @@ func PublicUserListToProto(publicUserNamer namer.ReflectNamer[model.User], users
 }
 
 // ProtosToPublicUser converts a slice of protobuf PublicUsers to a slice of model Users
-func ProtosToPublicUser(publicUserNamer namer.ReflectNamer[model.User], protos []*pb.PublicUser) ([]model.User, error) {
+func ProtosToPublicUser(publicUserNamer namer.ReflectNamer, protos []*pb.PublicUser) ([]model.User, error) {
 	res := make([]model.User, len(protos))
 	for i, proto := range protos {
 		user := model.User{}

@@ -7,7 +7,7 @@ import (
 )
 
 // PublicCircleToProto converts a model.Circle to a protobuf PublicCircle
-func PublicCircleToProto(publicCircleNamer namer.ReflectNamer[model.Circle], circle model.Circle) (*pb.PublicCircle, error) {
+func PublicCircleToProto(publicCircleNamer namer.ReflectNamer, circle model.Circle) (*pb.PublicCircle, error) {
 	proto := &pb.PublicCircle{}
 	name, err := publicCircleNamer.Format(circle)
 	if err != nil {
@@ -19,7 +19,7 @@ func PublicCircleToProto(publicCircleNamer namer.ReflectNamer[model.Circle], cir
 }
 
 // PublicCircleListToProto converts a slice of model.Circle to a slice of protobuf PublicCircle
-func PublicCircleListToProto(publicCircleNamer namer.ReflectNamer[model.Circle], circles []model.Circle) ([]*pb.PublicCircle, error) {
+func PublicCircleListToProto(publicCircleNamer namer.ReflectNamer, circles []model.Circle) ([]*pb.PublicCircle, error) {
 	protos := make([]*pb.PublicCircle, len(circles))
 	for i, circle := range circles {
 		proto, err := PublicCircleToProto(publicCircleNamer, circle)

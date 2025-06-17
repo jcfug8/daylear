@@ -1,12 +1,26 @@
 package filter
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"go.einride.tech/aip/filtering"
 	expr "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
+)
+
+// Error messages
+const (
+	errNilExpression     = "expression is nil"
+	errUnsupportedExpr   = "unsupported expression type: %T"
+	errUnsupportedFunc   = "unsupported function: %s"
+	errUnsupportedConst  = "unsupported constant type: %T"
+	errUnsupportedValue  = "unsupported value expression type: %T"
+	errUnsupportedField  = "unsupported field expression type: %T"
+	errInvalidArgs       = "%s operator requires exactly %d arguments"
+	errInvalidFilter     = "failed to parse filter: %w"
+	errInvalidConversion = "failed to convert expression: %w"
 )
 
 // SQLConverter converts AIP-160 filter expressions to SQL WHERE clauses
@@ -35,20 +49,64 @@ func (c *SQLConverter) Convert(filter string) (string, error) {
 	parser.Init(filter)
 	parsed, err := parser.Parse()
 	if err != nil {
-		return "", fmt.Errorf("failed to parse filter: %w", err)
+		return "", fmt.Errorf(errInvalidFilter, err)
 	}
 
 	sql, err := c.convertExpression(parsed.Expr)
 	if err != nil {
-		return "", fmt.Errorf("failed to convert expression: %w", err)
+		return "", fmt.Errorf(errInvalidConversion, err)
 	}
 
 	return sql, nil
 }
 
+// Helper functions for common operations
+func (c *SQLConverter) addParam(value interface{}) string {
+	paramIndex := len(c.Params)
+	c.Params = append(c.Params, value)
+	return fmt.Sprintf("$%d", paramIndex+1)
+}
+
+func (c *SQLConverter) convertWildcardString(value string) string {
+	return strings.ReplaceAll(value, "*", "%")
+}
+
+func (c *SQLConverter) handleWildcardString(field string, value string) string {
+	likeValue := c.convertWildcardString(value)
+	paramIndex := len(c.Params)
+	c.Params = append(c.Params, likeValue)
+	return fmt.Sprintf("%s LIKE $%d", field, paramIndex+1)
+}
+
+func (c *SQLConverter) handleNullComparison(field string, value interface{}, isEquals bool) string {
+	if value == nil {
+		if isEquals {
+			return fmt.Sprintf("%s IS NULL", field)
+		}
+		return fmt.Sprintf("%s IS NOT NULL", field)
+	}
+	// Check if the value is a string containing wildcards
+	if strValue, ok := value.(string); ok && strings.Contains(strValue, "*") {
+		likeValue := c.convertWildcardString(strValue)
+		paramIndex := len(c.Params)
+		c.Params = append(c.Params, likeValue)
+		if isEquals {
+			return fmt.Sprintf("%s LIKE $%d", field, paramIndex+1)
+		}
+		return fmt.Sprintf("%s NOT LIKE $%d", field, paramIndex+1)
+	}
+	paramIndex := len(c.Params)
+	c.Params = append(c.Params, value)
+	operator := "="
+	if !isEquals {
+		operator = "!="
+	}
+	return fmt.Sprintf("%s %s $%d", field, operator, paramIndex+1)
+}
+
 func (c *SQLConverter) convertExpression(expr *expr.Expr) (string, error) {
 	if expr == nil {
-		return "", fmt.Errorf("expression is nil")
+		return "", errors.New(errNilExpression)
 	}
 	if call := expr.GetCallExpr(); call != nil {
 		return c.convertCallExpr(call)
@@ -58,20 +116,16 @@ func (c *SQLConverter) convertExpression(expr *expr.Expr) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		paramIndex := len(c.Params)
-		c.Params = append(c.Params, value)
-		return fmt.Sprintf("$%d", paramIndex+1), nil
+		return c.addParam(value), nil
 	}
 	if ident := expr.GetIdentExpr(); ident != nil {
 		value, err := c.convertIdentExpr(ident)
 		if err != nil {
 			return "", err
 		}
-		paramIndex := len(c.Params)
-		c.Params = append(c.Params, value)
-		return fmt.Sprintf("$%d", paramIndex+1), nil
+		return c.addParam(value), nil
 	}
-	return "", fmt.Errorf("unsupported expression type: %T", expr.ExprKind)
+	return "", fmt.Errorf(errUnsupportedExpr, expr.ExprKind)
 }
 
 func (c *SQLConverter) convertCallExpr(call *expr.Expr_Call) (string, error) {
@@ -79,14 +133,14 @@ func (c *SQLConverter) convertCallExpr(call *expr.Expr_Call) (string, error) {
 	args := call.Args
 
 	if len(args) < 1 {
-		return "", fmt.Errorf("call expression requires at least one argument")
+		return "", fmt.Errorf(errInvalidArgs, function, 1)
 	}
 
 	// Handle logical operations first
 	switch function {
 	case "AND":
 		if len(args) != 2 {
-			return "", fmt.Errorf("and operator requires exactly two arguments")
+			return "", fmt.Errorf(errInvalidArgs, function, 2)
 		}
 		left, err := c.convertExpression(args[0])
 		if err != nil {
@@ -107,7 +161,7 @@ func (c *SQLConverter) convertCallExpr(call *expr.Expr_Call) (string, error) {
 
 	case "OR":
 		if len(args) != 2 {
-			return "", fmt.Errorf("or operator requires exactly two arguments")
+			return "", fmt.Errorf(errInvalidArgs, function, 2)
 		}
 		left, err := c.convertExpression(args[0])
 		if err != nil {
@@ -128,14 +182,14 @@ func (c *SQLConverter) convertCallExpr(call *expr.Expr_Call) (string, error) {
 
 	case "NOT":
 		if len(args) != 1 {
-			return "", fmt.Errorf("not operator requires exactly one argument")
+			return "", fmt.Errorf(errInvalidArgs, function, 1)
 		}
 		// Try to optimize NOT expressions
 		if notCall, ok := args[0].ExprKind.(*expr.Expr_CallExpr); ok {
 			switch notCall.CallExpr.Function {
-			case "<":
+			case "<", ">", "<=", ">=", "=", "!=":
 				if len(notCall.CallExpr.Args) != 2 {
-					return "", fmt.Errorf("less than operator requires exactly two arguments")
+					return "", fmt.Errorf(errInvalidArgs, notCall.CallExpr.Function, 2)
 				}
 				field, err := c.convertFieldExpr(notCall.CallExpr.Args[0])
 				if err != nil {
@@ -145,98 +199,32 @@ func (c *SQLConverter) convertCallExpr(call *expr.Expr_Call) (string, error) {
 				if err != nil {
 					return "", err
 				}
-				paramIndex := len(c.Params)
-				c.Params = append(c.Params, value)
-				return fmt.Sprintf("%s >= $%d", field, paramIndex+1), nil
-			case ">":
-				if len(notCall.CallExpr.Args) != 2 {
-					return "", fmt.Errorf("greater than operator requires exactly two arguments")
-				}
-				field, err := c.convertFieldExpr(notCall.CallExpr.Args[0])
-				if err != nil {
-					return "", err
-				}
-				value, err := c.convertValueExpr(notCall.CallExpr.Args[1])
-				if err != nil {
-					return "", err
-				}
-				paramIndex := len(c.Params)
-				c.Params = append(c.Params, value)
-				return fmt.Sprintf("%s <= $%d", field, paramIndex+1), nil
-			case "<=":
-				if len(notCall.CallExpr.Args) != 2 {
-					return "", fmt.Errorf("less than or equal operator requires exactly two arguments")
-				}
-				field, err := c.convertFieldExpr(notCall.CallExpr.Args[0])
-				if err != nil {
-					return "", err
-				}
-				value, err := c.convertValueExpr(notCall.CallExpr.Args[1])
-				if err != nil {
-					return "", err
-				}
-				paramIndex := len(c.Params)
-				c.Params = append(c.Params, value)
-				return fmt.Sprintf("%s > $%d", field, paramIndex+1), nil
-			case ">=":
-				if len(notCall.CallExpr.Args) != 2 {
-					return "", fmt.Errorf("greater than or equal operator requires exactly two arguments")
-				}
-				field, err := c.convertFieldExpr(notCall.CallExpr.Args[0])
-				if err != nil {
-					return "", err
-				}
-				value, err := c.convertValueExpr(notCall.CallExpr.Args[1])
-				if err != nil {
-					return "", err
-				}
-				paramIndex := len(c.Params)
-				c.Params = append(c.Params, value)
-				return fmt.Sprintf("%s < $%d", field, paramIndex+1), nil
-			case "=":
-				if len(notCall.CallExpr.Args) != 2 {
-					return "", fmt.Errorf("equals operator requires exactly two arguments")
-				}
-				field, err := c.convertFieldExpr(notCall.CallExpr.Args[0])
-				if err != nil {
-					return "", err
-				}
-				value, err := c.convertValueExpr(notCall.CallExpr.Args[1])
-				if err != nil {
-					return "", err
-				}
-				paramIndex := len(c.Params)
-				c.Params = append(c.Params, value)
-				// Check if the value is a string containing wildcards
+				// Handle wildcard strings
 				if strValue, ok := value.(string); ok && strings.Contains(strValue, "*") {
-					// Replace * with % for SQL LIKE
-					likeValue := strings.ReplaceAll(strValue, "*", "%")
-					c.Params[paramIndex] = likeValue
-					return fmt.Sprintf("NOT (%s LIKE $%d)", field, paramIndex+1), nil
+					return fmt.Sprintf("NOT (%s)", c.handleWildcardString(field, strValue)), nil
 				}
-				return fmt.Sprintf("%s != $%d", field, paramIndex+1), nil
-			case "!=":
-				if len(notCall.CallExpr.Args) != 2 {
-					return "", fmt.Errorf("not equals operator requires exactly two arguments")
+				// Handle null values
+				if value == nil {
+					return fmt.Sprintf("%s IS NOT NULL", field), nil
 				}
-				field, err := c.convertFieldExpr(notCall.CallExpr.Args[0])
-				if err != nil {
-					return "", err
-				}
-				value, err := c.convertValueExpr(notCall.CallExpr.Args[1])
-				if err != nil {
-					return "", err
-				}
+				// Handle regular comparisons
 				paramIndex := len(c.Params)
 				c.Params = append(c.Params, value)
-				// Check if the value is a string containing wildcards
-				if strValue, ok := value.(string); ok && strings.Contains(strValue, "*") {
-					// Replace * with % for SQL LIKE
-					likeValue := strings.ReplaceAll(strValue, "*", "%")
-					c.Params[paramIndex] = likeValue
-					return fmt.Sprintf("NOT (%s LIKE $%d)", field, paramIndex+1), nil
+				operator := notCall.CallExpr.Function
+				switch operator {
+				case "<":
+					return fmt.Sprintf("%s >= $%d", field, paramIndex+1), nil
+				case ">":
+					return fmt.Sprintf("%s <= $%d", field, paramIndex+1), nil
+				case "<=":
+					return fmt.Sprintf("%s > $%d", field, paramIndex+1), nil
+				case ">=":
+					return fmt.Sprintf("%s < $%d", field, paramIndex+1), nil
+				case "=":
+					return fmt.Sprintf("%s != $%d", field, paramIndex+1), nil
+				case "!=":
+					return fmt.Sprintf("%s = $%d", field, paramIndex+1), nil
 				}
-				return fmt.Sprintf("%s = $%d", field, paramIndex+1), nil
 			}
 		}
 		// If we can't optimize, fall back to the standard NOT expression
@@ -259,55 +247,20 @@ func (c *SQLConverter) convertCallExpr(call *expr.Expr_Call) (string, error) {
 
 	// Handle different function types
 	switch function {
-	case "=":
+	case "=", "!=":
 		if len(args) != 2 {
-			return "", fmt.Errorf("equals operator requires exactly two arguments")
+			return "", fmt.Errorf(errInvalidArgs, function, 2)
 		}
 		value, err := c.convertValueExpr(args[1])
 		if err != nil {
 			return "", err
 		}
-		if value == nil {
-			// Special case: field = null -> IS NULL
-			return fmt.Sprintf("%s IS NULL", field), nil
-		}
-		paramIndex := len(c.Params)
-		c.Params = append(c.Params, value)
-		// Check if the value is a string containing wildcards
-		if strValue, ok := value.(string); ok && strings.Contains(strValue, "*") {
-			// Replace * with % for SQL LIKE
-			likeValue := strings.ReplaceAll(strValue, "*", "%")
-			c.Params[paramIndex] = likeValue
-			return fmt.Sprintf("%s LIKE $%d", field, paramIndex+1), nil
-		}
-		return fmt.Sprintf("%s = $%d", field, paramIndex+1), nil
+		isEquals := function == "="
+		return c.handleNullComparison(field, value, isEquals), nil
 
-	case "!=":
+	case ">", ">=", "<", "<=":
 		if len(args) != 2 {
-			return "", fmt.Errorf("not equals operator requires exactly two arguments")
-		}
-		value, err := c.convertValueExpr(args[1])
-		if err != nil {
-			return "", err
-		}
-		if value == nil {
-			// Special case: field != null -> IS NOT NULL
-			return fmt.Sprintf("%s IS NOT NULL", field), nil
-		}
-		paramIndex := len(c.Params)
-		c.Params = append(c.Params, value)
-		// Check if the value is a string containing wildcards
-		if strValue, ok := value.(string); ok && strings.Contains(strValue, "*") {
-			// Replace * with % for SQL LIKE
-			likeValue := strings.ReplaceAll(strValue, "*", "%")
-			c.Params[paramIndex] = likeValue
-			return fmt.Sprintf("%s NOT LIKE $%d", field, paramIndex+1), nil
-		}
-		return fmt.Sprintf("%s != $%d", field, paramIndex+1), nil
-
-	case ">":
-		if len(args) != 2 {
-			return "", fmt.Errorf("greater than operator requires exactly two arguments")
+			return "", fmt.Errorf(errInvalidArgs, function, 2)
 		}
 		value, err := c.convertValueExpr(args[1])
 		if err != nil {
@@ -315,47 +268,11 @@ func (c *SQLConverter) convertCallExpr(call *expr.Expr_Call) (string, error) {
 		}
 		paramIndex := len(c.Params)
 		c.Params = append(c.Params, value)
-		return fmt.Sprintf("%s > $%d", field, paramIndex+1), nil
-
-	case ">=":
-		if len(args) != 2 {
-			return "", fmt.Errorf("greater than or equal operator requires exactly two arguments")
-		}
-		value, err := c.convertValueExpr(args[1])
-		if err != nil {
-			return "", err
-		}
-		paramIndex := len(c.Params)
-		c.Params = append(c.Params, value)
-		return fmt.Sprintf("%s >= $%d", field, paramIndex+1), nil
-
-	case "<":
-		if len(args) != 2 {
-			return "", fmt.Errorf("less than operator requires exactly two arguments")
-		}
-		value, err := c.convertValueExpr(args[1])
-		if err != nil {
-			return "", err
-		}
-		paramIndex := len(c.Params)
-		c.Params = append(c.Params, value)
-		return fmt.Sprintf("%s < $%d", field, paramIndex+1), nil
-
-	case "<=":
-		if len(args) != 2 {
-			return "", fmt.Errorf("less than or equal operator requires exactly two arguments")
-		}
-		value, err := c.convertValueExpr(args[1])
-		if err != nil {
-			return "", err
-		}
-		paramIndex := len(c.Params)
-		c.Params = append(c.Params, value)
-		return fmt.Sprintf("%s <= $%d", field, paramIndex+1), nil
+		return fmt.Sprintf("%s %s $%d", field, function, paramIndex+1), nil
 
 	case "contains":
 		if len(args) != 2 {
-			return "", fmt.Errorf("contains operator requires exactly two arguments")
+			return "", fmt.Errorf(errInvalidArgs, function, 2)
 		}
 		value, err := c.convertValueExpr(args[1])
 		if err != nil {
@@ -367,7 +284,7 @@ func (c *SQLConverter) convertCallExpr(call *expr.Expr_Call) (string, error) {
 
 	case "starts_with":
 		if len(args) != 2 {
-			return "", fmt.Errorf("starts with operator requires exactly two arguments")
+			return "", fmt.Errorf(errInvalidArgs, function, 2)
 		}
 		value, err := c.convertValueExpr(args[1])
 		if err != nil {
@@ -379,7 +296,7 @@ func (c *SQLConverter) convertCallExpr(call *expr.Expr_Call) (string, error) {
 
 	case "ends_with":
 		if len(args) != 2 {
-			return "", fmt.Errorf("ends with operator requires exactly two arguments")
+			return "", fmt.Errorf(errInvalidArgs, function, 2)
 		}
 		value, err := c.convertValueExpr(args[1])
 		if err != nil {
@@ -391,19 +308,19 @@ func (c *SQLConverter) convertCallExpr(call *expr.Expr_Call) (string, error) {
 
 	case ":":
 		if len(args) != 2 {
-			return "", fmt.Errorf("has operator requires exactly two arguments")
+			return "", fmt.Errorf(errInvalidArgs, function, 2)
 		}
 		// For the has operator, we only care about the field name
 		return fmt.Sprintf("%s IS NOT NULL", field), nil
 
 	default:
-		return "", fmt.Errorf("unsupported function: %s", function)
+		return "", fmt.Errorf(errUnsupportedFunc, function)
 	}
 }
 
 func (c *SQLConverter) convertFieldExpr(expr *expr.Expr) (string, error) {
 	if expr == nil {
-		return "", fmt.Errorf("field expression is nil")
+		return "", errors.New(errNilExpression)
 	}
 	if ident := expr.GetIdentExpr(); ident != nil {
 		field := ident.Name
@@ -426,59 +343,65 @@ func (c *SQLConverter) convertFieldExpr(expr *expr.Expr) (string, error) {
 		return field, nil
 	}
 	if call := expr.GetCallExpr(); call != nil {
-		// Handle logical operations like AND and OR
-		switch call.Function {
-		case "and":
-			if len(call.Args) != 2 {
-				return "", fmt.Errorf("and operator requires exactly two arguments")
-			}
-			left, err := c.convertFieldExpr(call.Args[0])
-			if err != nil {
-				return "", err
-			}
-			right, err := c.convertFieldExpr(call.Args[1])
-			if err != nil {
-				return "", err
-			}
-			return fmt.Sprintf("(%s AND %s)", left, right), nil
-		case "or":
-			if len(call.Args) != 2 {
-				return "", fmt.Errorf("or operator requires exactly two arguments")
-			}
-			left, err := c.convertFieldExpr(call.Args[0])
-			if err != nil {
-				return "", err
-			}
-			right, err := c.convertFieldExpr(call.Args[1])
-			if err != nil {
-				return "", err
-			}
-			return fmt.Sprintf("(%s OR %s)", left, right), nil
-		case ">=", "<=", ">", "<", "=", "!=":
-			if len(call.Args) != 2 {
-				return "", fmt.Errorf("comparison operator requires exactly two arguments")
-			}
-			left, err := c.convertFieldExpr(call.Args[0])
-			if err != nil {
-				return "", err
-			}
-			right, err := c.convertValueExpr(call.Args[1])
-			if err != nil {
-				return "", err
-			}
-			paramIndex := len(c.Params)
-			c.Params = append(c.Params, right)
-			return fmt.Sprintf("%s %s $%d", left, call.Function, paramIndex+1), nil
-		default:
-			return "", fmt.Errorf("unsupported function: %s", call.Function)
-		}
+		return c.convertFieldCallExpr(call)
 	}
-	return "", fmt.Errorf("unsupported field expression type: %T", expr.ExprKind)
+	return "", fmt.Errorf(errUnsupportedField, expr.ExprKind)
+}
+
+func (c *SQLConverter) convertFieldCallExpr(call *expr.Expr_Call) (string, error) {
+	switch call.Function {
+	case "and":
+		if len(call.Args) != 2 {
+			return "", fmt.Errorf(errInvalidArgs, call.Function, 2)
+		}
+		left, err := c.convertFieldExpr(call.Args[0])
+		if err != nil {
+			return "", err
+		}
+		right, err := c.convertFieldExpr(call.Args[1])
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("(%s AND %s)", left, right), nil
+
+	case "or":
+		if len(call.Args) != 2 {
+			return "", fmt.Errorf(errInvalidArgs, call.Function, 2)
+		}
+		left, err := c.convertFieldExpr(call.Args[0])
+		if err != nil {
+			return "", err
+		}
+		right, err := c.convertFieldExpr(call.Args[1])
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("(%s OR %s)", left, right), nil
+
+	case ">=", "<=", ">", "<", "=", "!=":
+		if len(call.Args) != 2 {
+			return "", fmt.Errorf(errInvalidArgs, call.Function, 2)
+		}
+		left, err := c.convertFieldExpr(call.Args[0])
+		if err != nil {
+			return "", err
+		}
+		right, err := c.convertValueExpr(call.Args[1])
+		if err != nil {
+			return "", err
+		}
+		paramIndex := len(c.Params)
+		c.Params = append(c.Params, right)
+		return fmt.Sprintf("%s %s $%d", left, call.Function, paramIndex+1), nil
+
+	default:
+		return "", fmt.Errorf(errUnsupportedFunc, call.Function)
+	}
 }
 
 func (c *SQLConverter) convertValueExpr(expr *expr.Expr) (interface{}, error) {
 	if expr == nil {
-		return nil, fmt.Errorf("value expression is nil")
+		return nil, errors.New(errNilExpression)
 	}
 	if cnst := expr.GetConstExpr(); cnst != nil {
 		return c.convertConstExpr(cnst)
@@ -486,7 +409,7 @@ func (c *SQLConverter) convertValueExpr(expr *expr.Expr) (interface{}, error) {
 	if ident := expr.GetIdentExpr(); ident != nil {
 		return c.convertIdentExpr(ident)
 	}
-	return nil, fmt.Errorf("unsupported value expression type: %T", expr.ExprKind)
+	return nil, fmt.Errorf(errUnsupportedValue, expr.ExprKind)
 }
 
 func (c *SQLConverter) convertConstExpr(constExpr *expr.Constant) (interface{}, error) {
@@ -509,7 +432,7 @@ func (c *SQLConverter) convertConstExpr(constExpr *expr.Constant) (interface{}, 
 	case *expr.Constant_NullValue:
 		return nil, nil
 	default:
-		return nil, fmt.Errorf("unsupported constant type: %T", constExpr.ConstantKind)
+		return nil, fmt.Errorf(errUnsupportedConst, constExpr.ConstantKind)
 	}
 }
 

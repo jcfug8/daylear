@@ -24,9 +24,9 @@ type recipeDomain interface {
 
 	// Recipe Access methods
 	CreateRecipeAccess(ctx context.Context, access model.RecipeAccess) (model.RecipeAccess, error)
-	DeleteRecipeAccess(ctx context.Context, parent model.RecipeParent, id model.RecipeId) error
-	GetRecipeAccess(ctx context.Context, parent model.RecipeParent, id model.RecipeId) (model.RecipeAccess, error)
-	ListRecipeAccesses(ctx context.Context, parent model.RecipeParent, pageSize int64, pageOffset int64, filter string) ([]model.RecipeAccess, error)
+	DeleteRecipeAccess(ctx context.Context, parent model.RecipeAccessParent, id model.RecipeAccessId) error
+	GetRecipeAccess(ctx context.Context, parent model.RecipeAccessParent, id model.RecipeAccessId) (model.RecipeAccess, error)
+	ListRecipeAccesses(ctx context.Context, parent model.RecipeAccessParent, pageSize int32, pageOffset int32, filter string) ([]model.RecipeAccess, error)
 	UpdateRecipeAccess(ctx context.Context, access model.RecipeAccess) (model.RecipeAccess, error)
 
 	UploadRecipeImage(ctx context.Context, parent model.RecipeParent, id model.RecipeId, imageReader io.Reader) (imageURI string, err error)

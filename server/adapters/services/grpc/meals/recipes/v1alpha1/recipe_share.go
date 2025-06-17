@@ -29,9 +29,9 @@ func (s *RecipeService) ShareRecipe(ctx context.Context, request *pb.ShareRecipe
 	parents := make([]model.RecipeParent, 0, len(request.GetRecipients()))
 	for _, recipient := range request.GetRecipients() {
 		recipientRecipeParent := model.RecipeParent{}
-		_, err := s.recipeNamer_PublicUser.ParseParent(recipient, &recipientRecipeParent)
+		_, err := s.publicUserNamer.ParseParent(recipient, &recipientRecipeParent)
 		if err != nil {
-			_, err := s.recipeNamer_PublicCircle.ParseParent(recipient, &recipientRecipeParent)
+			_, err := s.publicCircleNamer.ParseParent(recipient, &recipientRecipeParent)
 			if err != nil {
 				return nil, status.Errorf(codes.InvalidArgument, "invalid recipient: %v", recipient)
 			}
@@ -67,9 +67,9 @@ func (s *RecipeService) UnshareRecipe(ctx context.Context, request *pb.UnshareRe
 	parents := make([]model.RecipeParent, 0, len(request.GetRecipients()))
 	for _, recipient := range request.GetRecipients() {
 		recipientRecipeParent := model.RecipeParent{}
-		_, err := s.recipeNamer_User.ParseParent(recipient, &recipientRecipeParent)
+		_, err := s.userNamer.ParseParent(recipient, &recipientRecipeParent)
 		if err != nil {
-			_, err := s.recipeNamer_PublicCircle.ParseParent(recipient, &recipientRecipeParent)
+			_, err := s.publicCircleNamer.ParseParent(recipient, &recipientRecipeParent)
 			if err != nil {
 				return nil, status.Errorf(codes.InvalidArgument, "invalid recipient: %v", recipient)
 			}

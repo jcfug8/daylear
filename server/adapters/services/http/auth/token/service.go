@@ -6,7 +6,6 @@ import (
 	"net/url"
 
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
-	"github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/users/user/v1alpha1"
 	"github.com/jcfug8/daylear/server/ports/config"
@@ -15,12 +14,12 @@ import (
 
 type Service struct {
 	domain      domain.Domain
-	userNamer   namer.ReflectNamer[model.User]
+	userNamer   namer.ReflectNamer
 	uiDomainURL url.URL
 }
 
 func NewService(domain domain.Domain, configClient config.Client) *Service {
-	userNamer, err := namer.NewReflectNamer[model.User, *pb.User]()
+	userNamer, err := namer.NewReflectNamer[*pb.User]()
 	if err != nil {
 		panic(err)
 	}

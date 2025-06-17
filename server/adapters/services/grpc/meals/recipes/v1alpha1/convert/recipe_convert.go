@@ -7,7 +7,7 @@ import (
 )
 
 // ProtoToRecipe converts a protobuf Recipe to a model Recipe
-func ProtoToRecipe(RecipeNamer namer.ReflectNamer[model.Recipe], proto *pb.Recipe) (model.Recipe, int, error) {
+func ProtoToRecipe(RecipeNamer namer.ReflectNamer, proto *pb.Recipe) (model.Recipe, int, error) {
 	recipe := model.Recipe{}
 	var err error
 	var nameIndex int
@@ -28,7 +28,7 @@ func ProtoToRecipe(RecipeNamer namer.ReflectNamer[model.Recipe], proto *pb.Recip
 }
 
 // RecipeToProto converts a model Recipe to a protobuf Recipe
-func RecipeToProto(RecipeNamer namer.ReflectNamer[model.Recipe], recipe model.Recipe, nameIndex int) (*pb.Recipe, error) {
+func RecipeToProto(RecipeNamer namer.ReflectNamer, recipe model.Recipe, nameIndex int) (*pb.Recipe, error) {
 	proto := &pb.Recipe{}
 	name, err := RecipeNamer.Format(recipe, namer.AsPatternIndex(nameIndex))
 	if err != nil {
@@ -46,7 +46,7 @@ func RecipeToProto(RecipeNamer namer.ReflectNamer[model.Recipe], recipe model.Re
 }
 
 // RecipeListToProto converts a slice of model Recipes to a slice of protobuf OmniRecipes
-func RecipeListToProto(RecipeNamer namer.ReflectNamer[model.Recipe], recipes []model.Recipe, nameIndex int) ([]*pb.Recipe, error) {
+func RecipeListToProto(RecipeNamer namer.ReflectNamer, recipes []model.Recipe, nameIndex int) ([]*pb.Recipe, error) {
 	protos := make([]*pb.Recipe, len(recipes))
 	for i, recipe := range recipes {
 		proto := &pb.Recipe{}
@@ -60,7 +60,7 @@ func RecipeListToProto(RecipeNamer namer.ReflectNamer[model.Recipe], recipes []m
 }
 
 // ProtosToRecipe converts a slice of protobuf OmniRecipes to a slice of model Recipes
-func ProtosToRecipe(RecipeNamer namer.ReflectNamer[model.Recipe], protos []*pb.Recipe) ([]model.Recipe, int, error) {
+func ProtosToRecipe(RecipeNamer namer.ReflectNamer, protos []*pb.Recipe) ([]model.Recipe, int, error) {
 	res := make([]model.Recipe, len(protos))
 	var nameIndex int
 	for i, proto := range protos {

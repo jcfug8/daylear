@@ -3,7 +3,6 @@ package v1alpha1
 import (
 	fieldMasker "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1/fieldmasker"
 	fieldValidator "github.com/jcfug8/daylear/server/adapters/services/grpc/fieldbehaviorvalidator"
-	"github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
@@ -26,11 +25,11 @@ type NewCircleServiceParams struct {
 
 // NewCircleService creates a new CircleService.
 func NewCircleService(params NewCircleServiceParams) (*CircleService, error) {
-	circleNamer, err := namer.NewReflectNamer[model.Circle, *pb.Circle]()
+	circleNamer, err := namer.NewReflectNamer[*pb.Circle]()
 	if err != nil {
 		return nil, err
 	}
-	publicCircleNamer, err := namer.NewReflectNamer[model.Circle, *pb.PublicCircle]()
+	publicCircleNamer, err := namer.NewReflectNamer[*pb.PublicCircle]()
 	if err != nil {
 		return nil, err
 	}
@@ -54,9 +53,9 @@ type CircleService struct {
 	fieldBehaviorValidator  fieldValidator.FieldBehaviorValidator
 	log                     zerolog.Logger
 	circleFieldMasker       fieldMasker.CircleFieldMasker
-	circleNamer             namer.ReflectNamer[model.Circle]
+	circleNamer             namer.ReflectNamer
 	publicCircleFieldMasker fieldMasker.PublicCircleFieldMasker
-	publicCircleNamer       namer.ReflectNamer[model.Circle]
+	publicCircleNamer       namer.ReflectNamer
 }
 
 // Register registers s to the grpc implementation of the service.
