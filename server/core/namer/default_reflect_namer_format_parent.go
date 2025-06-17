@@ -1,10 +1,14 @@
 package namer
 
-import "go.einride.tech/aip/resourcename"
+import (
+	"reflect"
+
+	"go.einride.tech/aip/resourcename"
+)
 
 // MustFormatParent calls FormatParent and panics if an error occurs.
 // It is a convenience method for callers who expect the parent resource to always be valid for formatting.
-func (n *defaultReflectNamer[T]) MustFormatParent(in T, options ...formatReflectNamerOption) string {
+func (n *defaultReflectNamer) MustFormatParent(in interface{}, options ...formatReflectNamerOption) string {
 	formatted, err := n.FormatParent(in, options...)
 	if err != nil {
 		panic(err)
@@ -16,7 +20,21 @@ func (n *defaultReflectNamer[T]) MustFormatParent(in T, options ...formatReflect
 // By default, it uses the parent pattern at index 0. If patternIndex is -1, it tries all parent patterns
 // and returns the first one that matches. Returns an error if no parent pattern matches or if
 // required parent fields are missing/invalid.
-func (n *defaultReflectNamer[T]) FormatParent(in T, options ...formatReflectNamerOption) (string, error) {
+func (n *defaultReflectNamer) FormatParent(in interface{}, options ...formatReflectNamerOption) (string, error) {
+	if in == nil {
+		return "", ErrInvalidField{msg: "input is nil"}
+	}
+	v := reflect.ValueOf(in)
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return "", ErrInvalidField{msg: "input is nil pointer"}
+		}
+		v = v.Elem()
+	}
+	if v.Kind() != reflect.Struct {
+		return "", ErrInvalidField{msg: "input is not a struct or pointer to struct"}
+	}
+
 	config := formatReflectNamerConfig{
 		patternIndex: 0,
 	}
@@ -34,14 +52,45 @@ func (n *defaultReflectNamer[T]) FormatParent(in T, options ...formatReflectName
 		tryPatterns = append(tryPatterns, config.patternIndex)
 	}
 
+	// Get type cache entry for the input type
+	cacheEntry, err := n.getTypeCacheEntry(v.Type())
+	if err != nil {
+		return "", err
+	}
+
 	var lastErr error
 	for _, idx := range tryPatterns {
 		patternDetails := n.patternsDetails[idx]
-		// If there is no parent pattern, treat as root (empty string)
 		if patternDetails.parentPattern == "" {
-			return "", nil
+			continue
 		}
-		vars, err := n.extractPatternValues(patternDetails, in)
+		// Only use parent patterns where all required parent keys are present and non-empty
+		allPresent := true
+		for _, patternKey := range patternDetails.parentPatternKeys {
+			patternVar, ok := cacheEntry.patternKeyDetails[patternKey]
+			if !ok || len(patternVar.fieldIndexPath) == 0 {
+				allPresent = false
+				break
+			}
+			field := v.FieldByIndex(patternVar.fieldIndexPath)
+			if field.Kind() == reflect.Ptr {
+				if field.IsNil() {
+					allPresent = false
+					break
+				}
+				field = field.Elem()
+			}
+			if (field.Kind() == reflect.String && field.String() == "") ||
+				(field.Kind() == reflect.Int && field.Int() == 0) ||
+				(field.Kind() == reflect.Uint && field.Uint() == 0) {
+				allPresent = false
+				break
+			}
+		}
+		if !allPresent {
+			continue
+		}
+		vars, err := n.extractPatternValuesForParent(patternDetails, in, cacheEntry)
 		if err == nil {
 			return resourcename.Sprint(patternDetails.parentPattern, vars...), nil
 		}
@@ -54,4 +103,23 @@ func (n *defaultReflectNamer[T]) FormatParent(in T, options ...formatReflectName
 	}
 
 	return "", lastErr
+}
+
+// extractPatternValuesForParent is like extractPatternValues but for parent patterns.
+func (n *defaultReflectNamer) extractPatternValuesForParent(patternDetails patternDetails, in interface{}, cacheEntry *typeCacheEntry) ([]string, error) {
+	var vars []string
+	for _, patternKey := range patternDetails.parentPatternKeys {
+		patternVar, ok := cacheEntry.patternKeyDetails[patternKey]
+		if !ok || len(patternVar.fieldIndexPath) == 0 {
+			return nil, ErrInvalidField{
+				msg: "unable to format: parent pattern key " + patternKey + " not found in type",
+			}
+		}
+		formatted, err := formatFieldValue(patternVar, in)
+		if err != nil {
+			return nil, err
+		}
+		vars = append(vars, formatted)
+	}
+	return vars, nil
 }

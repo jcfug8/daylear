@@ -1,0 +1,509 @@
+package filter
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func newTestConverter() *SQLConverter {
+	fieldMapping := map[string]string{
+		"name":       "user_name",
+		"age":        "user_age",
+		"email":      "user_email",
+		"created_at": "created_at",
+		"is_active":  "is_active",
+		"score":      "user_score",
+		"hex_value":  "hex_value",
+	}
+	return NewSQLConverter(fieldMapping)
+}
+
+func TestSQLConverter_SimpleEquals(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("name = 'John'")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_name = $1", got)
+	assert.Equal(t, []interface{}{"John"}, converter.Params)
+}
+
+func TestSQLConverter_GreaterThan(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("age > 18")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_age > $1", got)
+	assert.Equal(t, []interface{}{int64(18)}, converter.Params)
+}
+
+func TestSQLConverter_Contains(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("contains(email, '@gmail.com')")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_email LIKE '%' || $1 || '%'", got)
+	assert.Equal(t, []interface{}{"@gmail.com"}, converter.Params)
+}
+
+func TestSQLConverter_LogicalAnd(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("age >= 18 AND is_active = true")
+	assert.NoError(t, err)
+	assert.Equal(t, "(user_age >= $1 AND is_active = $2)", got)
+	assert.Equal(t, []interface{}{int64(18), true}, converter.Params)
+}
+
+func TestSQLConverter_LogicalOr(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("name = 'John' OR name = 'Jane'")
+	assert.NoError(t, err)
+	assert.Equal(t, "(user_name = $1 OR user_name = $2)", got)
+	assert.Equal(t, []interface{}{"John", "Jane"}, converter.Params)
+}
+
+func TestSQLConverter_NotOperator(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("NOT (age < 18)")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_age >= $1", got)
+	assert.Equal(t, []interface{}{int64(18)}, converter.Params)
+}
+
+func TestSQLConverter_ComplexExpression(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("age >= 18 AND (name = 'John' OR contains(email, '@gmail.com'))")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_age >= $1 AND (user_name = $2 OR user_email LIKE '%' || $3 || '%')", got)
+	assert.Equal(t, []interface{}{int64(18), "John", "@gmail.com"}, converter.Params)
+}
+
+func TestSQLConverter_InOperator(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("name = 'John' OR name = 'Jane'")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_name = $1 OR user_name = $2", got)
+	assert.Equal(t, []interface{}{"John", "Jane"}, converter.Params)
+}
+
+func TestSQLConverter_HasOperator(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("name:*")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_name IS NOT NULL", got)
+	assert.Equal(t, []interface{}{}, converter.Params)
+}
+
+func TestSQLConverter_FloatValue(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("score > 95.5")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_score > $1", got)
+	assert.Equal(t, []interface{}{float64(95.5)}, converter.Params)
+}
+
+func TestSQLConverter_HexValue(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("hex_value = 0xFF")
+	assert.NoError(t, err)
+	assert.Equal(t, "hex_value = $1", got)
+	assert.Equal(t, []interface{}{int64(0xFF)}, converter.Params)
+}
+
+func TestSQLConverter_BooleanValue(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("is_active = true")
+	assert.NoError(t, err)
+	assert.Equal(t, "is_active = $1", got)
+	assert.Equal(t, []interface{}{true}, converter.Params)
+}
+
+// durations don't work as expected because the einride/aip-go parser doesn't support them
+// func TestSQLConverter_DurationValue(t *testing.T) {
+// 	converter := newTestConverter()
+// 	got, err := converter.Convert("duration > 20s")
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, "duration > $1", got)
+// 	assert.Equal(t, []interface{}{"20s"}, converter.Params)
+// }
+
+func TestSQLConverter_TimestampValue(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("created_at > '2012-04-21T11:30:00-04:00'")
+	assert.NoError(t, err)
+	assert.Equal(t, "created_at > $1", got)
+	assert.Equal(t, []interface{}{"2012-04-21T11:30:00-04:00"}, converter.Params)
+}
+
+func TestSQLConverter_WildcardString(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("email = '*.gmail.com'")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_email LIKE $1", got)
+	assert.Equal(t, []interface{}{"%.gmail.com"}, converter.Params)
+}
+
+func TestSQLConverter_NestedField(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("user.profile.name = 'John'")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_profile_name = $1", got)
+	assert.Equal(t, []interface{}{"John"}, converter.Params)
+}
+
+func TestSQLConverter_MultipleLogicalOps(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("age >= 18 AND (name = 'John' OR email = '*.gmail.com') AND is_active = true")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_age >= $1 AND (user_name = $2 OR user_email LIKE $3) AND is_active = $4", got)
+	assert.Equal(t, []interface{}{int64(18), "John", "%.gmail.com", true}, converter.Params)
+}
+
+func TestSQLConverter_NegationWithMinus(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("-age < 18")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_age >= $1", got)
+	assert.Equal(t, []interface{}{int64(18)}, converter.Params)
+}
+
+func TestSQLConverter_ComplexNestedExpression(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("(age >= 18 AND is_active = true) OR (name = 'John' AND email = '*.gmail.com')")
+	assert.NoError(t, err)
+	assert.Equal(t, "(user_age >= $1 AND is_active = $2) OR (user_name = $3 AND user_email LIKE $4)", got)
+	assert.Equal(t, []interface{}{int64(18), true, "John", "%.gmail.com"}, converter.Params)
+}
+
+func TestSQLConverter_StartsWithAndEndsWith(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("starts_with(email, 'test') AND ends_with(email, '.com')")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_email LIKE $1 || '%' AND user_email LIKE '%' || $2", got)
+	assert.Equal(t, []interface{}{"test", ".com"}, converter.Params)
+}
+
+func TestSQLConverter_MultipleHasOperators(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("name:* AND email:*")
+	assert.NoError(t, err)
+	assert.Equal(t, "(user_name IS NOT NULL AND user_email IS NOT NULL)", got)
+	assert.Equal(t, []interface{}{}, converter.Params)
+}
+
+func TestSQLConverter_NotEqualsWithNull(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("name != null")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_name IS NOT NULL", got)
+	assert.Equal(t, []interface{}{}, converter.Params)
+}
+
+func TestSQLConverter_EqualsWithNull(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("name = null")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_name IS NULL", got)
+	assert.Equal(t, []interface{}{}, converter.Params)
+}
+
+func TestSQLConverter_MultipleWildcards(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("email = 'test.*.com'")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_email LIKE $1", got)
+	assert.Equal(t, []interface{}{"test.%.com"}, converter.Params)
+}
+
+func TestSQLConverter_ComplexNestedField(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("user.profile.address.city = 'New York'")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_profile_address_city = $1", got)
+	assert.Equal(t, []interface{}{"New York"}, converter.Params)
+}
+
+func TestSQLConverter_MultipleContains(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("contains(name, 'John') AND contains(email, '@gmail.com')")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_name LIKE '%' || $1 || '%' AND user_email LIKE '%' || $2 || '%'", got)
+	assert.Equal(t, []interface{}{"John", "@gmail.com"}, converter.Params)
+}
+
+func TestSQLConverter_ComplexLogicalWithNull(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("(name = null OR email = '*.gmail.com') AND is_active = true")
+	assert.NoError(t, err)
+	assert.Equal(t, "(user_name IS NULL OR user_email LIKE $1) AND is_active = $2", got)
+	assert.Equal(t, []interface{}{"%.gmail.com", true}, converter.Params)
+}
+
+func TestSQLConverter_MultipleStartsWithEndsWith(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("starts_with(name, 'John') AND ends_with(email, '.com') AND contains(hex_value, 'FF')")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_name LIKE $1 || '%' AND user_email LIKE '%' || $2 AND hex_value LIKE '%' || $3 || '%'", got)
+	assert.Equal(t, []interface{}{"John", ".com", "FF"}, converter.Params)
+}
+
+func TestSQLConverter_ComplexHasOperators(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("name:* AND email:* AND (age > 18 OR is_active = true)")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_name IS NOT NULL AND user_email IS NOT NULL AND (user_age > $1 OR is_active = $2)", got)
+	assert.Equal(t, []interface{}{int64(18), true}, converter.Params)
+}
+
+func TestSQLConverter_ComplexNotExpressions(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("NOT (name = 'John' AND age > 18) OR NOT (email = '*.gmail.com')")
+	assert.NoError(t, err)
+	assert.Equal(t, "NOT (user_name = $1 AND user_age > $2) OR NOT (user_email LIKE $3)", got)
+	assert.Equal(t, []interface{}{"John", int64(18), "%.gmail.com"}, converter.Params)
+}
+
+func TestSQLConverter_ComplexNestedLogicalWithNull(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("(name = null OR (age > 18 AND is_active = true)) AND (email = '*.gmail.com' OR score > 95.5)")
+	assert.NoError(t, err)
+	assert.Equal(t, "(user_name IS NULL OR (user_age > $1 AND is_active = $2)) AND (user_email LIKE $3 OR user_score > $4)", got)
+	assert.Equal(t, []interface{}{int64(18), true, "%.gmail.com", float64(95.5)}, converter.Params)
+}
+
+func TestSQLConverter_EmptyFilter(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("")
+	assert.NoError(t, err)
+	assert.Equal(t, "", got)
+	assert.Equal(t, []interface{}{}, converter.Params)
+}
+
+func TestSQLConverter_InvalidFilter(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("invalid filter")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidOperator(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("name INVALID 'John'")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidFunction(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("invalid_function(name, 'John')")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidField(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("invalid_field = 'John'")
+	assert.NoError(t, err) // Should not error, just use the field name as is
+}
+
+func TestSQLConverter_InvalidValue(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("name = invalid_value")
+	assert.NoError(t, err) // Should not error, just use the value as is
+}
+
+func TestSQLConverter_InvalidLogicalOperator(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("name = 'John' INVALID age > 18")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidNotOperator(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("NOT name = 'John' AND age > 18")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_name != $1 AND user_age > $2", got)
+	assert.Equal(t, []interface{}{"John", int64(18)}, converter.Params)
+}
+
+func TestSQLConverter_InvalidContainsOperator(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("contains(name)")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidStartsWithOperator(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("starts_with(name)")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidEndsWithOperator(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("ends_with(name)")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidHasOperator(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("name:")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidNestedField(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("user.profile.invalid_field = 'John'")
+	assert.NoError(t, err) // Should not error, just use the field name as is
+}
+
+func TestSQLConverter_InvalidNestedFieldPath(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("user..profile.name = 'John'")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidNestedFieldValue(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("user.profile.name = invalid_value")
+	assert.NoError(t, err) // Should not error, just use the value as is
+}
+
+func TestSQLConverter_InvalidNestedFieldOperator(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("user.profile.name INVALID 'John'")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidNestedFieldFunction(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("invalid_function(user.profile.name, 'John')")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidNestedFieldLogicalOperator(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("user.profile.name = 'John' INVALID user.profile.age > 18")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidNestedFieldNotOperator(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("NOT user.profile.name = 'John' AND user.profile.age > 18")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_profile_name != $1 AND user_profile_age > $2", got)
+	assert.Equal(t, []interface{}{"John", int64(18)}, converter.Params)
+}
+
+func TestSQLConverter_InvalidNestedFieldContainsOperator(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("contains(user.profile.name)")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidNestedFieldStartsWithOperator(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("starts_with(user.profile.name)")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidNestedFieldEndsWithOperator(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("ends_with(user.profile.name)")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidNestedFieldHasOperator(t *testing.T) {
+	converter := newTestConverter()
+	_, err := converter.Convert("user.profile.name:")
+	assert.Error(t, err)
+}
+
+func TestSQLConverter_InvalidNestedFieldNull(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("user.profile.name = null")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_profile_name IS NULL", got)
+	assert.Equal(t, []interface{}{}, converter.Params)
+}
+
+func TestSQLConverter_InvalidNestedFieldNotNull(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("user.profile.name != null")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_profile_name IS NOT NULL", got)
+	assert.Equal(t, []interface{}{}, converter.Params)
+}
+
+func TestSQLConverter_InvalidNestedFieldBoolean(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("user.profile.is_active = true")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_profile_is_active = $1", got)
+	assert.Equal(t, []interface{}{true}, converter.Params)
+}
+
+func TestSQLConverter_InvalidNestedFieldNumeric(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("user.profile.age > 18")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_profile_age > $1", got)
+	assert.Equal(t, []interface{}{int64(18)}, converter.Params)
+}
+
+func TestSQLConverter_InvalidNestedFieldFloat(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("user.profile.score > 95.5")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_profile_score > $1", got)
+	assert.Equal(t, []interface{}{float64(95.5)}, converter.Params)
+}
+
+func TestSQLConverter_InvalidNestedFieldHex(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("user.profile.hex_value = 0xFF")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_profile_hex_value = $1", got)
+	assert.Equal(t, []interface{}{int64(0xFF)}, converter.Params)
+}
+
+func TestSQLConverter_InvalidNestedFieldTimestamp(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("user.profile.created_at > '2012-04-21T11:30:00-04:00'")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_profile_created_at > $1", got)
+	assert.Equal(t, []interface{}{"2012-04-21T11:30:00-04:00"}, converter.Params)
+}
+
+func TestSQLConverter_InvalidNestedFieldWildcard(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("user.profile.email = '*.gmail.com'")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_profile_email LIKE $1", got)
+	assert.Equal(t, []interface{}{"%.gmail.com"}, converter.Params)
+}
+
+func TestSQLConverter_InvalidNestedFieldMultipleWildcards(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("user.profile.email = 'test.*.com'")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_profile_email LIKE $1", got)
+	assert.Equal(t, []interface{}{"test.%.com"}, converter.Params)
+}
+
+func TestSQLConverter_InvalidNestedFieldComplex(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("user.profile.address.city = 'New York'")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_profile_address_city = $1", got)
+	assert.Equal(t, []interface{}{"New York"}, converter.Params)
+}
+
+func TestSQLConverter_InvalidNestedFieldMultipleContains(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("contains(user.profile.name, 'John') AND contains(user.profile.email, '@gmail.com')")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_profile_name LIKE '%' || $1 || '%' AND user_profile_email LIKE '%' || $2 || '%'", got)
+	assert.Equal(t, []interface{}{"John", "@gmail.com"}, converter.Params)
+}
+
+func TestSQLConverter_InvalidNestedFieldComplexLogicalWithNull(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("(user.profile.name = null OR (user.profile.age > 18 AND user.profile.is_active = true)) AND (user.profile.email = '*.gmail.com' OR user.profile.score > 95.5)")
+	assert.NoError(t, err)
+	assert.Equal(t, "(user_profile_name IS NULL OR (user_profile_age > $1 AND user_profile_is_active = $2)) AND (user_profile_email LIKE $3 OR user_profile_score > $4)", got)
+	assert.Equal(t, []interface{}{int64(18), true, "%.gmail.com", float64(95.5)}, converter.Params)
+}

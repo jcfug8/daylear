@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"sync"
 	"unicode"
 
 	"go.einride.tech/aip/resourcename"
@@ -35,23 +36,28 @@ type patternDetails struct {
 	parentPatternKeys  []string
 }
 
-// defaultReflectNamer implements ReflectNamer using Go reflection to map struct fields
-// to resource name pattern variables.
-type defaultReflectNamer[T any] struct {
-	patternsDetails   map[int]patternDetails
+// typeCacheEntry holds the cached reflection data for a specific type
+type typeCacheEntry struct {
 	patternKeyDetails map[string]patternKeyDetails
 }
 
-// NewReflectNamer creates a ReflectNamer for the given resource type T and proto message type ProtoType.
+// defaultReflectNamer implements ReflectNamer using Go reflection to map struct fields
+// to resource name pattern variables.
+type defaultReflectNamer struct {
+	patternsDetails map[int]patternDetails
+	typeCache       sync.Map // map[reflect.Type]*typeCacheEntry
+}
+
+// NewReflectNamer creates a ReflectNamer for the given proto message type ProtoType.
 // It uses reflection to map struct fields to AIP resource name pattern variables.
 //
 // If multiple fields are named or tagged with the same key, the last one is used.
 // If struct tags are used, they must be of the form `aip_pattern:"key=pattern_key"`.
 // Extra patterns can be added (starting at index 100) via options.
 // By default, all pattern keys must be present in the struct; this can be disabled with DisableStrictNoMissingStructKeys.
-func NewReflectNamer[T any, ProtoType proto.Message](
+func NewReflectNamer[ProtoType proto.Message](
 	options ...newReflectNamerOption,
-) (ReflectNamer[T], error) {
+) (ReflectNamer, error) {
 	// Set up configuration from options
 	config := newReflectNamerConfig{
 		disableStrictNoMissingStructKeys: false,
@@ -70,60 +76,50 @@ func NewReflectNamer[T any, ProtoType proto.Message](
 		return nil, fmt.Errorf("no resource pattern found in %T", p)
 	}
 
-	// Extract struct field details for mapping pattern keys
-	structKeyDetails, err := extractStructKeyDetails[T]()
+	return &defaultReflectNamer{
+		patternsDetails: patternsDetails,
+	}, nil
+}
+
+// getTypeCacheEntry gets or creates a type cache entry for the given type
+func (n *defaultReflectNamer) getTypeCacheEntry(typ reflect.Type) (*typeCacheEntry, error) {
+	// Handle pointer types
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+
+	// Check if we already have a cache entry
+	if entry, ok := n.typeCache.Load(typ); ok {
+		return entry.(*typeCacheEntry), nil
+	}
+
+	// Create new cache entry
+	patternKeyDetails, err := extractStructKeyDetails(typ)
 	if err != nil {
 		return nil, err
 	}
 
-	// If strict key checking is enabled, ensure all pattern keys exist in the struct
-	if !config.disableStrictNoMissingStructKeys {
-		patternKeyDetails := extractPatternsKeyDetails(patternsDetails)
-		for _, pattern := range patternKeyDetails {
-			if _, ok := structKeyDetails[pattern.patternKey]; !ok {
-				return nil, fmt.Errorf("pattern key %s not found in type %T", pattern.patternKey, new(T))
-			}
-		}
+	entry := &typeCacheEntry{
+		patternKeyDetails: patternKeyDetails,
 	}
 
-	return &defaultReflectNamer[T]{
-		patternsDetails:   patternsDetails,
-		patternKeyDetails: structKeyDetails,
-	}, nil
+	// Store in cache
+	n.typeCache.Store(typ, entry)
+	return entry, nil
 }
 
-// extractPatternsKeyDetails collects all unique pattern variable keys from the provided patterns.
-func extractPatternsKeyDetails(patternsDetails map[int]patternDetails) map[string]patternKeyDetails {
-	patternVarMap := make(map[string]patternKeyDetails)
-	for _, patternDetails := range patternsDetails {
-		for _, key := range patternDetails.patternKeys {
-			patternVarMap[key] = patternKeyDetails{
-				patternKey:     key,
-				fieldIndexPath: FieldIndexPath{},
-				fieldType:      nil,
-			}
-		}
-	}
-	return patternVarMap
-}
-
-// extractStructKeyDetails uses reflection to map struct fields to pattern keys for type T.
+// extractStructKeyDetails uses reflection to map struct fields to pattern keys for the given type.
 // Returns a map of pattern key to patternKeyDetails.
-func extractStructKeyDetails[T any]() (map[string]patternKeyDetails, error) {
-	var t T
-	typ := reflect.TypeOf(t)
-	if typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
+func extractStructKeyDetails(typ reflect.Type) (map[string]patternKeyDetails, error) {
 	if typ.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("type T must be a struct")
+		return nil, fmt.Errorf("type must be a struct")
 	}
 	patternVarMap := make(map[string]patternKeyDetails)
-	return extractStructKeyDetailsRec(t, typ, patternVarMap, nil)
+	return extractStructKeyDetailsRec(typ, patternVarMap, nil)
 }
 
 // extractStructKeyDetailsRec recursively traverses struct fields to build a map of pattern keys to their details.
-func extractStructKeyDetailsRec[T any](t T, typ reflect.Type, patternVarMap map[string]patternKeyDetails, parentIndex []int) (map[string]patternKeyDetails, error) {
+func extractStructKeyDetailsRec(typ reflect.Type, patternVarMap map[string]patternKeyDetails, parentIndex []int) (map[string]patternKeyDetails, error) {
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
 		tag := field.Tag.Get("aip_pattern")
@@ -145,7 +141,7 @@ func extractStructKeyDetailsRec[T any](t T, typ reflect.Type, patternVarMap map[
 				field.Type = field.Type.Elem()
 			}
 			var err error
-			patternVarMap, err = extractStructKeyDetailsRec(t, field.Type, patternVarMap, currentIndex)
+			patternVarMap, err = extractStructKeyDetailsRec(field.Type, patternVarMap, currentIndex)
 			if err != nil {
 				return nil, err
 			}
@@ -203,40 +199,41 @@ func getPatternsDetails(resource proto.Message, extraPatterns []string) (map[int
 		splitParentPattern := []string{}
 		// If there are more than 3 sections, derive the parent pattern
 		if len(splitPattern) > 3 {
-			// Get the parent pattern sections as if it's a singleton pattern
-			splitParentPattern = splitPattern[:len(splitPattern)-1]
-			// If it now has an odd number of sections, it was a collection name pattern; remove another section
-			if len(splitParentPattern)%2 == 1 {
-				splitParentPattern = splitParentPattern[:len(splitParentPattern)-1]
+			// For standard resources, the parent pattern is everything up to the last two segments
+			// For singleton resources, the parent pattern is everything up to the last segment
+			if strings.Contains(pattern, "{standard_named_resource}") {
+				splitParentPattern = splitPattern[:len(splitPattern)-2]
+			} else if strings.Contains(pattern, "singletonNamedResource") {
+				splitParentPattern = splitPattern[:len(splitPattern)-1]
 			}
 		}
 
-		// Compose the parent pattern string
-		parentPattern := strings.Join(splitParentPattern, "/")
+		// Extract pattern keys from the pattern
+		patternKeys := extractPatternKeys(pattern)
+		parentPatternKeys := extractPatternKeys(strings.Join(splitParentPattern, "/"))
 
 		patternsDetails[i] = patternDetails{
 			patternIndex:       i,
 			pattern:            pattern,
 			splitPattern:       splitPattern,
-			patternKeys:        extractPatternKeys(pattern),
-			parentPattern:      parentPattern,
+			patternKeys:        patternKeys,
+			parentPattern:      strings.Join(splitParentPattern, "/"),
 			splitParentPattern: splitParentPattern,
-			parentPatternKeys:  extractPatternKeys(parentPattern),
+			parentPatternKeys:  parentPatternKeys,
 		}
 	}
-
 	return patternsDetails, nil
 }
 
-// extractPatternKeys returns the variable keys (resource IDs) from a pattern string.
+// extractPatternKeys extracts the variable keys from a pattern string.
+// For example, "users/{user}/posts/{post}" returns ["user", "post"].
 func extractPatternKeys(pattern string) []string {
 	var keys []string
-	var scanner resourcename.Scanner
-	scanner.Init(pattern)
-	for scanner.Scan() {
-		segment := scanner.Segment()
-		if segment.IsVariable() {
-			keys = append(keys, segment.Literal().ResourceID())
+	parts := strings.Split(pattern, "/")
+	for _, part := range parts {
+		if strings.HasPrefix(part, "{") && strings.HasSuffix(part, "}") {
+			key := part[1 : len(part)-1]
+			keys = append(keys, key)
 		}
 	}
 	return keys

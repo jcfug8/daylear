@@ -11,7 +11,7 @@ import (
 
 // MustParse calls Parse and panics if an error occurs.
 // It is a convenience method for callers who expect the resource name to always be valid.
-func (n *defaultReflectNamer[T]) MustParse(name string, in *T) int {
+func (n *defaultReflectNamer) MustParse(name string, in interface{}) int {
 	patternIndex, err := n.Parse(name, in)
 	if err != nil {
 		panic(err)
@@ -21,7 +21,7 @@ func (n *defaultReflectNamer[T]) MustParse(name string, in *T) int {
 
 // Parse parses a resource name string into the struct pointed to by 'in'.
 // Returns the index of the pattern used for parsing, or an error if parsing fails.
-func (n *defaultReflectNamer[T]) Parse(name string, in *T) (int, error) {
+func (n *defaultReflectNamer) Parse(name string, in interface{}) (int, error) {
 	pattern, patternIndex, err := determineNamePattern(n.patternsDetails, name)
 	if err != nil {
 		return 0, err
@@ -57,14 +57,27 @@ func determineNamePattern(patternsDetails map[int]patternDetails, name string) (
 	return patternsDetails[patternIndex], patternIndex, nil
 }
 
-func (n *defaultReflectNamer[T]) _parse(name string, patternDetails patternDetails, in *T) error {
+func (n *defaultReflectNamer) _parse(name string, patternDetails patternDetails, in interface{}) error {
+	v := reflect.ValueOf(in)
+	if v.Kind() != reflect.Ptr || v.IsNil() {
+		return fmt.Errorf("input must be a non-nil pointer to a struct")
+	}
+	v = v.Elem()
+	if v.Kind() != reflect.Struct {
+		return fmt.Errorf("input must be a pointer to a struct")
+	}
+
 	splitName := strings.Split(name, "/")
 	for i, segment := range splitName {
 		if i%2 == 0 {
 			continue
 		}
 		patternKey := patternDetails.splitPattern[i][1 : len(patternDetails.splitPattern[i])-1]
-		patternVar, ok := n.patternKeyDetails[patternKey]
+		cacheEntry, err := n.getTypeCacheEntry(v.Type())
+		if err != nil {
+			return err
+		}
+		patternVar, ok := cacheEntry.patternKeyDetails[patternKey]
 		if !ok {
 			return ErrInvalidField{
 				msg: fmt.Sprintf("unable to parse: pattern key %s not found in type %T", patternKey, in),
@@ -77,7 +90,7 @@ func (n *defaultReflectNamer[T]) _parse(name string, patternDetails patternDetai
 			}
 		}
 
-		err := setFieldValue(patternVar, segment, in)
+		err = setFieldValue(patternVar, segment, v)
 		if err != nil {
 			return err
 		}
@@ -87,9 +100,7 @@ func (n *defaultReflectNamer[T]) _parse(name string, patternDetails patternDetai
 }
 
 // setFieldValue sets the value of the field specified by patternVar in the input struct.
-func setFieldValue(pv patternKeyDetails, segment string, in any) error {
-
-	v := reflect.ValueOf(in).Elem()
+func setFieldValue(pv patternKeyDetails, segment string, v reflect.Value) error {
 	// this loop is used to traverse the field index path and set the value of the field.
 	// we need to loop instead of just setting the value because we need to handle nested
 	// pointer to structs. If the pointer is nil, we need to initialize it.
@@ -128,25 +139,25 @@ func setFieldValue(pv patternKeyDetails, segment string, in any) error {
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				v, err := strconv.ParseInt(segment, 10, 64)
 				if err != nil {
-					return ErrInvalidFieldValue{msg: fmt.Sprintf("unable to parse: invalid int value %s for key %s in input struct %T", segment, pv.patternKey, in)}
+					return ErrInvalidFieldValue{msg: fmt.Sprintf("unable to parse: invalid int value %s for key %s in input struct", segment, pv.patternKey)}
 				}
 				field.SetInt(v)
 			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 				v, err := strconv.ParseUint(segment, 10, 64)
 				if err != nil {
-					return ErrInvalidFieldValue{msg: fmt.Sprintf("unable to parse: invalid uint value %s for key %s in input struct %T", segment, pv.patternKey, in)}
+					return ErrInvalidFieldValue{msg: fmt.Sprintf("unable to parse: invalid uint value %s for key %s in input struct", segment, pv.patternKey)}
 				}
 				field.SetUint(v)
 			case reflect.Float32, reflect.Float64:
 				v, err := strconv.ParseFloat(segment, 64)
 				if err != nil {
-					return ErrInvalidFieldValue{msg: fmt.Sprintf("unable to parse: invalid float value %s for key %s in input struct %T", segment, pv.patternKey, in)}
+					return ErrInvalidFieldValue{msg: fmt.Sprintf("unable to parse: invalid float value %s for key %s in input struct", segment, pv.patternKey)}
 				}
 				field.SetFloat(v)
 			case reflect.String:
 				field.SetString(segment)
 			default:
-				return ErrInvalidFieldType{msg: fmt.Sprintf("unable to parse: unsupported type %s for key %s in input struct %T", field.Kind(), pv.patternKey, in)}
+				return ErrInvalidFieldType{msg: fmt.Sprintf("unable to parse: unsupported type %s for key %s in input struct", field.Kind(), pv.patternKey)}
 			}
 		}
 	}
