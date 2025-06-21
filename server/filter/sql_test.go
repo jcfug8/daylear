@@ -25,6 +25,7 @@ func TestSQLConverter_SimpleEquals(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_name = $1", got.WhereClause)
 	assert.Equal(t, []interface{}{"John"}, got.Params)
+	assert.Equal(t, map[string]int{"user_name": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_GreaterThan(t *testing.T) {
@@ -33,6 +34,7 @@ func TestSQLConverter_GreaterThan(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_age > $1", got.WhereClause)
 	assert.Equal(t, []interface{}{int64(18)}, got.Params)
+	assert.Equal(t, map[string]int{"user_age": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_Contains(t *testing.T) {
@@ -41,6 +43,7 @@ func TestSQLConverter_Contains(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_email LIKE '%' || $1 || '%'", got.WhereClause)
 	assert.Equal(t, []interface{}{"@gmail.com"}, got.Params)
+	assert.Equal(t, map[string]int{"user_email": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_LogicalAnd(t *testing.T) {
@@ -49,6 +52,7 @@ func TestSQLConverter_LogicalAnd(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_age >= $1 AND is_active = $2", got.WhereClause)
 	assert.Equal(t, []interface{}{int64(18), true}, got.Params)
+	assert.Equal(t, map[string]int{"user_age": 1, "is_active": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_LogicalOr(t *testing.T) {
@@ -57,6 +61,7 @@ func TestSQLConverter_LogicalOr(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_name = $1 OR user_name = $2", got.WhereClause)
 	assert.Equal(t, []interface{}{"John", "Jane"}, got.Params)
+	assert.Equal(t, map[string]int{"user_name": 2}, got.UsedColumns)
 }
 
 func TestSQLConverter_NotOperator(t *testing.T) {
@@ -65,6 +70,7 @@ func TestSQLConverter_NotOperator(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_age >= $1", got.WhereClause)
 	assert.Equal(t, []interface{}{int64(18)}, got.Params)
+	assert.Equal(t, map[string]int{"user_age": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_ComplexExpression(t *testing.T) {
@@ -73,6 +79,7 @@ func TestSQLConverter_ComplexExpression(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_age >= $1 AND (user_name = $2 OR user_email LIKE '%' || $3 || '%')", got.WhereClause)
 	assert.Equal(t, []interface{}{int64(18), "John", "@gmail.com"}, got.Params)
+	assert.Equal(t, map[string]int{"user_age": 1, "user_name": 1, "user_email": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_InOperator(t *testing.T) {
@@ -81,6 +88,7 @@ func TestSQLConverter_InOperator(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_name = $1 OR user_name = $2", got.WhereClause)
 	assert.Equal(t, []interface{}{"John", "Jane"}, got.Params)
+	assert.Equal(t, map[string]int{"user_name": 2}, got.UsedColumns)
 }
 
 func TestSQLConverter_HasOperator(t *testing.T) {
@@ -89,6 +97,7 @@ func TestSQLConverter_HasOperator(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_name IS NOT NULL", got.WhereClause)
 	assert.Equal(t, []interface{}{}, got.Params)
+	assert.Equal(t, map[string]int{"user_name": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_FloatValue(t *testing.T) {
@@ -97,6 +106,7 @@ func TestSQLConverter_FloatValue(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_score > $1", got.WhereClause)
 	assert.Equal(t, []interface{}{float64(95.5)}, got.Params)
+	assert.Equal(t, map[string]int{"user_score": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_HexValue(t *testing.T) {
@@ -105,6 +115,7 @@ func TestSQLConverter_HexValue(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "hex_value = $1", got.WhereClause)
 	assert.Equal(t, []interface{}{int64(0xFF)}, got.Params)
+	assert.Equal(t, map[string]int{"hex_value": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_BooleanValue(t *testing.T) {
@@ -113,6 +124,7 @@ func TestSQLConverter_BooleanValue(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "is_active = $1", got.WhereClause)
 	assert.Equal(t, []interface{}{true}, got.Params)
+	assert.Equal(t, map[string]int{"is_active": 1}, got.UsedColumns)
 }
 
 // durations don't work as expected because the einride/aip-go parser doesn't support them
@@ -130,6 +142,7 @@ func TestSQLConverter_TimestampValue(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "created_at > $1", got.WhereClause)
 	assert.Equal(t, []interface{}{"2012-04-21T11:30:00-04:00"}, got.Params)
+	assert.Equal(t, map[string]int{"created_at": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_WildcardString(t *testing.T) {
@@ -138,6 +151,7 @@ func TestSQLConverter_WildcardString(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_email LIKE $1", got.WhereClause)
 	assert.Equal(t, []interface{}{"%.gmail.com"}, got.Params)
+	assert.Equal(t, map[string]int{"user_email": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_NestedField(t *testing.T) {
@@ -146,6 +160,7 @@ func TestSQLConverter_NestedField(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_profile_name = $1", got.WhereClause)
 	assert.Equal(t, []interface{}{"John"}, got.Params)
+	assert.Equal(t, map[string]int{}, got.UsedColumns)
 }
 
 func TestSQLConverter_MultipleLogicalOps(t *testing.T) {
@@ -154,6 +169,7 @@ func TestSQLConverter_MultipleLogicalOps(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_age >= $1 AND (user_name = $2 OR user_email LIKE $3) AND is_active = $4", got.WhereClause)
 	assert.Equal(t, []interface{}{int64(18), "John", "%.gmail.com", true}, got.Params)
+	assert.Equal(t, map[string]int{"user_age": 1, "user_name": 1, "user_email": 1, "is_active": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_NegationWithMinus(t *testing.T) {
@@ -162,6 +178,7 @@ func TestSQLConverter_NegationWithMinus(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_age >= $1", got.WhereClause)
 	assert.Equal(t, []interface{}{int64(18)}, got.Params)
+	assert.Equal(t, map[string]int{"user_age": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_ComplexNestedExpression(t *testing.T) {
@@ -170,6 +187,7 @@ func TestSQLConverter_ComplexNestedExpression(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "(user_age >= $1 AND is_active = $2) OR (user_name = $3 AND user_email LIKE $4)", got.WhereClause)
 	assert.Equal(t, []interface{}{int64(18), true, "John", "%.gmail.com"}, got.Params)
+	assert.Equal(t, map[string]int{"user_age": 1, "is_active": 1, "user_name": 1, "user_email": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_StartsWithAndEndsWith(t *testing.T) {
@@ -178,6 +196,7 @@ func TestSQLConverter_StartsWithAndEndsWith(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_email LIKE $1 || '%' AND user_email LIKE '%' || $2", got.WhereClause)
 	assert.Equal(t, []interface{}{"test", ".com"}, got.Params)
+	assert.Equal(t, map[string]int{"user_email": 2}, got.UsedColumns)
 }
 
 func TestSQLConverter_MultipleHasOperators(t *testing.T) {
@@ -186,6 +205,7 @@ func TestSQLConverter_MultipleHasOperators(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_name IS NOT NULL AND user_email IS NOT NULL", got.WhereClause)
 	assert.Equal(t, []interface{}{}, got.Params)
+	assert.Equal(t, map[string]int{"user_name": 1, "user_email": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_NotEqualsWithNull(t *testing.T) {
@@ -194,6 +214,7 @@ func TestSQLConverter_NotEqualsWithNull(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_name IS NOT NULL", got.WhereClause)
 	assert.Equal(t, []interface{}{}, got.Params)
+	assert.Equal(t, map[string]int{"user_name": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_EqualsWithNull(t *testing.T) {
@@ -202,6 +223,7 @@ func TestSQLConverter_EqualsWithNull(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_name IS NULL", got.WhereClause)
 	assert.Equal(t, []interface{}{}, got.Params)
+	assert.Equal(t, map[string]int{"user_name": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_MultipleWildcards(t *testing.T) {
@@ -210,6 +232,7 @@ func TestSQLConverter_MultipleWildcards(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_email LIKE $1", got.WhereClause)
 	assert.Equal(t, []interface{}{"test.%.com"}, got.Params)
+	assert.Equal(t, map[string]int{"user_email": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_ComplexNestedField(t *testing.T) {
@@ -218,6 +241,7 @@ func TestSQLConverter_ComplexNestedField(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_profile_address_city = $1", got.WhereClause)
 	assert.Equal(t, []interface{}{"New York"}, got.Params)
+	assert.Equal(t, map[string]int{}, got.UsedColumns)
 }
 
 func TestSQLConverter_MultipleContains(t *testing.T) {
@@ -226,6 +250,7 @@ func TestSQLConverter_MultipleContains(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_name LIKE '%' || $1 || '%' AND user_email LIKE '%' || $2 || '%'", got.WhereClause)
 	assert.Equal(t, []interface{}{"John", "@gmail.com"}, got.Params)
+	assert.Equal(t, map[string]int{"user_name": 1, "user_email": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_ComplexLogicalWithNull(t *testing.T) {
@@ -234,6 +259,7 @@ func TestSQLConverter_ComplexLogicalWithNull(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "(user_name IS NULL OR user_email LIKE $1) AND is_active = $2", got.WhereClause)
 	assert.Equal(t, []interface{}{"%.gmail.com", true}, got.Params)
+	assert.Equal(t, map[string]int{"user_name": 1, "user_email": 1, "is_active": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_MultipleStartsWithEndsWith(t *testing.T) {
@@ -242,6 +268,7 @@ func TestSQLConverter_MultipleStartsWithEndsWith(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_name LIKE $1 || '%' AND user_email LIKE '%' || $2 AND hex_value LIKE '%' || $3 || '%'", got.WhereClause)
 	assert.Equal(t, []interface{}{"John", ".com", "FF"}, got.Params)
+	assert.Equal(t, map[string]int{"user_name": 1, "user_email": 1, "hex_value": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_ComplexHasOperators(t *testing.T) {
@@ -250,6 +277,7 @@ func TestSQLConverter_ComplexHasOperators(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_name IS NOT NULL AND user_email IS NOT NULL AND (user_age > $1 OR is_active = $2)", got.WhereClause)
 	assert.Equal(t, []interface{}{int64(18), true}, got.Params)
+	assert.Equal(t, map[string]int{"user_name": 1, "user_email": 1, "user_age": 1, "is_active": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_ComplexNotExpressions(t *testing.T) {
@@ -258,6 +286,7 @@ func TestSQLConverter_ComplexNotExpressions(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "NOT (user_name = $1 AND user_age > $2) OR NOT (user_email LIKE $3)", got.WhereClause)
 	assert.Equal(t, []interface{}{"John", int64(18), "%.gmail.com"}, got.Params)
+	assert.Equal(t, map[string]int{"user_name": 1, "user_age": 1, "user_email": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_ComplexNestedLogicalWithNull(t *testing.T) {
@@ -266,6 +295,7 @@ func TestSQLConverter_ComplexNestedLogicalWithNull(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "(user_name IS NULL OR (user_age > $1 AND is_active = $2)) AND (user_email LIKE $3 OR user_score > $4)", got.WhereClause)
 	assert.Equal(t, []interface{}{int64(18), true, "%.gmail.com", float64(95.5)}, got.Params)
+	assert.Equal(t, map[string]int{"user_name": 1, "user_age": 1, "is_active": 1, "user_email": 1, "user_score": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_EmptyFilter(t *testing.T) {
@@ -274,6 +304,7 @@ func TestSQLConverter_EmptyFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "", got.WhereClause)
 	assert.Equal(t, []interface{}{}, got.Params)
+	assert.Equal(t, map[string]int{}, got.UsedColumns)
 }
 
 func TestSQLConverter_InvalidFilter(t *testing.T) {
@@ -302,8 +333,11 @@ func TestSQLConverter_InvalidField(t *testing.T) {
 
 func TestSQLConverter_InvalidValue(t *testing.T) {
 	converter := newTestConverter()
-	_, err := converter.Convert("name = invalid_value")
+	got, err := converter.Convert("name = invalid_value")
 	assert.NoError(t, err) // Should not error, just use the value as is
+	assert.Equal(t, "user_name = $1", got.WhereClause)
+	assert.Equal(t, []interface{}{"invalid_value"}, got.Params)
+	assert.Equal(t, map[string]int{"user_name": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_InvalidLogicalOperator(t *testing.T) {
@@ -318,6 +352,7 @@ func TestSQLConverter_InvalidNotOperator(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_name != $1 AND user_age > $2", got.WhereClause)
 	assert.Equal(t, []interface{}{"John", int64(18)}, got.Params)
+	assert.Equal(t, map[string]int{"user_name": 1, "user_age": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_InvalidFunctionCalls(t *testing.T) {
@@ -368,6 +403,7 @@ func TestSQLConverter_NestedFieldOperations(t *testing.T) {
 		wantSQL  string
 		wantArgs []interface{}
 		wantErr  bool
+		wantUsed map[string]int
 	}{
 		{
 			name:    "Invalid nested field path",
@@ -394,6 +430,7 @@ func TestSQLConverter_NestedFieldOperations(t *testing.T) {
 			filter:   "NOT user.profile.name = 'John' AND user.profile.age > 18",
 			wantSQL:  "user_profile_name != $1 AND user_profile_age > $2",
 			wantArgs: []interface{}{"John", int64(18)},
+			wantUsed: map[string]int{},
 		},
 		{
 			name:    "Invalid nested field contains operator",
@@ -427,6 +464,9 @@ func TestSQLConverter_NestedFieldOperations(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.wantSQL, got.WhereClause)
 				assert.Equal(t, tt.wantArgs, got.Params)
+				if tt.wantUsed != nil {
+					assert.Equal(t, tt.wantUsed, got.UsedColumns)
+				}
 			}
 		})
 	}
@@ -438,66 +478,77 @@ func TestSQLConverter_NestedFieldValues(t *testing.T) {
 		filter   string
 		wantSQL  string
 		wantArgs []interface{}
+		wantUsed map[string]int
 	}{
 		{
 			name:     "Null value",
 			filter:   "user.profile.name = null",
 			wantSQL:  "user_profile_name IS NULL",
 			wantArgs: []interface{}{},
+			wantUsed: map[string]int{},
 		},
 		{
 			name:     "Not null value",
 			filter:   "user.profile.name != null",
 			wantSQL:  "user_profile_name IS NOT NULL",
 			wantArgs: []interface{}{},
+			wantUsed: map[string]int{},
 		},
 		{
 			name:     "Boolean value",
 			filter:   "user.profile.is_active = true",
 			wantSQL:  "user_profile_is_active = $1",
 			wantArgs: []interface{}{true},
+			wantUsed: map[string]int{},
 		},
 		{
 			name:     "Numeric value",
 			filter:   "user.profile.age > 18",
 			wantSQL:  "user_profile_age > $1",
 			wantArgs: []interface{}{int64(18)},
+			wantUsed: map[string]int{},
 		},
 		{
 			name:     "Float value",
 			filter:   "user.profile.score > 95.5",
 			wantSQL:  "user_profile_score > $1",
 			wantArgs: []interface{}{float64(95.5)},
+			wantUsed: map[string]int{},
 		},
 		{
 			name:     "Hex value",
 			filter:   "user.profile.hex_value = 0xFF",
 			wantSQL:  "user_profile_hex_value = $1",
 			wantArgs: []interface{}{int64(0xFF)},
+			wantUsed: map[string]int{},
 		},
 		{
 			name:     "Timestamp value",
 			filter:   "user.profile.created_at > '2012-04-21T11:30:00-04:00'",
 			wantSQL:  "user_profile_created_at > $1",
 			wantArgs: []interface{}{"2012-04-21T11:30:00-04:00"},
+			wantUsed: map[string]int{},
 		},
 		{
 			name:     "Wildcard value",
 			filter:   "user.profile.email = '*.gmail.com'",
 			wantSQL:  "user_profile_email LIKE $1",
 			wantArgs: []interface{}{"%.gmail.com"},
+			wantUsed: map[string]int{},
 		},
 		{
 			name:     "Multiple wildcards",
 			filter:   "user.profile.email = 'test.*.com'",
 			wantSQL:  "user_profile_email LIKE $1",
 			wantArgs: []interface{}{"test.%.com"},
+			wantUsed: map[string]int{},
 		},
 		{
 			name:     "Complex nested field",
 			filter:   "user.profile.address.city = 'New York'",
 			wantSQL:  "user_profile_address_city = $1",
 			wantArgs: []interface{}{"New York"},
+			wantUsed: map[string]int{},
 		},
 	}
 
@@ -508,6 +559,7 @@ func TestSQLConverter_NestedFieldValues(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, tt.wantSQL, got.WhereClause)
 			assert.Equal(t, tt.wantArgs, got.Params)
+			assert.Equal(t, tt.wantUsed, got.UsedColumns)
 		})
 	}
 }
@@ -518,18 +570,30 @@ func TestSQLConverter_ComplexNestedExpressions(t *testing.T) {
 		filter   string
 		wantSQL  string
 		wantArgs []interface{}
+		wantUsed map[string]int
 	}{
 		{
 			name:     "Multiple contains",
 			filter:   "contains(user.profile.name, 'John') AND contains(user.profile.email, '@gmail.com')",
 			wantSQL:  "user_profile_name LIKE '%' || $1 || '%' AND user_profile_email LIKE '%' || $2 || '%'",
 			wantArgs: []interface{}{"John", "@gmail.com"},
+			wantUsed: map[string]int{
+				"user_profile_name":  1,
+				"user_profile_email": 1,
+			},
 		},
 		{
 			name:     "Complex logical with null",
 			filter:   "(user.profile.name = null OR (user.profile.age > 18 AND user.profile.is_active = true)) AND (user.profile.email = '*.gmail.com' OR user.profile.score > 95.5)",
 			wantSQL:  "(user_profile_name IS NULL OR (user_profile_age > $1 AND user_profile_is_active = $2)) AND (user_profile_email LIKE $3 OR user_profile_score > $4)",
 			wantArgs: []interface{}{int64(18), true, "%.gmail.com", float64(95.5)},
+			wantUsed: map[string]int{
+				"user_profile_name":      1,
+				"user_profile_age":       1,
+				"user_profile_is_active": 1,
+				"user_profile_email":     1,
+				"user_profile_score":     1,
+			},
 		},
 	}
 
@@ -540,6 +604,21 @@ func TestSQLConverter_ComplexNestedExpressions(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, tt.wantSQL, got.WhereClause)
 			assert.Equal(t, tt.wantArgs, got.Params)
+			assert.Equal(t, tt.wantUsed, got.UsedColumns)
 		})
 	}
+}
+
+func TestSQLConverter_UsedColumns(t *testing.T) {
+	converter := newTestConverter()
+	converter.FieldMapping["user_profile_name"] = "profile_name"
+	got, err := converter.Convert("name = 'John' AND user.profile.name = 'Test'")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_name = $1 AND profile_name = $2", got.WhereClause)
+	assert.Equal(t, []interface{}{"John", "Test"}, got.Params)
+	expectedUsedColumns := map[string]int{
+		"user_name":    1,
+		"profile_name": 1,
+	}
+	assert.Equal(t, expectedUsedColumns, got.UsedColumns)
 }

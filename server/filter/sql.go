@@ -33,7 +33,7 @@ type Conversion struct {
 	FieldMapping map[string]string
 	WhereClause  string
 	Params       []interface{}
-	UsedFields   []string
+	UsedColumns  map[string]int
 }
 
 // NewSQLConverter creates a new SQLConverter with the given field mapping
@@ -48,7 +48,7 @@ func (c *SQLConverter) Convert(filter string) (*Conversion, error) {
 	conversion := &Conversion{
 		FieldMapping: c.FieldMapping,
 		Params:       make([]interface{}, 0),
-		UsedFields:   make([]string, 0),
+		UsedColumns:  make(map[string]int),
 	}
 
 	return conversion.convert(filter)
@@ -340,10 +340,7 @@ func (c *Conversion) convertFieldExpr(expr *expr.Expr) (string, error) {
 	}
 	if ident := expr.GetIdentExpr(); ident != nil {
 		field := ident.Name
-		if sqlField, ok := c.FieldMapping[field]; ok {
-			return sqlField, nil
-		}
-		return field, nil
+		return c.useField(field), nil
 	}
 	if selectExpr := expr.GetSelectExpr(); selectExpr != nil {
 		// Handle nested field expressions like user.profile.name
@@ -353,15 +350,25 @@ func (c *Conversion) convertFieldExpr(expr *expr.Expr) (string, error) {
 		}
 		// Convert the nested field path to a single field name by replacing dots with underscores
 		field := operand + "_" + selectExpr.Field
-		if sqlField, ok := c.FieldMapping[field]; ok {
-			return sqlField, nil
-		}
-		return field, nil
+		return c.useField(field), nil
 	}
 	if call := expr.GetCallExpr(); call != nil {
 		return c.convertFieldCallExpr(call)
 	}
 	return "", fmt.Errorf(errUnsupportedField, expr.ExprKind)
+}
+
+func (c *Conversion) useField(field string) string {
+	sqlField, ok := c.FieldMapping[field]
+	if !ok {
+		sqlField = field
+	}
+
+	if _, ok := c.UsedColumns[sqlField]; !ok {
+		c.UsedColumns[sqlField] = 0
+	}
+	c.UsedColumns[sqlField]++
+	return sqlField
 }
 
 func (c *Conversion) convertFieldCallExpr(call *expr.Expr_Call) (string, error) {
