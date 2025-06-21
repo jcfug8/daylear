@@ -17,5 +17,5 @@ type circleClient interface {
 
 	BulkCreateCircleUsers(context.Context, model.CircleId, []int64, permPb.PermissionLevel) error
 	BulkDeleteCircleUsers(context.Context, string) error
-	GetCircleUserPermission(ctx context.Context, userId int64, recipeId int64) (permPb.PermissionLevel, error)
+	GetCircleUserPermission(ctx context.Context, userId int64, circleId int64) (permPb.PermissionLevel, error)
 }

@@ -22,6 +22,7 @@ type Service struct {
 	circleV1alpha1Service       circleV1alpha1.CircleServiceServer
 	publicCircleV1alpha1Service circleV1alpha1.PublicCircleServiceServer
 	recipeRecipientsService     recipesV1alpha1.RecipeRecipientsServiceServer
+	recipeAccessService         recipesV1alpha1.RecipeAccessServiceServer
 	domain                      domain.Domain
 }
 
@@ -34,6 +35,7 @@ type NewServiceParams struct {
 	CircleV1alpha1Service       circleV1alpha1.CircleServiceServer
 	PublicCircleV1alpha1Service circleV1alpha1.PublicCircleServiceServer
 	RecipeRecipientsService     recipesV1alpha1.RecipeRecipientsServiceServer
+	RecipeAccessService         recipesV1alpha1.RecipeAccessServiceServer
 	Domain                      domain.Domain
 }
 
@@ -46,6 +48,7 @@ func NewService(params NewServiceParams) *Service {
 		publicCircleV1alpha1Service: params.PublicCircleV1alpha1Service,
 		recipeRecipientsService:     params.RecipeRecipientsService,
 		domain:                      params.Domain,
+		recipeAccessService:         params.RecipeAccessService,
 	}
 }
 
@@ -77,6 +80,10 @@ func (s *Service) Register(m *http.ServeMux) error {
 		log.Printf("Failed to register gRPC gateway: %v", err)
 	}
 	err = recipesV1alpha1.RegisterRecipeRecipientsServiceHandlerServer(ctx, mux, s.recipeRecipientsService)
+	if err != nil {
+		log.Printf("Failed to register gRPC gateway: %v", err)
+	}
+	err = recipesV1alpha1.RegisterRecipeAccessServiceHandlerServer(ctx, mux, s.recipeAccessService)
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
 	}

@@ -199,12 +199,11 @@ func getPatternsDetails(resource proto.Message, extraPatterns []string) (map[int
 		splitParentPattern := []string{}
 		// If there are more than 3 sections, derive the parent pattern
 		if len(splitPattern) > 3 {
-			// For standard resources, the parent pattern is everything up to the last two segments
-			// For singleton resources, the parent pattern is everything up to the last segment
-			if strings.Contains(pattern, "{standard_named_resource}") {
-				splitParentPattern = splitPattern[:len(splitPattern)-2]
-			} else if strings.Contains(pattern, "singletonNamedResource") {
-				splitParentPattern = splitPattern[:len(splitPattern)-1]
+			// Get the parent pattern sections as if it's a singleton pattern
+			splitParentPattern = splitPattern[:len(splitPattern)-1]
+			// If it now has an odd number of sections, it was a collection name pattern; remove another section
+			if len(splitParentPattern)%2 == 1 {
+				splitParentPattern = splitParentPattern[:len(splitParentPattern)-1]
 			}
 		}
 

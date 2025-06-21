@@ -11,6 +11,7 @@ import (
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -46,7 +47,7 @@ func (s *RecipeService) CreateAccess(ctx context.Context, request *pb.CreateAcce
 	}
 
 	// parse parent
-	_, err = s.accessNamer.Parse(request.Parent, &modelAccess)
+	_, err = s.accessNamer.ParseParent(request.Parent, &modelAccess)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", err)
 	}
@@ -69,7 +70,7 @@ func (s *RecipeService) CreateAccess(ctx context.Context, request *pb.CreateAcce
 	return pbAccess, nil
 }
 
-func (s *RecipeService) DeleteAccess(ctx context.Context, request *pb.DeleteAccessRequest) (*pb.Access, error) {
+func (s *RecipeService) DeleteAccess(ctx context.Context, request *pb.DeleteAccessRequest) (*emptypb.Empty, error) {
 	user, circleID, err := headers.ParseAuthData(ctx, s.circleNamer)
 	if err != nil {
 		return nil, err

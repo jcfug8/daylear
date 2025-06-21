@@ -27,58 +27,74 @@ const (
 type SQLConverter struct {
 	// FieldMapping maps AIP field names to SQL column names
 	FieldMapping map[string]string
-	// Params holds the parameter values for the SQL query
-	Params []interface{}
+}
+
+type Conversion struct {
+	FieldMapping map[string]string
+	WhereClause  string
+	Params       []interface{}
+	UsedFields   []string
 }
 
 // NewSQLConverter creates a new SQLConverter with the given field mapping
 func NewSQLConverter(fieldMapping map[string]string) *SQLConverter {
 	return &SQLConverter{
 		FieldMapping: fieldMapping,
-		Params:       make([]interface{}, 0),
 	}
 }
 
 // Convert parses an AIP-160 filter expression and converts it to a SQL WHERE clause
-func (c *SQLConverter) Convert(filter string) (string, error) {
+func (c *SQLConverter) Convert(filter string) (*Conversion, error) {
+	conversion := &Conversion{
+		FieldMapping: c.FieldMapping,
+		Params:       make([]interface{}, 0),
+		UsedFields:   make([]string, 0),
+	}
+
+	return conversion.convert(filter)
+}
+
+func (c *Conversion) convert(filter string) (*Conversion, error) {
 	if filter == "" {
-		return "", nil
+		return c, nil
 	}
 
 	var parser filtering.Parser
 	parser.Init(filter)
 	parsed, err := parser.Parse()
 	if err != nil {
-		return "", fmt.Errorf(errInvalidFilter, err)
+		return c, fmt.Errorf(errInvalidFilter, err)
 	}
 
 	sql, err := c.convertExpression(parsed.Expr)
 	if err != nil {
-		return "", fmt.Errorf(errInvalidConversion, err)
+		return c, fmt.Errorf(errInvalidConversion, err)
 	}
 
-	return sql, nil
+	c.WhereClause = sql
+
+	return c, nil
 }
 
 // Helper functions for common operations
-func (c *SQLConverter) addParam(value interface{}) string {
+func (c *Conversion) addParam(value interface{}) string {
 	paramIndex := len(c.Params)
 	c.Params = append(c.Params, value)
 	return fmt.Sprintf("$%d", paramIndex+1)
 }
 
-func (c *SQLConverter) convertWildcardString(value string) string {
+func (c *Conversion) convertWildcardString(value string) string {
 	return strings.ReplaceAll(value, "*", "%")
 }
 
-func (c *SQLConverter) handleWildcardString(field string, value string) string {
+func (c *Conversion) handleWildcardString(field string, value string) string {
 	likeValue := c.convertWildcardString(value)
 	paramIndex := len(c.Params)
 	c.Params = append(c.Params, likeValue)
 	return fmt.Sprintf("%s LIKE $%d", field, paramIndex+1)
 }
 
-func (c *SQLConverter) handleNullComparison(field string, value interface{}, isEquals bool) string {
+func (c *Conversion) handleNullComparison(field string, value interface{}, isEquals bool) string {
 	if value == nil {
 		if isEquals {
 			return fmt.Sprintf("%s IS NULL", field)
@@ -104,7 +120,7 @@ func (c *SQLConverter) handleNullComparison(field string, value interface{}, isE
 	return fmt.Sprintf("%s %s $%d", field, operator, paramIndex+1)
 }
 
-func (c *SQLConverter) convertExpression(expr *expr.Expr) (string, error) {
+func (c *Conversion) convertExpression(expr *expr.Expr) (string, error) {
 	if expr == nil {
 		return "", errors.New(errNilExpression)
 	}
@@ -128,7 +144,7 @@ func (c *SQLConverter) convertExpression(expr *expr.Expr) (string, error) {
 	return "", fmt.Errorf(errUnsupportedExpr, expr.ExprKind)
 }
 
-func (c *SQLConverter) convertCallExpr(call *expr.Expr_Call) (string, error) {
+func (c *Conversion) convertCallExpr(call *expr.Expr_Call) (string, error) {
 	function := call.Function
 	args := call.Args
 
@@ -318,7 +334,7 @@ func (c *SQLConverter) convertCallExpr(call *expr.Expr_Call) (string, error) {
 	}
 }
 
-func (c *SQLConverter) convertFieldExpr(expr *expr.Expr) (string, error) {
+func (c *Conversion) convertFieldExpr(expr *expr.Expr) (string, error) {
 	if expr == nil {
 		return "", errors.New(errNilExpression)
 	}
@@ -348,7 +364,7 @@ func (c *SQLConverter) convertFieldExpr(expr *expr.Expr) (string, error) {
 	return "", fmt.Errorf(errUnsupportedField, expr.ExprKind)
 }
 
-func (c *SQLConverter) convertFieldCallExpr(call *expr.Expr_Call) (string, error) {
+func (c *Conversion) convertFieldCallExpr(call *expr.Expr_Call) (string, error) {
 	switch call.Function {
 	case "and":
 		if len(call.Args) != 2 {
@@ -399,7 +415,7 @@ func (c *SQLConverter) convertFieldCallExpr(call *expr.Expr_Call) (string, error
 	}
 }
 
-func (c *SQLConverter) convertValueExpr(expr *expr.Expr) (interface{}, error) {
+func (c *Conversion) convertValueExpr(expr *expr.Expr) (interface{}, error) {
 	if expr == nil {
 		return nil, errors.New(errNilExpression)
 	}
@@ -412,7 +428,7 @@ func (c *SQLConverter) convertValueExpr(expr *expr.Expr) (interface{}, error) {
 	return nil, fmt.Errorf(errUnsupportedValue, expr.ExprKind)
 }
 
-func (c *SQLConverter) convertConstExpr(constExpr *expr.Constant) (interface{}, error) {
+func (c *Conversion) convertConstExpr(constExpr *expr.Constant) (interface{}, error) {
 	switch k := constExpr.ConstantKind.(type) {
 	case *expr.Constant_StringValue:
 		// Special case: treat "null" string as nil
@@ -436,7 +452,7 @@ func (c *SQLConverter) convertConstExpr(constExpr *expr.Constant) (interface{}, 
 	}
 }
 
-func (c *SQLConverter) convertIdentExpr(identExpr *expr.Expr_Ident) (interface{}, error) {
+func (c *Conversion) convertIdentExpr(identExpr *expr.Expr_Ident) (interface{}, error) {
 	name := identExpr.Name
 	switch name {
 	case "true":

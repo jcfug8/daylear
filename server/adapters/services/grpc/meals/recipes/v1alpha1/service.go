@@ -73,6 +73,7 @@ func NewRecipeService(params NewRecipeServiceParams) (*RecipeService, error) {
 type RecipeService struct {
 	pb.UnimplementedRecipeServiceServer
 	pb.UnimplementedRecipeRecipientsServiceServer
+	pb.UnimplementedRecipeAccessServiceServer
 	domain                 domain.Domain
 	fieldBehaviorValidator fieldValidator.FieldBehaviorValidator
 	log                    zerolog.Logger

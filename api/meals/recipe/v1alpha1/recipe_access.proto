@@ -73,7 +73,7 @@ message Access {
   IssuerOrRecipient recipient = 3 [(google.api.field_behavior) = REQUIRED];
 
   // the permission level of the access 
-  Level level = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  Level level = 4 [(google.api.field_behavior) = REQUIRED];
 
   // the status of the access
   State state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
@@ -82,9 +82,9 @@ message Access {
   message IssuerOrRecipient {
     oneof name {
       // the name of the user
-      string user = 1 [(google.api.field_behavior) = REQUIRED];
+      string user = 1;
       // the name of the circle
-      string circle = 2 [(google.api.field_behavior) = REQUIRED];
+      string circle = 2;
     }
   }
 

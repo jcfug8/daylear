@@ -16,3 +16,15 @@ func (m FieldMap) MapFieldToFields(field string, fields ...string) FieldMap {
 	m[field] = fields
 	return m
 }
+
+// ToStringMap will convert the FieldMap to a map[string]string.
+// It will take the first field in the list of fields.
+func (m FieldMap) ToStringMap() map[string]string {
+	stringMap := make(map[string]string)
+	for key, values := range m {
+		if len(values) > 0 {
+			stringMap[key] = values[0]
+		}
+	}
+	return stringMap
+}

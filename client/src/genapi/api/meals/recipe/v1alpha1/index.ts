@@ -434,11 +434,11 @@ export type Access = {
   issuer: Access_IssuerOrRecipient | undefined;
   // the name of the recipient
   //
-  // Behaviors: OUTPUT_ONLY
+  // Behaviors: REQUIRED
   recipient: Access_IssuerOrRecipient | undefined;
   // the permission level of the access
   //
-  // Behaviors: OUTPUT_ONLY
+  // Behaviors: REQUIRED
   level: Access_Level | undefined;
   // the status of the access
   //

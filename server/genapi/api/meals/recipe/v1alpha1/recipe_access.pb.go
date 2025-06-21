@@ -644,8 +644,8 @@ const file_api_meals_recipe_v1alpha1_recipe_access_proto_rawDesc = "" +
 	"\x06Access\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12P\n" +
 	"\x06issuer\x18\x02 \x01(\v23.api.meals.recipe.v1alpha1.Access.IssuerOrRecipientB\x03\xe0A\x03R\x06issuer\x12V\n" +
-	"\trecipient\x18\x03 \x01(\v23.api.meals.recipe.v1alpha1.Access.IssuerOrRecipientB\x03\xe0A\x03R\trecipient\x12B\n" +
-	"\x05level\x18\x04 \x01(\x0e2'.api.meals.recipe.v1alpha1.Access.LevelB\x03\xe0A\x03R\x05level\x12B\n" +
+	"\trecipient\x18\x03 \x01(\v23.api.meals.recipe.v1alpha1.Access.IssuerOrRecipientB\x03\xe0A\x02R\trecipient\x12B\n" +
+	"\x05level\x18\x04 \x01(\x0e2'.api.meals.recipe.v1alpha1.Access.LevelB\x03\xe0A\x02R\x05level\x12B\n" +
 	"\x05state\x18\x05 \x01(\x0e2'.api.meals.recipe.v1alpha1.Access.StateB\x03\xe0A\x03R\x05state\x1aK\n" +
 	"\x11IssuerOrRecipient\x12\x14\n" +
 	"\x04user\x18\x01 \x01(\tH\x00R\x04user\x12\x18\n" +

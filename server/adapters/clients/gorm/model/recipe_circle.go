@@ -1,6 +1,9 @@
 package model
 
-import permPb "github.com/jcfug8/daylear/server/genapi/api/types"
+import (
+	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+	permPb "github.com/jcfug8/daylear/server/genapi/api/types"
+)
 
 // RecipeCircleFields defines the recipeCircle fields.
 var RecipeCircleFields = recipeCircleFields{
@@ -8,6 +11,7 @@ var RecipeCircleFields = recipeCircleFields{
 	RecipeId:        "recipe_id",
 	CircleId:        "circle_id",
 	PermissionLevel: "permission_level",
+	State:           "state",
 	Title:           "title",
 }
 
@@ -16,6 +20,7 @@ type recipeCircleFields struct {
 	RecipeId        string
 	CircleId        string
 	PermissionLevel string
+	State           string
 	Title           string
 }
 
@@ -26,6 +31,7 @@ func (fields recipeCircleFields) Map(m RecipeCircle) map[string]any {
 		fields.RecipeId:        m.RecipeId,
 		fields.CircleId:        m.CircleId,
 		fields.PermissionLevel: m.PermissionLevel,
+		fields.State:           m.State,
 		fields.Title:           m.Title,
 	}
 }
@@ -37,6 +43,7 @@ func (fields recipeCircleFields) Mask() []string {
 		fields.RecipeId,
 		fields.CircleId,
 		fields.PermissionLevel,
+		fields.State,
 		fields.Title,
 	}
 }
@@ -47,6 +54,7 @@ type RecipeCircle struct {
 	RecipeId        int64                  `gorm:"not null;index"`
 	CircleId        int64                  `gorm:"not null;index"`
 	PermissionLevel permPb.PermissionLevel `gorm:"default:100"`
+	State           pb.Access_State        `gorm:"default:200"`
 	Title           string                 `gorm:"->"` // read only from join
 }
 
