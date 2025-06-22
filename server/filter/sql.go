@@ -335,27 +335,39 @@ func (c *Conversion) convertCallExpr(call *expr.Expr_Call) (string, error) {
 }
 
 func (c *Conversion) convertFieldExpr(expr *expr.Expr) (string, error) {
+	field, err := c.convertFieldExprRecursive(expr)
+	if err != nil {
+		return "", err
+	}
+	return c.useField(field), nil
+}
+
+func (c *Conversion) convertFieldExprRecursive(expr *expr.Expr) (string, error) {
+	var field string
+	var err error
+
 	if expr == nil {
 		return "", errors.New(errNilExpression)
-	}
-	if ident := expr.GetIdentExpr(); ident != nil {
-		field := ident.Name
-		return c.useField(field), nil
-	}
-	if selectExpr := expr.GetSelectExpr(); selectExpr != nil {
+	} else if ident := expr.GetIdentExpr(); ident != nil {
+		field = ident.Name
+	} else if selectExpr := expr.GetSelectExpr(); selectExpr != nil {
 		// Handle nested field expressions like user.profile.name
-		operand, err := c.convertFieldExpr(selectExpr.Operand)
+		operand, err := c.convertFieldExprRecursive(selectExpr.Operand)
 		if err != nil {
 			return "", err
 		}
 		// Convert the nested field path to a single field name by replacing dots with underscores
-		field := operand + "_" + selectExpr.Field
-		return c.useField(field), nil
+		field = operand + "." + selectExpr.Field
+	} else if call := expr.GetCallExpr(); call != nil {
+		field, err = c.convertFieldCallExpr(call)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		return "", fmt.Errorf(errUnsupportedField, expr.ExprKind)
 	}
-	if call := expr.GetCallExpr(); call != nil {
-		return c.convertFieldCallExpr(call)
-	}
-	return "", fmt.Errorf(errUnsupportedField, expr.ExprKind)
+
+	return field, nil
 }
 
 func (c *Conversion) useField(field string) string {

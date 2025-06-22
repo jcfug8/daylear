@@ -8,13 +8,21 @@ import (
 
 func newTestConverter() *SQLConverter {
 	fieldMapping := map[string]string{
-		"name":       "user_name",
-		"age":        "user_age",
-		"email":      "user_email",
-		"created_at": "created_at",
-		"is_active":  "is_active",
-		"score":      "user_score",
-		"hex_value":  "hex_value",
+		"user.profile.name":         "user_profile_name",
+		"user.profile.email":        "user_profile_email",
+		"user.profile.created_at":   "user_profile_created_at",
+		"user.profile.hex_value":    "user_profile_hex_value",
+		"user.profile.is_active":    "user_profile_is_active",
+		"user.profile.score":        "user_profile_score",
+		"user.profile.age":          "user_profile_age",
+		"user.profile.address.city": "user_profile_address_city",
+		"name":                      "user_name",
+		"age":                       "user_age",
+		"email":                     "user_email",
+		"created_at":                "created_at",
+		"is_active":                 "is_active",
+		"score":                     "user_score",
+		"hex_value":                 "hex_value",
 	}
 	return NewSQLConverter(fieldMapping)
 }
@@ -160,7 +168,7 @@ func TestSQLConverter_NestedField(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_profile_name = $1", got.WhereClause)
 	assert.Equal(t, []interface{}{"John"}, got.Params)
-	assert.Equal(t, map[string]int{}, got.UsedColumns)
+	assert.Equal(t, map[string]int{"user_profile_name": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_MultipleLogicalOps(t *testing.T) {
@@ -241,7 +249,7 @@ func TestSQLConverter_ComplexNestedField(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "user_profile_address_city = $1", got.WhereClause)
 	assert.Equal(t, []interface{}{"New York"}, got.Params)
-	assert.Equal(t, map[string]int{}, got.UsedColumns)
+	assert.Equal(t, map[string]int{"user_profile_address_city": 1}, got.UsedColumns)
 }
 
 func TestSQLConverter_MultipleContains(t *testing.T) {
@@ -430,7 +438,7 @@ func TestSQLConverter_NestedFieldOperations(t *testing.T) {
 			filter:   "NOT user.profile.name = 'John' AND user.profile.age > 18",
 			wantSQL:  "user_profile_name != $1 AND user_profile_age > $2",
 			wantArgs: []interface{}{"John", int64(18)},
-			wantUsed: map[string]int{},
+			wantUsed: map[string]int{"user_profile_name": 1, "user_profile_age": 1},
 		},
 		{
 			name:    "Invalid nested field contains operator",
@@ -485,70 +493,70 @@ func TestSQLConverter_NestedFieldValues(t *testing.T) {
 			filter:   "user.profile.name = null",
 			wantSQL:  "user_profile_name IS NULL",
 			wantArgs: []interface{}{},
-			wantUsed: map[string]int{},
+			wantUsed: map[string]int{"user_profile_name": 1},
 		},
 		{
 			name:     "Not null value",
 			filter:   "user.profile.name != null",
 			wantSQL:  "user_profile_name IS NOT NULL",
 			wantArgs: []interface{}{},
-			wantUsed: map[string]int{},
+			wantUsed: map[string]int{"user_profile_name": 1},
 		},
 		{
 			name:     "Boolean value",
 			filter:   "user.profile.is_active = true",
 			wantSQL:  "user_profile_is_active = $1",
 			wantArgs: []interface{}{true},
-			wantUsed: map[string]int{},
+			wantUsed: map[string]int{"user_profile_is_active": 1},
 		},
 		{
 			name:     "Numeric value",
 			filter:   "user.profile.age > 18",
 			wantSQL:  "user_profile_age > $1",
 			wantArgs: []interface{}{int64(18)},
-			wantUsed: map[string]int{},
+			wantUsed: map[string]int{"user_profile_age": 1},
 		},
 		{
 			name:     "Float value",
 			filter:   "user.profile.score > 95.5",
 			wantSQL:  "user_profile_score > $1",
 			wantArgs: []interface{}{float64(95.5)},
-			wantUsed: map[string]int{},
+			wantUsed: map[string]int{"user_profile_score": 1},
 		},
 		{
 			name:     "Hex value",
 			filter:   "user.profile.hex_value = 0xFF",
 			wantSQL:  "user_profile_hex_value = $1",
 			wantArgs: []interface{}{int64(0xFF)},
-			wantUsed: map[string]int{},
+			wantUsed: map[string]int{"user_profile_hex_value": 1},
 		},
 		{
 			name:     "Timestamp value",
 			filter:   "user.profile.created_at > '2012-04-21T11:30:00-04:00'",
 			wantSQL:  "user_profile_created_at > $1",
 			wantArgs: []interface{}{"2012-04-21T11:30:00-04:00"},
-			wantUsed: map[string]int{},
+			wantUsed: map[string]int{"user_profile_created_at": 1},
 		},
 		{
 			name:     "Wildcard value",
 			filter:   "user.profile.email = '*.gmail.com'",
 			wantSQL:  "user_profile_email LIKE $1",
 			wantArgs: []interface{}{"%.gmail.com"},
-			wantUsed: map[string]int{},
+			wantUsed: map[string]int{"user_profile_email": 1},
 		},
 		{
 			name:     "Multiple wildcards",
 			filter:   "user.profile.email = 'test.*.com'",
 			wantSQL:  "user_profile_email LIKE $1",
 			wantArgs: []interface{}{"test.%.com"},
-			wantUsed: map[string]int{},
+			wantUsed: map[string]int{"user_profile_email": 1},
 		},
 		{
 			name:     "Complex nested field",
 			filter:   "user.profile.address.city = 'New York'",
 			wantSQL:  "user_profile_address_city = $1",
 			wantArgs: []interface{}{"New York"},
-			wantUsed: map[string]int{},
+			wantUsed: map[string]int{"user_profile_address_city": 1},
 		},
 	}
 
@@ -611,14 +619,13 @@ func TestSQLConverter_ComplexNestedExpressions(t *testing.T) {
 
 func TestSQLConverter_UsedColumns(t *testing.T) {
 	converter := newTestConverter()
-	converter.FieldMapping["user_profile_name"] = "profile_name"
 	got, err := converter.Convert("name = 'John' AND user.profile.name = 'Test'")
 	assert.NoError(t, err)
-	assert.Equal(t, "user_name = $1 AND profile_name = $2", got.WhereClause)
+	assert.Equal(t, "user_name = $1 AND user_profile_name = $2", got.WhereClause)
 	assert.Equal(t, []interface{}{"John", "Test"}, got.Params)
 	expectedUsedColumns := map[string]int{
-		"user_name":    1,
-		"profile_name": 1,
+		"user_name":         1,
+		"user_profile_name": 1,
 	}
 	assert.Equal(t, expectedUsedColumns, got.UsedColumns)
 }
