@@ -120,8 +120,8 @@ func (d *Domain) GetRecipeAccess(ctx context.Context, parent model.RecipeAccessP
 }
 
 func (d *Domain) ListRecipeAccesses(ctx context.Context, parent model.RecipeAccessParent, pageSize int32, pageOffset int32, filter string) ([]model.RecipeAccess, error) {
-	if parent.RecipeId.RecipeId == 0 {
-		return nil, domain.ErrInvalidArgument{Msg: "recipe id is required"}
+	if parent.Issuer.UserId == 0 && parent.Issuer.CircleId == 0 {
+		return nil, domain.ErrInvalidArgument{Msg: "issuer is required"}
 	}
 
 	// TODO: verify issuer has access to recipe

@@ -26,29 +26,37 @@ const (
 // SQLConverter converts AIP-160 filter expressions to SQL WHERE clauses
 type SQLConverter struct {
 	// FieldMapping maps AIP field names to SQL column names
-	FieldMapping map[string]string
+	FieldMapping    map[string]string
+	UseQuestionMark bool // if true, use ? placeholders (GORM style); else use $1, $2... (Postgres style)
 }
 
 type Conversion struct {
-	FieldMapping map[string]string
-	WhereClause  string
-	Params       []interface{}
-	UsedColumns  map[string]int
+	FieldMapping    map[string]string
+	WhereClause     string
+	Params          []interface{}
+	UsedColumns     map[string]int
+	UseQuestionMark bool
 }
 
-// NewSQLConverter creates a new SQLConverter with the given field mapping
-func NewSQLConverter(fieldMapping map[string]string) *SQLConverter {
+// NewSQLConverter creates a new SQLConverter with the given field mapping and optional useQuestionMark flag
+func NewSQLConverter(fieldMapping map[string]string, useQuestionMark ...bool) *SQLConverter {
+	useQM := false
+	if len(useQuestionMark) > 0 {
+		useQM = useQuestionMark[0]
+	}
 	return &SQLConverter{
-		FieldMapping: fieldMapping,
+		FieldMapping:    fieldMapping,
+		UseQuestionMark: useQM,
 	}
 }
 
 // Convert parses an AIP-160 filter expression and converts it to a SQL WHERE clause
 func (c *SQLConverter) Convert(filter string) (*Conversion, error) {
 	conversion := &Conversion{
-		FieldMapping: c.FieldMapping,
-		Params:       make([]interface{}, 0),
-		UsedColumns:  make(map[string]int),
+		FieldMapping:    c.FieldMapping,
+		Params:          make([]interface{}, 0),
+		UsedColumns:     make(map[string]int),
+		UseQuestionMark: c.UseQuestionMark,
 	}
 
 	return conversion.convert(filter)
@@ -80,6 +88,9 @@ func (c *Conversion) convert(filter string) (*Conversion, error) {
 func (c *Conversion) addParam(value interface{}) string {
 	paramIndex := len(c.Params)
 	c.Params = append(c.Params, value)
+	if c.UseQuestionMark {
+		return "?"
+	}
 	return fmt.Sprintf("$%d", paramIndex+1)
 }
 
@@ -89,9 +100,7 @@ func (c *Conversion) convertWildcardString(value string) string {
 
 func (c *Conversion) handleWildcardString(field string, value string) string {
 	likeValue := c.convertWildcardString(value)
-	paramIndex := len(c.Params)
-	c.Params = append(c.Params, likeValue)
-	return fmt.Sprintf("%s LIKE $%d", field, paramIndex+1)
+	return fmt.Sprintf("%s LIKE %s", field, c.addParam(likeValue))
 }
 
 func (c *Conversion) handleNullComparison(field string, value interface{}, isEquals bool) string {
@@ -104,20 +113,16 @@ func (c *Conversion) handleNullComparison(field string, value interface{}, isEqu
 	// Check if the value is a string containing wildcards
 	if strValue, ok := value.(string); ok && strings.Contains(strValue, "*") {
 		likeValue := c.convertWildcardString(strValue)
-		paramIndex := len(c.Params)
-		c.Params = append(c.Params, likeValue)
 		if isEquals {
-			return fmt.Sprintf("%s LIKE $%d", field, paramIndex+1)
+			return fmt.Sprintf("%s LIKE %s", field, c.addParam(likeValue))
 		}
-		return fmt.Sprintf("%s NOT LIKE $%d", field, paramIndex+1)
+		return fmt.Sprintf("%s NOT LIKE %s", field, c.addParam(likeValue))
 	}
-	paramIndex := len(c.Params)
-	c.Params = append(c.Params, value)
 	operator := "="
 	if !isEquals {
 		operator = "!="
 	}
-	return fmt.Sprintf("%s %s $%d", field, operator, paramIndex+1)
+	return fmt.Sprintf("%s %s %s", field, operator, c.addParam(value))
 }
 
 func (c *Conversion) convertExpression(expr *expr.Expr) (string, error) {
@@ -224,22 +229,20 @@ func (c *Conversion) convertCallExpr(call *expr.Expr_Call) (string, error) {
 					return fmt.Sprintf("%s IS NOT NULL", field), nil
 				}
 				// Handle regular comparisons
-				paramIndex := len(c.Params)
-				c.Params = append(c.Params, value)
 				operator := notCall.CallExpr.Function
 				switch operator {
 				case "<":
-					return fmt.Sprintf("%s >= $%d", field, paramIndex+1), nil
+					return fmt.Sprintf("%s >= %s", field, c.addParam(value)), nil
 				case ">":
-					return fmt.Sprintf("%s <= $%d", field, paramIndex+1), nil
+					return fmt.Sprintf("%s <= %s", field, c.addParam(value)), nil
 				case "<=":
-					return fmt.Sprintf("%s > $%d", field, paramIndex+1), nil
+					return fmt.Sprintf("%s > %s", field, c.addParam(value)), nil
 				case ">=":
-					return fmt.Sprintf("%s < $%d", field, paramIndex+1), nil
+					return fmt.Sprintf("%s < %s", field, c.addParam(value)), nil
 				case "=":
-					return fmt.Sprintf("%s != $%d", field, paramIndex+1), nil
+					return fmt.Sprintf("%s != %s", field, c.addParam(value)), nil
 				case "!=":
-					return fmt.Sprintf("%s = $%d", field, paramIndex+1), nil
+					return fmt.Sprintf("%s = %s", field, c.addParam(value)), nil
 				}
 			}
 		}
@@ -282,9 +285,7 @@ func (c *Conversion) convertCallExpr(call *expr.Expr_Call) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		paramIndex := len(c.Params)
-		c.Params = append(c.Params, value)
-		return fmt.Sprintf("%s %s $%d", field, function, paramIndex+1), nil
+		return fmt.Sprintf("%s %s %s", field, function, c.addParam(value)), nil
 
 	case "contains":
 		if len(args) != 2 {
@@ -294,9 +295,7 @@ func (c *Conversion) convertCallExpr(call *expr.Expr_Call) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		paramIndex := len(c.Params)
-		c.Params = append(c.Params, value)
-		return fmt.Sprintf("%s LIKE '%%' || $%d || '%%'", field, paramIndex+1), nil
+		return fmt.Sprintf("%s LIKE '%%' || %s || '%%'", field, c.addParam(value)), nil
 
 	case "starts_with":
 		if len(args) != 2 {
@@ -306,9 +305,7 @@ func (c *Conversion) convertCallExpr(call *expr.Expr_Call) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		paramIndex := len(c.Params)
-		c.Params = append(c.Params, value)
-		return fmt.Sprintf("%s LIKE $%d || '%%'", field, paramIndex+1), nil
+		return fmt.Sprintf("%s LIKE %s || '%%'", field, c.addParam(value)), nil
 
 	case "ends_with":
 		if len(args) != 2 {
@@ -318,9 +315,7 @@ func (c *Conversion) convertCallExpr(call *expr.Expr_Call) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		paramIndex := len(c.Params)
-		c.Params = append(c.Params, value)
-		return fmt.Sprintf("%s LIKE '%%' || $%d", field, paramIndex+1), nil
+		return fmt.Sprintf("%s LIKE '%%' || %s", field, c.addParam(value)), nil
 
 	case ":":
 		if len(args) != 2 {
@@ -425,9 +420,7 @@ func (c *Conversion) convertFieldCallExpr(call *expr.Expr_Call) (string, error) 
 		if err != nil {
 			return "", err
 		}
-		paramIndex := len(c.Params)
-		c.Params = append(c.Params, right)
-		return fmt.Sprintf("%s %s $%d", left, call.Function, paramIndex+1), nil
+		return fmt.Sprintf("%s %s %s", left, call.Function, c.addParam(right)), nil
 
 	default:
 		return "", fmt.Errorf(errUnsupportedFunc, call.Function)

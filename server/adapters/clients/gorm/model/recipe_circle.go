@@ -7,12 +7,12 @@ import (
 
 // RecipeCircleFields defines the recipeCircle fields.
 var RecipeCircleFields = recipeCircleFields{
-	RecipeCircleId:  "recipe_circle_id",
-	RecipeId:        "recipe_id",
-	CircleId:        "circle_id",
-	PermissionLevel: "permission_level",
-	State:           "state",
-	Title:           "title",
+	RecipeCircleId:  "recipe_circle.recipe_circle_id",
+	RecipeId:        "recipe_circle.recipe_id",
+	CircleId:        "recipe_circle.circle_id",
+	PermissionLevel: "recipe_circle.permission_level",
+	State:           "recipe_circle.state",
+	Title:           "recipe_circle.title",
 }
 
 type recipeCircleFields struct {

@@ -7,12 +7,12 @@ import (
 
 // RecipeUserFields defines the recipeUser fields.
 var RecipeUserFields = recipeUserFields{
-	RecipeUserId:    "recipe_user_id",
-	RecipeId:        "recipe_id",
-	UserId:          "user_id",
-	PermissionLevel: "permission_level",
-	State:           "state",
-	Title:           "title",
+	RecipeUserId:    "recipe_user.recipe_user_id",
+	RecipeId:        "recipe_user.recipe_id",
+	UserId:          "recipe_user.user_id",
+	PermissionLevel: "recipe_user.permission_level",
+	State:           "recipe_user.state",
+	Title:           "recipe_user.title",
 }
 
 type recipeUserFields struct {

@@ -1,25 +1,23 @@
 package model
 
 import (
-	"github.com/jcfug8/daylear/server/core/masks"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 )
 
 // RecipeAccessFields defines the recipe access fields for filtering.
 var RecipeAccessFields = recipeAccessFields{
-	Level: "permission_level",
-	State: "state",
+	Level:           "permission_level",
+	State:           "state",
+	RecipientUser:   "user_id",
+	RecipientCircle: "circle_id",
 }
 
 type recipeAccessFields struct {
-	Level string
-	State string
+	Level           string
+	State           string
+	RecipientUser   string
+	RecipientCircle string
 }
-
-// RecipeAccessMap maps the core model fields to the database model fields.
-var RecipeAccessMap = masks.NewFieldMap().
-	MapFieldToFields(RecipeAccessFields.Level, "permission_level").
-	MapFieldToFields(RecipeAccessFields.State, "state")
 
 // RecipeAccess represents a user's or circle's access to a recipe
 type RecipeAccess struct {

@@ -158,7 +158,7 @@ func (s *RecipeService) ListAccesses(ctx context.Context, request *pb.ListAccess
 	}
 
 	// parse parent
-	_, err = s.accessNamer.Parse(request.Parent, &recipeAccessParent)
+	_, err = s.accessNamer.ParseParent(request.Parent, &recipeAccessParent)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", err)
 	}

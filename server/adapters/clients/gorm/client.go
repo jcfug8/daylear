@@ -2,6 +2,7 @@ package gorm
 
 import (
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/filter"
 	"github.com/jcfug8/daylear/server/ports/repository"
 
 	"github.com/rs/zerolog"
@@ -23,8 +24,10 @@ type ClientParams struct {
 // NewClient creates a new GORM client.
 func NewClient(p ClientParams) (*Client, error) {
 	return &Client{
-		db:  p.DB,
-		log: p.Log,
+		db:                             p.DB,
+		log:                            p.Log,
+		recipeAccessUserSQLConverter:   filter.NewSQLConverter(RecipeAccessUserMap, true),
+		recipeAccessCircleSQLConverter: filter.NewSQLConverter(RecipeAccessCircleMap, true),
 	}, nil
 }
 
@@ -33,6 +36,9 @@ type Client struct {
 	db    *gorm.DB
 	level int
 	log   zerolog.Logger
+
+	recipeAccessUserSQLConverter   *filter.SQLConverter
+	recipeAccessCircleSQLConverter *filter.SQLConverter
 }
 
 // Migrate migrates the database.

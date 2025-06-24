@@ -136,9 +136,7 @@ erDiagram
 }
 ```
 
-## API Cookbook
-
-This section provides a collection of working `curl` examples for common API endpoints.
+## API Endpoints
 
 ### CreateRecipeAccess
 
@@ -158,8 +156,46 @@ curl -X POST \
 ```
 
 **JSON Body Details:**
-*   `recipient`: A `oneof` field. Can be either `user` or `circle`. The value should be the full resource name of the recipient.
-*   `level`: The permission level to grant. Can be `"LEVEL_READ"`, `"LEVEL_WRITE"`, or `"LEVEL_ADMIN"`. The gateway also accepts the integer enum values.
+- `recipient`: A `oneof` field. Can be either `user` or `circle`. The value should be the full resource name of the recipient.
+- `level`: The permission level to grant. Can be `"LEVEL_READ"`, `"LEVEL_WRITE"`, or `"LEVEL_ADMIN"`. The gateway also accepts the integer enum values.
+
+**Response Body Details:**
+- `name`: Resource name of the access (e.g., `recipes/1/accesses/123`)
+- `issuer`: The user or circle who granted the access (output only)
+- `recipient`: The user or circle who has access
+- `level`: Permission level (`LEVEL_READ`, `LEVEL_WRITE`, `LEVEL_ADMIN`)
+- `state`: Status of the access (`STATE_PENDING`, `STATE_ACCEPTED`)
+
+### ListRecipeAccesses
+
+Retrieves all accesses (users and circles) for a specific recipe.
+
+**Endpoint:** `GET /meals/v1alpha1/recipes/{recipe_id}/accesses`
+
+**Example Request:**
+Lists all accesses for recipe with ID `1`.
+
+```bash
+curl -X GET \
+  -H "Authorization: Bearer <YOUR_JWT>" \
+  http://localhost:8080/meals/v1alpha1/recipes/1/accesses
+```
+
+**Query Parameters:**
+- `filter` (optional): Filter expression for the list (see proto for details)
+- `page_size` (optional): Number of results per page
+- `page_token` (optional): Token for pagination
+
+**Response Body Details:**
+- `accesses`: Array of access objects, each containing:
+  - `name`: Resource name of the access (e.g., `recipes/1/accesses/123`)
+  - `issuer`: The user or circle who granted the access (output only)
+  - `recipient`: The user or circle who has access
+  - `level`: Permission level (`LEVEL_READ`, `LEVEL_WRITE`, `LEVEL_ADMIN`)
+  - `state`: Status of the access (`STATE_PENDING`, `STATE_ACCEPTED`)
+- `next_page_token`: Token for fetching the next page of results (if any)
+
+---
 
 ## Resource Naming (AIPs)
 
@@ -170,7 +206,6 @@ This project follows the Google AIP (API Improvement Proposals) conventions for 
 | `Recipe` | `users/{user}/recipes/{recipe}` | `users/1` | `users/1/recipes/123` |
 | `Access` | `recipes/{recipe}/accesses/{access}`| `recipes/123` | `recipes/123/accesses/456`|
 | `User` | `users/{user}` | N/A | `users/1` |
-
 
 ## Development & Debugging
 
