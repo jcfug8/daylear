@@ -16,7 +16,7 @@ func (c *Client) GetRecipeRecipient(ctx context.Context, parent cmodel.RecipePar
 	var recipeUser model.RecipeUser
 	var recipeCircle model.RecipeCircle
 	title := ""
-	permissionLevel := permPb.PermissionLevel_RESOURCE_PERMISSION_READ
+	permissionLevel := permPb.PermissionLevel_PERMISSION_LEVEL_READ
 	if id.RecipeId == 0 {
 		return cmodel.RecipeRecipient{}, repository.ErrInvalidArgument{Msg: "recipe id is required"}
 	}

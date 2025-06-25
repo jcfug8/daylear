@@ -9,6 +9,7 @@ func AllModels() []interface{} {
 		&Recipe{},
 		&RecipeCircle{},
 		&RecipeUser{},
+		&RecipeAccess{},
 		&RecipeIngredient{},
 		&Ingredient{},
 		&User{},

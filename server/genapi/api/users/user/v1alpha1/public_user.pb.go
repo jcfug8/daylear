@@ -14,6 +14,7 @@
 package userv1alpha1
 
 import (
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -272,7 +273,7 @@ var File_api_users_user_v1alpha1_public_user_proto protoreflect.FileDescriptor
 
 const file_api_users_user_v1alpha1_public_user_proto_rawDesc = "" +
 	"\n" +
-	")api/users/user/v1alpha1/public_user.proto\x12\x17api.users.user.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\"\xed\x01\n" +
+	")api/users/user/v1alpha1/public_user.proto\x12\x17api.users.user.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xed\x01\n" +
 	"\n" +
 	"PublicUser\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x1f\n" +
@@ -293,10 +294,22 @@ const file_api_users_user_v1alpha1_public_user_proto_rawDesc = "" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"V\n" +
 	"\x14GetPublicUserRequest\x12>\n" +
 	"\x04name\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\n" +
-	"\"api.users.user.v1alpha1/PublicUserR\x04name2\xca\x02\n" +
-	"\x11PublicUserService\x12\x99\x01\n" +
-	"\x0fListPublicUsers\x12/.api.users.user.v1alpha1.ListPublicUsersRequest\x1a0.api.users.user.v1alpha1.ListPublicUsersResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/users/v1alpha1/publicUsers\x12\x98\x01\n" +
-	"\rGetPublicUser\x12-.api.users.user.v1alpha1.GetPublicUserRequest\x1a#.api.users.user.v1alpha1.PublicUser\"3\xdaA\x04name\x82\xd3\xe4\x93\x02&\x12$/users/v1alpha1/{name=publicUsers/*}B\xfb\x01\n" +
+	"\"api.users.user.v1alpha1/PublicUserR\x04name2\x96\x05\n" +
+	"\x11PublicUserService\x12\xce\x02\n" +
+	"\x0fListPublicUsers\x12/.api.users.user.v1alpha1.ListPublicUsersRequest\x1a0.api.users.user.v1alpha1.ListPublicUsersResponse\"\xd7\x01\x92A\xb0\x01\n" +
+	"\x11PublicUserService\x12\x11List public users\x1aNRetrieves a paginated list of public users. Supports filtering and pagination.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\x82\xd3\xe4\x93\x02\x1d\x12\x1b/users/v1alpha1/publicUsers\x12\xaf\x02\n" +
+	"\rGetPublicUser\x12-.api.users.user.v1alpha1.GetPublicUserRequest\x1a#.api.users.user.v1alpha1.PublicUser\"\xc9\x01\x92A\x92\x01\n" +
+	"\x11PublicUserService\x12\x11Get a public user\x1a0Retrieves a single public user by resource name.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02&\x12$/users/v1alpha1/{name=publicUsers/*}B\xd6\x02\x92AXZD\n" +
+	"B\n" +
+	"\n" +
+	"BearerAuth\x124\b\x02\x12\x1fBearer token for authentication\x1a\rAuthorization \x02b\x10\n" +
+	"\x0e\n" +
+	"\n" +
+	"BearerAuth\x12\x00\n" +
 	"\x1bcom.api.users.user.v1alpha1B\x0fPublicUserProtoP\x01ZLgithub.com/jcfug8/daylear/server/genapi/api/users/user/v1alpha1;userv1alpha1\xa2\x02\x03AUU\xaa\x02\x17Api.Users.User.V1alpha1\xca\x02\x17Api\\Users\\User\\V1alpha1\xe2\x02#Api\\Users\\User\\V1alpha1\\GPBMetadata\xea\x02\x1aApi::Users::User::V1alpha1b\x06proto3"
 
 var (

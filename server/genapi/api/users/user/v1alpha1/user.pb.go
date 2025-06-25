@@ -14,6 +14,7 @@
 package userv1alpha1
 
 import (
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -345,7 +346,7 @@ var File_api_users_user_v1alpha1_user_proto protoreflect.FileDescriptor
 
 const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\n" +
-	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\"\x8c\x02\n" +
+	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x8c\x02\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12$\n" +
 	"\vpublic_name\x18\x02 \x01(\tB\x03\xe0A\x03R\n" +
@@ -371,12 +372,29 @@ const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\x11UpdateUserRequest\x126\n" +
 	"\x04user\x18\x01 \x01(\v2\x1d.api.users.user.v1alpha1.UserB\x03\xe0A\x02R\x04user\x12@\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x03\xe0A\x01R\n" +
-	"updateMask2\xb4\x03\n" +
-	"\vUserService\x12\x80\x01\n" +
-	"\aGetUser\x12'.api.users.user.v1alpha1.GetUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"-\xdaA\x04name\x82\xd3\xe4\x93\x02 \x12\x1e/users/v1alpha1/{name=users/*}\x12\x81\x01\n" +
-	"\tListUsers\x12).api.users.user.v1alpha1.ListUsersRequest\x1a*.api.users.user.v1alpha1.ListUsersResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/users/v1alpha1/users\x12\x9d\x01\n" +
+	"updateMask2\xd1\x06\n" +
+	"\vUserService\x12\x82\x02\n" +
+	"\aGetUser\x12'.api.users.user.v1alpha1.GetUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"\xae\x01\x92A~\n" +
+	"\vUserService\x12\n" +
+	"Get a user\x1a)Retrieves a single user by resource name.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02 \x12\x1e/users/v1alpha1/{name=users/*}\x12\xa2\x02\n" +
+	"\tListUsers\x12).api.users.user.v1alpha1.ListUsersRequest\x1a*.api.users.user.v1alpha1.ListUsersResponse\"\xbd\x01\x92A\x9c\x01\n" +
+	"\vUserService\x12\n" +
+	"List users\x1aGRetrieves a paginated list of users. Supports filtering and pagination.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\x82\xd3\xe4\x93\x02\x17\x12\x15/users/v1alpha1/users\x12\x97\x02\n" +
 	"\n" +
-	"UpdateUser\x12*.api.users.user.v1alpha1.UpdateUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"D\xdaA\x10user,update_mask\x82\xd3\xe4\x93\x02+:\x04user2#/users/v1alpha1/{user.name=users/*}B\xf5\x01\n" +
+	"UpdateUser\x12*.api.users.user.v1alpha1.UpdateUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"\xbd\x01\x92Av\n" +
+	"\vUserService\x12\rUpdate a user\x1a\x1eUpdates the details of a user.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x10user,update_mask\x82\xd3\xe4\x93\x02+:\x04user2#/users/v1alpha1/{user.name=users/*}B\xd0\x02\x92AXZD\n" +
+	"B\n" +
+	"\n" +
+	"BearerAuth\x124\b\x02\x12\x1fBearer token for authentication\x1a\rAuthorization \x02b\x10\n" +
+	"\x0e\n" +
+	"\n" +
+	"BearerAuth\x12\x00\n" +
 	"\x1bcom.api.users.user.v1alpha1B\tUserProtoP\x01ZLgithub.com/jcfug8/daylear/server/genapi/api/users/user/v1alpha1;userv1alpha1\xa2\x02\x03AUU\xaa\x02\x17Api.Users.User.V1alpha1\xca\x02\x17Api\\Users\\User\\V1alpha1\xe2\x02#Api\\Users\\User\\V1alpha1\\GPBMetadata\xea\x02\x1aApi::Users::User::V1alpha1b\x06proto3"
 
 var (

@@ -5,9 +5,13 @@ package api.types;
 // the permission levels
 enum PermissionLevel {
   // the permission is not specified
-  RESOURCE_PERMISSION_UNSPECIFIED = 0;
+  PERMISSION_LEVEL_UNSPECIFIED = 0;
+  // the permission is public
+  PERMISSION_LEVEL_PUBLIC = 1;
   // the permission is read
-  RESOURCE_PERMISSION_READ = 100;
+  PERMISSION_LEVEL_READ = 100;
   // the permission is write
-  RESOURCE_PERMISSION_WRITE = 200;
+  PERMISSION_LEVEL_WRITE = 200;
+  // the permission is admin
+  PERMISSION_LEVEL_ADMIN = 300;
 }

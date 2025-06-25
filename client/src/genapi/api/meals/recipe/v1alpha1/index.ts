@@ -210,11 +210,13 @@ export type ShareRecipeRequest = {
 // the permission levels
 export type apitypes_PermissionLevel =
   // the permission is not specified
-  | "RESOURCE_PERMISSION_UNSPECIFIED"
+  | "PERMISSION_LEVEL_UNSPECIFIED"
   // the permission is read
-  | "RESOURCE_PERMISSION_READ"
+  | "PERMISSION_LEVEL_READ"
   // the permission is write
-  | "RESOURCE_PERMISSION_WRITE";
+  | "PERMISSION_LEVEL_WRITE"
+  // the permission is admin
+  | "PERMISSION_LEVEL_ADMIN";
 // the response to share a recipe
 export type ShareRecipeResponse = {
 };
@@ -439,7 +441,7 @@ export type Access = {
   // the permission level of the access
   //
   // Behaviors: REQUIRED
-  level: Access_Level | undefined;
+  level: apitypes_PermissionLevel | undefined;
   // the status of the access
   //
   // Behaviors: OUTPUT_ONLY
@@ -454,21 +456,6 @@ export type Access_IssuerOrRecipient = {
   circle?: string;
 };
 
-// the permission level of the access
-export type Access_Level =
-  // This status should only get returned when the access is because the recipe
-  // has the public plag set to true.
-  // 
-  // The recipe details can be viewed by anyone.
-  | "LEVEL_UNSPECIFIED"
-  // The recipe details can be viewed.
-  | "LEVEL_READ"
-  // The recipe details can be viewed and edited.
-  // The recipe access can be managed.
-  | "LEVEL_WRITE"
-  // The recipe details can be viewed, edited, and deleted.
-  // The recipe access can be managed.
-  | "LEVEL_ADMIN";
 // the status of the access
 export type Access_State =
   // This status should never get used.
@@ -545,6 +532,14 @@ export type UpdateAccessRequest = {
   updateMask: wellKnownFieldMask | undefined;
 };
 
+// The request to accept an access to a recipe
+export type AcceptRecipeAccessRequest = {
+  // name
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
 // The recipe recipient list service
 export interface RecipeAccessService {
   // Create an access to a recipe
@@ -557,6 +552,8 @@ export interface RecipeAccessService {
   ListAccesses(request: ListAccessesRequest): Promise<ListAccessesResponse>;
   // Update an access to a recipe
   UpdateAccess(request: UpdateAccessRequest): Promise<Access>;
+  // Accept a recipe access
+  AcceptRecipeAccess(request: AcceptRecipeAccessRequest): Promise<Access>;
 }
 
 export function createRecipeAccessServiceClient(
@@ -673,6 +670,26 @@ export function createRecipeAccessServiceClient(
       }, {
         service: "RecipeAccessService",
         method: "UpdateAccess",
+      }) as Promise<Access>;
+    },
+    AcceptRecipeAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `meals/v1alpha1/${request.name}:accept`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "RecipeAccessService",
+        method: "AcceptRecipeAccess",
       }) as Promise<Access>;
     },
   };

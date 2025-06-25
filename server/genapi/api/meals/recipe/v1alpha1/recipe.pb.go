@@ -14,6 +14,7 @@
 package recipev1alpha1
 
 import (
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	types "github.com/jcfug8/daylear/server/genapi/api/types"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -914,7 +915,7 @@ var File_api_meals_recipe_v1alpha1_recipe_proto protoreflect.FileDescriptor
 
 const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\n" +
-	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\"\xd8\b\n" +
+	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xd8\b\n" +
 	"\x06Recipe\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
@@ -986,15 +987,42 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\n" +
 	"recipients\x18\x02 \x03(\tB\x03\xe0A\x02R\n" +
 	"recipients\"\x17\n" +
-	"\x15UnshareRecipeResponse2\x8f\f\n" +
-	"\rRecipeService\x12\xda\x01\n" +
-	"\fCreateRecipe\x12..api.meals.recipe.v1alpha1.CreateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"w\xdaA\x17parent,recipe,recipe_id\x82\xd3\xe4\x93\x02W:\x06recipeZ4:\x06recipe\"*/meals/v1alpha1/{parent=circles/*}/recipes\"\x17/meals/v1alpha1/recipes\x12\xc4\x01\n" +
-	"\vListRecipes\x12-.api.meals.recipe.v1alpha1.ListRecipesRequest\x1a..api.meals.recipe.v1alpha1.ListRecipesResponse\"V\xdaA\x06parent\x82\xd3\xe4\x93\x02GZ,\x12*/meals/v1alpha1/{parent=circles/*}/recipes\x12\x17/meals/v1alpha1/recipes\x12\xed\x01\n" +
-	"\fUpdateRecipe\x12..api.meals.recipe.v1alpha1.UpdateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x89\x01\xdaA\x12recipe,update_mask\x82\xd3\xe4\x93\x02n:\x06recipeZ;:\x06recipe21/meals/v1alpha1/{recipe.name=circles/*/recipes/*}2'/meals/v1alpha1/{recipe.name=recipes/*}\x12\xc0\x01\n" +
-	"\fDeleteRecipe\x12..api.meals.recipe.v1alpha1.DeleteRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"]\xdaA\x04name\x82\xd3\xe4\x93\x02PZ,**/meals/v1alpha1/{name=circles/*/recipes/*}* /meals/v1alpha1/{name=recipes/*}\x12\xba\x01\n" +
-	"\tGetRecipe\x12+.api.meals.recipe.v1alpha1.GetRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"]\xdaA\x04name\x82\xd3\xe4\x93\x02PZ,\x12*/meals/v1alpha1/{name=circles/*/recipes/*}\x12 /meals/v1alpha1/{name=recipes/*}\x12\xf4\x01\n" +
-	"\vShareRecipe\x12-.api.meals.recipe.v1alpha1.ShareRecipeRequest\x1a..api.meals.recipe.v1alpha1.ShareRecipeResponse\"\x85\x01\xdaA\x1aname,recipients,permission\x82\xd3\xe4\x93\x02b:\x01*Z5:\x01*\"0/meals/v1alpha1/{name=circles/*/recipes/*}:share\"&/meals/v1alpha1/{name=recipes/*}:share\x12\xf2\x01\n" +
-	"\rUnshareRecipe\x12/.api.meals.recipe.v1alpha1.UnshareRecipeRequest\x1a0.api.meals.recipe.v1alpha1.UnshareRecipeResponse\"~\xdaA\x0fname,recipients\x82\xd3\xe4\x93\x02f:\x01*Z7:\x01*\"2/meals/v1alpha1/{name=circles/*/recipes/*}:unshare\"(/meals/v1alpha1/{name=recipes/*}:unshareB\x85\x02\n" +
+	"\x15UnshareRecipeResponse2\xfc\x13\n" +
+	"\rRecipeService\x12\xea\x02\n" +
+	"\fCreateRecipe\x12..api.meals.recipe.v1alpha1.CreateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x86\x02\x92A\x8b\x01\n" +
+	"\rRecipeService\x12\x0fCreate a recipe\x1a/Creates a new recipe with the provided details.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x17parent,recipe,recipe_id\x82\xd3\xe4\x93\x02W:\x06recipeZ4:\x06recipe\"*/meals/v1alpha1/{parent=circles/*}/recipes\"\x17/meals/v1alpha1/recipes\x12\xeb\x02\n" +
+	"\vListRecipes\x12-.api.meals.recipe.v1alpha1.ListRecipesRequest\x1a..api.meals.recipe.v1alpha1.ListRecipesResponse\"\xfc\x01\x92A\xa2\x01\n" +
+	"\rRecipeService\x12\fList recipes\x1aIRetrieves a paginated list of recipes. Supports filtering and pagination.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x06parent\x82\xd3\xe4\x93\x02GZ,\x12*/meals/v1alpha1/{parent=circles/*}/recipes\x12\x17/meals/v1alpha1/recipes\x12\xf7\x02\n" +
+	"\fUpdateRecipe\x12..api.meals.recipe.v1alpha1.UpdateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x93\x02\x92A\x86\x01\n" +
+	"\rRecipeService\x12\x0fUpdate a recipe\x1a*Updates the details of an existing recipe.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x12recipe,update_mask\x82\xd3\xe4\x93\x02n:\x06recipeZ;:\x06recipe21/meals/v1alpha1/{recipe.name=circles/*/recipes/*}2'/meals/v1alpha1/{recipe.name=recipes/*}\x12\xc2\x02\n" +
+	"\fDeleteRecipe\x12..api.meals.recipe.v1alpha1.DeleteRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\xde\x01\x92A~\n" +
+	"\rRecipeService\x12\x0fDelete a recipe\x1a\"Deletes a recipe by resource name.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02PZ,**/meals/v1alpha1/{name=circles/*/recipes/*}* /meals/v1alpha1/{name=recipes/*}\x12\xc3\x02\n" +
+	"\tGetRecipe\x12+.api.meals.recipe.v1alpha1.GetRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\xe5\x01\x92A\x84\x01\n" +
+	"\rRecipeService\x12\fGet a recipe\x1a+Retrieves a single recipe by resource name.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02PZ,\x12*/meals/v1alpha1/{name=circles/*/recipes/*}\x12 /meals/v1alpha1/{name=recipes/*}\x12\xfd\x02\n" +
+	"\vShareRecipe\x12-.api.meals.recipe.v1alpha1.ShareRecipeRequest\x1a..api.meals.recipe.v1alpha1.ShareRecipeResponse\"\x8e\x02\x92A\x85\x01\n" +
+	"\rRecipeService\x12\x0eShare a recipe\x1a*Shares a recipe with specified recipients.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x1aname,recipients,permission\x82\xd3\xe4\x93\x02b:\x01*Z5:\x01*\"0/meals/v1alpha1/{name=circles/*/recipes/*}:share\"&/meals/v1alpha1/{name=recipes/*}:share\x12\x8a\x03\n" +
+	"\rUnshareRecipe\x12/.api.meals.recipe.v1alpha1.UnshareRecipeRequest\x1a0.api.meals.recipe.v1alpha1.UnshareRecipeResponse\"\x95\x02\x92A\x93\x01\n" +
+	"\rRecipeService\x12\x10Unshare a recipe\x1a6Removes sharing of a recipe from specified recipients.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x0fname,recipients\x82\xd3\xe4\x93\x02f:\x01*Z7:\x01*\"2/meals/v1alpha1/{name=circles/*/recipes/*}:unshare\"(/meals/v1alpha1/{name=recipes/*}:unshareB\xe0\x02\x92AXZD\n" +
+	"B\n" +
+	"\n" +
+	"BearerAuth\x124\b\x02\x12\x1fBearer token for authentication\x1a\rAuthorization \x02b\x10\n" +
+	"\x0e\n" +
+	"\n" +
+	"BearerAuth\x12\x00\n" +
 	"\x1dcom.api.meals.recipe.v1alpha1B\vRecipeProtoP\x01ZPgithub.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1;recipev1alpha1\xa2\x02\x03AMR\xaa\x02\x19Api.Meals.Recipe.V1alpha1\xca\x02\x19Api\\Meals\\Recipe\\V1alpha1\xe2\x02%Api\\Meals\\Recipe\\V1alpha1\\GPBMetadata\xea\x02\x1cApi::Meals::Recipe::V1alpha1b\x06proto3"
 
 var (

@@ -7,6 +7,7 @@
 package recipev1alpha1
 
 import (
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	types "github.com/jcfug8/daylear/server/genapi/api/types"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -191,7 +192,7 @@ var File_api_meals_recipe_v1alpha1_recipe_recipient_list_proto protoreflect.File
 
 const file_api_meals_recipe_v1alpha1_recipe_recipient_list_proto_rawDesc = "" +
 	"\n" +
-	"5api/meals/recipe/v1alpha1/recipe_recipient_list.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a api/types/permission_level.proto\"\xb7\x03\n" +
+	"5api/meals/recipe/v1alpha1/recipe_recipient_list.proto\x12\x19api.meals.recipe.v1alpha1\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xb7\x03\n" +
 	"\x10RecipeRecipients\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12Z\n" +
 	"\n" +
@@ -206,9 +207,18 @@ const file_api_meals_recipe_v1alpha1_recipe_recipient_list_proto_rawDesc = "" +
 	"*api.meals.recipe.v1alpha1/RecipeRecipients\x12!recipes/{recipe}/recipeRecipients\x122circles/{circle}/recipes/{recipe}/recipeRecipients*\x10recipeRecipients2\x0frecipeRecipient\"d\n" +
 	"\x1aGetRecipeRecipientsRequest\x12F\n" +
 	"\x04name\x18\x01 \x01(\tB2\xe0A\x02\xfaA,\n" +
-	"*api.meals.recipe.v1alpha1/RecipeRecipientsR\x04name2\x96\x02\n" +
-	"\x17RecipeRecipientsService\x12\xfa\x01\n" +
-	"\x13GetRecipeRecipients\x125.api.meals.recipe.v1alpha1.GetRecipeRecipientsRequest\x1a+.api.meals.recipe.v1alpha1.RecipeRecipients\"\x7f\xdaA\x04name\x82\xd3\xe4\x93\x02rZ=\x12;/meals/v1alpha1/{name=circles/*/recipes/*}/recipeRecipients\x121/meals/v1alpha1/{name=recipes/*}/recipeRecipientsB\x92\x02\n" +
+	"*api.meals.recipe.v1alpha1/RecipeRecipientsR\x04name2\xbe\x03\n" +
+	"\x17RecipeRecipientsService\x12\xa2\x03\n" +
+	"\x13GetRecipeRecipients\x125.api.meals.recipe.v1alpha1.GetRecipeRecipientsRequest\x1a+.api.meals.recipe.v1alpha1.RecipeRecipients\"\xa6\x02\x92A\xa3\x01\n" +
+	"\x17RecipeRecipientsService\x12\x15Get recipe recipients\x1a7Retrieves the list of recipients for a specific recipe.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02rZ=\x12;/meals/v1alpha1/{name=circles/*/recipes/*}/recipeRecipients\x121/meals/v1alpha1/{name=recipes/*}/recipeRecipientsB\xed\x02\x92AXZD\n" +
+	"B\n" +
+	"\n" +
+	"BearerAuth\x124\b\x02\x12\x1fBearer token for authentication\x1a\rAuthorization \x02b\x10\n" +
+	"\x0e\n" +
+	"\n" +
+	"BearerAuth\x12\x00\n" +
 	"\x1dcom.api.meals.recipe.v1alpha1B\x18RecipeRecipientListProtoP\x01ZPgithub.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1;recipev1alpha1\xa2\x02\x03AMR\xaa\x02\x19Api.Meals.Recipe.V1alpha1\xca\x02\x19Api\\Meals\\Recipe\\V1alpha1\xe2\x02%Api\\Meals\\Recipe\\V1alpha1\\GPBMetadata\xea\x02\x1cApi::Meals::Recipe::V1alpha1b\x06proto3"
 
 var (

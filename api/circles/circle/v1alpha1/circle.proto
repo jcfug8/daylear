@@ -14,6 +14,27 @@ import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  security_definitions: {
+    security: {
+      key: "BearerAuth"
+      value: {
+        type: TYPE_API_KEY
+        in: IN_HEADER
+        name: "Authorization"
+        description: "Bearer token for authentication"
+      }
+    }
+  }
+  security: {
+    security_requirement: {
+      key: "BearerAuth"
+      value: {}
+    }
+  }
+};
 
 // the circle service
 service CircleService {
@@ -24,11 +45,35 @@ service CircleService {
       post: "/circles/v1alpha1/circles"
       body: "circle"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Create a circle"
+      description: "Creates a new circle with the provided details."
+      tags: "CircleService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
+      }
+    };
   }
 
   // list circles
   rpc ListCircles(ListCirclesRequest) returns (ListCirclesResponse) {
     option (google.api.http) = {get: "/circles/v1alpha1/circles"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "List circles"
+      description: "Retrieves a paginated list of circles. Supports filtering and pagination."
+      tags: "CircleService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
+      }
+    };
   }
 
   // update a circle
@@ -38,18 +83,54 @@ service CircleService {
       patch: "/circles/v1alpha1/{circle.name=circles/*}"
       body: "circle"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Update a circle"
+      description: "Updates the details of an existing circle."
+      tags: "CircleService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
+      }
+    };
   }
 
   // delete` a circle
   rpc DeleteCircle(DeleteCircleRequest) returns (Circle) {
     option (google.api.method_signature) = "name";
     option (google.api.http) = {delete: "/circles/v1alpha1/{name=circles/*}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Delete a circle"
+      description: "Deletes a circle by resource name."
+      tags: "CircleService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
+      }
+    };
   }
 
   // get a circle
   rpc GetCircle(GetCircleRequest) returns (Circle) {
     option (google.api.method_signature) = "name";
     option (google.api.http) = {get: "/circles/v1alpha1/{name=circles/*}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get a circle"
+      description: "Retrieves a single circle by resource name."
+      tags: "CircleService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
+      }
+    };
   }
 
   // share a circle
@@ -58,6 +139,18 @@ service CircleService {
     option (google.api.http) = {
       post: "/circles/v1alpha1/{name=circles/*}:share"
       body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Share a circle"
+      description: "Shares a circle with specified recipients."
+      tags: "CircleService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
+      }
     };
   }
 }

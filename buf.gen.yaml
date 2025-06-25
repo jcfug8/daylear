@@ -4,6 +4,8 @@ managed:
   disable:
     - file_option: go_package
       module: buf.build/googleapis/googleapis
+    - file_option: go_package
+      module: buf.build/grpc-ecosystem/grpc-gateway
   override:
     - file_option: go_package_prefix
       value: github.com/jcfug8/daylear/server/genapi
@@ -21,6 +23,8 @@ plugins:
     out: ./server/genapi
     opt:
       - paths=source_relative
+  - remote: buf.build/grpc-ecosystem/openapiv2
+    out: ./server/openapi
   - local: protoc-gen-typescript-http
     out: ./client/src/genapi
     opt:

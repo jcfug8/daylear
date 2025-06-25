@@ -1,0 +1,1029 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/meals/recipe/v1alpha1/recipe.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "RecipeService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/meals/v1alpha1/recipes": {
+      "get": {
+        "summary": "List recipes",
+        "description": "Retrieves a paginated list of recipes. Supports filtering and pagination.",
+        "operationId": "RecipeService_ListRecipes",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListRecipesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the recipe",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "description": "returned page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "used to specify the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      },
+      "post": {
+        "summary": "Create a recipe",
+        "description": "Creates a new recipe with the provided details.",
+        "operationId": "RecipeService_CreateRecipe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Recipe"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "recipe",
+            "description": "the recipe to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Recipe",
+              "required": [
+                "recipe"
+              ]
+            }
+          },
+          {
+            "name": "parent",
+            "description": "the parent of the recipe",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "recipeId",
+            "description": "the id of the recipe",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name_1}": {
+      "get": {
+        "summary": "Get a recipe",
+        "description": "Retrieves a single recipe by resource name.",
+        "operationId": "RecipeService_GetRecipe2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Recipe"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "the name of the recipe to get",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/recipes/[^/]+"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a recipe",
+        "description": "Deletes a recipe by resource name.",
+        "operationId": "RecipeService_DeleteRecipe2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Recipe"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "the name of the recipe to delete",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/recipes/[^/]+"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name_1}:share": {
+      "post": {
+        "summary": "Share a recipe",
+        "description": "Shares a recipe with specified recipients.",
+        "operationId": "RecipeService_ShareRecipe2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ShareRecipeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "the name of the recipe to share",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/recipes/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecipeServiceShareRecipeBody"
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name_1}:unshare": {
+      "post": {
+        "summary": "Unshare a recipe",
+        "description": "Removes sharing of a recipe from specified recipients.",
+        "operationId": "RecipeService_UnshareRecipe2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UnshareRecipeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "the name of the recipe to unshare",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/recipes/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecipeServiceUnshareRecipeBody"
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name}": {
+      "get": {
+        "summary": "Get a recipe",
+        "description": "Retrieves a single recipe by resource name.",
+        "operationId": "RecipeService_GetRecipe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Recipe"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the recipe to get",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "recipes/[^/]+"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a recipe",
+        "description": "Deletes a recipe by resource name.",
+        "operationId": "RecipeService_DeleteRecipe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Recipe"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the recipe to delete",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "recipes/[^/]+"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name}:share": {
+      "post": {
+        "summary": "Share a recipe",
+        "description": "Shares a recipe with specified recipients.",
+        "operationId": "RecipeService_ShareRecipe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ShareRecipeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the recipe to share",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "recipes/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecipeServiceShareRecipeBody"
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name}:unshare": {
+      "post": {
+        "summary": "Unshare a recipe",
+        "description": "Removes sharing of a recipe from specified recipients.",
+        "operationId": "RecipeService_UnshareRecipe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UnshareRecipeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the recipe to unshare",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "recipes/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecipeServiceUnshareRecipeBody"
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{parent}/recipes": {
+      "get": {
+        "summary": "List recipes",
+        "description": "Retrieves a paginated list of recipes. Supports filtering and pagination.",
+        "operationId": "RecipeService_ListRecipes2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListRecipesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the recipe",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "pageSize",
+            "description": "returned page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "used to specify the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      },
+      "post": {
+        "summary": "Create a recipe",
+        "description": "Creates a new recipe with the provided details.",
+        "operationId": "RecipeService_CreateRecipe2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Recipe"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the recipe",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "recipe",
+            "description": "the recipe to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Recipe",
+              "required": [
+                "recipe"
+              ]
+            }
+          },
+          {
+            "name": "recipeId",
+            "description": "the id of the recipe",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{recipe.name_1}": {
+      "patch": {
+        "summary": "Update a recipe",
+        "description": "Updates the details of an existing recipe.",
+        "operationId": "RecipeService_UpdateRecipe2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Recipe"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "recipe.name_1",
+            "description": "the name of the recipe",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/recipes/[^/]+"
+          },
+          {
+            "name": "recipe",
+            "description": "the recipe to update",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "title": "the title of the recipe"
+                },
+                "description": {
+                  "type": "string",
+                  "title": "the description of the recipe"
+                },
+                "directions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/RecipeDirection"
+                  },
+                  "title": "the steps to make the recipe"
+                },
+                "ingredientGroups": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/RecipeIngredientGroup"
+                  },
+                  "title": "the ingredient groups in the recipe"
+                },
+                "imageUri": {
+                  "type": "string",
+                  "title": "image url"
+                }
+              },
+              "title": "the recipe to update",
+              "required": [
+                "title",
+                "recipe"
+              ]
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{recipe.name}": {
+      "patch": {
+        "summary": "Update a recipe",
+        "description": "Updates the details of an existing recipe.",
+        "operationId": "RecipeService_UpdateRecipe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Recipe"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "recipe.name",
+            "description": "the name of the recipe",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "recipes/[^/]+"
+          },
+          {
+            "name": "recipe",
+            "description": "the recipe to update",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "title": "the title of the recipe"
+                },
+                "description": {
+                  "type": "string",
+                  "title": "the description of the recipe"
+                },
+                "directions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/RecipeDirection"
+                  },
+                  "title": "the steps to make the recipe"
+                },
+                "ingredientGroups": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/RecipeIngredientGroup"
+                  },
+                  "title": "the ingredient groups in the recipe"
+                },
+                "imageUri": {
+                  "type": "string",
+                  "title": "image url"
+                }
+              },
+              "title": "the recipe to update",
+              "required": [
+                "title",
+                "recipe"
+              ]
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "RecipeDirection": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "title": "the title of the step"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "the steps in the instruction"
+        }
+      },
+      "title": "the directions to make the recipe",
+      "required": [
+        "steps"
+      ]
+    },
+    "RecipeIngredient": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "title": "the name of the ingredient"
+        },
+        "optional": {
+          "type": "boolean",
+          "title": "wheter the ingredient is optional"
+        },
+        "measurementAmount": {
+          "type": "number",
+          "format": "double",
+          "title": "the quantity of the ingredient"
+        },
+        "measurementType": {
+          "$ref": "#/definitions/RecipeMeasurementType",
+          "title": "the type of measurement"
+        }
+      },
+      "title": "an ingredient in a recipe",
+      "required": [
+        "title",
+        "measurementAmount",
+        "measurementType"
+      ]
+    },
+    "RecipeIngredientGroup": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "title": "the name of the group"
+        },
+        "ingredients": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/RecipeIngredient"
+          },
+          "title": "the ingredients in the group"
+        }
+      },
+      "required": [
+        "ingredients"
+      ]
+    },
+    "RecipeMeasurementType": {
+      "type": "string",
+      "enum": [
+        "MEASUREMENT_TYPE_UNSPECIFIED",
+        "MEASUREMENT_TYPE_TABLESPOON",
+        "MEASUREMENT_TYPE_TEASPOON",
+        "MEASUREMENT_TYPE_OUNCE",
+        "MEASUREMENT_TYPE_POUND",
+        "MEASUREMENT_TYPE_GRAM",
+        "MEASUREMENT_TYPE_MILLILITER",
+        "MEASUREMENT_TYPE_LITER"
+      ],
+      "default": "MEASUREMENT_TYPE_UNSPECIFIED",
+      "description": "- MEASUREMENT_TYPE_UNSPECIFIED: the measurement is in cups\n - MEASUREMENT_TYPE_TABLESPOON: the measurement is in tablespoons\n - MEASUREMENT_TYPE_TEASPOON: the measurement is in teaspoons\n - MEASUREMENT_TYPE_OUNCE: the measurement is in ounces\n - MEASUREMENT_TYPE_POUND: the measurement is in pounds\n - MEASUREMENT_TYPE_GRAM: the measurement is in grams\n - MEASUREMENT_TYPE_MILLILITER: the measurement is in milliliters\n - MEASUREMENT_TYPE_LITER: the measurement is in liters",
+      "title": "the type of measurement"
+    },
+    "RecipeServiceShareRecipeBody": {
+      "type": "object",
+      "properties": {
+        "recipients": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "the recipents of the recipe"
+        },
+        "permission": {
+          "$ref": "#/definitions/typesPermissionLevel",
+          "title": "the permission level given to the recipients"
+        }
+      },
+      "title": "the request to share a recipe",
+      "required": [
+        "recipients",
+        "permission"
+      ]
+    },
+    "RecipeServiceUnshareRecipeBody": {
+      "type": "object",
+      "properties": {
+        "recipients": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "the recipients to remove from the recipe"
+        }
+      },
+      "title": "the request to unshare a recipe",
+      "required": [
+        "recipients"
+      ]
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "typesPermissionLevel": {
+      "type": "string",
+      "enum": [
+        "PERMISSION_LEVEL_UNSPECIFIED",
+        "PERMISSION_LEVEL_READ",
+        "PERMISSION_LEVEL_WRITE",
+        "PERMISSION_LEVEL_ADMIN"
+      ],
+      "default": "PERMISSION_LEVEL_UNSPECIFIED",
+      "description": "- PERMISSION_LEVEL_UNSPECIFIED: the permission is not specified\n - PERMISSION_LEVEL_READ: the permission is read\n - PERMISSION_LEVEL_WRITE: the permission is write\n - PERMISSION_LEVEL_ADMIN: the permission is admin",
+      "title": "the permission levels"
+    },
+    "v1alpha1ListRecipesResponse": {
+      "type": "object",
+      "properties": {
+        "recipes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1Recipe"
+          },
+          "title": "the recipes"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "title": "the next page token"
+        }
+      },
+      "title": "the response to list recipes"
+    },
+    "v1alpha1Recipe": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the recipe"
+        },
+        "title": {
+          "type": "string",
+          "title": "the title of the recipe"
+        },
+        "description": {
+          "type": "string",
+          "title": "the description of the recipe"
+        },
+        "directions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/RecipeDirection"
+          },
+          "title": "the steps to make the recipe"
+        },
+        "ingredientGroups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/RecipeIngredientGroup"
+          },
+          "title": "the ingredient groups in the recipe"
+        },
+        "imageUri": {
+          "type": "string",
+          "title": "image url"
+        }
+      },
+      "title": "the main recipe object",
+      "required": [
+        "title"
+      ]
+    },
+    "v1alpha1ShareRecipeResponse": {
+      "type": "object",
+      "title": "the response to share a recipe"
+    },
+    "v1alpha1UnshareRecipeResponse": {
+      "type": "object",
+      "title": "the response to unshare a recipe"
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "description": "Bearer token for authentication",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

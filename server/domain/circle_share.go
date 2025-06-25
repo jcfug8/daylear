@@ -21,7 +21,7 @@ func (d *Domain) ShareCircle(ctx context.Context, parent model.CircleParent, par
 	if err != nil {
 		return err
 	}
-	if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+	if permission != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
 		return domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 

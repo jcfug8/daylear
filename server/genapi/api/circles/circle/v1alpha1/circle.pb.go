@@ -14,6 +14,7 @@
 package circlev1alpha1
 
 import (
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -520,7 +521,7 @@ var File_api_circles_circle_v1alpha1_circle_proto protoreflect.FileDescriptor
 
 const file_api_circles_circle_v1alpha1_circle_proto_rawDesc = "" +
 	"\n" +
-	"(api/circles/circle/v1alpha1/circle.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\"\xd0\x01\n" +
+	"(api/circles/circle/v1alpha1/circle.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xd0\x01\n" +
 	"\x06Circle\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12$\n" +
 	"\vpublic_name\x18\x02 \x01(\tB\x03\xe0A\x03R\n" +
@@ -553,14 +554,38 @@ const file_api_circles_circle_v1alpha1_circle_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\n" +
 	"\"api.circles.circle.v1alpha1/CircleR\x04name\"R\n" +
 	"\x13ShareCircleResponse\x12;\n" +
-	"\x06circle\x18\x01 \x01(\v2#.api.circles.circle.v1alpha1.CircleR\x06circle2\xed\a\n" +
-	"\rCircleService\x12\xa3\x01\n" +
-	"\fCreateCircle\x120.api.circles.circle.v1alpha1.CreateCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"<\xdaA\x10circle,circle_id\x82\xd3\xe4\x93\x02#:\x06circle\"\x19/circles/v1alpha1/circles\x12\x93\x01\n" +
-	"\vListCircles\x12/.api.circles.circle.v1alpha1.ListCirclesRequest\x1a0.api.circles.circle.v1alpha1.ListCirclesResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/circles/v1alpha1/circles\x12\xb5\x01\n" +
-	"\fUpdateCircle\x120.api.circles.circle.v1alpha1.UpdateCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"N\xdaA\x12circle,update_mask\x82\xd3\xe4\x93\x023:\x06circle2)/circles/v1alpha1/{circle.name=circles/*}\x12\x98\x01\n" +
-	"\fDeleteCircle\x120.api.circles.circle.v1alpha1.DeleteCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"1\xdaA\x04name\x82\xd3\xe4\x93\x02$*\"/circles/v1alpha1/{name=circles/*}\x12\x92\x01\n" +
-	"\tGetCircle\x12-.api.circles.circle.v1alpha1.GetCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"1\xdaA\x04name\x82\xd3\xe4\x93\x02$\x12\"/circles/v1alpha1/{name=circles/*}\x12\xb7\x01\n" +
-	"\vShareCircle\x12/.api.circles.circle.v1alpha1.ShareCircleRequest\x1a0.api.circles.circle.v1alpha1.ShareCircleResponse\"E\xdaA\x0fname,recipients\x82\xd3\xe4\x93\x02-:\x01*\"(/circles/v1alpha1/{name=circles/*}:shareB\x91\x02\n" +
+	"\x06circle\x18\x01 \x01(\v2#.api.circles.circle.v1alpha1.CircleR\x06circle2\xc4\x0e\n" +
+	"\rCircleService\x12\xb3\x02\n" +
+	"\fCreateCircle\x120.api.circles.circle.v1alpha1.CreateCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"\xcb\x01\x92A\x8b\x01\n" +
+	"\rCircleService\x12\x0fCreate a circle\x1a/Creates a new circle with the provided details.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x10circle,circle_id\x82\xd3\xe4\x93\x02#:\x06circle\"\x19/circles/v1alpha1/circles\x12\xba\x02\n" +
+	"\vListCircles\x12/.api.circles.circle.v1alpha1.ListCirclesRequest\x1a0.api.circles.circle.v1alpha1.ListCirclesResponse\"\xc7\x01\x92A\xa2\x01\n" +
+	"\rCircleService\x12\fList circles\x1aIRetrieves a paginated list of circles. Supports filtering and pagination.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\x82\xd3\xe4\x93\x02\x1b\x12\x19/circles/v1alpha1/circles\x12\xc0\x02\n" +
+	"\fUpdateCircle\x120.api.circles.circle.v1alpha1.UpdateCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"\xd8\x01\x92A\x86\x01\n" +
+	"\rCircleService\x12\x0fUpdate a circle\x1a*Updates the details of an existing circle.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x12circle,update_mask\x82\xd3\xe4\x93\x023:\x06circle2)/circles/v1alpha1/{circle.name=circles/*}\x12\x9a\x02\n" +
+	"\fDeleteCircle\x120.api.circles.circle.v1alpha1.DeleteCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"\xb2\x01\x92A~\n" +
+	"\rCircleService\x12\x0fDelete a circle\x1a\"Deletes a circle by resource name.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02$*\"/circles/v1alpha1/{name=circles/*}\x12\x9b\x02\n" +
+	"\tGetCircle\x12-.api.circles.circle.v1alpha1.GetCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"\xb9\x01\x92A\x84\x01\n" +
+	"\rCircleService\x12\fGet a circle\x1a+Retrieves a single circle by resource name.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02$\x12\"/circles/v1alpha1/{name=circles/*}\x12\xc1\x02\n" +
+	"\vShareCircle\x12/.api.circles.circle.v1alpha1.ShareCircleRequest\x1a0.api.circles.circle.v1alpha1.ShareCircleResponse\"\xce\x01\x92A\x85\x01\n" +
+	"\rCircleService\x12\x0eShare a circle\x1a*Shares a circle with specified recipients.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x0fname,recipients\x82\xd3\xe4\x93\x02-:\x01*\"(/circles/v1alpha1/{name=circles/*}:shareB\xec\x02\x92AXZD\n" +
+	"B\n" +
+	"\n" +
+	"BearerAuth\x124\b\x02\x12\x1fBearer token for authentication\x1a\rAuthorization \x02b\x10\n" +
+	"\x0e\n" +
+	"\n" +
+	"BearerAuth\x12\x00\n" +
 	"\x1fcom.api.circles.circle.v1alpha1B\vCircleProtoP\x01ZRgithub.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1;circlev1alpha1\xa2\x02\x03ACC\xaa\x02\x1bApi.Circles.Circle.V1alpha1\xca\x02\x1bApi\\Circles\\Circle\\V1alpha1\xe2\x02'Api\\Circles\\Circle\\V1alpha1\\GPBMetadata\xea\x02\x1eApi::Circles::Circle::V1alpha1b\x06proto3"
 
 var (

@@ -5,10 +5,12 @@
 // the permission levels
 export type PermissionLevel =
   // the permission is not specified
-  | "RESOURCE_PERMISSION_UNSPECIFIED"
+  | "PERMISSION_LEVEL_UNSPECIFIED"
   // the permission is read
-  | "RESOURCE_PERMISSION_READ"
+  | "PERMISSION_LEVEL_READ"
   // the permission is write
-  | "RESOURCE_PERMISSION_WRITE";
+  | "PERMISSION_LEVEL_WRITE"
+  // the permission is admin
+  | "PERMISSION_LEVEL_ADMIN";
 
 // @@protoc_insertion_point(typescript-http-eof)

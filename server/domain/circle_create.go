@@ -28,7 +28,7 @@ func (d *Domain) CreateCircle(ctx context.Context, circle model.Circle) (model.C
 	}
 	dbCircle.Parent = circle.Parent
 
-	err = tx.BulkCreateCircleUsers(ctx, dbCircle.Id, []int64{dbCircle.Parent.UserId}, permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE)
+	err = tx.BulkCreateCircleUsers(ctx, dbCircle.Id, []int64{dbCircle.Parent.UserId}, permPb.PermissionLevel_PERMISSION_LEVEL_WRITE)
 	if err != nil {
 		return model.Circle{}, err
 	}

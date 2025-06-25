@@ -19,7 +19,7 @@ func (d *Domain) DeleteCircle(ctx context.Context, parent model.CircleParent, id
 	if err != nil {
 		return model.Circle{}, err
 	}
-	if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+	if permission != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
 		return model.Circle{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 

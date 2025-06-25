@@ -23,11 +23,12 @@ type recipeDomain interface {
 	ListRecipeRecipients(ctx context.Context, parent model.RecipeParent, id model.RecipeId) ([]model.RecipeRecipient, error)
 
 	// Recipe Access methods
-	CreateRecipeAccess(ctx context.Context, access model.RecipeAccess) (model.RecipeAccess, error)
-	DeleteRecipeAccess(ctx context.Context, parent model.RecipeAccessParent, id model.RecipeAccessId) error
-	GetRecipeAccess(ctx context.Context, parent model.RecipeAccessParent, id model.RecipeAccessId) (model.RecipeAccess, error)
-	ListRecipeAccesses(ctx context.Context, parent model.RecipeAccessParent, pageSize int32, pageOffset int32, filter string) ([]model.RecipeAccess, error)
-	UpdateRecipeAccess(ctx context.Context, access model.RecipeAccess) (model.RecipeAccess, error)
+	CreateRecipeAccess(ctx context.Context, authAccount model.AuthAccount, access model.RecipeAccess) (model.RecipeAccess, error)
+	DeleteRecipeAccess(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeAccessParent, id model.RecipeAccessId) error
+	GetRecipeAccess(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeAccessParent, id model.RecipeAccessId) (model.RecipeAccess, error)
+	ListRecipeAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeAccessParent, pageSize int32, pageOffset int32, filter string) ([]model.RecipeAccess, error)
+	UpdateRecipeAccess(ctx context.Context, authAccount model.AuthAccount, access model.RecipeAccess) (model.RecipeAccess, error)
+	AcceptRecipeAccess(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeAccessParent, id model.RecipeAccessId) (model.RecipeAccess, error)
 
 	UploadRecipeImage(ctx context.Context, parent model.RecipeParent, id model.RecipeId, imageReader io.Reader) (imageURI string, err error)
 }

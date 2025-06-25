@@ -24,10 +24,9 @@ type ClientParams struct {
 // NewClient creates a new GORM client.
 func NewClient(p ClientParams) (*Client, error) {
 	return &Client{
-		db:                             p.DB,
-		log:                            p.Log,
-		recipeAccessUserSQLConverter:   filter.NewSQLConverter(RecipeAccessUserMap, true),
-		recipeAccessCircleSQLConverter: filter.NewSQLConverter(RecipeAccessCircleMap, true),
+		db:                       p.DB,
+		log:                      p.Log,
+		recipeAccessSQLConverter: filter.NewSQLConverter(RecipeAccessMap, true),
 	}, nil
 }
 
@@ -37,8 +36,7 @@ type Client struct {
 	level int
 	log   zerolog.Logger
 
-	recipeAccessUserSQLConverter   *filter.SQLConverter
-	recipeAccessCircleSQLConverter *filter.SQLConverter
+	recipeAccessSQLConverter *filter.SQLConverter
 }
 
 // Migrate migrates the database.

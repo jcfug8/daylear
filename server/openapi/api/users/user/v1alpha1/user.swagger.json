@@ -1,0 +1,291 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/users/user/v1alpha1/user.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "UserService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/users/v1alpha1/users": {
+      "get": {
+        "summary": "List users",
+        "description": "Retrieves a paginated list of users. Supports filtering and pagination.",
+        "operationId": "UserService_ListUsers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pageSize",
+            "description": "returned page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "used to specify the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/users/v1alpha1/{name}": {
+      "get": {
+        "summary": "Get a user",
+        "description": "Retrieves a single user by resource name.",
+        "operationId": "UserService_GetUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1User"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the user to get",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/users/v1alpha1/{user.name}": {
+      "patch": {
+        "summary": "Update a user",
+        "description": "Updates the details of a user.",
+        "operationId": "UserService_UpdateUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1User"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "user.name",
+            "description": "the name of the user",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+"
+          },
+          {
+            "name": "user",
+            "description": "the user to update",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "publicName": {
+                  "type": "string",
+                  "title": "the public name of the user",
+                  "readOnly": true
+                },
+                "email": {
+                  "type": "string",
+                  "title": "the email of the user",
+                  "readOnly": true
+                },
+                "username": {
+                  "type": "string",
+                  "title": "the username of the user"
+                },
+                "givenName": {
+                  "type": "string",
+                  "title": "the given name of the user"
+                },
+                "familyName": {
+                  "type": "string",
+                  "title": "the family name of the user"
+                }
+              },
+              "title": "the user to update",
+              "required": [
+                "email",
+                "user"
+              ]
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1alpha1ListUsersResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1User"
+          },
+          "title": "the users"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "title": "the next page token"
+        }
+      },
+      "title": "the response to list users"
+    },
+    "v1alpha1User": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the user"
+        },
+        "publicName": {
+          "type": "string",
+          "title": "the public name of the user",
+          "readOnly": true
+        },
+        "email": {
+          "type": "string",
+          "title": "the email of the user",
+          "readOnly": true
+        },
+        "username": {
+          "type": "string",
+          "title": "the username of the user"
+        },
+        "givenName": {
+          "type": "string",
+          "title": "the given name of the user"
+        },
+        "familyName": {
+          "type": "string",
+          "title": "the family name of the user"
+        }
+      },
+      "title": "the main user object",
+      "required": [
+        "email"
+      ]
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "description": "Bearer token for authentication",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

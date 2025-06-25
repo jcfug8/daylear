@@ -19,7 +19,7 @@ func (d *Domain) GetCircle(ctx context.Context, parent model.CircleParent, id mo
 		if err != nil {
 			return model.Circle{}, err
 		}
-		if permission < permPb.PermissionLevel_RESOURCE_PERMISSION_READ {
+		if permission < permPb.PermissionLevel_PERMISSION_LEVEL_READ {
 			return model.Circle{}, domain.ErrPermissionDenied{Msg: "user does not have read permission"}
 		}
 	}

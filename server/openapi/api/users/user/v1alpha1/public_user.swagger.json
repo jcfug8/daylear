@@ -1,0 +1,202 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/users/user/v1alpha1/public_user.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "PublicUserService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/users/v1alpha1/publicUsers": {
+      "get": {
+        "summary": "List public users",
+        "description": "Retrieves a paginated list of public users. Supports filtering and pagination.",
+        "operationId": "PublicUserService_ListPublicUsers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListPublicUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pageSize",
+            "description": "returned page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "used to specify the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PublicUserService"
+        ]
+      }
+    },
+    "/users/v1alpha1/{name}": {
+      "get": {
+        "summary": "Get a public user",
+        "description": "Retrieves a single public user by resource name.",
+        "operationId": "PublicUserService_GetPublicUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1PublicUser"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the public user to get",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "publicUsers/[^/]+"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PublicUserService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1alpha1ListPublicUsersResponse": {
+      "type": "object",
+      "properties": {
+        "publicUsers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1PublicUser"
+          },
+          "title": "the users"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "title": "the next page token"
+        }
+      },
+      "title": "the response to list users"
+    },
+    "v1alpha1PublicUser": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the user"
+        },
+        "username": {
+          "type": "string",
+          "title": "username",
+          "readOnly": true
+        },
+        "givenName": {
+          "type": "string",
+          "title": "the given name of the user",
+          "readOnly": true
+        },
+        "familyName": {
+          "type": "string",
+          "title": "the family name of the user",
+          "readOnly": true
+        }
+      },
+      "title": "the main public user object"
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "description": "Bearer token for authentication",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

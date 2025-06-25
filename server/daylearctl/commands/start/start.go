@@ -22,7 +22,7 @@ import (
 	tokenService "github.com/jcfug8/daylear/server/adapters/services/http/auth/token"
 	files "github.com/jcfug8/daylear/server/adapters/services/http/files"
 	grpcgateway "github.com/jcfug8/daylear/server/adapters/services/http/grpcgateway"
-
+	openapi "github.com/jcfug8/daylear/server/adapters/services/http/openapi"
 	domain "github.com/jcfug8/daylear/server/domain"
 	"go.uber.org/fx"
 
@@ -61,6 +61,7 @@ func start(opts ...fx.Option) error {
 		tokenService.Module,
 		files.Module,
 		grpcgateway.Module,
+		openapi.Module,
 		// users
 		grpcUsersV1alpha1.Module,
 		usersV1alpha1Masker.Module,

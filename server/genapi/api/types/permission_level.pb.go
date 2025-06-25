@@ -26,24 +26,28 @@ type PermissionLevel int32
 
 const (
 	// the permission is not specified
-	PermissionLevel_RESOURCE_PERMISSION_UNSPECIFIED PermissionLevel = 0
+	PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED PermissionLevel = 0
 	// the permission is read
-	PermissionLevel_RESOURCE_PERMISSION_READ PermissionLevel = 100
+	PermissionLevel_PERMISSION_LEVEL_READ PermissionLevel = 100
 	// the permission is write
-	PermissionLevel_RESOURCE_PERMISSION_WRITE PermissionLevel = 200
+	PermissionLevel_PERMISSION_LEVEL_WRITE PermissionLevel = 200
+	// the permission is admin
+	PermissionLevel_PERMISSION_LEVEL_ADMIN PermissionLevel = 300
 )
 
 // Enum value maps for PermissionLevel.
 var (
 	PermissionLevel_name = map[int32]string{
-		0:   "RESOURCE_PERMISSION_UNSPECIFIED",
-		100: "RESOURCE_PERMISSION_READ",
-		200: "RESOURCE_PERMISSION_WRITE",
+		0:   "PERMISSION_LEVEL_UNSPECIFIED",
+		100: "PERMISSION_LEVEL_READ",
+		200: "PERMISSION_LEVEL_WRITE",
+		300: "PERMISSION_LEVEL_ADMIN",
 	}
 	PermissionLevel_value = map[string]int32{
-		"RESOURCE_PERMISSION_UNSPECIFIED": 0,
-		"RESOURCE_PERMISSION_READ":        100,
-		"RESOURCE_PERMISSION_WRITE":       200,
+		"PERMISSION_LEVEL_UNSPECIFIED": 0,
+		"PERMISSION_LEVEL_READ":        100,
+		"PERMISSION_LEVEL_WRITE":       200,
+		"PERMISSION_LEVEL_ADMIN":       300,
 	}
 )
 
@@ -78,11 +82,12 @@ var File_api_types_permission_level_proto protoreflect.FileDescriptor
 
 const file_api_types_permission_level_proto_rawDesc = "" +
 	"\n" +
-	" api/types/permission_level.proto\x12\tapi.types*t\n" +
-	"\x0fPermissionLevel\x12#\n" +
-	"\x1fRESOURCE_PERMISSION_UNSPECIFIED\x10\x00\x12\x1c\n" +
-	"\x18RESOURCE_PERMISSION_READ\x10d\x12\x1e\n" +
-	"\x19RESOURCE_PERMISSION_WRITE\x10\xc8\x01B\x9d\x01\n" +
+	" api/types/permission_level.proto\x12\tapi.types*\x88\x01\n" +
+	"\x0fPermissionLevel\x12 \n" +
+	"\x1cPERMISSION_LEVEL_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15PERMISSION_LEVEL_READ\x10d\x12\x1b\n" +
+	"\x16PERMISSION_LEVEL_WRITE\x10\xc8\x01\x12\x1b\n" +
+	"\x16PERMISSION_LEVEL_ADMIN\x10\xac\x02B\x9d\x01\n" +
 	"\rcom.api.typesB\x14PermissionLevelProtoP\x01Z1github.com/jcfug8/daylear/server/genapi/api/types\xa2\x02\x03ATX\xaa\x02\tApi.Types\xca\x02\tApi\\Types\xe2\x02\x15Api\\Types\\GPBMetadata\xea\x02\n" +
 	"Api::Typesb\x06proto3"
 

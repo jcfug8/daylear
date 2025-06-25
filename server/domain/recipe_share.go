@@ -23,7 +23,7 @@ func (d *Domain) ShareRecipe(ctx context.Context, parent model.RecipeParent, rec
 	if err != nil {
 		return err
 	}
-	if recipient.PermissionLevel != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+	if recipient.PermissionLevel != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
 		return domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 	if parent.CircleId != 0 {
@@ -31,7 +31,7 @@ func (d *Domain) ShareRecipe(ctx context.Context, parent model.RecipeParent, rec
 		if err != nil {
 			return err
 		}
-		if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+		if permission != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
 			return domain.ErrPermissionDenied{Msg: "circle does not have write permission"}
 		}
 
@@ -51,7 +51,7 @@ func (d *Domain) ShareRecipe(ctx context.Context, parent model.RecipeParent, rec
 	}
 
 	// Create new shares
-	if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_UNSPECIFIED {
+	if permission != permPb.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
 		// TODO: check if the user or circle exists
 		err = tx.BulkCreateRecipeRecipients(ctx, recipients, id, permission)
 		if err != nil {
@@ -92,7 +92,7 @@ func (d *Domain) UnshareRecipe(ctx context.Context, parent model.RecipeParent, p
 		if err != nil {
 			return err
 		}
-		if recipient.PermissionLevel != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+		if recipient.PermissionLevel != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
 			return domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 		}
 		if parent.CircleId != 0 {
@@ -100,7 +100,7 @@ func (d *Domain) UnshareRecipe(ctx context.Context, parent model.RecipeParent, p
 			if err != nil {
 				return err
 			}
-			if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+			if permission != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
 				return domain.ErrPermissionDenied{Msg: "circle does not have write permission"}
 			}
 		}

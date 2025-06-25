@@ -35,25 +35,9 @@ sequenceDiagram
     Server->>Server: 15. Server validates the JWT and authorizes the request.
 ```
 
-### How to Get a Token for Local Testing
-
-1.  **Start the Application**: Ensure the backend server and frontend dev server are running.
-2.  **Initiate Login**: In your browser, navigate to the OAuth login URL, for example: `http://localhost:8080/auth/google/login`.
-3.  **Authenticate with Provider**: Log in on the provider's site (e.g., Google).
-4.  **Monitor Network Requests**: After you grant permission, the provider will redirect back to the Daylear backend. The backend will then redirect to the frontend.
-    *   Open your browser's developer tools and go to the **Network** tab.
-    *   The browser will be redirected to a URL like `http://localhost:5173/login/callback?token_key=xxxxxxxx`.
-    *   Immediately after this redirect, you will see a `fetch`/`XHR` request from the frontend javascript to `http://localhost:8080/auth/token/xxxxxxxx`.
-5.  **Capture the JWT**:
-    *   Click on the request to `/auth/token/xxxxxxxx` in the Network tab.
-    *   Look at the **Response** or **Preview** tab for that request.
-    *   The raw JWT will be in the JSON response body. Copy it. You can now use this as a Bearer token for your API requests.
-
 ## Database Schema
 
 The database is designed around four core entities—users, circles, recipes, and ingredients—with their relationships managed through several join tables.
-
-### Core Entities
 
 *   **`daylear_user`**: This table holds all user-specific information, including credentials for authentication (`Email`, `Username`) and personal details (`GivenName`, `FamilyName`).
 *   **`circle`**: Represents a social group, such as family or friends. Each circle has a `Title` and a boolean `IsPublic` to control its visibility.
@@ -136,85 +120,82 @@ erDiagram
 }
 ```
 
-## API Endpoints
+# Entities
 
-### CreateRecipeAccess
+## User
+A user is the entity that represents a person who can log into the application. A user can be private or public:
 
-Grants a user or circle access to a specific recipe.
+*   **Private**: The user is not visible in the user list. `Anonymous` should be shown as the username on publicly accessed content.
+*   **Public**: The user is visible in the user list. Their actual username is shown on publicly accessed content.
 
-**Endpoint:** `POST /meals/v1alpha1/{parent=recipes/*}/accesses`
+A user can only get, list other users that they have access to or users that are public.
 
-**Example Request:**
-Grants user with ID `2` WRITE access to recipe with ID `1`.
+A user can only edit, delete their own user.
 
-```bash
-curl -X POST \
-  -H "Authorization: Bearer <YOUR_JWT>" \
-  -H "Content-Type: application/json" \
-  -d '{"recipient": {"user": "users/2"}, "level": "LEVEL_WRITE"}' \
-  http://localhost:8080/meals/v1alpha1/recipes/1/accesses
-```
+## User Access
+The entities that represent the access to a user. A user can have access to another user. If a user has access to a user, they can view the public and restricted content they have.
 
-**JSON Body Details:**
-- `recipient`: A `oneof` field. Can be either `user` or `circle`. The value should be the full resource name of the recipient.
-- `level`: The permission level to grant. Can be `"LEVEL_READ"`, `"LEVEL_WRITE"`, or `"LEVEL_ADMIN"`. The gateway also accepts the integer enum values.
+When an access is requested, it will create two records, one for both users. The permission level can only be set to `READ`. The state of both the accesses are set to `PENDING` when they are created. The states of the accesses can only be updated to `ACCEPTED` by the user that was requested.
 
-**Response Body Details:**
-- `name`: Resource name of the access (e.g., `recipes/1/accesses/123`)
-- `issuer`: The user or circle who granted the access (output only)
-- `recipient`: The user or circle who has access
-- `level`: Permission level (`LEVEL_READ`, `LEVEL_WRITE`, `LEVEL_ADMIN`)
-- `state`: Status of the access (`STATE_PENDING`, `STATE_ACCEPTED`)
+*   `PERMISSION_LEVEL_UNSPECIFIED`: The user does not have access to the user.
+*   `PERMISSION_LEVEL_PUBLIC`: The user can view the user's public content. This indicates that the user is public but the viewing user does not explicitly have access.
+*   `PERMISSION_LEVEL_READ`: The user can view the user's public and restricted content.
 
-### ListRecipeAccesses
+## Recipe
+A recipe is a collection of ingredients, instructions, and other information for preparing a dish. A recipe can be shared with a user or a circle. A recipe can be created by a user or a circle. A recipe can be public or private:
 
-Retrieves all accesses (users and circles) for a specific recipe.
+*   **Public**: The recipe is visible in the public recipe list.
+*   **Private**: The recipe is not visible in the public recipe list.
 
-**Endpoint:** `GET /meals/v1alpha1/recipes/{recipe_id}/accesses`
+When a user or circle view their own recipe's, they can get and list recipes that they have access to or recipes that are public. A user or circle can only edit, delete a recipe based on their permission level described in the `Recipe Access` section of this readme.
 
-**Example Request:**
-Lists all accesses for recipe with ID `1`.
+When a user or circle views another user or circle's recipe's, they can only get, list recipes the viewed user or circle has admin access to or recipes that are public the viewed user or circle has access to.
 
-```bash
-curl -X GET \
-  -H "Authorization: Bearer <YOUR_JWT>" \
-  http://localhost:8080/meals/v1alpha1/recipes/1/accesses
-```
+## Recipe Access
+The entities that represent the access to a recipe. A user or circle can have access to a recipe. If a user or circle has access to a recipe, they can view it. If a circle has access to a recipe, all members of the circle can view it. Depending on the permission level, the user or circle can also edit the recipe and manage who can access the recipe. 
 
-**Query Parameters:**
-- `filter` (optional): Filter expression for the list (see proto for details)
-- `page_size` (optional): Number of results per page
-- `page_token` (optional): Token for pagination
+When the access is created, the state of the access is set to `PENDING`. If the access is created for a circle and the creating user has write level permissions for, it will be set to `ACCEPTED` on create. The state can be updated to `ACCEPTED` by the user or circle that is being granted access.
 
-**Response Body Details:**
-- `accesses`: Array of access objects, each containing:
-  - `name`: Resource name of the access (e.g., `recipes/1/accesses/123`)
-  - `issuer`: The user or circle who granted the access (output only)
-  - `recipient`: The user or circle who has access
-  - `level`: Permission level (`LEVEL_READ`, `LEVEL_WRITE`, `LEVEL_ADMIN`)
-  - `state`: Status of the access (`STATE_PENDING`, `STATE_ACCEPTED`)
-- `next_page_token`: Token for fetching the next page of results (if any)
+The possible states are:
 
----
+*   `PENDING`: The access is pending.
+*   `ACCEPTED`: The access is accepted.
 
-## Resource Naming (AIPs)
+When an access is created, the permission level is set but can be updated. Only a user or circle with write level permissions can update the permission level. A user or circle cannot grant permission to a recipe with a higher level than their own. 
 
-This project follows the Google AIP (API Improvement Proposals) conventions for resource names. Understanding these conventions is crucial for making correct API calls.
+The possible permission levels are:
 
-| Resource | Pattern | Example Parent Name | Example Full Name |
-| :--- | :--- | :--- | :--- |
-| `Recipe` | `users/{user}/recipes/{recipe}` | `users/1` | `users/1/recipes/123` |
-| `Access` | `recipes/{recipe}/accesses/{access}`| `recipes/123` | `recipes/123/accesses/456`|
-| `User` | `users/{user}` | N/A | `users/1` |
+*   `PERMISSION_LEVEL_UNSPECIFIED`: The user or circle does not have access to the recipe.
+*   `PERMISSION_LEVEL_PUBLIC`: The user or circle can view the recipe. This indicates that the recipe is public but the user or circle does not explicitly have access to it.
+*   `PERMISSION_LEVEL_READ`: The user or circle can view the recipe.
+*   `PERMISSION_LEVEL_WRITE`: The user or circle can view, edit, and manage access to the recipe.
+*   `PERMISSION_LEVEL_ADMIN`: The user or circle can view, edit, manage access to the recipe, and delete the recipe.
 
-## Development & Debugging
+A user or circle can only get, list, create,update, delete their own recipe accesses or accesses to recipes that they have write permission to. A user can only accept their own access to a recipe.
 
-### Workflow Checklist
+## Circle
+A circle is a group of entities and resources that a group of users can have access to. A circle can be created by a user. A circle can be public or private.
 
-To avoid common issues during development, follow this checklist after making changes:
+*   **Public**: The circle is visible in the public circle list.
+*   **Private**: The circle is not visible in the public circle list.
 
-*   **After modifying `.proto` files:**
-    1.  Run `buf generate` from the project root to regenerate the protobuf and gRPC gateway files.
-    2.  Restart the server (`make up` or your manual process).
-*   **After modifying Go source files (`.go`):**
-    1.  Restart the server.
+When a user views their own circles, they can get and list circles that they have access to or circles that are public. A user or circle can only edit, delete a circle based on their permission level described in the `Circle Access` section of this readme.
+
+When a user views another user's circles, they can only get, list circles the viewed user has admin access to or circles that are public the viewed user has access to.
+
+## Circle Access
+The entities that represent the access to a circle. A user can have access to a circle. If a user has access to a circle, they can view it. Depending on the permission level, the user can also edit the circle and manage who can access the circle. If a user has explicit access to a circle, it is also said that they are a member of the circle.
+
+When an access is created, the permission level is set but can be updated. The state of the access is set to `PENDING` when the access is created. The state can be updated to `ACCEPTED` by the user or circle that is being granted access. A user cannot grant permission to a circle with a higher level than their own. The possible permission levels are:
+
+*   `PERMISSION_LEVEL_UNSPECIFIED`: The user does not have access to the circle.
+*   `PERMISSION_LEVEL_PUBLIC`: The user can view the circle. This indicates that the circle is public but the user does not explicitly have access to it.
+*   `PERMISSION_LEVEL_READ`: The user can view the circle.
+*   `PERMISSION_LEVEL_WRITE`: The user can view, edit, and manage access to the circle.
+*   `PERMISSION_LEVEL_ADMIN`: The user can view, edit, manage access to the circle, and delete the circle.
+
+A user can only get, list, update, delete their own circle accesses or accesses to circles that they have write permission to.
+
+A user can only create an access for a circle if they have write permission to the circle.
+
+A user can only accept their own access to a circle.

@@ -26,7 +26,7 @@ func (d *Domain) UpdateRecipe(ctx context.Context, recipe model.Recipe, updateMa
 	if err != nil {
 		return model.Recipe{}, err
 	}
-	if recipient.PermissionLevel != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+	if recipient.PermissionLevel != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
 		return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 	if recipe.Parent.CircleId != 0 {
@@ -34,7 +34,7 @@ func (d *Domain) UpdateRecipe(ctx context.Context, recipe model.Recipe, updateMa
 		if err != nil {
 			return model.Recipe{}, err
 		}
-		if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+		if permission != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
 			return model.Recipe{}, domain.ErrPermissionDenied{Msg: "circle does not have write permission"}
 		}
 	}

@@ -16,6 +16,27 @@ import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  security_definitions: {
+    security: {
+      key: "BearerAuth"
+      value: {
+        type: TYPE_API_KEY
+        in: IN_HEADER
+        name: "Authorization"
+        description: "Bearer token for authentication"
+      }
+    }
+  }
+  security: {
+    security_requirement: {
+      key: "BearerAuth"
+      value: {}
+    }
+  }
+};
 
 // the recipe service
 service RecipeService {
@@ -25,9 +46,21 @@ service RecipeService {
     option (google.api.http) = {
       post: "/meals/v1alpha1/recipes"
       body: "recipe"
-      additional_bindings {
+      additional_bindings: {
         post: "/meals/v1alpha1/{parent=circles/*}/recipes"
         body: "recipe"
+      }
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Create a recipe"
+      description: "Creates a new recipe with the provided details."
+      tags: "RecipeService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
       }
     };
   }
@@ -37,8 +70,18 @@ service RecipeService {
     option (google.api.method_signature) = "parent";
     option (google.api.http) = {
       get: "/meals/v1alpha1/recipes"
-      additional_bindings {
-        get: "/meals/v1alpha1/{parent=circles/*}/recipes"
+      additional_bindings: {get: "/meals/v1alpha1/{parent=circles/*}/recipes"}
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "List recipes"
+      description: "Retrieves a paginated list of recipes. Supports filtering and pagination."
+      tags: "RecipeService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
       }
     };
   }
@@ -49,9 +92,21 @@ service RecipeService {
     option (google.api.http) = {
       patch: "/meals/v1alpha1/{recipe.name=recipes/*}"
       body: "recipe"
-      additional_bindings {
+      additional_bindings: {
         patch: "/meals/v1alpha1/{recipe.name=circles/*/recipes/*}"
         body: "recipe"
+      }
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Update a recipe"
+      description: "Updates the details of an existing recipe."
+      tags: "RecipeService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
       }
     };
   }
@@ -61,8 +116,18 @@ service RecipeService {
     option (google.api.method_signature) = "name";
     option (google.api.http) = {
       delete: "/meals/v1alpha1/{name=recipes/*}"
-      additional_bindings {
-        delete: "/meals/v1alpha1/{name=circles/*/recipes/*}"
+      additional_bindings: {delete: "/meals/v1alpha1/{name=circles/*/recipes/*}"}
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Delete a recipe"
+      description: "Deletes a recipe by resource name."
+      tags: "RecipeService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
       }
     };
   }
@@ -72,8 +137,18 @@ service RecipeService {
     option (google.api.method_signature) = "name";
     option (google.api.http) = {
       get: "/meals/v1alpha1/{name=recipes/*}"
-      additional_bindings {
-        get: "/meals/v1alpha1/{name=circles/*/recipes/*}"
+      additional_bindings: {get: "/meals/v1alpha1/{name=circles/*/recipes/*}"}
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get a recipe"
+      description: "Retrieves a single recipe by resource name."
+      tags: "RecipeService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
       }
     };
   }
@@ -84,9 +159,21 @@ service RecipeService {
     option (google.api.http) = {
       post: "/meals/v1alpha1/{name=recipes/*}:share"
       body: "*"
-      additional_bindings {
+      additional_bindings: {
         post: "/meals/v1alpha1/{name=circles/*/recipes/*}:share"
         body: "*"
+      }
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Share a recipe"
+      description: "Shares a recipe with specified recipients."
+      tags: "RecipeService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
       }
     };
   }
@@ -97,9 +184,21 @@ service RecipeService {
     option (google.api.http) = {
       post: "/meals/v1alpha1/{name=recipes/*}:unshare"
       body: "*"
-      additional_bindings {
+      additional_bindings: {
         post: "/meals/v1alpha1/{name=circles/*/recipes/*}:unshare"
         body: "*"
+      }
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Unshare a recipe"
+      description: "Removes sharing of a recipe from specified recipients."
+      tags: "RecipeService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
       }
     };
   }
@@ -244,6 +343,7 @@ message GetRecipeRequest {
     (google.api.resource_reference).type = "api.meals.recipe.v1alpha1/Recipe"
   ];
 }
+
 // the request to share a recipe
 message ShareRecipeRequest {
   // the name of the recipe to share
@@ -276,4 +376,3 @@ message UnshareRecipeRequest {
 
 // the response to unshare a recipe
 message UnshareRecipeResponse {}
-

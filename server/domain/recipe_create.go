@@ -40,7 +40,7 @@ func (d *Domain) CreateRecipe(ctx context.Context, recipe model.Recipe) (model.R
 		return model.Recipe{}, err
 	}
 
-	err = tx.BulkCreateRecipeRecipients(ctx, []model.RecipeParent{dbRecipe.Parent}, dbRecipe.Id, permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE)
+	err = tx.BulkCreateRecipeRecipients(ctx, []model.RecipeParent{dbRecipe.Parent}, dbRecipe.Id, permPb.PermissionLevel_PERMISSION_LEVEL_WRITE)
 	if err != nil {
 		return model.Recipe{}, err
 	}

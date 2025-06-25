@@ -145,6 +145,14 @@ const router = createRouter({
         breadcrumbs: true,
       },
     },
+    {
+      path: '/api-docs',
+      name: 'api-docs',
+      component: () => import('../views/ApiDocsView.vue'),
+      meta: {
+        requiresNoAuth: true,
+      },
+    },
   ],
 })
 

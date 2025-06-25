@@ -258,7 +258,7 @@ func (repo *Client) GetCircleUserPermission(ctx context.Context, userId int64, c
 		Where("user_id = ? AND circle_id = ?", userId, circleId).
 		First(&circleUser).Error
 	if err != nil {
-		return permPb.PermissionLevel_RESOURCE_PERMISSION_UNSPECIFIED, ConvertGormError(err)
+		return permPb.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, ConvertGormError(err)
 	}
 
 	return circleUser.PermissionLevel, nil

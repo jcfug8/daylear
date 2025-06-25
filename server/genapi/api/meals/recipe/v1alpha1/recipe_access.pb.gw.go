@@ -292,6 +292,51 @@ func local_request_RecipeAccessService_UpdateAccess_0(ctx context.Context, marsh
 	return msg, metadata, err
 }
 
+func request_RecipeAccessService_AcceptRecipeAccess_0(ctx context.Context, marshaler runtime.Marshaler, client RecipeAccessServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq AcceptRecipeAccessRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+	}
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+	msg, err := client.AcceptRecipeAccess(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_RecipeAccessService_AcceptRecipeAccess_0(ctx context.Context, marshaler runtime.Marshaler, server RecipeAccessServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq AcceptRecipeAccessRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+	}
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+	msg, err := server.AcceptRecipeAccess(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 // RegisterRecipeAccessServiceHandlerServer registers the http handlers for service RecipeAccessService to "mux".
 // UnaryRPC     :call RecipeAccessServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -397,6 +442,26 @@ func RegisterRecipeAccessServiceHandlerServer(ctx context.Context, mux *runtime.
 			return
 		}
 		forward_RecipeAccessService_UpdateAccess_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_RecipeAccessService_AcceptRecipeAccess_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeAccessService/AcceptRecipeAccess", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=recipes/*/accesses/*}:accept"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_RecipeAccessService_AcceptRecipeAccess_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_RecipeAccessService_AcceptRecipeAccess_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 
 	return nil
@@ -523,21 +588,40 @@ func RegisterRecipeAccessServiceHandlerClient(ctx context.Context, mux *runtime.
 		}
 		forward_RecipeAccessService_UpdateAccess_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPost, pattern_RecipeAccessService_AcceptRecipeAccess_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeAccessService/AcceptRecipeAccess", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=recipes/*/accesses/*}:accept"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_RecipeAccessService_AcceptRecipeAccess_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_RecipeAccessService_AcceptRecipeAccess_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	return nil
 }
 
 var (
-	pattern_RecipeAccessService_CreateAccess_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3, 2, 4}, []string{"meals", "v1alpha1", "recipes", "parent", "accesses"}, ""))
-	pattern_RecipeAccessService_DeleteAccess_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 3, 1, 0, 4, 4, 5, 4}, []string{"meals", "v1alpha1", "recipes", "accesses", "name"}, ""))
-	pattern_RecipeAccessService_GetAccess_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 3, 1, 0, 4, 4, 5, 4}, []string{"meals", "v1alpha1", "recipes", "accesses", "name"}, ""))
-	pattern_RecipeAccessService_ListAccesses_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3, 2, 4}, []string{"meals", "v1alpha1", "recipes", "parent", "accesses"}, ""))
-	pattern_RecipeAccessService_UpdateAccess_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 3, 1, 0, 4, 4, 5, 4}, []string{"meals", "v1alpha1", "recipes", "accesses", "access.name"}, ""))
+	pattern_RecipeAccessService_CreateAccess_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3, 2, 4}, []string{"meals", "v1alpha1", "recipes", "parent", "accesses"}, ""))
+	pattern_RecipeAccessService_DeleteAccess_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 3, 1, 0, 4, 4, 5, 4}, []string{"meals", "v1alpha1", "recipes", "accesses", "name"}, ""))
+	pattern_RecipeAccessService_GetAccess_0          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 3, 1, 0, 4, 4, 5, 4}, []string{"meals", "v1alpha1", "recipes", "accesses", "name"}, ""))
+	pattern_RecipeAccessService_ListAccesses_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3, 2, 4}, []string{"meals", "v1alpha1", "recipes", "parent", "accesses"}, ""))
+	pattern_RecipeAccessService_UpdateAccess_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 3, 1, 0, 4, 4, 5, 4}, []string{"meals", "v1alpha1", "recipes", "accesses", "access.name"}, ""))
+	pattern_RecipeAccessService_AcceptRecipeAccess_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 3, 1, 0, 4, 4, 5, 4}, []string{"meals", "v1alpha1", "recipes", "accesses", "name"}, "accept"))
 )
 
 var (
-	forward_RecipeAccessService_CreateAccess_0 = runtime.ForwardResponseMessage
-	forward_RecipeAccessService_DeleteAccess_0 = runtime.ForwardResponseMessage
-	forward_RecipeAccessService_GetAccess_0    = runtime.ForwardResponseMessage
-	forward_RecipeAccessService_ListAccesses_0 = runtime.ForwardResponseMessage
-	forward_RecipeAccessService_UpdateAccess_0 = runtime.ForwardResponseMessage
+	forward_RecipeAccessService_CreateAccess_0       = runtime.ForwardResponseMessage
+	forward_RecipeAccessService_DeleteAccess_0       = runtime.ForwardResponseMessage
+	forward_RecipeAccessService_GetAccess_0          = runtime.ForwardResponseMessage
+	forward_RecipeAccessService_ListAccesses_0       = runtime.ForwardResponseMessage
+	forward_RecipeAccessService_UpdateAccess_0       = runtime.ForwardResponseMessage
+	forward_RecipeAccessService_AcceptRecipeAccess_0 = runtime.ForwardResponseMessage
 )

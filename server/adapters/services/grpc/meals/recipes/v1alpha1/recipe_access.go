@@ -76,24 +76,21 @@ func (s *RecipeService) DeleteAccess(ctx context.Context, request *pb.DeleteAcce
 		return nil, err
 	}
 
-	// parse name
-	recipeAccessParent := model.RecipeAccessParent{
-		Issuer: model.RecipeParent{
-			UserId:   user.Id.UserId,
-			CircleId: circleID.CircleId,
-		},
+	authAccount := model.AuthAccount{
+		UserId:   user.Id.UserId,
+		CircleId: circleID.CircleId,
 	}
-	accessId := model.RecipeAccessId{}
-	_, err = s.accessNamer.Parse(request.Name, &model.RecipeAccess{
-		RecipeAccessParent: recipeAccessParent,
-		RecipeAccessId:     accessId,
-	})
+
+	// parse name
+	recipeAccess := &model.RecipeAccess{}
+
+	_, err = s.accessNamer.Parse(request.Name, recipeAccess)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
 	}
 
 	// delete access
-	err = s.domain.DeleteRecipeAccess(ctx, recipeAccessParent, accessId)
+	err = s.domain.DeleteRecipeAccess(ctx, authAccount, recipeAccess.RecipeAccessParent, recipeAccess.RecipeAccessId)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to delete access: %v", err)
 	}
@@ -108,25 +105,23 @@ func (s *RecipeService) GetAccess(ctx context.Context, request *pb.GetAccessRequ
 	}
 
 	// set issuer
-	recipeAccessParent := model.RecipeAccessParent{
-		Issuer: model.RecipeParent{
-			UserId:   user.Id.UserId,
-			CircleId: circleID.CircleId,
+	recipeAccess := &model.RecipeAccess{
+		RecipeAccessParent: model.RecipeAccessParent{
+			Issuer: model.RecipeParent{
+				UserId:   user.Id.UserId,
+				CircleId: circleID.CircleId,
+			},
 		},
 	}
 
 	// parse name
-	recipeAccessId := model.RecipeAccessId{}
-	_, err = s.accessNamer.Parse(request.Name, &model.RecipeAccess{
-		RecipeAccessParent: recipeAccessParent,
-		RecipeAccessId:     recipeAccessId,
-	})
+	_, err = s.accessNamer.Parse(request.Name, recipeAccess)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
 	}
 
 	// get access
-	access, err := s.domain.GetRecipeAccess(ctx, recipeAccessParent, recipeAccessId)
+	access, err := s.domain.GetRecipeAccess(ctx, recipeAccess.RecipeAccessParent, recipeAccess.RecipeAccessId)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get access: %v", err)
 	}
@@ -222,16 +217,56 @@ func (s *RecipeService) UpdateAccess(ctx context.Context, request *pb.UpdateAcce
 		CircleId: circleID.CircleId,
 	}
 
-	// parse name
-	_, err = s.accessNamer.Parse(request.Access.GetName(), modelAccess)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
-	}
-
 	// update access
 	updatedAccess, err := s.domain.UpdateRecipeAccess(ctx, modelAccess)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to update access: %v", err)
+	}
+
+	// convert model to proto
+	pbAccess, err := s.convertModelToProto(updatedAccess)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to convert model to proto: %v", err)
+	}
+
+	// check field behavior
+	fieldbehavior.ClearFields(pbAccess, annotations.FieldBehavior_INPUT_ONLY)
+
+	return pbAccess, nil
+}
+
+func (s *RecipeService) AcceptRecipeAccess(ctx context.Context, request *pb.AcceptRecipeAccessRequest) (*pb.Access, error) {
+	user, circleID, err := headers.ParseAuthData(ctx, s.circleNamer)
+	if err != nil {
+		return nil, err
+	}
+
+	// check field behavior
+	err = fieldbehavior.ValidateRequiredFields(request)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid request data: %v", err)
+	}
+
+	// create access parent with issuer (user accepting the access)
+	access := &model.RecipeAccess{
+		RecipeAccessParent: model.RecipeAccessParent{
+			Issuer: model.RecipeParent{
+				UserId:   user.Id.UserId,
+				CircleId: circleID.CircleId,
+			},
+		},
+	}
+
+	// parse name to get the parent and access id
+	_, err = s.accessNamer.Parse(request.GetName(), access)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+	}
+
+	// accept the access
+	updatedAccess, err := s.domain.AcceptRecipeAccess(ctx, access.RecipeAccessParent, access.RecipeAccessId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to accept access: %v", err)
 	}
 
 	// convert model to proto

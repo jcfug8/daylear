@@ -2,6 +2,7 @@ package model
 
 import (
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+	permPb "github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
 // RecipeAccessFields defines the recipe access fields for filtering.
@@ -23,7 +24,7 @@ type recipeAccessFields struct {
 type RecipeAccess struct {
 	RecipeAccessParent
 	RecipeAccessId
-	Level pb.Access_Level
+	Level permPb.PermissionLevel
 	State pb.Access_State
 }
 

@@ -14,6 +14,7 @@
 package circlev1alpha1
 
 import (
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -254,7 +255,7 @@ var File_api_circles_circle_v1alpha1_public_circle_proto protoreflect.FileDescri
 
 const file_api_circles_circle_v1alpha1_public_circle_proto_rawDesc = "" +
 	"\n" +
-	"/api/circles/circle/v1alpha1/public_circle.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\"\xad\x01\n" +
+	"/api/circles/circle/v1alpha1/public_circle.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xad\x01\n" +
 	"\fPublicCircle\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title:i\xeaAf\n" +
@@ -269,10 +270,22 @@ const file_api_circles_circle_v1alpha1_public_circle_proto_rawDesc = "" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"X\n" +
 	"\x16GetPublicCircleRequest\x12>\n" +
 	"\x04name\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\n" +
-	"\"api.circles.circle.v1alpha1/CircleR\x04name2\xf0\x02\n" +
-	"\x13PublicCircleService\x12\xab\x01\n" +
-	"\x11ListPublicCircles\x125.api.circles.circle.v1alpha1.ListPublicCirclesRequest\x1a6.api.circles.circle.v1alpha1.ListPublicCirclesResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/circles/v1alpha1/publicCircles\x12\xaa\x01\n" +
-	"\x0fGetPublicCircle\x123.api.circles.circle.v1alpha1.GetPublicCircleRequest\x1a).api.circles.circle.v1alpha1.PublicCircle\"7\xdaA\x04name\x82\xd3\xe4\x93\x02*\x12(/circles/v1alpha1/{name=publicCircles/*}B\x97\x02\n" +
+	"\"api.circles.circle.v1alpha1/CircleR\x04name2\xc8\x05\n" +
+	"\x13PublicCircleService\x12\xe6\x02\n" +
+	"\x11ListPublicCircles\x125.api.circles.circle.v1alpha1.ListPublicCirclesRequest\x1a6.api.circles.circle.v1alpha1.ListPublicCirclesResponse\"\xe1\x01\x92A\xb6\x01\n" +
+	"\x13PublicCircleService\x12\x13List public circles\x1aPRetrieves a paginated list of public circles. Supports filtering and pagination.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\x82\xd3\xe4\x93\x02!\x12\x1f/circles/v1alpha1/publicCircles\x12\xc7\x02\n" +
+	"\x0fGetPublicCircle\x123.api.circles.circle.v1alpha1.GetPublicCircleRequest\x1a).api.circles.circle.v1alpha1.PublicCircle\"\xd3\x01\x92A\x98\x01\n" +
+	"\x13PublicCircleService\x12\x13Get a public circle\x1a2Retrieves a single public circle by resource name.r8\n" +
+	"6\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02*\x12(/circles/v1alpha1/{name=publicCircles/*}B\xf2\x02\x92AXZD\n" +
+	"B\n" +
+	"\n" +
+	"BearerAuth\x124\b\x02\x12\x1fBearer token for authentication\x1a\rAuthorization \x02b\x10\n" +
+	"\x0e\n" +
+	"\n" +
+	"BearerAuth\x12\x00\n" +
 	"\x1fcom.api.circles.circle.v1alpha1B\x11PublicCircleProtoP\x01ZRgithub.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1;circlev1alpha1\xa2\x02\x03ACC\xaa\x02\x1bApi.Circles.Circle.V1alpha1\xca\x02\x1bApi\\Circles\\Circle\\V1alpha1\xe2\x02'Api\\Circles\\Circle\\V1alpha1\\GPBMetadata\xea\x02\x1eApi::Circles::Circle::V1alpha1b\x06proto3"
 
 var (

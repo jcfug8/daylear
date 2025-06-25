@@ -1,0 +1,425 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/circles/circle/v1alpha1/circle.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "CircleService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/circles/v1alpha1/circles": {
+      "get": {
+        "summary": "List circles",
+        "description": "Retrieves a paginated list of circles. Supports filtering and pagination.",
+        "operationId": "CircleService_ListCircles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListCirclesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pageSize",
+            "description": "the page size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CircleService"
+        ]
+      },
+      "post": {
+        "summary": "Create a circle",
+        "description": "Creates a new circle with the provided details.",
+        "operationId": "CircleService_CreateCircle",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Circle"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "circle",
+            "description": "the circle to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Circle",
+              "required": [
+                "circle"
+              ]
+            }
+          },
+          {
+            "name": "circleId",
+            "description": "the id of the circle",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CircleService"
+        ]
+      }
+    },
+    "/circles/v1alpha1/{circle.name}": {
+      "patch": {
+        "summary": "Update a circle",
+        "description": "Updates the details of an existing circle.",
+        "operationId": "CircleService_UpdateCircle",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Circle"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "circle.name",
+            "description": "the name of the circle",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "circle",
+            "description": "the circle to update",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "publicName": {
+                  "type": "string",
+                  "title": "the public name of the circle",
+                  "readOnly": true
+                },
+                "title": {
+                  "type": "string",
+                  "title": "the title of the circle"
+                },
+                "isPublic": {
+                  "type": "boolean",
+                  "title": "if the circle is public"
+                }
+              },
+              "title": "the circle to update",
+              "required": [
+                "title",
+                "circle"
+              ]
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CircleService"
+        ]
+      }
+    },
+    "/circles/v1alpha1/{name}": {
+      "get": {
+        "summary": "Get a circle",
+        "description": "Retrieves a single circle by resource name.",
+        "operationId": "CircleService_GetCircle",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Circle"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the circle",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CircleService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a circle",
+        "description": "Deletes a circle by resource name.",
+        "operationId": "CircleService_DeleteCircle",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Circle"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the circle",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CircleService"
+        ]
+      }
+    },
+    "/circles/v1alpha1/{name}:share": {
+      "post": {
+        "summary": "Share a circle",
+        "description": "Shares a circle with specified recipients.",
+        "operationId": "CircleService_ShareCircle",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ShareCircleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the circle",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CircleServiceShareCircleBody"
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CircleService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "CircleServiceShareCircleBody": {
+      "type": "object",
+      "title": "the request to share a circle"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1alpha1Circle": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the circle"
+        },
+        "publicName": {
+          "type": "string",
+          "title": "the public name of the circle",
+          "readOnly": true
+        },
+        "title": {
+          "type": "string",
+          "title": "the title of the circle"
+        },
+        "isPublic": {
+          "type": "boolean",
+          "title": "if the circle is public"
+        }
+      },
+      "title": "the main user circle",
+      "required": [
+        "title"
+      ]
+    },
+    "v1alpha1ListCirclesResponse": {
+      "type": "object",
+      "properties": {
+        "circles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1Circle"
+          },
+          "title": "the circles"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "title": "the next page token"
+        }
+      },
+      "title": "the response to list circles"
+    },
+    "v1alpha1ShareCircleResponse": {
+      "type": "object",
+      "properties": {
+        "circle": {
+          "$ref": "#/definitions/v1alpha1Circle",
+          "title": "the circle that was shared"
+        }
+      },
+      "title": "the response to share a circle"
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "description": "Bearer token for authentication",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

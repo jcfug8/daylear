@@ -31,7 +31,7 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, parent model.RecipeParen
 	if err != nil {
 		return "", err
 	}
-	if recipient.PermissionLevel != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+	if recipient.PermissionLevel != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
 		return "", domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 	if parent.CircleId != 0 {
@@ -39,7 +39,7 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, parent model.RecipeParen
 		if err != nil {
 			return "", err
 		}
-		if permission != permPb.PermissionLevel_RESOURCE_PERMISSION_WRITE {
+		if permission != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
 			return "", domain.ErrPermissionDenied{Msg: "circle does not have write permission"}
 		}
 
