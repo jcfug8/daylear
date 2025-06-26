@@ -30,7 +30,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1alpha1Access"
+              "$ref": "#/definitions/mealsrecipev1alpha1Access"
             }
           },
           "default": {
@@ -57,13 +57,13 @@
             "schema": {
               "type": "object",
               "properties": {
-                "issuer": {
-                  "$ref": "#/definitions/AccessIssuerOrRecipient",
-                  "title": "the name of the issuer",
+                "requester": {
+                  "$ref": "#/definitions/AccessRequesterOrRecipient",
+                  "title": "the name of the requester",
                   "readOnly": true
                 },
                 "recipient": {
-                  "$ref": "#/definitions/AccessIssuerOrRecipient",
+                  "$ref": "#/definitions/AccessRequesterOrRecipient",
                   "title": "the name of the recipient"
                 },
                 "level": {
@@ -71,7 +71,7 @@
                   "title": "the permission level of the access"
                 },
                 "state": {
-                  "$ref": "#/definitions/AccessState",
+                  "$ref": "#/definitions/mealsrecipev1alpha1AccessState",
                   "title": "the status of the access",
                   "readOnly": true
                 }
@@ -106,7 +106,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1alpha1Access"
+              "$ref": "#/definitions/mealsrecipev1alpha1Access"
             }
           },
           "default": {
@@ -187,7 +187,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1alpha1Access"
+              "$ref": "#/definitions/mealsrecipev1alpha1Access"
             }
           },
           "default": {
@@ -236,7 +236,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1alpha1ListAccessesResponse"
+              "$ref": "#/definitions/mealsrecipev1alpha1ListAccessesResponse"
             }
           },
           "default": {
@@ -297,7 +297,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1alpha1Access"
+              "$ref": "#/definitions/mealsrecipev1alpha1Access"
             }
           },
           "default": {
@@ -322,7 +322,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1alpha1Access",
+              "$ref": "#/definitions/mealsrecipev1alpha1Access",
               "required": [
                 "access"
               ]
@@ -343,7 +343,7 @@
     }
   },
   "definitions": {
-    "AccessIssuerOrRecipient": {
+    "AccessRequesterOrRecipient": {
       "type": "object",
       "properties": {
         "user": {
@@ -355,9 +355,45 @@
           "title": "the name of the circle"
         }
       },
-      "title": "the issuer or recipient of the access"
+      "title": "the requester or recipient of the access"
     },
-    "AccessState": {
+    "RecipeAccessServiceAcceptRecipeAccessBody": {
+      "type": "object",
+      "title": "The request to accept an access to a recipe"
+    },
+    "mealsrecipev1alpha1Access": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "The name of the access"
+        },
+        "requester": {
+          "$ref": "#/definitions/AccessRequesterOrRecipient",
+          "title": "the name of the requester",
+          "readOnly": true
+        },
+        "recipient": {
+          "$ref": "#/definitions/AccessRequesterOrRecipient",
+          "title": "the name of the recipient"
+        },
+        "level": {
+          "$ref": "#/definitions/typesPermissionLevel",
+          "title": "the permission level of the access"
+        },
+        "state": {
+          "$ref": "#/definitions/mealsrecipev1alpha1AccessState",
+          "title": "the status of the access",
+          "readOnly": true
+        }
+      },
+      "title": "This represents the data about a user's or circle's access to a recipe",
+      "required": [
+        "recipient",
+        "level"
+      ]
+    },
+    "mealsrecipev1alpha1AccessState": {
       "type": "string",
       "enum": [
         "STATE_UNSPECIFIED",
@@ -368,9 +404,23 @@
       "description": "- STATE_UNSPECIFIED: This status should never get used.\n - STATE_PENDING: The access is pending and can either be accepted or deleted.\n - STATE_ACCEPTED: The access is accepted and can be deleted.",
       "title": "the status of the access"
     },
-    "RecipeAccessServiceAcceptRecipeAccessBody": {
+    "mealsrecipev1alpha1ListAccessesResponse": {
       "type": "object",
-      "title": "The request to accept an access to a recipe"
+      "properties": {
+        "accesses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/mealsrecipev1alpha1Access"
+          },
+          "title": "The list of accesses"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "title": "The next page token"
+        }
+      },
+      "title": "The response to list accesses to a recipe"
     },
     "protobufAny": {
       "type": "object",
@@ -404,63 +454,14 @@
       "type": "string",
       "enum": [
         "PERMISSION_LEVEL_UNSPECIFIED",
+        "PERMISSION_LEVEL_PUBLIC",
         "PERMISSION_LEVEL_READ",
         "PERMISSION_LEVEL_WRITE",
         "PERMISSION_LEVEL_ADMIN"
       ],
       "default": "PERMISSION_LEVEL_UNSPECIFIED",
-      "description": "- PERMISSION_LEVEL_UNSPECIFIED: the permission is not specified\n - PERMISSION_LEVEL_READ: the permission is read\n - PERMISSION_LEVEL_WRITE: the permission is write\n - PERMISSION_LEVEL_ADMIN: the permission is admin",
+      "description": "- PERMISSION_LEVEL_UNSPECIFIED: the permission is not specified\n - PERMISSION_LEVEL_PUBLIC: the permission is public\n - PERMISSION_LEVEL_READ: the permission is read\n - PERMISSION_LEVEL_WRITE: the permission is write\n - PERMISSION_LEVEL_ADMIN: the permission is admin",
       "title": "the permission levels"
-    },
-    "v1alpha1Access": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "title": "The name of the access"
-        },
-        "issuer": {
-          "$ref": "#/definitions/AccessIssuerOrRecipient",
-          "title": "the name of the issuer",
-          "readOnly": true
-        },
-        "recipient": {
-          "$ref": "#/definitions/AccessIssuerOrRecipient",
-          "title": "the name of the recipient"
-        },
-        "level": {
-          "$ref": "#/definitions/typesPermissionLevel",
-          "title": "the permission level of the access"
-        },
-        "state": {
-          "$ref": "#/definitions/AccessState",
-          "title": "the status of the access",
-          "readOnly": true
-        }
-      },
-      "title": "This represents the data about a user's or circle's access to a recipe",
-      "required": [
-        "recipient",
-        "level"
-      ]
-    },
-    "v1alpha1ListAccessesResponse": {
-      "type": "object",
-      "properties": {
-        "accesses": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1alpha1Access"
-          },
-          "title": "The list of accesses"
-        },
-        "nextPageToken": {
-          "type": "string",
-          "title": "The next page token"
-        }
-      },
-      "title": "The response to list accesses to a recipe"
     }
   },
   "securityDefinitions": {

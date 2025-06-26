@@ -71,10 +71,10 @@ func GetCircleName(r *http.Request) string {
 	return headers[0]
 }
 
-func ParseAuthData(ctx context.Context, circleNamer namer.ReflectNamer) (model.User, model.CircleId, error) {
+func ParseAuthData(ctx context.Context, circleNamer namer.ReflectNamer) (model.AuthAccount, error) {
 	user, ok := ctx.Value(UserKey).(model.User)
 	if !ok {
-		return model.User{}, model.CircleId{}, status.Error(codes.Unauthenticated, "user not found")
+		return model.AuthAccount{}, status.Error(codes.Unauthenticated, "user not found")
 	}
 
 	var circleID model.CircleId
@@ -82,13 +82,13 @@ func ParseAuthData(ctx context.Context, circleNamer namer.ReflectNamer) (model.U
 	if circleName != nil {
 		circleNameStr, ok := circleName.(string)
 		if !ok {
-			return model.User{}, model.CircleId{}, status.Error(codes.InvalidArgument, "invalid circle name")
+			return model.AuthAccount{}, status.Error(codes.InvalidArgument, "invalid circle name")
 		}
 		_, err := circleNamer.Parse(circleNameStr, &circleID)
 		if err != nil {
-			return model.User{}, model.CircleId{}, status.Errorf(codes.InvalidArgument, "invalid circle name: %v", err)
+			return model.AuthAccount{}, status.Errorf(codes.InvalidArgument, "invalid circle name: %v", err)
 		}
 	}
 
-	return user, circleID, nil
+	return model.AuthAccount{UserId: user.Id.UserId, CircleId: circleID.CircleId}, nil
 }

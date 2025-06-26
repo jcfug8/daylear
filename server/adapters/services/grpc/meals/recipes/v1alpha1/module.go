@@ -11,7 +11,6 @@ var Module = fx.Module(
 	fx.Provide(
 		NewRecipeService,
 		func(s *RecipeService) pb.RecipeServiceServer { return s },
-		func(s *RecipeService) pb.RecipeRecipientsServiceServer { return s },
 		func(s *RecipeService) pb.RecipeAccessServiceServer { return s },
 	),
 )

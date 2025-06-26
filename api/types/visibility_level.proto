@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package api.types;
+
+// the visibility levels
+enum VisibilityLevel {
+  // the visibility is not specified
+  VISIBILITY_LEVEL_UNSPECIFIED = 0;
+  // the visibility is public
+  VISIBILITY_LEVEL_PUBLIC = 1;
+  // the visibility is restricted
+  VISIBILITY_LEVEL_RESTRICTED = 2;
+  // the visibility is private
+  VISIBILITY_LEVEL_PRIVATE = 3;
+  // the visibility is hidden
+  VISIBILITY_LEVEL_HIDDEN = 4;
+}

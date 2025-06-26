@@ -28,6 +28,10 @@ export type Recipe = {
   //
   // Behaviors: OPTIONAL
   imageUri: string | undefined;
+  // the visibility of the recipe
+  //
+  // Behaviors: REQUIRED
+  visibility: apitypes_VisibilityLevel | undefined;
 };
 
 // the directions to make the recipe
@@ -42,6 +46,7 @@ export type Recipe_Direction = {
   steps: string[] | undefined;
 };
 
+// an ingredient group in a recipe
 export type Recipe_IngredientGroup = {
   // the name of the group
   //
@@ -91,12 +96,20 @@ export type Recipe_MeasurementType =
   | "MEASUREMENT_TYPE_MILLILITER"
   // the measurement is in liters
   | "MEASUREMENT_TYPE_LITER";
+// the visibility levels
+export type apitypes_VisibilityLevel =
+  // the visibility is not specified
+  | "VISIBILITY_LEVEL_UNSPECIFIED"
+  // the visibility is public
+  | "VISIBILITY_LEVEL_PUBLIC"
+  // the visibility is restricted
+  | "VISIBILITY_LEVEL_RESTRICTED"
+  // the visibility is private
+  | "VISIBILITY_LEVEL_PRIVATE"
+  // the visibility is hidden
+  | "VISIBILITY_LEVEL_HIDDEN";
 // the request to create a recipe
 export type CreateRecipeRequest = {
-  // the parent of the recipe
-  //
-  // Behaviors: OPTIONAL
-  parent: string | undefined;
   // the recipe to create
   //
   // Behaviors: REQUIRED
@@ -109,10 +122,6 @@ export type CreateRecipeRequest = {
 
 // the request to list recipes
 export type ListRecipesRequest = {
-  // the parent of the recipe
-  //
-  // Behaviors: OPTIONAL
-  parent: string | undefined;
   // returned page
   //
   // Behaviors: OPTIONAL
@@ -191,52 +200,6 @@ export type GetRecipeRequest = {
   name: string | undefined;
 };
 
-// the request to share a recipe
-export type ShareRecipeRequest = {
-  // the name of the recipe to share
-  //
-  // Behaviors: REQUIRED
-  name: string | undefined;
-  // the recipents of the recipe
-  //
-  // Behaviors: REQUIRED
-  recipients: string[] | undefined;
-  // the permission level given to the recipients
-  //
-  // Behaviors: REQUIRED
-  permission: apitypes_PermissionLevel | undefined;
-};
-
-// the permission levels
-export type apitypes_PermissionLevel =
-  // the permission is not specified
-  | "PERMISSION_LEVEL_UNSPECIFIED"
-  // the permission is read
-  | "PERMISSION_LEVEL_READ"
-  // the permission is write
-  | "PERMISSION_LEVEL_WRITE"
-  // the permission is admin
-  | "PERMISSION_LEVEL_ADMIN";
-// the response to share a recipe
-export type ShareRecipeResponse = {
-};
-
-// the request to unshare a recipe
-export type UnshareRecipeRequest = {
-  // the name of the recipe to unshare
-  //
-  // Behaviors: REQUIRED
-  name: string | undefined;
-  // the recipients to remove from the recipe
-  //
-  // Behaviors: REQUIRED
-  recipients: string[] | undefined;
-};
-
-// the response to unshare a recipe
-export type UnshareRecipeResponse = {
-};
-
 // the recipe service
 export interface RecipeService {
   // create a recipe
@@ -249,10 +212,6 @@ export interface RecipeService {
   DeleteRecipe(request: DeleteRecipeRequest): Promise<Recipe>;
   // get a recipe
   GetRecipe(request: GetRecipeRequest): Promise<Recipe>;
-  // share a recipe
-  ShareRecipe(request: ShareRecipeRequest): Promise<ShareRecipeResponse>;
-  // unshare a recipe
-  UnshareRecipe(request: UnshareRecipeRequest): Promise<UnshareRecipeResponse>;
 }
 
 type RequestType = {
@@ -271,9 +230,6 @@ export function createRecipeServiceClient(
       const path = `meals/v1alpha1/recipes`; // eslint-disable-line quotes
       const body = JSON.stringify(request?.recipe ?? {});
       const queryParams: string[] = [];
-      if (request.parent) {
-        queryParams.push(`parent=${encodeURIComponent(request.parent.toString())}`)
-      }
       if (request.recipeId) {
         queryParams.push(`recipeId=${encodeURIComponent(request.recipeId.toString())}`)
       }
@@ -294,9 +250,6 @@ export function createRecipeServiceClient(
       const path = `meals/v1alpha1/recipes`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
-      if (request.parent) {
-        queryParams.push(`parent=${encodeURIComponent(request.parent.toString())}`)
-      }
       if (request.pageSize) {
         queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }
@@ -382,46 +335,6 @@ export function createRecipeServiceClient(
         method: "GetRecipe",
       }) as Promise<Recipe>;
     },
-    ShareRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      if (!request.name) {
-        throw new Error("missing required field request.name");
-      }
-      const path = `meals/v1alpha1/${request.name}:share`; // eslint-disable-line quotes
-      const body = JSON.stringify(request);
-      const queryParams: string[] = [];
-      let uri = path;
-      if (queryParams.length > 0) {
-        uri += `?${queryParams.join("&")}`
-      }
-      return handler({
-        path: uri,
-        method: "POST",
-        body,
-      }, {
-        service: "RecipeService",
-        method: "ShareRecipe",
-      }) as Promise<ShareRecipeResponse>;
-    },
-    UnshareRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      if (!request.name) {
-        throw new Error("missing required field request.name");
-      }
-      const path = `meals/v1alpha1/${request.name}:unshare`; // eslint-disable-line quotes
-      const body = JSON.stringify(request);
-      const queryParams: string[] = [];
-      let uri = path;
-      if (queryParams.length > 0) {
-        uri += `?${queryParams.join("&")}`
-      }
-      return handler({
-        path: uri,
-        method: "POST",
-        body,
-      }, {
-        service: "RecipeService",
-        method: "UnshareRecipe",
-      }) as Promise<UnshareRecipeResponse>;
-    },
   };
 }
 // This represents the data about a user's or circle's access to a recipe
@@ -430,14 +343,14 @@ export type Access = {
   //
   // Behaviors: IDENTIFIER
   name: string | undefined;
-  // the name of the issuer
+  // the name of the requester
   //
   // Behaviors: OUTPUT_ONLY
-  issuer: Access_IssuerOrRecipient | undefined;
+  requester: Access_RequesterOrRecipient | undefined;
   // the name of the recipient
   //
   // Behaviors: REQUIRED
-  recipient: Access_IssuerOrRecipient | undefined;
+  recipient: Access_RequesterOrRecipient | undefined;
   // the permission level of the access
   //
   // Behaviors: REQUIRED
@@ -448,14 +361,26 @@ export type Access = {
   state: Access_State | undefined;
 };
 
-// the issuer or recipient of the access
-export type Access_IssuerOrRecipient = {
+// the requester or recipient of the access
+export type Access_RequesterOrRecipient = {
   // the name of the user
   user?: string;
   // the name of the circle
   circle?: string;
 };
 
+// the permission levels
+export type apitypes_PermissionLevel =
+  // the permission is not specified
+  | "PERMISSION_LEVEL_UNSPECIFIED"
+  // the permission is public
+  | "PERMISSION_LEVEL_PUBLIC"
+  // the permission is read
+  | "PERMISSION_LEVEL_READ"
+  // the permission is write
+  | "PERMISSION_LEVEL_WRITE"
+  // the permission is admin
+  | "PERMISSION_LEVEL_ADMIN";
 // the status of the access
 export type Access_State =
   // This status should never get used.
@@ -697,72 +622,5 @@ export function createRecipeAccessServiceClient(
 // An empty JSON object
 type wellKnownEmpty = Record<never, never>;
 
-// The recipe recipient list resource
-export type RecipeRecipients = {
-  // The name of the recipe recipient list
-  //
-  // Behaviors: IDENTIFIER
-  name: string | undefined;
-  // The list of recipients
-  //
-  // Behaviors: OUTPUT_ONLY
-  recipients: RecipeRecipients_Recipient[] | undefined;
-};
-
-export type RecipeRecipients_Recipient = {
-  // The name of the recipient
-  //
-  // Behaviors: OUTPUT_ONLY
-  name: string | undefined;
-  // title of the recipient
-  //
-  // Behaviors: OUTPUT_ONLY
-  title: string | undefined;
-  // The permission of the recipient
-  //
-  // Behaviors: OUTPUT_ONLY
-  permission: apitypes_PermissionLevel | undefined;
-};
-
-// The request to get a recipe recipient list
-export type GetRecipeRecipientsRequest = {
-  // The name of the recipe recipient list to get
-  //
-  // Behaviors: REQUIRED
-  name: string | undefined;
-};
-
-// The recipe recipient list service
-export interface RecipeRecipientsService {
-  // Get the list of recipients for a recipe
-  GetRecipeRecipients(request: GetRecipeRecipientsRequest): Promise<RecipeRecipients>;
-}
-
-export function createRecipeRecipientsServiceClient(
-  handler: RequestHandler
-): RecipeRecipientsService {
-  return {
-    GetRecipeRecipients(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      if (!request.name) {
-        throw new Error("missing required field request.name");
-      }
-      const path = `meals/v1alpha1/${request.name}/recipeRecipients`; // eslint-disable-line quotes
-      const body = null;
-      const queryParams: string[] = [];
-      let uri = path;
-      if (queryParams.length > 0) {
-        uri += `?${queryParams.join("&")}`
-      }
-      return handler({
-        path: uri,
-        method: "GET",
-        body,
-      }, {
-        service: "RecipeRecipientsService",
-        method: "GetRecipeRecipients",
-      }) as Promise<RecipeRecipients>;
-    },
-  };
-}
 
 // @@protoc_insertion_point(typescript-http-eof)

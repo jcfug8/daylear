@@ -171,11 +171,11 @@ message Access {
   // The name of the access
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
-  // the name of the issuer
-  IssuerOrRecipient issuer = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // the name of the requester
+  RequesterOrRecipient requester = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // the name of the recipient
-  IssuerOrRecipient recipient = 3 [(google.api.field_behavior) = REQUIRED];
+  RequesterOrRecipient recipient = 3 [(google.api.field_behavior) = REQUIRED];
 
   // the permission level of the access
   api.types.PermissionLevel level = 4 [(google.api.field_behavior) = REQUIRED];
@@ -183,8 +183,8 @@ message Access {
   // the status of the access
   State state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
 
-  // the issuer or recipient of the access
-  message IssuerOrRecipient {
+  // the requester or recipient of the access
+  message RequesterOrRecipient {
     oneof name {
       // the name of the user
       string user = 1;

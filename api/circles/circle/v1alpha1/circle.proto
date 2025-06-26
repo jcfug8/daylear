@@ -1,14 +1,8 @@
-// (-- api-linter: core::0191::java-outer-classname=disabled
-//     aip.dev/not-precedent: I don't care about java. --)
-// (-- api-linter: core::0191::java-multiple-files=disabled
-//     aip.dev/not-precedent: I don't care about java. --)
-// (-- api-linter: core::0191::java-package=disabled
-//     aip.dev/not-precedent: I don't care about java. --)
-
 syntax = "proto3";
 
 package api.circles.circle.v1alpha1;
 
+import "api/types/visibility_level.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
@@ -132,27 +126,6 @@ service CircleService {
       }
     };
   }
-
-  // share a circle
-  rpc ShareCircle(ShareCircleRequest) returns (ShareCircleResponse) {
-    option (google.api.method_signature) = "name,recipients";
-    option (google.api.http) = {
-      post: "/circles/v1alpha1/{name=circles/*}:share"
-      body: "*"
-    };
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "Share a circle"
-      description: "Shares a circle with specified recipients."
-      tags: "CircleService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
-    };
-  }
 }
 
 // the main user circle
@@ -167,14 +140,11 @@ message Circle {
   // the name of the circle
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
-  // the public name of the circle
-  string public_name = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
-
   // the title of the circle
-  string title = 3 [(google.api.field_behavior) = REQUIRED];
+  string title = 2 [(google.api.field_behavior) = REQUIRED];
 
-  // if the circle is public
-  bool is_public = 4 [(google.api.field_behavior) = OPTIONAL];
+  // the visibility of the circle
+  api.types.VisibilityLevel visibility = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 // the request to create a circle
@@ -232,21 +202,4 @@ message GetCircleRequest {
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference).type = "api.circles.circle.v1alpha1/Circle"
   ];
-}
-
-// the request to share a circle
-message ShareCircleRequest {
-  // the name of the circle
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).type = "api.circles.circle.v1alpha1/Circle"
-  ];
-
-  // the recipients of the circle
-}
-
-// the response to share a circle
-message ShareCircleResponse {
-  // the circle that was shared
-  Circle circle = 1;
 }

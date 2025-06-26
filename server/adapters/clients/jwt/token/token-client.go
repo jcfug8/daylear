@@ -11,24 +11,24 @@ import (
 )
 
 type TokenClient struct {
-	l      zerolog.Logger
-	secret string
-	issuer string
+	l         zerolog.Logger
+	secret    string
+	requester string
 }
 
 type NewTokenClientParams struct {
 	fx.In
 
-	L      zerolog.Logger
-	Secret string `name:"jwt_secret"`
-	Issuer string `name:"jwt_issuer"`
+	L         zerolog.Logger
+	Secret    string `name:"jwt_secret"`
+	requester string `name:"jwt_requester"`
 }
 
 func NewTokenClient(params NewTokenClientParams) TokenClient {
 	return TokenClient{
-		l:      params.L,
-		secret: params.Secret,
-		issuer: params.Issuer,
+		l:         params.L,
+		secret:    params.Secret,
+		requester: params.requester,
 	}
 }
 
@@ -38,7 +38,7 @@ func (t TokenClient) Encode(user model.User) (string, error) {
 	t.l.Printf("saving user to token: %+v", user)
 
 	claims := toJWTClaims(user)
-	claims["iss"] = t.issuer
+	claims["iss"] = t.requester
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(claims))
 

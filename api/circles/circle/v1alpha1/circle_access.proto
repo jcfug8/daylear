@@ -1,0 +1,270 @@
+syntax = "proto3";
+
+package api.circles.circle.v1alpha1;
+
+import "api/types/permission_level.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  security_definitions: {
+    security: {
+      key: "BearerAuth"
+      value: {
+        type: TYPE_API_KEY
+        in: IN_HEADER
+        name: "Authorization"
+        description: "Bearer token for authentication"
+      }
+    }
+  }
+  security: {
+    security_requirement: {
+      key: "BearerAuth"
+      value: {}
+    }
+  }
+};
+
+// The circle recipient list service
+service CircleAccessService {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    description: "Circle Access management"
+    external_docs: {
+      url: "https://daylear.com/docs"
+      description: "Daylear API Documentation"
+    }
+  };
+
+  // Create an access to a circle
+  rpc CreateAccess(CreateAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "parent,access";
+    option (google.api.http) = {
+      post: "/circles/v1alpha1/{parent=circles/*}/accesses"
+      body: "access"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Grant a user or circle access to a circle"
+      description: "Grants a user or circle a specific permission level to a circle."
+      tags: "CircleAccessService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
+      }
+    };
+  }
+
+  // Delete an access to a circle
+  rpc DeleteAccess(DeleteAccessRequest) returns (google.protobuf.Empty) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {delete: "/circles/v1alpha1/{name=circles/*/accesses/*}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Delete a circle access"
+      description: "Removes a user's or circle's access to a circle."
+      tags: "CircleAccessService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
+      }
+    };
+  }
+
+  // Get an access to a circle
+  rpc GetAccess(GetAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {get: "/circles/v1alpha1/{name=circles/*/accesses/*}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get a circle access"
+      description: "Retrieves details about a specific circle access."
+      tags: "CircleAccessService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
+      }
+    };
+  }
+
+  // List accesses to a circle
+  rpc ListAccesses(ListAccessesRequest) returns (ListAccessesResponse) {
+    option (google.api.method_signature) = "parent";
+    option (google.api.http) = {get: "/circles/v1alpha1/{parent=circles/*}/accesses"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "List circle accesses"
+      description: "Lists all users and circles with access to a circle. If no circle is provided, the response will only return the accesses for the current user (or circle if the circle header is provided)."
+      tags: "CircleAccessService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
+      }
+    };
+  }
+
+  // Update an access to a circle
+  rpc UpdateAccess(UpdateAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "access,update_mask";
+    option (google.api.http) = {
+      patch: "/circles/v1alpha1/{access.name=circles/*/accesses/*}"
+      body: "access"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Update a circle access"
+      description: "Updates the permission level or recipient for a circle access."
+      tags: "CircleAccessService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
+      }
+    };
+  }
+
+  // Accept a circle access
+  rpc AcceptAccess(AcceptAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {
+      post: "/circles/v1alpha1/{name=circles/*/accesses/*}:accept"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Accept a circle access"
+      description: "Accepts a pending circle access, changing its state from PENDING to ACCEPTED."
+      tags: "CircleAccessService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
+      }
+    };
+  }
+}
+
+// This represents the data about a user's access to a circle
+message Access {
+  option (google.api.resource) = {
+    type: "api.circles.circle.v1alpha1/Access"
+    pattern: "circles/{circle}/accesses/{access}"
+    plural: "accesses"
+    singular: "access"
+  };
+
+  // The name of the access
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // the name of the requesting user
+  string requester = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the name of the receiving user
+  string recipient = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // the permission level of the access
+  api.types.PermissionLevel level = 4 [(google.api.field_behavior) = REQUIRED];
+
+  // the status of the access
+  State state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the status of the access
+  enum State {
+    // This status should never get used.
+    STATE_UNSPECIFIED = 0;
+    // The access is pending and can either be accepted or deleted.
+    STATE_PENDING = 100;
+    // The access is accepted and can be deleted.
+    STATE_ACCEPTED = 200;
+  }
+}
+
+// The request to create an access to a circle
+message CreateAccessRequest {
+  // parent
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.circles.circle.v1alpha1/Circle"
+  ];
+
+  // The access to create
+  Access access = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request to delete an access to a circle
+message DeleteAccessRequest {
+  // name
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.circles.circle.v1alpha1/Access"
+  ];
+}
+
+// The request to get an access to a circle
+message GetAccessRequest {
+  // name
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.circles.circle.v1alpha1/Access"
+  ];
+}
+
+// The request to list accesses to a circle
+message ListAccessesRequest {
+  // parent
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.circles.circle.v1alpha1/Circle"
+  ];
+
+  // The filter to apply to the list
+  string filter = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // The page size to apply to the list
+  int32 page_size = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // The page token to apply to the list
+  string page_token = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The response to list accesses to a circle
+message ListAccessesResponse {
+  // The list of accesses
+  repeated Access accesses = 1;
+
+  // The next page token
+  string next_page_token = 2;
+}
+
+// The request to update an access to a circle
+message UpdateAccessRequest {
+  // access
+  Access access = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // update mask
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The request to accept an access to a circle
+message AcceptAccessRequest {
+  // name
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.circles.circle.v1alpha1/Access"
+  ];
+}

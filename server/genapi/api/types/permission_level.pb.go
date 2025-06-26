@@ -27,6 +27,8 @@ type PermissionLevel int32
 const (
 	// the permission is not specified
 	PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED PermissionLevel = 0
+	// the permission is public
+	PermissionLevel_PERMISSION_LEVEL_PUBLIC PermissionLevel = 1
 	// the permission is read
 	PermissionLevel_PERMISSION_LEVEL_READ PermissionLevel = 100
 	// the permission is write
@@ -39,12 +41,14 @@ const (
 var (
 	PermissionLevel_name = map[int32]string{
 		0:   "PERMISSION_LEVEL_UNSPECIFIED",
+		1:   "PERMISSION_LEVEL_PUBLIC",
 		100: "PERMISSION_LEVEL_READ",
 		200: "PERMISSION_LEVEL_WRITE",
 		300: "PERMISSION_LEVEL_ADMIN",
 	}
 	PermissionLevel_value = map[string]int32{
 		"PERMISSION_LEVEL_UNSPECIFIED": 0,
+		"PERMISSION_LEVEL_PUBLIC":      1,
 		"PERMISSION_LEVEL_READ":        100,
 		"PERMISSION_LEVEL_WRITE":       200,
 		"PERMISSION_LEVEL_ADMIN":       300,
@@ -82,9 +86,10 @@ var File_api_types_permission_level_proto protoreflect.FileDescriptor
 
 const file_api_types_permission_level_proto_rawDesc = "" +
 	"\n" +
-	" api/types/permission_level.proto\x12\tapi.types*\x88\x01\n" +
+	" api/types/permission_level.proto\x12\tapi.types*\xa5\x01\n" +
 	"\x0fPermissionLevel\x12 \n" +
-	"\x1cPERMISSION_LEVEL_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x1cPERMISSION_LEVEL_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17PERMISSION_LEVEL_PUBLIC\x10\x01\x12\x19\n" +
 	"\x15PERMISSION_LEVEL_READ\x10d\x12\x1b\n" +
 	"\x16PERMISSION_LEVEL_WRITE\x10\xc8\x01\x12\x1b\n" +
 	"\x16PERMISSION_LEVEL_ADMIN\x10\xac\x02B\x9d\x01\n" +

@@ -2,136 +2,12 @@
 /* eslint-disable camelcase */
 // @ts-nocheck
 
-// the main public user object
-export type PublicUser = {
-  // the name of the user
-  //
-  // Behaviors: IDENTIFIER
-  name: string | undefined;
-  // username
-  //
-  // Behaviors: OUTPUT_ONLY
-  username: string | undefined;
-  // the given name of the user
-  //
-  // Behaviors: OUTPUT_ONLY
-  givenName: string | undefined;
-  // the family name of the user
-  //
-  // Behaviors: OUTPUT_ONLY
-  familyName: string | undefined;
-};
-
-// the request to list public users
-export type ListPublicUsersRequest = {
-  // returned page
-  //
-  // Behaviors: OPTIONAL
-  pageSize: number | undefined;
-  // used to specify the page token
-  //
-  // Behaviors: OPTIONAL
-  pageToken: string | undefined;
-  // used to specify the filter
-  //
-  // Behaviors: OPTIONAL
-  filter: string | undefined;
-};
-
-// the response to list users
-export type ListPublicUsersResponse = {
-  // the users
-  publicUsers: PublicUser[] | undefined;
-  // the next page token
-  nextPageToken: string | undefined;
-};
-
-// the request to get a public user
-export type GetPublicUserRequest = {
-  // the name of the public user to get
-  //
-  // Behaviors: REQUIRED
-  name: string | undefined;
-};
-
-// the user service
-export interface PublicUserService {
-  // list a public user
-  ListPublicUsers(request: ListPublicUsersRequest): Promise<ListPublicUsersResponse>;
-  // get a public user
-  GetPublicUser(request: GetPublicUserRequest): Promise<PublicUser>;
-}
-
-type RequestType = {
-  path: string;
-  method: string;
-  body: string | null;
-};
-
-type RequestHandler = (request: RequestType, meta: { service: string, method: string }) => Promise<unknown>;
-
-export function createPublicUserServiceClient(
-  handler: RequestHandler
-): PublicUserService {
-  return {
-    ListPublicUsers(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `users/v1alpha1/publicUsers`; // eslint-disable-line quotes
-      const body = null;
-      const queryParams: string[] = [];
-      if (request.pageSize) {
-        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
-      }
-      if (request.pageToken) {
-        queryParams.push(`pageToken=${encodeURIComponent(request.pageToken.toString())}`)
-      }
-      if (request.filter) {
-        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
-      }
-      let uri = path;
-      if (queryParams.length > 0) {
-        uri += `?${queryParams.join("&")}`
-      }
-      return handler({
-        path: uri,
-        method: "GET",
-        body,
-      }, {
-        service: "PublicUserService",
-        method: "ListPublicUsers",
-      }) as Promise<ListPublicUsersResponse>;
-    },
-    GetPublicUser(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      if (!request.name) {
-        throw new Error("missing required field request.name");
-      }
-      const path = `users/v1alpha1/${request.name}`; // eslint-disable-line quotes
-      const body = null;
-      const queryParams: string[] = [];
-      let uri = path;
-      if (queryParams.length > 0) {
-        uri += `?${queryParams.join("&")}`
-      }
-      return handler({
-        path: uri,
-        method: "GET",
-        body,
-      }, {
-        service: "PublicUserService",
-        method: "GetPublicUser",
-      }) as Promise<PublicUser>;
-    },
-  };
-}
 // the main user object
 export type User = {
   // the name of the user
   //
   // Behaviors: IDENTIFIER
   name: string | undefined;
-  // the public name of the user
-  //
-  // Behaviors: OUTPUT_ONLY
-  publicName: string | undefined;
   // the email of the user
   //
   // Behaviors: REQUIRED, OUTPUT_ONLY
@@ -148,8 +24,24 @@ export type User = {
   //
   // Behaviors: OPTIONAL
   familyName: string | undefined;
+  // the visibility of the user
+  //
+  // Behaviors: REQUIRED
+  visibility: apitypes_VisibilityLevel | undefined;
 };
 
+// the visibility levels
+export type apitypes_VisibilityLevel =
+  // the visibility is not specified
+  | "VISIBILITY_LEVEL_UNSPECIFIED"
+  // the visibility is public
+  | "VISIBILITY_LEVEL_PUBLIC"
+  // the visibility is restricted
+  | "VISIBILITY_LEVEL_RESTRICTED"
+  // the visibility is private
+  | "VISIBILITY_LEVEL_PRIVATE"
+  // the visibility is hidden
+  | "VISIBILITY_LEVEL_HIDDEN";
 // the request to get a user
 export type GetUserRequest = {
   // the name of the user to get
@@ -232,6 +124,14 @@ export interface UserService {
   UpdateUser(request: UpdateUserRequest): Promise<User>;
 }
 
+type RequestType = {
+  path: string;
+  method: string;
+  body: string | null;
+};
+
+type RequestHandler = (request: RequestType, meta: { service: string, method: string }) => Promise<unknown>;
+
 export function createUserServiceClient(
   handler: RequestHandler
 ): UserService {
@@ -307,5 +207,282 @@ export function createUserServiceClient(
     },
   };
 }
+// This represents the data about a user's access to a user
+export type Access = {
+  // The name of the access
+  //
+  // Behaviors: IDENTIFIER
+  name: string | undefined;
+  // the name of the issuing user
+  //
+  // Behaviors: OUTPUT_ONLY
+  requester: string | undefined;
+  // the name of the receiving user
+  //
+  // Behaviors: REQUIRED
+  recipient: string | undefined;
+  // the permission level of the access
+  //
+  // Behaviors: REQUIRED
+  level: apitypes_PermissionLevel | undefined;
+  // the status of the access
+  //
+  // Behaviors: OUTPUT_ONLY
+  state: Access_State | undefined;
+};
+
+// the permission levels
+export type apitypes_PermissionLevel =
+  // the permission is not specified
+  | "PERMISSION_LEVEL_UNSPECIFIED"
+  // the permission is public
+  | "PERMISSION_LEVEL_PUBLIC"
+  // the permission is read
+  | "PERMISSION_LEVEL_READ"
+  // the permission is write
+  | "PERMISSION_LEVEL_WRITE"
+  // the permission is admin
+  | "PERMISSION_LEVEL_ADMIN";
+// the status of the access
+export type Access_State =
+  // This status should never get used.
+  | "STATE_UNSPECIFIED"
+  // The access is pending and can either be accepted or deleted.
+  | "STATE_PENDING"
+  // The access is accepted and can be deleted.
+  | "STATE_ACCEPTED";
+// The request to create an access to a user
+export type CreateAccessRequest = {
+  // parent
+  //
+  // Behaviors: REQUIRED
+  parent: string | undefined;
+  // The access to create
+  //
+  // Behaviors: REQUIRED
+  access: Access | undefined;
+};
+
+// The request to delete an access to a user
+export type DeleteAccessRequest = {
+  // name
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// The request to get an access to a user
+export type GetAccessRequest = {
+  // name
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// The request to list accesses to a user
+export type ListAccessesRequest = {
+  // parent
+  //
+  // Behaviors: REQUIRED
+  parent: string | undefined;
+  // The filter to apply to the list
+  //
+  // Behaviors: OPTIONAL
+  filter: string | undefined;
+  // The page size to apply to the list
+  //
+  // Behaviors: OPTIONAL
+  pageSize: number | undefined;
+  // The page token to apply to the list
+  //
+  // Behaviors: OPTIONAL
+  pageToken: string | undefined;
+};
+
+// The response to list accesses to a user
+export type ListAccessesResponse = {
+  // The list of accesses
+  accesses: Access[] | undefined;
+  // The next page token
+  nextPageToken: string | undefined;
+};
+
+// The request to update an access to a user
+export type UpdateAccessRequest = {
+  // access
+  //
+  // Behaviors: REQUIRED
+  access: Access | undefined;
+  // update mask
+  //
+  // Behaviors: OPTIONAL
+  updateMask: wellKnownFieldMask | undefined;
+};
+
+// The request to accept an access to a user
+export type AcceptAccessRequest = {
+  // name
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// The user recipient list service
+export interface UserAccessService {
+  // Create an access to a user
+  CreateAccess(request: CreateAccessRequest): Promise<Access>;
+  // Delete an access to a user
+  DeleteAccess(request: DeleteAccessRequest): Promise<wellKnownEmpty>;
+  // Get an access to a user
+  GetAccess(request: GetAccessRequest): Promise<Access>;
+  // List accesses to a user
+  ListAccesses(request: ListAccessesRequest): Promise<ListAccessesResponse>;
+  // Update an access to a user
+  UpdateAccess(request: UpdateAccessRequest): Promise<Access>;
+  // Accept a user access
+  AcceptAccess(request: AcceptAccessRequest): Promise<Access>;
+}
+
+export function createUserAccessServiceClient(
+  handler: RequestHandler
+): UserAccessService {
+  return {
+    CreateAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.parent) {
+        throw new Error("missing required field request.parent");
+      }
+      const path = `users/v1alpha1/${request.parent}/accesses`; // eslint-disable-line quotes
+      const body = JSON.stringify(request?.access ?? {});
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "UserAccessService",
+        method: "CreateAccess",
+      }) as Promise<Access>;
+    },
+    DeleteAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `users/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "UserAccessService",
+        method: "DeleteAccess",
+      }) as Promise<wellKnownEmpty>;
+    },
+    GetAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `users/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "UserAccessService",
+        method: "GetAccess",
+      }) as Promise<Access>;
+    },
+    ListAccesses(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.parent) {
+        throw new Error("missing required field request.parent");
+      }
+      const path = `users/v1alpha1/${request.parent}/accesses`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.filter) {
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
+      }
+      if (request.pageSize) {
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
+      }
+      if (request.pageToken) {
+        queryParams.push(`pageToken=${encodeURIComponent(request.pageToken.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "UserAccessService",
+        method: "ListAccesses",
+      }) as Promise<ListAccessesResponse>;
+    },
+    UpdateAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.access?.name) {
+        throw new Error("missing required field request.access.name");
+      }
+      const path = `users/v1alpha1/${request.access.name}`; // eslint-disable-line quotes
+      const body = JSON.stringify(request?.access ?? {});
+      const queryParams: string[] = [];
+      if (request.updateMask) {
+        queryParams.push(`updateMask=${encodeURIComponent(request.updateMask.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "PATCH",
+        body,
+      }, {
+        service: "UserAccessService",
+        method: "UpdateAccess",
+      }) as Promise<Access>;
+    },
+    AcceptAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `users/v1alpha1/${request.name}:accept`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "UserAccessService",
+        method: "AcceptAccess",
+      }) as Promise<Access>;
+    },
+  };
+}
+// An empty JSON object
+type wellKnownEmpty = Record<never, never>;
+
 
 // @@protoc_insertion_point(typescript-http-eof)

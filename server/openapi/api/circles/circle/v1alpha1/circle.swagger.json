@@ -157,23 +157,19 @@
             "schema": {
               "type": "object",
               "properties": {
-                "publicName": {
-                  "type": "string",
-                  "title": "the public name of the circle",
-                  "readOnly": true
-                },
                 "title": {
                   "type": "string",
                   "title": "the title of the circle"
                 },
-                "isPublic": {
-                  "type": "boolean",
-                  "title": "if the circle is public"
+                "visibility": {
+                  "$ref": "#/definitions/typesVisibilityLevel",
+                  "title": "the visibility of the circle"
                 }
               },
               "title": "the circle to update",
               "required": [
                 "title",
+                "visibility",
                 "circle"
               ]
             }
@@ -270,62 +266,9 @@
           "CircleService"
         ]
       }
-    },
-    "/circles/v1alpha1/{name}:share": {
-      "post": {
-        "summary": "Share a circle",
-        "description": "Shares a circle with specified recipients.",
-        "operationId": "CircleService_ShareCircle",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1alpha1ShareCircleResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "description": "the name of the circle",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "pattern": "circles/[^/]+"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/CircleServiceShareCircleBody"
-            }
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "CircleService"
-        ]
-      }
     }
   },
   "definitions": {
-    "CircleServiceShareCircleBody": {
-      "type": "object",
-      "title": "the request to share a circle"
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -354,6 +297,19 @@
         }
       }
     },
+    "typesVisibilityLevel": {
+      "type": "string",
+      "enum": [
+        "VISIBILITY_LEVEL_UNSPECIFIED",
+        "VISIBILITY_LEVEL_PUBLIC",
+        "VISIBILITY_LEVEL_RESTRICTED",
+        "VISIBILITY_LEVEL_PRIVATE",
+        "VISIBILITY_LEVEL_HIDDEN"
+      ],
+      "default": "VISIBILITY_LEVEL_UNSPECIFIED",
+      "description": "- VISIBILITY_LEVEL_UNSPECIFIED: the visibility is not specified\n - VISIBILITY_LEVEL_PUBLIC: the visibility is public\n - VISIBILITY_LEVEL_RESTRICTED: the visibility is restricted\n - VISIBILITY_LEVEL_PRIVATE: the visibility is private\n - VISIBILITY_LEVEL_HIDDEN: the visibility is hidden",
+      "title": "the visibility levels"
+    },
     "v1alpha1Circle": {
       "type": "object",
       "properties": {
@@ -361,23 +317,19 @@
           "type": "string",
           "title": "the name of the circle"
         },
-        "publicName": {
-          "type": "string",
-          "title": "the public name of the circle",
-          "readOnly": true
-        },
         "title": {
           "type": "string",
           "title": "the title of the circle"
         },
-        "isPublic": {
-          "type": "boolean",
-          "title": "if the circle is public"
+        "visibility": {
+          "$ref": "#/definitions/typesVisibilityLevel",
+          "title": "the visibility of the circle"
         }
       },
       "title": "the main user circle",
       "required": [
-        "title"
+        "title",
+        "visibility"
       ]
     },
     "v1alpha1ListCirclesResponse": {
@@ -397,16 +349,6 @@
         }
       },
       "title": "the response to list circles"
-    },
-    "v1alpha1ShareCircleResponse": {
-      "type": "object",
-      "properties": {
-        "circle": {
-          "$ref": "#/definitions/v1alpha1Circle",
-          "title": "the circle that was shared"
-        }
-      },
-      "title": "the response to share a circle"
     }
   },
   "securityDefinitions": {

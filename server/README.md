@@ -1,5 +1,39 @@
 # Architecture Overview
+## Primary/Driving/Server Adapters
+The primary/driving/server adapter is the adapter that is responsible for handling the requests from the client. It should:
+- extract the auth account
+- convert to and from the domain types and request types
+- return correct status codes
+- verify that the request and response follow the api spec
+  - grpc
+    - check field behavior annotations on request and response
+    - verify field masks and convert to domain version of the field masks
+    - parse/format name and parent fields
+    - convert to and from the domain types
+    - parse page tokens
+  - http
+    - validate content type
+    - validate max body size
+- call the domain layer
 
+## Domain
+The domain layer is the layer that is responsible for the business logic of the application. It should:
+- validate the incomming data
+- check authorization based on the operation and the auth account
+- set hard coded fields
+- call secondary/driven/client adapters to get/set data
+
+## Secondary/Driven/Client Adapters
+The secondary/driven/client adapters are the adapters that are responsible for interacting with system outside of the domain layer. They would do things like:
+- get/set data from the database
+- get/set data from the file system
+- get/set data from the cache
+- get/set data from the message queue
+- get/set data from the external service
+- call external services
+- call other microservices
+
+They should always take and return the domain types, but they can convert to and from and types they need to interact with the system they are interacting with.
 
 # Authentication Flow
 
@@ -36,13 +70,6 @@ sequenceDiagram
 ```
 
 # Entities
-TODO: I think resources should have 4 types of visibilty:
-*   **Public**: The resource is visible in the public resource list.
-*   **Restricted**: The resource is visible only users that have: explicit access to the resource or access to a circle that has access to the resource.
-*   **Private**: The resource is only visible to users that have explicit access to the resource.
-*   **Hidden**: The resource is only visible to the creator of the resource.
-
-I'm not sure if this is directly only the rsource if its a mix between the resource and the resource access.
 
 ## User
 A user is the entity that represents a person who can log into the application. A user can be private or public:
@@ -131,85 +158,4 @@ A user can only accept their own access to a circle.
 
 # Database Schema
 
-The database is designed around four core entities—users, circles, recipes, and ingredients—with their relationships managed through several join tables.
-
-*   **`daylear_user`**: This table holds all user-specific information, including credentials for authentication (`Email`, `Username`) and personal details (`GivenName`, `FamilyName`).
-*   **`circle`**: Represents a social group, such as family or friends. Each circle has a `Title` and a boolean `IsPublic` to control its visibility.
-*   **`recipe`**: Contains all the data for a single recipe, including `Title`, `Description`, `Directions` (stored as JSONB), and a URI for an associated image.
-*   **`ingredient`**: A simple lookup table for all available ingredients, identified by `Title`.
-
 ## Relationships and Join Tables
-
-The core entities are connected through the following many-to-many relationships, each facilitated by a dedicated join table:
-
-*   **`circle_user`**: Connects the `daylear_user` and `circle` tables, establishing which users are members of which circles. It includes a `PermissionLevel` to define a user's role or access rights within a circle.
-*   **`recipe_user`**: Connects the `recipe` and `daylear_user` tables. This table manages which users have access to specific recipes, also governed by a `PermissionLevel`.
-*   **`recipe_circle`**: Connects the `recipe` and `circle` tables, allowing a recipe to be shared with all members of a circle. Access rights are defined by `PermissionLevel`.
-*   **`recipe_ingredient`**: Connects the `recipe` and `ingredient` tables. It specifies the `MeasurementAmount` and `MeasurementType` for each ingredient required in a recipe.
-
-This schema allows for a flexible and granular permission model for sharing recipes among users and circles.
-
-Below is a diagram that visually represents these relationships.
-
-```mermaid
-erDiagram
-    daylear_user {
-        bigint user_id PK
-        varchar(255) email
-        varchar(50) username
-        varchar(100) given_name
-        varchar(100) family_name
-    }
-    circle {
-        bigint circle_id PK
-        varchar title
-        boolean is_public
-    }
-    recipe {
-        bigint recipe_id PK
-        varchar title
-        varchar description
-        jsonb directions
-        varchar image_uri
-        jsonb ingredient_groups
-    }
-    ingredient {
-        bigint ingredient_id PK
-        varchar title
-    }
-    circle_user {
-        bigint circle_user_id PK
-        bigint circle_id FK
-        bigint user_id FK
-        int permission_level
-    }
-    recipe_user {
-        bigint recipe_user_id PK
-        bigint recipe_id FK
-        bigint user_id FK
-        int permission_level
-    }
-    recipe_circle {
-        bigint recipe_circle_id PK
-        bigint recipe_id FK
-        bigint circle_id FK
-        int permission_level
-    }
-    recipe_ingredient {
-        bigint recipe_ingredient_id PK
-        bigint recipe_id FK
-        bigint ingredient_id FK
-        float64 measurement_amount
-        int measurement_type
-    }
-
-    daylear_user ||--o{ circle_user : "has"
-    circle ||--o{ circle_user : "has"
-    daylear_user ||--o{ recipe_user : "has"
-    recipe ||--o{ recipe_user : "has"
-    circle ||--o{ recipe_circle : "has"
-    recipe ||--o{ recipe_circle : "has"
-    recipe ||--o{ recipe_ingredient : "has"
-    ingredient ||--o{ recipe_ingredient : "has"
-}
-```

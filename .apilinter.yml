@@ -1,4 +1,12 @@
 - included_paths:
     - 'api/meals/recipe/v1alpha1/recipe_access.proto'
+    - 'api/users/user/v1alpha1/user_access.proto'
+    - 'api/circles/circle/v1alpha1/circle_access.proto'
   disabled_rules:
     - 'core::0133::request-id-field'
+- included_paths:
+    - 'api/**/*'
+  disabled_rules:
+    - 'core::0191::java-multiple-files'
+    - 'core::0191::java-outer-classname'
+    - 'core::0191::java-package'

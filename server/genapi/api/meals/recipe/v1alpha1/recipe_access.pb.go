@@ -84,10 +84,10 @@ type Access struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The name of the access
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// the name of the issuer
-	Issuer *Access_IssuerOrRecipient `protobuf:"bytes,2,opt,name=issuer,proto3" json:"issuer,omitempty"`
+	// the name of the requester
+	Requester *Access_RequesterOrRecipient `protobuf:"bytes,2,opt,name=requester,proto3" json:"requester,omitempty"`
 	// the name of the recipient
-	Recipient *Access_IssuerOrRecipient `protobuf:"bytes,3,opt,name=recipient,proto3" json:"recipient,omitempty"`
+	Recipient *Access_RequesterOrRecipient `protobuf:"bytes,3,opt,name=recipient,proto3" json:"recipient,omitempty"`
 	// the permission level of the access
 	Level types.PermissionLevel `protobuf:"varint,4,opt,name=level,proto3,enum=api.types.PermissionLevel" json:"level,omitempty"`
 	// the status of the access
@@ -133,14 +133,14 @@ func (x *Access) GetName() string {
 	return ""
 }
 
-func (x *Access) GetIssuer() *Access_IssuerOrRecipient {
+func (x *Access) GetRequester() *Access_RequesterOrRecipient {
 	if x != nil {
-		return x.Issuer
+		return x.Requester
 	}
 	return nil
 }
 
-func (x *Access) GetRecipient() *Access_IssuerOrRecipient {
+func (x *Access) GetRecipient() *Access_RequesterOrRecipient {
 	if x != nil {
 		return x.Recipient
 	}
@@ -537,32 +537,32 @@ func (x *AcceptRecipeAccessRequest) GetName() string {
 	return ""
 }
 
-// the issuer or recipient of the access
-type Access_IssuerOrRecipient struct {
+// the requester or recipient of the access
+type Access_RequesterOrRecipient struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Name:
 	//
-	//	*Access_IssuerOrRecipient_User
-	//	*Access_IssuerOrRecipient_Circle
-	Name          isAccess_IssuerOrRecipient_Name `protobuf_oneof:"name"`
+	//	*Access_RequesterOrRecipient_User
+	//	*Access_RequesterOrRecipient_Circle
+	Name          isAccess_RequesterOrRecipient_Name `protobuf_oneof:"name"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Access_IssuerOrRecipient) Reset() {
-	*x = Access_IssuerOrRecipient{}
+func (x *Access_RequesterOrRecipient) Reset() {
+	*x = Access_RequesterOrRecipient{}
 	mi := &file_api_meals_recipe_v1alpha1_recipe_access_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Access_IssuerOrRecipient) String() string {
+func (x *Access_RequesterOrRecipient) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Access_IssuerOrRecipient) ProtoMessage() {}
+func (*Access_RequesterOrRecipient) ProtoMessage() {}
 
-func (x *Access_IssuerOrRecipient) ProtoReflect() protoreflect.Message {
+func (x *Access_RequesterOrRecipient) ProtoReflect() protoreflect.Message {
 	mi := &file_api_meals_recipe_v1alpha1_recipe_access_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -574,66 +574,66 @@ func (x *Access_IssuerOrRecipient) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Access_IssuerOrRecipient.ProtoReflect.Descriptor instead.
-func (*Access_IssuerOrRecipient) Descriptor() ([]byte, []int) {
+// Deprecated: Use Access_RequesterOrRecipient.ProtoReflect.Descriptor instead.
+func (*Access_RequesterOrRecipient) Descriptor() ([]byte, []int) {
 	return file_api_meals_recipe_v1alpha1_recipe_access_proto_rawDescGZIP(), []int{0, 0}
 }
 
-func (x *Access_IssuerOrRecipient) GetName() isAccess_IssuerOrRecipient_Name {
+func (x *Access_RequesterOrRecipient) GetName() isAccess_RequesterOrRecipient_Name {
 	if x != nil {
 		return x.Name
 	}
 	return nil
 }
 
-func (x *Access_IssuerOrRecipient) GetUser() string {
+func (x *Access_RequesterOrRecipient) GetUser() string {
 	if x != nil {
-		if x, ok := x.Name.(*Access_IssuerOrRecipient_User); ok {
+		if x, ok := x.Name.(*Access_RequesterOrRecipient_User); ok {
 			return x.User
 		}
 	}
 	return ""
 }
 
-func (x *Access_IssuerOrRecipient) GetCircle() string {
+func (x *Access_RequesterOrRecipient) GetCircle() string {
 	if x != nil {
-		if x, ok := x.Name.(*Access_IssuerOrRecipient_Circle); ok {
+		if x, ok := x.Name.(*Access_RequesterOrRecipient_Circle); ok {
 			return x.Circle
 		}
 	}
 	return ""
 }
 
-type isAccess_IssuerOrRecipient_Name interface {
-	isAccess_IssuerOrRecipient_Name()
+type isAccess_RequesterOrRecipient_Name interface {
+	isAccess_RequesterOrRecipient_Name()
 }
 
-type Access_IssuerOrRecipient_User struct {
+type Access_RequesterOrRecipient_User struct {
 	// the name of the user
 	User string `protobuf:"bytes,1,opt,name=user,proto3,oneof"`
 }
 
-type Access_IssuerOrRecipient_Circle struct {
+type Access_RequesterOrRecipient_Circle struct {
 	// the name of the circle
 	Circle string `protobuf:"bytes,2,opt,name=circle,proto3,oneof"`
 }
 
-func (*Access_IssuerOrRecipient_User) isAccess_IssuerOrRecipient_Name() {}
+func (*Access_RequesterOrRecipient_User) isAccess_RequesterOrRecipient_Name() {}
 
-func (*Access_IssuerOrRecipient_Circle) isAccess_IssuerOrRecipient_Name() {}
+func (*Access_RequesterOrRecipient_Circle) isAccess_RequesterOrRecipient_Name() {}
 
 var File_api_meals_recipe_v1alpha1_recipe_access_proto protoreflect.FileDescriptor
 
 const file_api_meals_recipe_v1alpha1_recipe_access_proto_rawDesc = "" +
 	"\n" +
-	"-api/meals/recipe/v1alpha1/recipe_access.proto\x12\x19api.meals.recipe.v1alpha1\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xb8\x04\n" +
+	"-api/meals/recipe/v1alpha1/recipe_access.proto\x12\x19api.meals.recipe.v1alpha1\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xc7\x04\n" +
 	"\x06Access\x12\x17\n" +
-	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12P\n" +
-	"\x06issuer\x18\x02 \x01(\v23.api.meals.recipe.v1alpha1.Access.IssuerOrRecipientB\x03\xe0A\x03R\x06issuer\x12V\n" +
-	"\trecipient\x18\x03 \x01(\v23.api.meals.recipe.v1alpha1.Access.IssuerOrRecipientB\x03\xe0A\x02R\trecipient\x125\n" +
+	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12Y\n" +
+	"\trequester\x18\x02 \x01(\v26.api.meals.recipe.v1alpha1.Access.RequesterOrRecipientB\x03\xe0A\x03R\trequester\x12Y\n" +
+	"\trecipient\x18\x03 \x01(\v26.api.meals.recipe.v1alpha1.Access.RequesterOrRecipientB\x03\xe0A\x02R\trecipient\x125\n" +
 	"\x05level\x18\x04 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x02R\x05level\x12B\n" +
-	"\x05state\x18\x05 \x01(\x0e2'.api.meals.recipe.v1alpha1.Access.StateB\x03\xe0A\x03R\x05state\x1aK\n" +
-	"\x11IssuerOrRecipient\x12\x14\n" +
+	"\x05state\x18\x05 \x01(\x0e2'.api.meals.recipe.v1alpha1.Access.StateB\x03\xe0A\x03R\x05state\x1aN\n" +
+	"\x14RequesterOrRecipient\x12\x14\n" +
 	"\x04user\x18\x01 \x01(\tH\x00R\x04user\x12\x18\n" +
 	"\x06circle\x18\x02 \x01(\tH\x00R\x06circleB\x06\n" +
 	"\x04name\"F\n" +
@@ -718,23 +718,23 @@ func file_api_meals_recipe_v1alpha1_recipe_access_proto_rawDescGZIP() []byte {
 var file_api_meals_recipe_v1alpha1_recipe_access_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_api_meals_recipe_v1alpha1_recipe_access_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_api_meals_recipe_v1alpha1_recipe_access_proto_goTypes = []any{
-	(Access_State)(0),                 // 0: api.meals.recipe.v1alpha1.Access.State
-	(*Access)(nil),                    // 1: api.meals.recipe.v1alpha1.Access
-	(*CreateAccessRequest)(nil),       // 2: api.meals.recipe.v1alpha1.CreateAccessRequest
-	(*DeleteAccessRequest)(nil),       // 3: api.meals.recipe.v1alpha1.DeleteAccessRequest
-	(*GetAccessRequest)(nil),          // 4: api.meals.recipe.v1alpha1.GetAccessRequest
-	(*ListAccessesRequest)(nil),       // 5: api.meals.recipe.v1alpha1.ListAccessesRequest
-	(*ListAccessesResponse)(nil),      // 6: api.meals.recipe.v1alpha1.ListAccessesResponse
-	(*UpdateAccessRequest)(nil),       // 7: api.meals.recipe.v1alpha1.UpdateAccessRequest
-	(*AcceptRecipeAccessRequest)(nil), // 8: api.meals.recipe.v1alpha1.AcceptRecipeAccessRequest
-	(*Access_IssuerOrRecipient)(nil),  // 9: api.meals.recipe.v1alpha1.Access.IssuerOrRecipient
-	(types.PermissionLevel)(0),        // 10: api.types.PermissionLevel
-	(*fieldmaskpb.FieldMask)(nil),     // 11: google.protobuf.FieldMask
-	(*emptypb.Empty)(nil),             // 12: google.protobuf.Empty
+	(Access_State)(0),                   // 0: api.meals.recipe.v1alpha1.Access.State
+	(*Access)(nil),                      // 1: api.meals.recipe.v1alpha1.Access
+	(*CreateAccessRequest)(nil),         // 2: api.meals.recipe.v1alpha1.CreateAccessRequest
+	(*DeleteAccessRequest)(nil),         // 3: api.meals.recipe.v1alpha1.DeleteAccessRequest
+	(*GetAccessRequest)(nil),            // 4: api.meals.recipe.v1alpha1.GetAccessRequest
+	(*ListAccessesRequest)(nil),         // 5: api.meals.recipe.v1alpha1.ListAccessesRequest
+	(*ListAccessesResponse)(nil),        // 6: api.meals.recipe.v1alpha1.ListAccessesResponse
+	(*UpdateAccessRequest)(nil),         // 7: api.meals.recipe.v1alpha1.UpdateAccessRequest
+	(*AcceptRecipeAccessRequest)(nil),   // 8: api.meals.recipe.v1alpha1.AcceptRecipeAccessRequest
+	(*Access_RequesterOrRecipient)(nil), // 9: api.meals.recipe.v1alpha1.Access.RequesterOrRecipient
+	(types.PermissionLevel)(0),          // 10: api.types.PermissionLevel
+	(*fieldmaskpb.FieldMask)(nil),       // 11: google.protobuf.FieldMask
+	(*emptypb.Empty)(nil),               // 12: google.protobuf.Empty
 }
 var file_api_meals_recipe_v1alpha1_recipe_access_proto_depIdxs = []int32{
-	9,  // 0: api.meals.recipe.v1alpha1.Access.issuer:type_name -> api.meals.recipe.v1alpha1.Access.IssuerOrRecipient
-	9,  // 1: api.meals.recipe.v1alpha1.Access.recipient:type_name -> api.meals.recipe.v1alpha1.Access.IssuerOrRecipient
+	9,  // 0: api.meals.recipe.v1alpha1.Access.requester:type_name -> api.meals.recipe.v1alpha1.Access.RequesterOrRecipient
+	9,  // 1: api.meals.recipe.v1alpha1.Access.recipient:type_name -> api.meals.recipe.v1alpha1.Access.RequesterOrRecipient
 	10, // 2: api.meals.recipe.v1alpha1.Access.level:type_name -> api.types.PermissionLevel
 	0,  // 3: api.meals.recipe.v1alpha1.Access.state:type_name -> api.meals.recipe.v1alpha1.Access.State
 	1,  // 4: api.meals.recipe.v1alpha1.CreateAccessRequest.access:type_name -> api.meals.recipe.v1alpha1.Access
@@ -766,8 +766,8 @@ func file_api_meals_recipe_v1alpha1_recipe_access_proto_init() {
 		return
 	}
 	file_api_meals_recipe_v1alpha1_recipe_access_proto_msgTypes[8].OneofWrappers = []any{
-		(*Access_IssuerOrRecipient_User)(nil),
-		(*Access_IssuerOrRecipient_Circle)(nil),
+		(*Access_RequesterOrRecipient_User)(nil),
+		(*Access_RequesterOrRecipient_Circle)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

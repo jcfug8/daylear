@@ -18,12 +18,12 @@ func ProtoToCircle(circleNamer namer.ReflectNamer, proto *pb.Circle) (model.Circ
 		}
 	}
 	circle.Title = proto.Title
-	circle.IsPublic = proto.IsPublic
+	circle.Visibility = proto.Visibility
 	return circle, nil
 }
 
 // CircleToProto converts a model Circle to a protobuf Circle
-func CircleToProto(circleNamer namer.ReflectNamer, publicCircleNamer namer.ReflectNamer, circle model.Circle) (*pb.Circle, error) {
+func CircleToProto(circleNamer namer.ReflectNamer, circle model.Circle) (*pb.Circle, error) {
 	proto := &pb.Circle{}
 	name, err := circleNamer.Format(circle)
 	if err != nil {
@@ -31,21 +31,16 @@ func CircleToProto(circleNamer namer.ReflectNamer, publicCircleNamer namer.Refle
 	}
 	proto.Name = name
 
-	publicName, err := publicCircleNamer.Format(circle)
-	if err != nil {
-		return proto, err
-	}
-	proto.PublicName = publicName
 	proto.Title = circle.Title
-	proto.IsPublic = circle.IsPublic
+	proto.Visibility = circle.Visibility
 	return proto, nil
 }
 
 // CircleListToProto converts a slice of model Circles to a slice of protobuf Circles
-func CircleListToProto(circleNamer namer.ReflectNamer, publicCircleNamer namer.ReflectNamer, circles []model.Circle) ([]*pb.Circle, error) {
+func CircleListToProto(circleNamer namer.ReflectNamer, circles []model.Circle) ([]*pb.Circle, error) {
 	protos := make([]*pb.Circle, len(circles))
 	for i, circle := range circles {
-		proto, err := CircleToProto(circleNamer, publicCircleNamer, circle)
+		proto, err := CircleToProto(circleNamer, circle)
 		if err != nil {
 			return nil, err
 		}

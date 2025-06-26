@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/jcfug8/daylear/server/core/masks"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
 // User defines the model for a user.
@@ -11,6 +12,7 @@ type User struct {
 	Username   string
 	GivenName  string
 	FamilyName string
+	Visibility types.VisibilityLevel
 
 	AmazonId   string
 	FacebookId string

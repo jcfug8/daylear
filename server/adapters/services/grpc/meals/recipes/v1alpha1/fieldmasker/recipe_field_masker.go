@@ -37,7 +37,7 @@ func NewRecipeFieldMasker() RecipeFieldMasker {
 	// Recursively collect field masks
 	collectFieldMasks(t.ProtoReflect(), "", fm.fieldMaskFields)
 
-	fm.mapFieldMaskPathToDomainMasks("name", model.RecipeFields.Parent, model.RecipeFields.Id)
+	fm.mapFieldMaskPathToDomainMasks("name", model.RecipeFields.Id)
 	fm.mapFieldMaskPathToDomainMasks("title", model.RecipeFields.Title)
 	fm.mapFieldMaskPathToDomainMasks("description", model.RecipeFields.Description)
 	fm.mapFieldMaskPathToDomainMasks("directions", model.RecipeFields.Directions)

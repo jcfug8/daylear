@@ -1,0 +1,270 @@
+syntax = "proto3";
+
+package api.users.user.v1alpha1;
+
+import "api/types/permission_level.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  security_definitions: {
+    security: {
+      key: "BearerAuth"
+      value: {
+        type: TYPE_API_KEY
+        in: IN_HEADER
+        name: "Authorization"
+        description: "Bearer token for authentication"
+      }
+    }
+  }
+  security: {
+    security_requirement: {
+      key: "BearerAuth"
+      value: {}
+    }
+  }
+};
+
+// The user recipient list service
+service UserAccessService {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    description: "User Access management"
+    external_docs: {
+      url: "https://daylear.com/docs"
+      description: "Daylear API Documentation"
+    }
+  };
+
+  // Create an access to a user
+  rpc CreateAccess(CreateAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "parent,access";
+    option (google.api.http) = {
+      post: "/users/v1alpha1/{parent=users/*}/accesses"
+      body: "access"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Grant a user or user access to a user"
+      description: "Grants a user or user a specific permission level to a user."
+      tags: "UserAccessService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-User"
+          description: "the name of the user to act as"
+          type: STRING
+        }
+      }
+    };
+  }
+
+  // Delete an access to a user
+  rpc DeleteAccess(DeleteAccessRequest) returns (google.protobuf.Empty) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {delete: "/users/v1alpha1/{name=users/*/accesses/*}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Delete a user access"
+      description: "Removes a user's or user's access to a user."
+      tags: "UserAccessService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-User"
+          description: "the name of the user to act as"
+          type: STRING
+        }
+      }
+    };
+  }
+
+  // Get an access to a user
+  rpc GetAccess(GetAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {get: "/users/v1alpha1/{name=users/*/accesses/*}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get a user access"
+      description: "Retrieves details about a specific user access."
+      tags: "UserAccessService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-User"
+          description: "the name of the user to act as"
+          type: STRING
+        }
+      }
+    };
+  }
+
+  // List accesses to a user
+  rpc ListAccesses(ListAccessesRequest) returns (ListAccessesResponse) {
+    option (google.api.method_signature) = "parent";
+    option (google.api.http) = {get: "/users/v1alpha1/{parent=users/*}/accesses"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "List user accesses"
+      description: "Lists all users and users with access to a user. If no user is provided, the response will only return the accesses for the current user (or user if the user header is provided)."
+      tags: "UserAccessService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-User"
+          description: "the name of the user to act as"
+          type: STRING
+        }
+      }
+    };
+  }
+
+  // Update an access to a user
+  rpc UpdateAccess(UpdateAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "access,update_mask";
+    option (google.api.http) = {
+      patch: "/users/v1alpha1/{access.name=users/*/accesses/*}"
+      body: "access"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Update a user access"
+      description: "Updates the permission level or recipient for a user access."
+      tags: "UserAccessService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-User"
+          description: "the name of the user to act as"
+          type: STRING
+        }
+      }
+    };
+  }
+
+  // Accept a user access
+  rpc AcceptAccess(AcceptAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {
+      post: "/users/v1alpha1/{name=users/*/accesses/*}:accept"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Accept a user access"
+      description: "Accepts a pending user access, changing its state from PENDING to ACCEPTED."
+      tags: "UserAccessService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-User"
+          description: "the name of the user to act as"
+          type: STRING
+        }
+      }
+    };
+  }
+}
+
+// This represents the data about a user's access to a user
+message Access {
+  option (google.api.resource) = {
+    type: "api.users.user.v1alpha1/Access"
+    pattern: "users/{user}/accesses/{access}"
+    plural: "accesses"
+    singular: "access"
+  };
+
+  // The name of the access
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // the name of the issuing user
+  string requester = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the name of the receiving user
+  string recipient = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // the permission level of the access
+  api.types.PermissionLevel level = 4 [(google.api.field_behavior) = REQUIRED];
+
+  // the status of the access
+  State state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the status of the access
+  enum State {
+    // This status should never get used.
+    STATE_UNSPECIFIED = 0;
+    // The access is pending and can either be accepted or deleted.
+    STATE_PENDING = 100;
+    // The access is accepted and can be deleted.
+    STATE_ACCEPTED = 200;
+  }
+}
+
+// The request to create an access to a user
+message CreateAccessRequest {
+  // parent
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.users.user.v1alpha1/User"
+  ];
+
+  // The access to create
+  Access access = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request to delete an access to a user
+message DeleteAccessRequest {
+  // name
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.users.user.v1alpha1/Access"
+  ];
+}
+
+// The request to get an access to a user
+message GetAccessRequest {
+  // name
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.users.user.v1alpha1/Access"
+  ];
+}
+
+// The request to list accesses to a user
+message ListAccessesRequest {
+  // parent
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.users.user.v1alpha1/User"
+  ];
+
+  // The filter to apply to the list
+  string filter = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // The page size to apply to the list
+  int32 page_size = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // The page token to apply to the list
+  string page_token = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The response to list accesses to a user
+message ListAccessesResponse {
+  // The list of accesses
+  repeated Access accesses = 1;
+
+  // The next page token
+  string next_page_token = 2;
+}
+
+// The request to update an access to a user
+message UpdateAccessRequest {
+  // access
+  Access access = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // update mask
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The request to accept an access to a user
+message AcceptAccessRequest {
+  // name
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.users.user.v1alpha1/Access"
+  ];
+}

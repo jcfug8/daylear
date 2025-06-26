@@ -152,12 +152,13 @@
       "type": "string",
       "enum": [
         "PERMISSION_LEVEL_UNSPECIFIED",
+        "PERMISSION_LEVEL_PUBLIC",
         "PERMISSION_LEVEL_READ",
         "PERMISSION_LEVEL_WRITE",
         "PERMISSION_LEVEL_ADMIN"
       ],
       "default": "PERMISSION_LEVEL_UNSPECIFIED",
-      "description": "- PERMISSION_LEVEL_UNSPECIFIED: the permission is not specified\n - PERMISSION_LEVEL_READ: the permission is read\n - PERMISSION_LEVEL_WRITE: the permission is write\n - PERMISSION_LEVEL_ADMIN: the permission is admin",
+      "description": "- PERMISSION_LEVEL_UNSPECIFIED: the permission is not specified\n - PERMISSION_LEVEL_PUBLIC: the permission is public\n - PERMISSION_LEVEL_READ: the permission is read\n - PERMISSION_LEVEL_WRITE: the permission is write\n - PERMISSION_LEVEL_ADMIN: the permission is admin",
       "title": "the permission levels"
     },
     "v1alpha1RecipeRecipients": {

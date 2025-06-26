@@ -3,12 +3,12 @@ package model
 import (
 	"github.com/jcfug8/daylear/server/core/masks"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
 // Recipe defines the model for a recipe.
 type Recipe struct {
-	Id     RecipeId
-	Parent RecipeParent
+	Id RecipeId
 
 	Title       string
 	Description string
@@ -17,6 +17,8 @@ type Recipe struct {
 	IngredientGroups []IngredientGroup
 
 	ImageURI string
+
+	Visibility types.VisibilityLevel
 }
 
 type RecipeDirection struct {
@@ -81,19 +83,12 @@ type RecipeId struct {
 	RecipeId int64 `aip_pattern:"key=recipe"`
 }
 
-// RecipeParent defines the owner for a recipe.
-type RecipeParent struct {
-	UserId   int64 `aip_pattern:"key=user,public_user"`
-	CircleId int64 `aip_pattern:"key=circle,public_circle,circle"`
-}
-
 // ----------------------------------------------------------------------------
 // Fields
 
 // RecipeFields defines the recipe fields.
 var RecipeFields = recipeFields{
-	Id:     "id",
-	Parent: "parent",
+	Id: "id",
 
 	Title:       "title",
 	Description: "description",
@@ -105,8 +100,7 @@ var RecipeFields = recipeFields{
 }
 
 type recipeFields struct {
-	Id     string
-	Parent string
+	Id string
 
 	Title       string
 	Description string
@@ -121,7 +115,6 @@ type recipeFields struct {
 func (fields recipeFields) Mask() []string {
 	return []string{
 		fields.Id,
-		fields.Parent,
 
 		fields.Title,
 		fields.Description,

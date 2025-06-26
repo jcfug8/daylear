@@ -11,7 +11,7 @@ import (
 )
 
 func (d *Domain) CreateRecipeAccess(ctx context.Context, authAccount model.AuthAccount, access model.RecipeAccess) (model.RecipeAccess, error) {
-	// based on recipient, set state and verify that the issuer has access to recipient
+	// based on recipient, set state and verify that the requester has access to recipient
 	if access.RecipeAccessParent.Recipient.UserId != 0 {
 		access.State = pb.Access_STATE_PENDING
 	} else if access.RecipeAccessParent.Recipient.CircleId != 0 {
@@ -33,7 +33,7 @@ func (d *Domain) CreateRecipeAccess(ctx context.Context, authAccount model.AuthA
 		return model.RecipeAccess{}, domain.ErrPermissionDenied{Msg: "not authorized to create access"}
 	}
 	if accessLevel < access.Level {
-		return model.RecipeAccess{}, domain.ErrPermissionDenied{Msg: "cannot create access with higher level than the issuer's level"}
+		return model.RecipeAccess{}, domain.ErrPermissionDenied{Msg: "cannot create access with higher level than the requester's level"}
 	}
 
 	// create access
@@ -118,8 +118,8 @@ func (d *Domain) GetRecipeAccess(ctx context.Context, authAccount model.AuthAcco
 }
 
 func (d *Domain) ListRecipeAccesses(ctx context.Context, parent model.RecipeAccessParent, pageSize int32, pageOffset int32, filter string) ([]model.RecipeAccess, error) {
-	if parent.Issuer.UserId == 0 && parent.Issuer.CircleId == 0 {
-		return nil, domain.ErrInvalidArgument{Msg: "issuer is required"}
+	if parent.Requester.UserId == 0 && parent.Requester.CircleId == 0 {
+		return nil, domain.ErrInvalidArgument{Msg: "requester is required"}
 	}
 
 	return d.repo.ListRecipeAccesses(ctx, parent, int64(pageSize), int64(pageOffset), filter)
@@ -136,9 +136,9 @@ func (d *Domain) UpdateRecipeAccess(ctx context.Context, access model.RecipeAcce
 		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "access id is required"}
 	}
 
-	// verify issuer is set
-	if access.RecipeAccessParent.Issuer.UserId == 0 && access.RecipeAccessParent.Issuer.CircleId == 0 {
-		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "issuer is required"}
+	// verify requester is set
+	if access.RecipeAccessParent.Requester.UserId == 0 && access.RecipeAccessParent.Requester.CircleId == 0 {
+		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "requester is required"}
 	}
 
 	// verify access is for the given recipe
@@ -151,10 +151,10 @@ func (d *Domain) UpdateRecipeAccess(ctx context.Context, access model.RecipeAcce
 		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "access is not for the given recipe"}
 	}
 
-	// verify issuer has access to recipe
+	// verify requester has access to recipe
 	var filter string
 	// TODO: this looks wrong
-	// based on recipient, set state and verify that the issuer has access to recipient
+	// based on recipient, set state and verify that the requester has access to recipient
 	if access.RecipeAccessParent.Recipient.UserId != 0 {
 		filter = fmt.Sprintf("user_id = %d", access.RecipeAccessParent.Recipient.UserId)
 	} else if access.RecipeAccessParent.Recipient.CircleId != 0 {
@@ -163,22 +163,22 @@ func (d *Domain) UpdateRecipeAccess(ctx context.Context, access model.RecipeAcce
 		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "recipient is required"}
 	}
 
-	// verify issuer has access to recipe
+	// verify requester has access to recipe
 	recipeAccess, err := d.repo.ListRecipeAccesses(ctx, access.RecipeAccessParent, 1, 0, filter)
 	if err != nil {
 		return model.RecipeAccess{}, err
 	}
 	if len(recipeAccess) == 0 {
-		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "issuer does not have access to recipe"}
+		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "requester does not have access to recipe"}
 	}
 
 	if recipeAccess[0].Level < permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
-		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "issuer does not have correct access to recipe"}
+		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "requester does not have correct access to recipe"}
 	}
 
 	// currently only the state is allow to be updated to accepted
 	if recipeAccess[0].Level > dbAccess.Level {
-		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "cannot update level to higher than the issuer's level"}
+		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "cannot update level to higher than the requester's level"}
 	}
 
 	// update access
@@ -201,9 +201,9 @@ func (d *Domain) AcceptRecipeAccess(ctx context.Context, parent model.RecipeAcce
 		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "access id is required"}
 	}
 
-	// verify issuer is set (the user accepting the access)
-	if parent.Issuer.UserId == 0 && parent.Issuer.CircleId == 0 {
-		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "issuer is required"}
+	// verify requester is set (the user accepting the access)
+	if parent.Requester.UserId == 0 && parent.Requester.CircleId == 0 {
+		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "requester is required"}
 	}
 
 	// get the current access
@@ -218,7 +218,7 @@ func (d *Domain) AcceptRecipeAccess(ctx context.Context, parent model.RecipeAcce
 	}
 
 	// verify the user is the recipient of this access
-	if access.RecipeAccessParent.Recipient.UserId != parent.Issuer.UserId && access.RecipeAccessParent.Recipient.CircleId != parent.Issuer.CircleId {
+	if access.RecipeAccessParent.Recipient.UserId != parent.Requester.UserId && access.RecipeAccessParent.Recipient.CircleId != parent.Requester.CircleId {
 		return model.RecipeAccess{}, domain.ErrPermissionDenied{Msg: "only the recipient can accept this access"}
 	}
 
@@ -272,7 +272,7 @@ func (d *Domain) verifyUserRecipeAccess(ctx context.Context, authAccount model.A
 		return permPb.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, err
 	}
 	if len(recipeAccess) == 0 {
-		return permPb.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "issuer does not have access to recipe"}
+		return permPb.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "requester does not have access to recipe"}
 	}
 
 	return recipeAccess[0].Level, nil

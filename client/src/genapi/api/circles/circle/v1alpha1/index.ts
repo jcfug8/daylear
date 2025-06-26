@@ -8,20 +8,28 @@ export type Circle = {
   //
   // Behaviors: IDENTIFIER
   name: string | undefined;
-  // the public name of the circle
-  //
-  // Behaviors: OUTPUT_ONLY
-  publicName: string | undefined;
   // the title of the circle
   //
   // Behaviors: REQUIRED
   title: string | undefined;
-  // if the circle is public
+  // the visibility of the circle
   //
-  // Behaviors: OPTIONAL
-  isPublic: boolean | undefined;
+  // Behaviors: REQUIRED
+  visibility: apitypes_VisibilityLevel | undefined;
 };
 
+// the visibility levels
+export type apitypes_VisibilityLevel =
+  // the visibility is not specified
+  | "VISIBILITY_LEVEL_UNSPECIFIED"
+  // the visibility is public
+  | "VISIBILITY_LEVEL_PUBLIC"
+  // the visibility is restricted
+  | "VISIBILITY_LEVEL_RESTRICTED"
+  // the visibility is private
+  | "VISIBILITY_LEVEL_PRIVATE"
+  // the visibility is hidden
+  | "VISIBILITY_LEVEL_HIDDEN";
 // the request to create a circle
 export type CreateCircleRequest = {
   // the circle to create
@@ -114,20 +122,6 @@ export type GetCircleRequest = {
   name: string | undefined;
 };
 
-// the request to share a circle
-export type ShareCircleRequest = {
-  // the name of the circle
-  //
-  // Behaviors: REQUIRED
-  name: string | undefined;
-};
-
-// the response to share a circle
-export type ShareCircleResponse = {
-  // the circle that was shared
-  circle: Circle | undefined;
-};
-
 // the circle service
 export interface CircleService {
   // create a circle
@@ -140,8 +134,6 @@ export interface CircleService {
   DeleteCircle(request: DeleteCircleRequest): Promise<Circle>;
   // get a circle
   GetCircle(request: GetCircleRequest): Promise<Circle>;
-  // share a circle
-  ShareCircle(request: ShareCircleRequest): Promise<ShareCircleResponse>;
 }
 
 type RequestType = {
@@ -265,12 +257,154 @@ export function createCircleServiceClient(
         method: "GetCircle",
       }) as Promise<Circle>;
     },
-    ShareCircle(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      if (!request.name) {
-        throw new Error("missing required field request.name");
+  };
+}
+// This represents the data about a user's access to a circle
+export type Access = {
+  // The name of the access
+  //
+  // Behaviors: IDENTIFIER
+  name: string | undefined;
+  // the name of the requesting user
+  //
+  // Behaviors: OUTPUT_ONLY
+  requester: string | undefined;
+  // the name of the receiving user
+  //
+  // Behaviors: REQUIRED
+  recipient: string | undefined;
+  // the permission level of the access
+  //
+  // Behaviors: REQUIRED
+  level: apitypes_PermissionLevel | undefined;
+  // the status of the access
+  //
+  // Behaviors: OUTPUT_ONLY
+  state: Access_State | undefined;
+};
+
+// the permission levels
+export type apitypes_PermissionLevel =
+  // the permission is not specified
+  | "PERMISSION_LEVEL_UNSPECIFIED"
+  // the permission is public
+  | "PERMISSION_LEVEL_PUBLIC"
+  // the permission is read
+  | "PERMISSION_LEVEL_READ"
+  // the permission is write
+  | "PERMISSION_LEVEL_WRITE"
+  // the permission is admin
+  | "PERMISSION_LEVEL_ADMIN";
+// the status of the access
+export type Access_State =
+  // This status should never get used.
+  | "STATE_UNSPECIFIED"
+  // The access is pending and can either be accepted or deleted.
+  | "STATE_PENDING"
+  // The access is accepted and can be deleted.
+  | "STATE_ACCEPTED";
+// The request to create an access to a circle
+export type CreateAccessRequest = {
+  // parent
+  //
+  // Behaviors: REQUIRED
+  parent: string | undefined;
+  // The access to create
+  //
+  // Behaviors: REQUIRED
+  access: Access | undefined;
+};
+
+// The request to delete an access to a circle
+export type DeleteAccessRequest = {
+  // name
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// The request to get an access to a circle
+export type GetAccessRequest = {
+  // name
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// The request to list accesses to a circle
+export type ListAccessesRequest = {
+  // parent
+  //
+  // Behaviors: REQUIRED
+  parent: string | undefined;
+  // The filter to apply to the list
+  //
+  // Behaviors: OPTIONAL
+  filter: string | undefined;
+  // The page size to apply to the list
+  //
+  // Behaviors: OPTIONAL
+  pageSize: number | undefined;
+  // The page token to apply to the list
+  //
+  // Behaviors: OPTIONAL
+  pageToken: string | undefined;
+};
+
+// The response to list accesses to a circle
+export type ListAccessesResponse = {
+  // The list of accesses
+  accesses: Access[] | undefined;
+  // The next page token
+  nextPageToken: string | undefined;
+};
+
+// The request to update an access to a circle
+export type UpdateAccessRequest = {
+  // access
+  //
+  // Behaviors: REQUIRED
+  access: Access | undefined;
+  // update mask
+  //
+  // Behaviors: OPTIONAL
+  updateMask: wellKnownFieldMask | undefined;
+};
+
+// The request to accept an access to a circle
+export type AcceptAccessRequest = {
+  // name
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// The circle recipient list service
+export interface CircleAccessService {
+  // Create an access to a circle
+  CreateAccess(request: CreateAccessRequest): Promise<Access>;
+  // Delete an access to a circle
+  DeleteAccess(request: DeleteAccessRequest): Promise<wellKnownEmpty>;
+  // Get an access to a circle
+  GetAccess(request: GetAccessRequest): Promise<Access>;
+  // List accesses to a circle
+  ListAccesses(request: ListAccessesRequest): Promise<ListAccessesResponse>;
+  // Update an access to a circle
+  UpdateAccess(request: UpdateAccessRequest): Promise<Access>;
+  // Accept a circle access
+  AcceptAccess(request: AcceptAccessRequest): Promise<Access>;
+}
+
+export function createCircleAccessServiceClient(
+  handler: RequestHandler
+): CircleAccessService {
+  return {
+    CreateAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.parent) {
+        throw new Error("missing required field request.parent");
       }
-      const path = `circles/v1alpha1/${request.name}:share`; // eslint-disable-line quotes
-      const body = JSON.stringify(request);
+      const path = `circles/v1alpha1/${request.parent}/accesses`; // eslint-disable-line quotes
+      const body = JSON.stringify(request?.access ?? {});
       const queryParams: string[] = [];
       let uri = path;
       if (queryParams.length > 0) {
@@ -281,95 +415,31 @@ export function createCircleServiceClient(
         method: "POST",
         body,
       }, {
-        service: "CircleService",
-        method: "ShareCircle",
-      }) as Promise<ShareCircleResponse>;
+        service: "CircleAccessService",
+        method: "CreateAccess",
+      }) as Promise<Access>;
     },
-  };
-}
-// the main public circle object
-export type PublicCircle = {
-  // the name of the circle
-  //
-  // Behaviors: IDENTIFIER
-  name: string | undefined;
-  // the title of the circle
-  //
-  // Behaviors: REQUIRED
-  title: string | undefined;
-};
-
-// the request to list circles
-export type ListPublicCirclesRequest = {
-  // the page size
-  //
-  // Behaviors: OPTIONAL
-  pageSize: number | undefined;
-  // the page token
-  //
-  // Behaviors: OPTIONAL
-  pageToken: string | undefined;
-  // used to specify the filter
-  //
-  // Behaviors: OPTIONAL
-  filter: string | undefined;
-};
-
-// the response to list circles
-export type ListPublicCirclesResponse = {
-  // the circles
-  publicCircles: PublicCircle[] | undefined;
-  // the next page token
-  nextPageToken: string | undefined;
-};
-
-// the request to get a circle
-export type GetPublicCircleRequest = {
-  // the name of the circle
-  //
-  // Behaviors: REQUIRED
-  name: string | undefined;
-};
-
-// the public circle service
-export interface PublicCircleService {
-  // list public circles
-  ListPublicCircles(request: ListPublicCirclesRequest): Promise<ListPublicCirclesResponse>;
-  // get a public circle
-  GetPublicCircle(request: GetPublicCircleRequest): Promise<PublicCircle>;
-}
-
-export function createPublicCircleServiceClient(
-  handler: RequestHandler
-): PublicCircleService {
-  return {
-    ListPublicCircles(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `circles/v1alpha1/publicCircles`; // eslint-disable-line quotes
+    DeleteAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `circles/v1alpha1/${request.name}`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
-      if (request.pageSize) {
-        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
-      }
-      if (request.pageToken) {
-        queryParams.push(`pageToken=${encodeURIComponent(request.pageToken.toString())}`)
-      }
-      if (request.filter) {
-        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
-      }
       let uri = path;
       if (queryParams.length > 0) {
         uri += `?${queryParams.join("&")}`
       }
       return handler({
         path: uri,
-        method: "GET",
+        method: "DELETE",
         body,
       }, {
-        service: "PublicCircleService",
-        method: "ListPublicCircles",
-      }) as Promise<ListPublicCirclesResponse>;
+        service: "CircleAccessService",
+        method: "DeleteAccess",
+      }) as Promise<wellKnownEmpty>;
     },
-    GetPublicCircle(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    GetAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.name) {
         throw new Error("missing required field request.name");
       }
@@ -385,11 +455,86 @@ export function createPublicCircleServiceClient(
         method: "GET",
         body,
       }, {
-        service: "PublicCircleService",
-        method: "GetPublicCircle",
-      }) as Promise<PublicCircle>;
+        service: "CircleAccessService",
+        method: "GetAccess",
+      }) as Promise<Access>;
+    },
+    ListAccesses(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.parent) {
+        throw new Error("missing required field request.parent");
+      }
+      const path = `circles/v1alpha1/${request.parent}/accesses`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.filter) {
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
+      }
+      if (request.pageSize) {
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
+      }
+      if (request.pageToken) {
+        queryParams.push(`pageToken=${encodeURIComponent(request.pageToken.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "CircleAccessService",
+        method: "ListAccesses",
+      }) as Promise<ListAccessesResponse>;
+    },
+    UpdateAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.access?.name) {
+        throw new Error("missing required field request.access.name");
+      }
+      const path = `circles/v1alpha1/${request.access.name}`; // eslint-disable-line quotes
+      const body = JSON.stringify(request?.access ?? {});
+      const queryParams: string[] = [];
+      if (request.updateMask) {
+        queryParams.push(`updateMask=${encodeURIComponent(request.updateMask.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "PATCH",
+        body,
+      }, {
+        service: "CircleAccessService",
+        method: "UpdateAccess",
+      }) as Promise<Access>;
+    },
+    AcceptAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `circles/v1alpha1/${request.name}:accept`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "CircleAccessService",
+        method: "AcceptAccess",
+      }) as Promise<Access>;
     },
   };
 }
+// An empty JSON object
+type wellKnownEmpty = Record<never, never>;
+
 
 // @@protoc_insertion_point(typescript-http-eof)

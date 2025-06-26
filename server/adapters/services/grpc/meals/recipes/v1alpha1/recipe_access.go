@@ -3,11 +3,11 @@ package v1alpha1
 import (
 	"context"
 
-	"github.com/jcfug8/daylear/server/adapters/services/grpc/pagination"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	"go.einride.tech/aip/fieldbehavior"
+	"go.einride.tech/aip/pagination"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -20,7 +20,7 @@ const (
 )
 
 func (s *RecipeService) CreateAccess(ctx context.Context, request *pb.CreateAccessRequest) (*pb.Access, error) {
-	user, circleID, err := headers.ParseAuthData(ctx, s.circleNamer)
+	authAccount, err := headers.ParseAuthData(ctx, s.circleNamer)
 	if err != nil {
 		return nil, err
 	}
@@ -40,12 +40,6 @@ func (s *RecipeService) CreateAccess(ctx context.Context, request *pb.CreateAcce
 		return nil, status.Errorf(codes.InvalidArgument, "invalid access: %v", err)
 	}
 
-	// set issuer
-	modelAccess.RecipeAccessParent.Issuer = model.RecipeParent{
-		UserId:   user.Id.UserId,
-		CircleId: circleID.CircleId,
-	}
-
 	// parse parent
 	_, err = s.accessNamer.ParseParent(request.Parent, &modelAccess)
 	if err != nil {
@@ -53,7 +47,7 @@ func (s *RecipeService) CreateAccess(ctx context.Context, request *pb.CreateAcce
 	}
 
 	// create access
-	createdAccess, err := s.domain.CreateRecipeAccess(ctx, modelAccess)
+	createdAccess, err := s.domain.CreateRecipeAccess(ctx, authAccount, modelAccess)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create access: %v", err)
 	}
@@ -71,14 +65,9 @@ func (s *RecipeService) CreateAccess(ctx context.Context, request *pb.CreateAcce
 }
 
 func (s *RecipeService) DeleteAccess(ctx context.Context, request *pb.DeleteAccessRequest) (*emptypb.Empty, error) {
-	user, circleID, err := headers.ParseAuthData(ctx, s.circleNamer)
+	authAccount, err := headers.ParseAuthData(ctx, s.circleNamer)
 	if err != nil {
 		return nil, err
-	}
-
-	authAccount := model.AuthAccount{
-		UserId:   user.Id.UserId,
-		CircleId: circleID.CircleId,
 	}
 
 	// parse name
@@ -99,29 +88,22 @@ func (s *RecipeService) DeleteAccess(ctx context.Context, request *pb.DeleteAcce
 }
 
 func (s *RecipeService) GetAccess(ctx context.Context, request *pb.GetAccessRequest) (*pb.Access, error) {
-	user, circleID, err := headers.ParseAuthData(ctx, s.circleNamer)
+	authAccount, err := headers.ParseAuthData(ctx, s.circleNamer)
 	if err != nil {
 		return nil, err
 	}
 
-	// set issuer
-	recipeAccess := &model.RecipeAccess{
-		RecipeAccessParent: model.RecipeAccessParent{
-			Issuer: model.RecipeParent{
-				UserId:   user.Id.UserId,
-				CircleId: circleID.CircleId,
-			},
-		},
-	}
+	// set requester
+	var recipeAccess model.RecipeAccess
 
 	// parse name
-	_, err = s.accessNamer.Parse(request.Name, recipeAccess)
+	_, err = s.accessNamer.Parse(request.Name, &recipeAccess)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
 	}
 
 	// get access
-	access, err := s.domain.GetRecipeAccess(ctx, recipeAccess.RecipeAccessParent, recipeAccess.RecipeAccessId)
+	access, err := s.domain.GetRecipeAccess(ctx, authAccount, recipeAccess.RecipeAccessParent, recipeAccess.RecipeAccessId)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get access: %v", err)
 	}
@@ -139,18 +121,13 @@ func (s *RecipeService) GetAccess(ctx context.Context, request *pb.GetAccessRequ
 }
 
 func (s *RecipeService) ListAccesses(ctx context.Context, request *pb.ListAccessesRequest) (*pb.ListAccessesResponse, error) {
-	user, circleID, err := headers.ParseAuthData(ctx, s.circleNamer)
+	authAccount, err := headers.ParseAuthData(ctx, s.circleNamer)
 	if err != nil {
 		return nil, err
 	}
 
-	// set issuer
-	recipeAccessParent := model.RecipeAccessParent{
-		Issuer: model.RecipeParent{
-			UserId:   user.Id.UserId,
-			CircleId: circleID.CircleId,
-		},
-	}
+	// set requester
+	var recipeAccessParent model.RecipeAccessParent
 
 	// parse parent
 	_, err = s.accessNamer.ParseParent(request.Parent, &recipeAccessParent)
@@ -159,18 +136,18 @@ func (s *RecipeService) ListAccesses(ctx context.Context, request *pb.ListAccess
 	}
 
 	// pagination
-	pageToken, err := pagination.ParsePageToken[model.RecipeAccess](request)
+	pageToken, err := pagination.ParsePageToken(request)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid page token")
 	}
 
-	if pageToken.PageSize == 0 {
-		pageToken.PageSize = accessDefaultPageSize
+	if request.GetPageSize() == 0 {
+		request.PageSize = accessDefaultPageSize
 	}
-	pageToken.PageSize = min(pageToken.PageSize, accessMaxPageSize)
+	request.PageSize = min(request.PageSize, accessMaxPageSize)
 
 	// list accesses
-	accesses, err := s.domain.ListRecipeAccesses(ctx, recipeAccessParent, pageToken.PageSize, pageToken.Skip, request.Filter)
+	accesses, err := s.domain.ListRecipeAccesses(ctx, authAccount, recipeAccessParent, request.GetPageSize(), pageToken.Offset, request.GetFilter())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to list accesses: %v", err)
 	}
@@ -187,13 +164,13 @@ func (s *RecipeService) ListAccesses(ctx context.Context, request *pb.ListAccess
 
 	// return response
 	return &pb.ListAccessesResponse{
-		NextPageToken: pagination.EncodePageToken(pageToken.Next(accesses)),
+		NextPageToken: pageToken.Next(request).String(),
 		Accesses:      pbAccesses,
 	}, nil
 }
 
 func (s *RecipeService) UpdateAccess(ctx context.Context, request *pb.UpdateAccessRequest) (*pb.Access, error) {
-	user, circleID, err := headers.ParseAuthData(ctx, s.circleNamer)
+	authAccount, err := headers.ParseAuthData(ctx, s.circleNamer)
 	if err != nil {
 		return nil, err
 	}
@@ -211,14 +188,8 @@ func (s *RecipeService) UpdateAccess(ctx context.Context, request *pb.UpdateAcce
 		return nil, status.Errorf(codes.InvalidArgument, "invalid access: %v", err)
 	}
 
-	// set issuer
-	modelAccess.RecipeAccessParent.Issuer = model.RecipeParent{
-		UserId:   user.Id.UserId,
-		CircleId: circleID.CircleId,
-	}
-
 	// update access
-	updatedAccess, err := s.domain.UpdateRecipeAccess(ctx, modelAccess)
+	updatedAccess, err := s.domain.UpdateRecipeAccess(ctx, authAccount, modelAccess)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to update access: %v", err)
 	}
@@ -236,7 +207,7 @@ func (s *RecipeService) UpdateAccess(ctx context.Context, request *pb.UpdateAcce
 }
 
 func (s *RecipeService) AcceptRecipeAccess(ctx context.Context, request *pb.AcceptRecipeAccessRequest) (*pb.Access, error) {
-	user, circleID, err := headers.ParseAuthData(ctx, s.circleNamer)
+	authAccount, err := headers.ParseAuthData(ctx, s.circleNamer)
 	if err != nil {
 		return nil, err
 	}
@@ -247,24 +218,17 @@ func (s *RecipeService) AcceptRecipeAccess(ctx context.Context, request *pb.Acce
 		return nil, status.Errorf(codes.InvalidArgument, "invalid request data: %v", err)
 	}
 
-	// create access parent with issuer (user accepting the access)
-	access := &model.RecipeAccess{
-		RecipeAccessParent: model.RecipeAccessParent{
-			Issuer: model.RecipeParent{
-				UserId:   user.Id.UserId,
-				CircleId: circleID.CircleId,
-			},
-		},
-	}
+	// create access parent with requester (user accepting the access)
+	var access model.RecipeAccess
 
 	// parse name to get the parent and access id
-	_, err = s.accessNamer.Parse(request.GetName(), access)
+	_, err = s.accessNamer.Parse(request.GetName(), &access)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
 	}
 
 	// accept the access
-	updatedAccess, err := s.domain.AcceptRecipeAccess(ctx, access.RecipeAccessParent, access.RecipeAccessId)
+	updatedAccess, err := s.domain.AcceptRecipeAccess(ctx, authAccount, access.RecipeAccessParent, access.RecipeAccessId)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to accept access: %v", err)
 	}
@@ -296,30 +260,30 @@ func (s *RecipeService) convertProtoToModel(pbAccess *pb.Access) (model.RecipeAc
 		}
 	}
 
-	switch pbIssuer := pbAccess.GetIssuer().GetName().(type) {
-	case *pb.Access_IssuerOrRecipient_User:
-		modelAccess.Issuer = model.RecipeParent{}
-		_, err := s.userNamer.Parse(pbIssuer.User, &modelAccess.Issuer)
+	switch pbrequester := pbAccess.Getrequester().GetName().(type) {
+	case *pb.Access_RequesterOrRecipient_User:
+		modelAccess.Requester = model.AuthAccount{}
+		_, err := s.userNamer.Parse(pbrequester.User, &modelAccess.Requester)
 		if err != nil {
-			return model.RecipeAccess{}, status.Errorf(codes.InvalidArgument, "invalid issuer: %v", err)
+			return model.RecipeAccess{}, status.Errorf(codes.InvalidArgument, "invalid requester: %v", err)
 		}
-	case *pb.Access_IssuerOrRecipient_Circle:
-		modelAccess.Issuer = model.RecipeParent{}
-		_, err := s.circleNamer.Parse(pbIssuer.Circle, &modelAccess.Issuer)
+	case *pb.Access_RequesterOrRecipient_Circle:
+		modelAccess.Requester = model.AuthAccount{}
+		_, err := s.circleNamer.Parse(pbrequester.Circle, &modelAccess.Requester)
 		if err != nil {
-			return model.RecipeAccess{}, status.Errorf(codes.InvalidArgument, "invalid issuer: %v", err)
+			return model.RecipeAccess{}, status.Errorf(codes.InvalidArgument, "invalid requester: %v", err)
 		}
 	}
 
 	switch pbRecipient := pbAccess.GetRecipient().GetName().(type) {
-	case *pb.Access_IssuerOrRecipient_User:
-		modelAccess.Recipient = model.RecipeParent{}
+	case *pb.Access_RequesterOrRecipient_User:
+		modelAccess.Recipient = model.AuthAccount{}
 		_, err := s.userNamer.Parse(pbRecipient.User, &modelAccess.Recipient)
 		if err != nil {
 			return model.RecipeAccess{}, status.Errorf(codes.InvalidArgument, "invalid recipient: %v", err)
 		}
-	case *pb.Access_IssuerOrRecipient_Circle:
-		modelAccess.Recipient = model.RecipeParent{}
+	case *pb.Access_RequesterOrRecipient_Circle:
+		modelAccess.Recipient = model.AuthAccount{}
 		_, err := s.circleNamer.Parse(pbRecipient.Circle, &modelAccess.Recipient)
 		if err != nil {
 			return model.RecipeAccess{}, status.Errorf(codes.InvalidArgument, "invalid recipient: %v", err)
@@ -343,23 +307,23 @@ func (s *RecipeService) convertModelToProto(modelAccess model.RecipeAccess) (*pb
 		pbAccess.Name = name
 	}
 
-	if modelAccess.Issuer.UserId != 0 {
-		userName, err := s.userNamer.Format(modelAccess.Issuer)
+	if modelAccess.Requester.UserId != 0 {
+		userName, err := s.userNamer.Format(modelAccess.Requester)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "failed to format issuer: %v", err)
+			return nil, status.Errorf(codes.Internal, "failed to format requester: %v", err)
 		}
-		pbAccess.Issuer = &pb.Access_IssuerOrRecipient{
-			Name: &pb.Access_IssuerOrRecipient_User{
+		pbAccess.Requester = &pb.Access_RequesterOrRecipient{
+			Name: &pb.Access_RequesterOrRecipient_User{
 				User: userName,
 			},
 		}
-	} else if modelAccess.Issuer.CircleId != 0 {
-		circleName, err := s.circleNamer.Format(modelAccess.Issuer)
+	} else if modelAccess.Requester.CircleId != 0 {
+		circleName, err := s.circleNamer.Format(modelAccess.Requester)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "failed to format issuer: %v", err)
+			return nil, status.Errorf(codes.Internal, "failed to format requester: %v", err)
 		}
-		pbAccess.Issuer = &pb.Access_IssuerOrRecipient{
-			Name: &pb.Access_IssuerOrRecipient_Circle{
+		pbAccess.Requester = &pb.Access_RequesterOrRecipient{
+			Name: &pb.Access_RequesterOrRecipient_Circle{
 				Circle: circleName,
 			},
 		}
@@ -370,8 +334,8 @@ func (s *RecipeService) convertModelToProto(modelAccess model.RecipeAccess) (*pb
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "failed to format recipient: %v", err)
 		}
-		pbAccess.Recipient = &pb.Access_IssuerOrRecipient{
-			Name: &pb.Access_IssuerOrRecipient_User{
+		pbAccess.Recipient = &pb.Access_RequesterOrRecipient{
+			Name: &pb.Access_RequesterOrRecipient_User{
 				User: userName,
 			},
 		}
@@ -380,8 +344,8 @@ func (s *RecipeService) convertModelToProto(modelAccess model.RecipeAccess) (*pb
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "failed to format recipient: %v", err)
 		}
-		pbAccess.Recipient = &pb.Access_IssuerOrRecipient{
-			Name: &pb.Access_IssuerOrRecipient_Circle{
+		pbAccess.Recipient = &pb.Access_RequesterOrRecipient{
+			Name: &pb.Access_RequesterOrRecipient_Circle{
 				Circle: circleName,
 			},
 		}

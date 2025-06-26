@@ -1,5 +1,6 @@
 ---
-description:
-globs:
+description: Any backend task or any task to be written in go
+globs: 
 alwaysApply: false
 ---
+[README.md](mdc:server/README.md)

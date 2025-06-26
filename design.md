@@ -1,7 +1,7 @@
 # Access
 The main fields are:
 - the "target" - the resource that is being accessed
-- the "issuer" - user/circle that gave the access
+- the "requester" - user/circle that requested the access
 - the "recipient" - user/circle that received the access
 - the "status" - the status of the access
 - the "access level" - the access level of the access

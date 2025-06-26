@@ -89,8 +89,8 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, parent model.RecipeA
 		db = db.Where("recipe_access.recipe_id = ?", parent.RecipeId.RecipeId)
 	}
 
-	// Add authorization check - only allow access if the issuer has write permission or is the recipient
-	if parent.Issuer.UserId != 0 {
+	// Add authorization check - only allow access if the requester has write permission or is the recipient
+	if parent.requester.UserId != 0 {
 		db = db.Where(`
 			EXISTS (
 				SELECT 1 FROM recipe_access ra 
@@ -98,8 +98,8 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, parent model.RecipeA
 				AND ra.permission_level >= ? 
 				AND ra.recipe_id = recipe_access.recipe_id
 			) OR recipe_access.user_id = ?`,
-			parent.Issuer.UserId, permPb.PermissionLevel_PERMISSION_LEVEL_WRITE, parent.Issuer.UserId)
-	} else if parent.Issuer.CircleId != 0 {
+			parent.requester.UserId, permPb.PermissionLevel_PERMISSION_LEVEL_WRITE, parent.requester.UserId)
+	} else if parent.requester.CircleId != 0 {
 		db = db.Where(`
 			EXISTS (
 				SELECT 1 FROM recipe_access ra 
@@ -107,9 +107,9 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, parent model.RecipeA
 				AND ra.permission_level >= ? 
 				AND ra.recipe_id = recipe_access.recipe_id
 			) OR recipe_access.circle_id = ?`,
-			parent.Issuer.CircleId, permPb.PermissionLevel_PERMISSION_LEVEL_WRITE, parent.Issuer.CircleId)
+			parent.requester.CircleId, permPb.PermissionLevel_PERMISSION_LEVEL_WRITE, parent.requester.CircleId)
 	} else {
-		return nil, repository.ErrInvalidArgument{Msg: "issuer is required"}
+		return nil, repository.ErrInvalidArgument{Msg: "requester is required"}
 	}
 
 	err = db.Limit(int(pageSize)).

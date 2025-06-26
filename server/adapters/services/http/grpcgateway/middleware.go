@@ -10,6 +10,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
+type RequestIDKey string
+
 // MiddlewareManager handles the registration and chaining of middleware
 type MiddlewareManager struct {
 	logger zerolog.Logger
@@ -43,7 +45,7 @@ func (m *MiddlewareManager) WithLogging(next http.Handler) http.Handler {
 		// Create a custom response writer to capture the status code
 		rw := &responseWriter{
 			ResponseWriter: w,
-			status:        http.StatusOK,
+			status:         http.StatusOK,
 		}
 
 		// Call the next handler
@@ -67,10 +69,10 @@ func (m *MiddlewareManager) WithRequestID(next http.Handler) http.Handler {
 		if requestID == "" {
 			requestID = generateRequestID()
 		}
-		
-		ctx = context.WithValue(ctx, "request_id", requestID)
+
+		ctx = context.WithValue(ctx, RequestIDKey("request_id"), requestID)
 		w.Header().Set("X-Request-ID", requestID)
-		
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -89,4 +91,4 @@ func (rw *responseWriter) WriteHeader(code int) {
 // generateRequestID generates a unique request ID
 func generateRequestID() string {
 	return time.Now().Format("20060102150405.000000")
-} 
+}

@@ -1,0 +1,466 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/users/user/v1alpha1/user_access.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "UserAccessService",
+      "description": "User Access management",
+      "externalDocs": {
+        "description": "Daylear API Documentation",
+        "url": "https://daylear.com/docs"
+      }
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/users/v1alpha1/{access.name}": {
+      "patch": {
+        "summary": "Update a user access",
+        "description": "Updates the permission level or recipient for a user access.",
+        "operationId": "UserAccessService_UpdateAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/usersuserv1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "access.name",
+            "description": "The name of the access",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "access",
+            "description": "access",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "requester": {
+                  "type": "string",
+                  "title": "the name of the issuing user",
+                  "readOnly": true
+                },
+                "recipient": {
+                  "type": "string",
+                  "title": "the name of the receiving user"
+                },
+                "level": {
+                  "$ref": "#/definitions/typesPermissionLevel",
+                  "title": "the permission level of the access"
+                },
+                "state": {
+                  "$ref": "#/definitions/usersuserv1alpha1AccessState",
+                  "title": "the status of the access",
+                  "readOnly": true
+                }
+              },
+              "title": "access",
+              "required": [
+                "recipient",
+                "level",
+                "access"
+              ]
+            }
+          },
+          {
+            "name": "X-Daylear-User",
+            "description": "the name of the user to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "UserAccessService"
+        ]
+      }
+    },
+    "/users/v1alpha1/{name}": {
+      "get": {
+        "summary": "Get a user access",
+        "description": "Retrieves details about a specific user access.",
+        "operationId": "UserAccessService_GetAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/usersuserv1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "X-Daylear-User",
+            "description": "the name of the user to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "UserAccessService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a user access",
+        "description": "Removes a user's or user's access to a user.",
+        "operationId": "UserAccessService_DeleteAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "X-Daylear-User",
+            "description": "the name of the user to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "UserAccessService"
+        ]
+      }
+    },
+    "/users/v1alpha1/{name}:accept": {
+      "post": {
+        "summary": "Accept a user access",
+        "description": "Accepts a pending user access, changing its state from PENDING to ACCEPTED.",
+        "operationId": "UserAccessService_AcceptAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/usersuserv1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UserAccessServiceAcceptAccessBody"
+            }
+          },
+          {
+            "name": "X-Daylear-User",
+            "description": "the name of the user to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "UserAccessService"
+        ]
+      }
+    },
+    "/users/v1alpha1/{parent}/accesses": {
+      "get": {
+        "summary": "List user accesses",
+        "description": "Lists all users and users with access to a user. If no user is provided, the response will only return the accesses for the current user (or user if the user header is provided).",
+        "operationId": "UserAccessService_ListAccesses",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/usersuserv1alpha1ListAccessesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "parent",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+"
+          },
+          {
+            "name": "filter",
+            "description": "The filter to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "description": "The page size to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "The page token to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "X-Daylear-User",
+            "description": "the name of the user to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "UserAccessService"
+        ]
+      },
+      "post": {
+        "summary": "Grant a user or user access to a user",
+        "description": "Grants a user or user a specific permission level to a user.",
+        "operationId": "UserAccessService_CreateAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/usersuserv1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "parent",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+"
+          },
+          {
+            "name": "access",
+            "description": "The access to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/usersuserv1alpha1Access",
+              "required": [
+                "access"
+              ]
+            }
+          },
+          {
+            "name": "X-Daylear-User",
+            "description": "the name of the user to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "UserAccessService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "typesPermissionLevel": {
+      "type": "string",
+      "enum": [
+        "PERMISSION_LEVEL_UNSPECIFIED",
+        "PERMISSION_LEVEL_PUBLIC",
+        "PERMISSION_LEVEL_READ",
+        "PERMISSION_LEVEL_WRITE",
+        "PERMISSION_LEVEL_ADMIN"
+      ],
+      "default": "PERMISSION_LEVEL_UNSPECIFIED",
+      "description": "- PERMISSION_LEVEL_UNSPECIFIED: the permission is not specified\n - PERMISSION_LEVEL_PUBLIC: the permission is public\n - PERMISSION_LEVEL_READ: the permission is read\n - PERMISSION_LEVEL_WRITE: the permission is write\n - PERMISSION_LEVEL_ADMIN: the permission is admin",
+      "title": "the permission levels"
+    },
+    "usersuserv1alpha1Access": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "The name of the access"
+        },
+        "requester": {
+          "type": "string",
+          "title": "the name of the issuing user",
+          "readOnly": true
+        },
+        "recipient": {
+          "type": "string",
+          "title": "the name of the receiving user"
+        },
+        "level": {
+          "$ref": "#/definitions/typesPermissionLevel",
+          "title": "the permission level of the access"
+        },
+        "state": {
+          "$ref": "#/definitions/usersuserv1alpha1AccessState",
+          "title": "the status of the access",
+          "readOnly": true
+        }
+      },
+      "title": "This represents the data about a user's access to a user",
+      "required": [
+        "recipient",
+        "level"
+      ]
+    },
+    "usersuserv1alpha1AccessState": {
+      "type": "string",
+      "enum": [
+        "STATE_UNSPECIFIED",
+        "STATE_PENDING",
+        "STATE_ACCEPTED"
+      ],
+      "default": "STATE_UNSPECIFIED",
+      "description": "- STATE_UNSPECIFIED: This status should never get used.\n - STATE_PENDING: The access is pending and can either be accepted or deleted.\n - STATE_ACCEPTED: The access is accepted and can be deleted.",
+      "title": "the status of the access"
+    },
+    "usersuserv1alpha1ListAccessesResponse": {
+      "type": "object",
+      "properties": {
+        "accesses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/usersuserv1alpha1Access"
+          },
+          "title": "The list of accesses"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "title": "The next page token"
+        }
+      },
+      "title": "The response to list accesses to a user"
+    },
+    "v1alpha1UserAccessServiceAcceptAccessBody": {
+      "type": "object",
+      "title": "The request to accept an access to a user"
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "description": "Bearer token for authentication",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

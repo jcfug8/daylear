@@ -1,0 +1,466 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/circles/circle/v1alpha1/circle_access.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "CircleAccessService",
+      "description": "Circle Access management",
+      "externalDocs": {
+        "description": "Daylear API Documentation",
+        "url": "https://daylear.com/docs"
+      }
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/circles/v1alpha1/{access.name}": {
+      "patch": {
+        "summary": "Update a circle access",
+        "description": "Updates the permission level or recipient for a circle access.",
+        "operationId": "CircleAccessService_UpdateAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/circlescirclev1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "access.name",
+            "description": "The name of the access",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "access",
+            "description": "access",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "requester": {
+                  "type": "string",
+                  "title": "the name of the requesting user",
+                  "readOnly": true
+                },
+                "recipient": {
+                  "type": "string",
+                  "title": "the name of the receiving user"
+                },
+                "level": {
+                  "$ref": "#/definitions/typesPermissionLevel",
+                  "title": "the permission level of the access"
+                },
+                "state": {
+                  "$ref": "#/definitions/circlescirclev1alpha1AccessState",
+                  "title": "the status of the access",
+                  "readOnly": true
+                }
+              },
+              "title": "access",
+              "required": [
+                "recipient",
+                "level",
+                "access"
+              ]
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CircleAccessService"
+        ]
+      }
+    },
+    "/circles/v1alpha1/{name}": {
+      "get": {
+        "summary": "Get a circle access",
+        "description": "Retrieves details about a specific circle access.",
+        "operationId": "CircleAccessService_GetAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/circlescirclev1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CircleAccessService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a circle access",
+        "description": "Removes a user's or circle's access to a circle.",
+        "operationId": "CircleAccessService_DeleteAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CircleAccessService"
+        ]
+      }
+    },
+    "/circles/v1alpha1/{name}:accept": {
+      "post": {
+        "summary": "Accept a circle access",
+        "description": "Accepts a pending circle access, changing its state from PENDING to ACCEPTED.",
+        "operationId": "CircleAccessService_AcceptAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/circlescirclev1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CircleAccessServiceAcceptAccessBody"
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CircleAccessService"
+        ]
+      }
+    },
+    "/circles/v1alpha1/{parent}/accesses": {
+      "get": {
+        "summary": "List circle accesses",
+        "description": "Lists all users and circles with access to a circle. If no circle is provided, the response will only return the accesses for the current user (or circle if the circle header is provided).",
+        "operationId": "CircleAccessService_ListAccesses",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/circlescirclev1alpha1ListAccessesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "parent",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "filter",
+            "description": "The filter to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "description": "The page size to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "The page token to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CircleAccessService"
+        ]
+      },
+      "post": {
+        "summary": "Grant a user or circle access to a circle",
+        "description": "Grants a user or circle a specific permission level to a circle.",
+        "operationId": "CircleAccessService_CreateAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/circlescirclev1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "parent",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "access",
+            "description": "The access to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/circlescirclev1alpha1Access",
+              "required": [
+                "access"
+              ]
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CircleAccessService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "circlescirclev1alpha1Access": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "The name of the access"
+        },
+        "requester": {
+          "type": "string",
+          "title": "the name of the requesting user",
+          "readOnly": true
+        },
+        "recipient": {
+          "type": "string",
+          "title": "the name of the receiving user"
+        },
+        "level": {
+          "$ref": "#/definitions/typesPermissionLevel",
+          "title": "the permission level of the access"
+        },
+        "state": {
+          "$ref": "#/definitions/circlescirclev1alpha1AccessState",
+          "title": "the status of the access",
+          "readOnly": true
+        }
+      },
+      "title": "This represents the data about a user's access to a circle",
+      "required": [
+        "recipient",
+        "level"
+      ]
+    },
+    "circlescirclev1alpha1AccessState": {
+      "type": "string",
+      "enum": [
+        "STATE_UNSPECIFIED",
+        "STATE_PENDING",
+        "STATE_ACCEPTED"
+      ],
+      "default": "STATE_UNSPECIFIED",
+      "description": "- STATE_UNSPECIFIED: This status should never get used.\n - STATE_PENDING: The access is pending and can either be accepted or deleted.\n - STATE_ACCEPTED: The access is accepted and can be deleted.",
+      "title": "the status of the access"
+    },
+    "circlescirclev1alpha1ListAccessesResponse": {
+      "type": "object",
+      "properties": {
+        "accesses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/circlescirclev1alpha1Access"
+          },
+          "title": "The list of accesses"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "title": "The next page token"
+        }
+      },
+      "title": "The response to list accesses to a circle"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "typesPermissionLevel": {
+      "type": "string",
+      "enum": [
+        "PERMISSION_LEVEL_UNSPECIFIED",
+        "PERMISSION_LEVEL_PUBLIC",
+        "PERMISSION_LEVEL_READ",
+        "PERMISSION_LEVEL_WRITE",
+        "PERMISSION_LEVEL_ADMIN"
+      ],
+      "default": "PERMISSION_LEVEL_UNSPECIFIED",
+      "description": "- PERMISSION_LEVEL_UNSPECIFIED: the permission is not specified\n - PERMISSION_LEVEL_PUBLIC: the permission is public\n - PERMISSION_LEVEL_READ: the permission is read\n - PERMISSION_LEVEL_WRITE: the permission is write\n - PERMISSION_LEVEL_ADMIN: the permission is admin",
+      "title": "the permission levels"
+    },
+    "v1alpha1CircleAccessServiceAcceptAccessBody": {
+      "type": "object",
+      "title": "The request to accept an access to a circle"
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "description": "Bearer token for authentication",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

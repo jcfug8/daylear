@@ -37,8 +37,8 @@ func (s *Service) UploadRecipeImage(w http.ResponseWriter, r *http.Request) {
 		body = file
 	}
 
-	user, ok := r.Context().Value(headers.UserKey).(model.User)
-	if !ok {
+	authAccount, err := headers.ParseAuthData(r.Context(), s.recipeNamer)
+	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -50,20 +50,13 @@ func (s *Service) UploadRecipeImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mRecipe := model.Recipe{}
-	_, err := s.recipeNamer.Parse(name, &mRecipe)
+	_, err = s.recipeNamer.Parse(name, &mRecipe)
 	if err != nil {
 		http.Error(w, "Invalid recipe name", http.StatusBadRequest)
 		return
 	}
 
-	// Call the domain to check the token
-	err = s.domain.AuthorizeRecipeParent(r.Context(), user, mRecipe.Parent)
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	imageURI, err := s.domain.UploadRecipeImage(r.Context(), mRecipe.Parent, mRecipe.Id, body)
+	imageURI, err := s.domain.UploadRecipeImage(r.Context(), authAccount, mRecipe.Id, body)
 	if err != nil {
 		s.log.Error().Err(err).Msg("unable to upload recipe image")
 		http.Error(w, "Interal Error", http.StatusInternalServerError)
