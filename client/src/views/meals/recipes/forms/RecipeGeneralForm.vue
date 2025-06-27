@@ -40,6 +40,55 @@
       <v-spacer></v-spacer>
     </v-row>
 
+    <!-- Visibility Section -->
+    <v-row>
+      <v-col cols="12">
+        <div class="mt-4">
+          <v-select
+            v-model="recipe.visibility"
+            :items="visibilityOptions"
+            item-title="label"
+            item-value="value"
+            label="Recipe Visibility"
+            density="compact"
+            variant="outlined"
+          >
+            <template #selection="{ item }">
+              <div class="d-flex align-center">
+                <v-icon :icon="item.raw.icon" class="me-2" size="small"></v-icon>
+                {{ item.raw.label }}
+              </div>
+            </template>
+            <template #item="{ props, item }">
+              <v-list-item v-bind="props">
+                <template #prepend>
+                  <v-icon :icon="item.raw.icon" size="small"></v-icon>
+                </template>
+                <v-list-item-title>{{ item.raw.label }}</v-list-item-title>
+                <v-list-item-subtitle class="text-wrap">
+                  {{ item.raw.description }}
+                </v-list-item-subtitle>
+              </v-list-item>
+            </template>
+          </v-select>
+          
+          <!-- Current selection description -->
+          <div v-if="selectedVisibilityDescription" class="mt-2">
+            <v-alert
+              :icon="selectedVisibilityIcon"
+              density="compact"
+              variant="tonal"
+              :color="selectedVisibilityColor"
+            >
+              <div class="text-body-2">
+                <strong>{{ selectedVisibilityLabel }}:</strong> {{ selectedVisibilityDescription }}
+              </div>
+            </v-alert>
+          </div>
+        </div>
+      </v-col>
+    </v-row>
+
     <!-- Image Upload Dialog -->
     <v-dialog v-model="showImageDialog" max-width="500">
       <v-card>
@@ -97,7 +146,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { Recipe } from '@/genapi/api/meals/recipe/v1alpha1'
+import type { Recipe, apitypes_VisibilityLevel } from '@/genapi/api/meals/recipe/v1alpha1'
 import { recipeService } from '@/api/api'
 
 const props = defineProps<{
@@ -112,6 +161,59 @@ const emit = defineEmits<{
 const recipe = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value),
+})
+
+// Visibility options with descriptions and icons
+const visibilityOptions = [
+  {
+    value: 'VISIBILITY_LEVEL_PUBLIC' as apitypes_VisibilityLevel,
+    label: 'Public',
+    icon: 'mdi-earth',
+    color: 'success',
+    description: 'Everyone can see this recipe'
+  },
+  {
+    value: 'VISIBILITY_LEVEL_RESTRICTED' as apitypes_VisibilityLevel,
+    label: 'Restricted',
+    icon: 'mdi-account-group',
+    color: 'warning',
+    description: 'Shared users and their connections can see this'
+  },
+  {
+    value: 'VISIBILITY_LEVEL_PRIVATE' as apitypes_VisibilityLevel,
+    label: 'Private',
+    icon: 'mdi-lock',
+    color: 'info',
+    description: 'Only specifically shared users can see this'
+  },
+  {
+    value: 'VISIBILITY_LEVEL_HIDDEN' as apitypes_VisibilityLevel,
+    label: 'Hidden',
+    icon: 'mdi-eye-off',
+    color: 'secondary',
+    description: 'Only you can see this recipe'
+  }
+]
+
+// Computed properties for the selected visibility
+const selectedVisibility = computed(() => {
+  return visibilityOptions.find(option => option.value === recipe.value.visibility)
+})
+
+const selectedVisibilityDescription = computed(() => {
+  return selectedVisibility.value?.description || ''
+})
+
+const selectedVisibilityLabel = computed(() => {
+  return selectedVisibility.value?.label || ''
+})
+
+const selectedVisibilityIcon = computed(() => {
+  return selectedVisibility.value?.icon || 'mdi-help-circle'
+})
+
+const selectedVisibilityColor = computed(() => {
+  return selectedVisibility.value?.color || 'primary'
 })
 
 const showImageDialog = ref(false)
