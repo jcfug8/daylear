@@ -29,13 +29,13 @@ var Module = fx.Module(
 		fx.Annotate(
 			func(configClient config.Client) (string, error) {
 				jwtConfig := configClient.GetConfig()["jwt"].(map[string]interface{})
-				requester, ok := jwtConfig["requester"].(string)
-				if !ok || requester == "" {
-					return "", fmt.Errorf("missing jwt requester")
+				issuer, ok := jwtConfig["issuer"].(string)
+				if !ok || issuer == "" {
+					return "", fmt.Errorf("missing jwt issuer")
 				}
-				return requester, nil
+				return issuer, nil
 			},
-			fx.ResultTags(`name:"jwt_requester"`),
+			fx.ResultTags(`name:"jwt_issuer"`),
 		),
 	),
 )

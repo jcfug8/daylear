@@ -14,11 +14,11 @@ var Module = fx.Module(
 		func(s *UserService) pb.UserServiceServer { return s },
 		fx.Annotate(
 			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.User]() },
-			fx.ResultTags(`name="v1alpha1UserNamer"`),
+			fx.ResultTags(`name:"v1alpha1UserNamer"`),
 		),
 		fx.Annotate(
 			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.Access]() },
-			fx.ResultTags(`name="v1alpha1UserAccessNamer"`),
+			fx.ResultTags(`name:"v1alpha1UserAccessNamer"`),
 		),
 	),
 )

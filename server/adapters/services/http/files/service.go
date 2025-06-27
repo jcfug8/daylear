@@ -7,6 +7,7 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/core/namer"
 	"github.com/jcfug8/daylear/server/ports/domain"
+	"go.uber.org/fx"
 
 	"github.com/rs/zerolog"
 )
@@ -18,6 +19,8 @@ type Service struct {
 }
 
 type NewServiceParams struct {
+	fx.In
+
 	Log         zerolog.Logger
 	Domain      domain.Domain
 	RecipeNamer namer.ReflectNamer `name:"v1alpha1RecipeNamer"`

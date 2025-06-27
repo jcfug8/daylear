@@ -15,11 +15,11 @@ var Module = fx.Module(
 		func(s *RecipeService) pb.RecipeAccessServiceServer { return s },
 		fx.Annotate(
 			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.Access]() },
-			fx.ResultTags(`name="v1alpha1RecipeAccessNamer"`),
+			fx.ResultTags(`name:"v1alpha1RecipeAccessNamer"`),
 		),
 		fx.Annotate(
 			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.Recipe]() },
-			fx.ResultTags(`name="v1alpha1RecipeNamer"`),
+			fx.ResultTags(`name:"v1alpha1RecipeNamer"`),
 		),
 	),
 )
