@@ -1,7 +1,6 @@
 package model
 
 import (
-	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
@@ -25,7 +24,7 @@ type RecipeAccess struct {
 	RecipeAccessParent
 	RecipeAccessId
 	Level types.PermissionLevel
-	State pb.Access_State
+	State types.AccessState
 }
 
 type RecipeAccessParent struct {

@@ -2,6 +2,14 @@
 /* eslint-disable camelcase */
 // @ts-nocheck
 
+// the visibility levels
+export type AccessState =
+  // This status should never get used.
+  | "ACCESS_STATE_UNSPECIFIED"
+  // The access is pending and can either be accepted or deleted.
+  | "ACCESS_STATE_PENDING"
+  // The access is accepted and can be deleted.
+  | "ACCESS_STATE_ACCEPTED";
 // the permission levels
 export type PermissionLevel =
   // the permission is not specified
@@ -18,13 +26,13 @@ export type PermissionLevel =
 export type VisibilityLevel =
   // the visibility is not specified
   | "VISIBILITY_LEVEL_UNSPECIFIED"
-  // the visibility is hidden
-  | "VISIBILITY_LEVEL_HIDDEN"
-  // the visibility is private
-  | "VISIBILITY_LEVEL_PRIVATE"
+  // the visibility is public
+  | "VISIBILITY_LEVEL_PUBLIC"
   // the visibility is restricted
   | "VISIBILITY_LEVEL_RESTRICTED"
-  // the visibility is public
-  | "VISIBILITY_LEVEL_PUBLIC";
+  // the visibility is private
+  | "VISIBILITY_LEVEL_PRIVATE"
+  // the visibility is hidden
+  | "VISIBILITY_LEVEL_HIDDEN";
 
 // @@protoc_insertion_point(typescript-http-eof)

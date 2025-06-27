@@ -2,7 +2,6 @@ package model
 
 import (
 	"github.com/jcfug8/daylear/server/genapi/api/types"
-	pb "github.com/jcfug8/daylear/server/genapi/api/users/user/v1alpha1"
 )
 
 // UserAccessFields defines the user access fields for filtering.
@@ -25,12 +24,12 @@ type UserAccess struct {
 	UserAccessParent
 	UserAccessId
 	Level types.PermissionLevel
-	State pb.Access_State
+	State types.AccessState
 }
 
 type UserAccessParent struct {
 	UserId
-	requester int64
+	Requester int64
 	Recipient int64
 }
 

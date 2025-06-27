@@ -2,7 +2,10 @@ package domain
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"path"
+	"strconv"
 
 	// "fmt"
 	// "path"
@@ -12,57 +15,66 @@ import (
 	model "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
+	uuid "github.com/satori/go.uuid"
 	// "github.com/jcfug8/daylear/server/ports/repository"
 	// uuid "github.com/satori/go.uuid"
 )
 
+const RecipeImageRoot = "recipe_images/"
+
 // CreateRecipe creates a new recipe.
 func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe) (model.Recipe, error) {
-	// TODO: Implement CreateRecipe
-	// Implementation commented out for refactoring
-	/*
-		if recipe.Parent.UserId == 0 {
-			return model.Recipe{}, domain.ErrInvalidArgument{Msg: "parent required"}
+	if authAccount.UserId == 0 {
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "parent required"}
+	}
+
+	recipe.Id.RecipeId = 0
+
+	tx, err := d.repo.Begin(ctx)
+	if err != nil {
+		return model.Recipe{}, err
+	}
+	defer tx.Rollback()
+
+	recipe.ImageURI, err = d.createImageURI(ctx, recipe)
+	if err != nil {
+		return model.Recipe{}, err
+	}
+
+	dbRecipe, err := tx.CreateRecipe(ctx, recipe)
+	if err != nil {
+		return model.Recipe{}, err
+	}
+
+	recipeAccess := model.RecipeAccess{
+		RecipeAccessParent: model.RecipeAccessParent{
+			RecipeId: dbRecipe.Id,
+		},
+		Level: types.PermissionLevel_PERMISSION_LEVEL_ADMIN,
+		State: types.AccessState_ACCESS_STATE_ACCEPTED,
+	}
+
+	if authAccount.CircleId != 0 {
+		recipeAccess.Recipient = model.AuthAccount{
+			CircleId: authAccount.CircleId,
 		}
-
-		recipe.Id.RecipeId = 0
-
-		tx, err := d.repo.Begin(ctx)
-		if err != nil {
-			return model.Recipe{}, err
+	} else {
+		recipeAccess.Recipient = model.AuthAccount{
+			UserId: authAccount.UserId,
 		}
-		defer tx.Rollback()
+	}
 
-		recipe.ImageURI, err = d.createImageURI(ctx, recipe)
-		if err != nil {
-			return model.Recipe{}, err
-		}
+	_, err = tx.CreateRecipeAccess(ctx, recipeAccess)
+	if err != nil {
+		return model.Recipe{}, err
+	}
 
-		dbRecipe, err := tx.CreateRecipe(ctx, recipe)
-		if err != nil {
-			return model.Recipe{}, err
-		}
-		dbRecipe.Parent = recipe.Parent
+	err = tx.Commit()
+	if err != nil {
+		return model.Recipe{}, err
+	}
 
-		dbRecipe.IngredientGroups = recipe.IngredientGroups
-		dbRecipe.IngredientGroups, err = d.createIngredientGroups(ctx, tx, dbRecipe)
-		if err != nil {
-			return model.Recipe{}, err
-		}
-
-		err = tx.BulkCreateRecipeRecipients(ctx, []model.RecipeParent{dbRecipe.Parent}, dbRecipe.Id, permPb.PermissionLevel_PERMISSION_LEVEL_WRITE)
-		if err != nil {
-			return model.Recipe{}, err
-		}
-
-		err = tx.Commit()
-		if err != nil {
-			return model.Recipe{}, err
-		}
-
-		return dbRecipe, nil
-	*/
-	return model.Recipe{}, domain.ErrInternal{Msg: "CreateRecipe method not implemented"}
+	return dbRecipe, nil
 }
 
 // DeleteRecipe deletes a recipe.
@@ -347,8 +359,6 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, authAccount model.AuthAc
 
 // Helper methods (commented out)
 
-/*
-
 func (d *Domain) createImageURI(ctx context.Context, recipe model.Recipe) (string, error) {
 	if recipe.ImageURI == "" {
 		return "", nil
@@ -368,27 +378,9 @@ func (d *Domain) createImageURI(ctx context.Context, recipe model.Recipe) (strin
 	return imageURI, nil
 }
 
-func (d *Domain) createIngredientGroups(ctx context.Context, tx repository.TxClient, recipe model.Recipe) ([]model.IngredientGroup, error) {
-	// create ingredients
-	ingredients, err := tx.BulkCreateIngredients(ctx, recipe.GetIngredients())
-	if err != nil {
-		return []model.IngredientGroup{}, err
-	}
-	recipe.SetIngredients(ingredients)
-
-	// link ingredients to recipe
-	err = tx.SetRecipeIngredients(ctx, recipe.Id, recipe.IngredientGroups)
-	if err != nil {
-		return []model.IngredientGroup{}, err
-	}
-
-	return recipe.IngredientGroups, nil
-}
-
-
-func (d *Domain) updateImageURI(ctx context.Context, recipe model.Recipe) (string, error) {
+func (d *Domain) updateImageURI(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe) (string, error) {
 	if recipe.ImageURI == "" {
-		err := d.removeRecipeImage(ctx, recipe.Parent, recipe.Id)
+		err := d.removeRecipeImage(ctx, authAccount, recipe.Id)
 		if err != nil {
 			return "", err
 		}
@@ -409,63 +401,6 @@ func (d *Domain) updateImageURI(ctx context.Context, recipe model.Recipe) (strin
 	return imageURI, nil
 }
 
-func (d *Domain) removeRecipeImage(ctx context.Context, parent model.RecipeParent, id model.RecipeId) (err error) {
-	recipe, err := d.GetRecipe(ctx, parent, id, []string{model.RecipeFields.ImageURI})
-	if err != nil {
-		return err
-	}
-
-	if recipe.ImageURI == "" {
-		return nil
-	}
-
-	err = d.fileStore.DeleteFile(ctx, recipe.ImageURI)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (d *Domain) updateIngredientGroups(ctx context.Context, tx repository.TxClient, dbRecipe model.Recipe) ([]model.IngredientGroup, error) {
-	err := d.deleteIngredientGroups(ctx, tx, dbRecipe)
-	if err != nil {
-		return []model.IngredientGroup{}, err
-	}
-
-	dbRecipe.IngredientGroups, err = d.createIngredientGroups(ctx, tx, dbRecipe)
-	if err != nil {
-		return []model.IngredientGroup{}, err
-	}
-
-	return dbRecipe.IngredientGroups, nil
-}
-
-func (d *Domain) deleteIngredientGroups(ctx context.Context, tx repository.TxClient, recipe model.Recipe) error {
-	filter := fmt.Sprintf("recipe_id = %d", recipe.Id.RecipeId)
-	dbRecipeIngredients, err := tx.BulkDeleteRecipeIngredients(ctx, filter)
-	if err != nil {
-		return err
-	}
-
-	// delete ingredients if there are any
-	if len(dbRecipeIngredients) > 0 {
-		dbRecipeIds := []string{}
-		for _, dbRecipeIngredient := range dbRecipeIngredients {
-			dbRecipeIds = append(dbRecipeIds, strconv.FormatInt(dbRecipeIngredient.IngredientId, 10))
-		}
-
-		filter = fmt.Sprintf("ingredient_id = any(%s)", strings.Join(dbRecipeIds, ","))
-		_, err = tx.BulkDeleteIngredients(ctx, filter)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-
 func (d *Domain) uploadRecipeImage(ctx context.Context, id model.RecipeId, imageReader io.Reader) (imageURL string, err error) {
 	file, err := d.fileInspector.Inspect(ctx, imageReader)
 	if err != nil {
@@ -484,4 +419,20 @@ func (d *Domain) uploadRecipeImage(ctx context.Context, id model.RecipeId, image
 	return iamgeURI, nil
 }
 
-*/
+func (d *Domain) removeRecipeImage(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (err error) {
+	recipe, err := d.GetRecipe(ctx, authAccount, id, []string{model.RecipeFields.ImageURI})
+	if err != nil {
+		return err
+	}
+
+	if recipe.ImageURI == "" {
+		return nil
+	}
+
+	err = d.fileStore.DeleteFile(ctx, recipe.ImageURI)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

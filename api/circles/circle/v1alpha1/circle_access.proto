@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package api.circles.circle.v1alpha1;
 
+import "api/types/access_state.proto";
 import "api/types/permission_level.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
@@ -181,7 +182,7 @@ message Access {
   api.types.PermissionLevel level = 4 [(google.api.field_behavior) = REQUIRED];
 
   // the status of the access
-  State state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+  api.types.AccessState state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // the requester of the access
   message Requester {
@@ -191,16 +192,6 @@ message Access {
       // the name of the circle
       string circle = 2;
     }
-  }
-
-  // the status of the access
-  enum State {
-    // This status should never get used.
-    STATE_UNSPECIFIED = 0;
-    // The access is pending and can either be accepted or deleted.
-    STATE_PENDING = 100;
-    // The access is accepted and can be deleted.
-    STATE_ACCEPTED = 200;
   }
 }
 

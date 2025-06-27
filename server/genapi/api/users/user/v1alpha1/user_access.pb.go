@@ -26,59 +26,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// the status of the access
-type Access_State int32
-
-const (
-	// This status should never get used.
-	Access_STATE_UNSPECIFIED Access_State = 0
-	// The access is pending and can either be accepted or deleted.
-	Access_STATE_PENDING Access_State = 100
-	// The access is accepted and can be deleted.
-	Access_STATE_ACCEPTED Access_State = 200
-)
-
-// Enum value maps for Access_State.
-var (
-	Access_State_name = map[int32]string{
-		0:   "STATE_UNSPECIFIED",
-		100: "STATE_PENDING",
-		200: "STATE_ACCEPTED",
-	}
-	Access_State_value = map[string]int32{
-		"STATE_UNSPECIFIED": 0,
-		"STATE_PENDING":     100,
-		"STATE_ACCEPTED":    200,
-	}
-)
-
-func (x Access_State) Enum() *Access_State {
-	p := new(Access_State)
-	*p = x
-	return p
-}
-
-func (x Access_State) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (Access_State) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_users_user_v1alpha1_user_access_proto_enumTypes[0].Descriptor()
-}
-
-func (Access_State) Type() protoreflect.EnumType {
-	return &file_api_users_user_v1alpha1_user_access_proto_enumTypes[0]
-}
-
-func (x Access_State) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use Access_State.Descriptor instead.
-func (Access_State) EnumDescriptor() ([]byte, []int) {
-	return file_api_users_user_v1alpha1_user_access_proto_rawDescGZIP(), []int{0, 0}
-}
-
 // This represents the data about a user's access to a user
 type Access struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -91,7 +38,7 @@ type Access struct {
 	// the permission level of the access
 	Level types.PermissionLevel `protobuf:"varint,4,opt,name=level,proto3,enum=api.types.PermissionLevel" json:"level,omitempty"`
 	// the status of the access
-	State         Access_State `protobuf:"varint,5,opt,name=state,proto3,enum=api.users.user.v1alpha1.Access_State" json:"state,omitempty"`
+	State         types.AccessState `protobuf:"varint,5,opt,name=state,proto3,enum=api.types.AccessState" json:"state,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -154,11 +101,11 @@ func (x *Access) GetLevel() types.PermissionLevel {
 	return types.PermissionLevel(0)
 }
 
-func (x *Access) GetState() Access_State {
+func (x *Access) GetState() types.AccessState {
 	if x != nil {
 		return x.State
 	}
-	return Access_STATE_UNSPECIFIED
+	return types.AccessState(0)
 }
 
 // The request to create an access to a user
@@ -541,17 +488,13 @@ var File_api_users_user_v1alpha1_user_access_proto protoreflect.FileDescriptor
 
 const file_api_users_user_v1alpha1_user_access_proto_rawDesc = "" +
 	"\n" +
-	")api/users/user/v1alpha1/user_access.proto\x12\x17api.users.user.v1alpha1\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xff\x02\n" +
+	")api/users/user/v1alpha1/user_access.proto\x12\x17api.users.user.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xa8\x02\n" +
 	"\x06Access\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12!\n" +
 	"\trequester\x18\x02 \x01(\tB\x03\xe0A\x03R\trequester\x12!\n" +
 	"\trecipient\x18\x03 \x01(\tB\x03\xe0A\x02R\trecipient\x125\n" +
-	"\x05level\x18\x04 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x02R\x05level\x12@\n" +
-	"\x05state\x18\x05 \x01(\x0e2%.api.users.user.v1alpha1.Access.StateB\x03\xe0A\x03R\x05state\"F\n" +
-	"\x05State\x12\x15\n" +
-	"\x11STATE_UNSPECIFIED\x10\x00\x12\x11\n" +
-	"\rSTATE_PENDING\x10d\x12\x13\n" +
-	"\x0eSTATE_ACCEPTED\x10\xc8\x01:U\xeaAR\n" +
+	"\x05level\x18\x04 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x02R\x05level\x121\n" +
+	"\x05state\x18\x05 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state:U\xeaAR\n" +
 	"\x1eapi.users.user.v1alpha1/Access\x12\x1eusers/{user}/accesses/{access}*\baccesses2\x06access\"\x91\x01\n" +
 	"\x13CreateAccessRequest\x12<\n" +
 	"\x06parent\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x1e\n" +
@@ -626,41 +569,40 @@ func file_api_users_user_v1alpha1_user_access_proto_rawDescGZIP() []byte {
 	return file_api_users_user_v1alpha1_user_access_proto_rawDescData
 }
 
-var file_api_users_user_v1alpha1_user_access_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_api_users_user_v1alpha1_user_access_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_api_users_user_v1alpha1_user_access_proto_goTypes = []any{
-	(Access_State)(0),             // 0: api.users.user.v1alpha1.Access.State
-	(*Access)(nil),                // 1: api.users.user.v1alpha1.Access
-	(*CreateAccessRequest)(nil),   // 2: api.users.user.v1alpha1.CreateAccessRequest
-	(*DeleteAccessRequest)(nil),   // 3: api.users.user.v1alpha1.DeleteAccessRequest
-	(*GetAccessRequest)(nil),      // 4: api.users.user.v1alpha1.GetAccessRequest
-	(*ListAccessesRequest)(nil),   // 5: api.users.user.v1alpha1.ListAccessesRequest
-	(*ListAccessesResponse)(nil),  // 6: api.users.user.v1alpha1.ListAccessesResponse
-	(*UpdateAccessRequest)(nil),   // 7: api.users.user.v1alpha1.UpdateAccessRequest
-	(*AcceptAccessRequest)(nil),   // 8: api.users.user.v1alpha1.AcceptAccessRequest
-	(types.PermissionLevel)(0),    // 9: api.types.PermissionLevel
+	(*Access)(nil),                // 0: api.users.user.v1alpha1.Access
+	(*CreateAccessRequest)(nil),   // 1: api.users.user.v1alpha1.CreateAccessRequest
+	(*DeleteAccessRequest)(nil),   // 2: api.users.user.v1alpha1.DeleteAccessRequest
+	(*GetAccessRequest)(nil),      // 3: api.users.user.v1alpha1.GetAccessRequest
+	(*ListAccessesRequest)(nil),   // 4: api.users.user.v1alpha1.ListAccessesRequest
+	(*ListAccessesResponse)(nil),  // 5: api.users.user.v1alpha1.ListAccessesResponse
+	(*UpdateAccessRequest)(nil),   // 6: api.users.user.v1alpha1.UpdateAccessRequest
+	(*AcceptAccessRequest)(nil),   // 7: api.users.user.v1alpha1.AcceptAccessRequest
+	(types.PermissionLevel)(0),    // 8: api.types.PermissionLevel
+	(types.AccessState)(0),        // 9: api.types.AccessState
 	(*fieldmaskpb.FieldMask)(nil), // 10: google.protobuf.FieldMask
 	(*emptypb.Empty)(nil),         // 11: google.protobuf.Empty
 }
 var file_api_users_user_v1alpha1_user_access_proto_depIdxs = []int32{
-	9,  // 0: api.users.user.v1alpha1.Access.level:type_name -> api.types.PermissionLevel
-	0,  // 1: api.users.user.v1alpha1.Access.state:type_name -> api.users.user.v1alpha1.Access.State
-	1,  // 2: api.users.user.v1alpha1.CreateAccessRequest.access:type_name -> api.users.user.v1alpha1.Access
-	1,  // 3: api.users.user.v1alpha1.ListAccessesResponse.accesses:type_name -> api.users.user.v1alpha1.Access
-	1,  // 4: api.users.user.v1alpha1.UpdateAccessRequest.access:type_name -> api.users.user.v1alpha1.Access
+	8,  // 0: api.users.user.v1alpha1.Access.level:type_name -> api.types.PermissionLevel
+	9,  // 1: api.users.user.v1alpha1.Access.state:type_name -> api.types.AccessState
+	0,  // 2: api.users.user.v1alpha1.CreateAccessRequest.access:type_name -> api.users.user.v1alpha1.Access
+	0,  // 3: api.users.user.v1alpha1.ListAccessesResponse.accesses:type_name -> api.users.user.v1alpha1.Access
+	0,  // 4: api.users.user.v1alpha1.UpdateAccessRequest.access:type_name -> api.users.user.v1alpha1.Access
 	10, // 5: api.users.user.v1alpha1.UpdateAccessRequest.update_mask:type_name -> google.protobuf.FieldMask
-	2,  // 6: api.users.user.v1alpha1.UserAccessService.CreateAccess:input_type -> api.users.user.v1alpha1.CreateAccessRequest
-	3,  // 7: api.users.user.v1alpha1.UserAccessService.DeleteAccess:input_type -> api.users.user.v1alpha1.DeleteAccessRequest
-	4,  // 8: api.users.user.v1alpha1.UserAccessService.GetAccess:input_type -> api.users.user.v1alpha1.GetAccessRequest
-	5,  // 9: api.users.user.v1alpha1.UserAccessService.ListAccesses:input_type -> api.users.user.v1alpha1.ListAccessesRequest
-	7,  // 10: api.users.user.v1alpha1.UserAccessService.UpdateAccess:input_type -> api.users.user.v1alpha1.UpdateAccessRequest
-	8,  // 11: api.users.user.v1alpha1.UserAccessService.AcceptAccess:input_type -> api.users.user.v1alpha1.AcceptAccessRequest
-	1,  // 12: api.users.user.v1alpha1.UserAccessService.CreateAccess:output_type -> api.users.user.v1alpha1.Access
+	1,  // 6: api.users.user.v1alpha1.UserAccessService.CreateAccess:input_type -> api.users.user.v1alpha1.CreateAccessRequest
+	2,  // 7: api.users.user.v1alpha1.UserAccessService.DeleteAccess:input_type -> api.users.user.v1alpha1.DeleteAccessRequest
+	3,  // 8: api.users.user.v1alpha1.UserAccessService.GetAccess:input_type -> api.users.user.v1alpha1.GetAccessRequest
+	4,  // 9: api.users.user.v1alpha1.UserAccessService.ListAccesses:input_type -> api.users.user.v1alpha1.ListAccessesRequest
+	6,  // 10: api.users.user.v1alpha1.UserAccessService.UpdateAccess:input_type -> api.users.user.v1alpha1.UpdateAccessRequest
+	7,  // 11: api.users.user.v1alpha1.UserAccessService.AcceptAccess:input_type -> api.users.user.v1alpha1.AcceptAccessRequest
+	0,  // 12: api.users.user.v1alpha1.UserAccessService.CreateAccess:output_type -> api.users.user.v1alpha1.Access
 	11, // 13: api.users.user.v1alpha1.UserAccessService.DeleteAccess:output_type -> google.protobuf.Empty
-	1,  // 14: api.users.user.v1alpha1.UserAccessService.GetAccess:output_type -> api.users.user.v1alpha1.Access
-	6,  // 15: api.users.user.v1alpha1.UserAccessService.ListAccesses:output_type -> api.users.user.v1alpha1.ListAccessesResponse
-	1,  // 16: api.users.user.v1alpha1.UserAccessService.UpdateAccess:output_type -> api.users.user.v1alpha1.Access
-	1,  // 17: api.users.user.v1alpha1.UserAccessService.AcceptAccess:output_type -> api.users.user.v1alpha1.Access
+	0,  // 14: api.users.user.v1alpha1.UserAccessService.GetAccess:output_type -> api.users.user.v1alpha1.Access
+	5,  // 15: api.users.user.v1alpha1.UserAccessService.ListAccesses:output_type -> api.users.user.v1alpha1.ListAccessesResponse
+	0,  // 16: api.users.user.v1alpha1.UserAccessService.UpdateAccess:output_type -> api.users.user.v1alpha1.Access
+	0,  // 17: api.users.user.v1alpha1.UserAccessService.AcceptAccess:output_type -> api.users.user.v1alpha1.Access
 	12, // [12:18] is the sub-list for method output_type
 	6,  // [6:12] is the sub-list for method input_type
 	6,  // [6:6] is the sub-list for extension type_name
@@ -678,14 +620,13 @@ func file_api_users_user_v1alpha1_user_access_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_users_user_v1alpha1_user_access_proto_rawDesc), len(file_api_users_user_v1alpha1_user_access_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      0,
 			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_api_users_user_v1alpha1_user_access_proto_goTypes,
 		DependencyIndexes: file_api_users_user_v1alpha1_user_access_proto_depIdxs,
-		EnumInfos:         file_api_users_user_v1alpha1_user_access_proto_enumTypes,
 		MessageInfos:      file_api_users_user_v1alpha1_user_access_proto_msgTypes,
 	}.Build()
 	File_api_users_user_v1alpha1_user_access_proto = out.File

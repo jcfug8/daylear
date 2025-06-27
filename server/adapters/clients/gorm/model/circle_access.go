@@ -1,8 +1,7 @@
 package model
 
 import (
-	pb "github.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1"
-	permPb "github.com/jcfug8/daylear/server/genapi/api/types"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
 // CircleAccessFields defines the circleAccess fields.
@@ -58,14 +57,14 @@ func (fields circleAccessFields) Mask() []string {
 
 // CircleAccess -
 type CircleAccess struct {
-	CircleAccessId    int64                  `gorm:"primaryKey;bigint;not null;<-:false"`
-	CircleId          int64                  `gorm:"not null;index"`
-	RequesterUserId   int64                  `gorm:"index"`
-	RequesterCircleId int64                  `gorm:"index"`
-	RecipientUserId   int64                  `gorm:"not null;index"`
-	PermissionLevel   permPb.PermissionLevel `gorm:"not null"`
-	State             pb.Access_State        `gorm:"not null"`
-	Title             string                 `gorm:"->"` // read only from join
+	CircleAccessId    int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
+	CircleId          int64                 `gorm:"not null;index"`
+	RequesterUserId   int64                 `gorm:"index"`
+	RequesterCircleId int64                 `gorm:"index"`
+	RecipientUserId   int64                 `gorm:"not null;index"`
+	PermissionLevel   types.PermissionLevel `gorm:"not null"`
+	State             types.AccessState     `gorm:"not null"`
+	Title             string                `gorm:"->"` // read only from join
 }
 
 // TableName -

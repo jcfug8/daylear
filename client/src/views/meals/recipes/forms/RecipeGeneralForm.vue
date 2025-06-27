@@ -177,14 +177,14 @@ const visibilityOptions = [
     label: 'Restricted',
     icon: 'mdi-account-group',
     color: 'warning',
-    description: 'Shared users and their connections can see this'
+    description: 'Shared users, circles and their connections can see this'
   },
   {
     value: 'VISIBILITY_LEVEL_PRIVATE' as apitypes_VisibilityLevel,
     label: 'Private',
     icon: 'mdi-lock',
     color: 'info',
-    description: 'Only specifically shared users can see this'
+    description: 'Only specifically shared users and circles can see this'
   },
   {
     value: 'VISIBILITY_LEVEL_HIDDEN' as apitypes_VisibilityLevel,

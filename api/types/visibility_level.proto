@@ -6,12 +6,12 @@ package api.types;
 enum VisibilityLevel {
   // the visibility is not specified
   VISIBILITY_LEVEL_UNSPECIFIED = 0;
-  // the visibility is hidden
-  VISIBILITY_LEVEL_HIDDEN = 1;
-  // the visibility is private
-  VISIBILITY_LEVEL_PRIVATE = 100;
-  // the visibility is restricted
-  VISIBILITY_LEVEL_RESTRICTED = 200;
   // the visibility is public
-  VISIBILITY_LEVEL_PUBLIC = 300;
+  VISIBILITY_LEVEL_PUBLIC = 1;
+  // the visibility is restricted
+  VISIBILITY_LEVEL_RESTRICTED = 100;
+  // the visibility is private
+  VISIBILITY_LEVEL_PRIVATE = 200;
+  // the visibility is hidden
+  VISIBILITY_LEVEL_HIDDEN = 300;
 }

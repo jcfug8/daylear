@@ -30,6 +30,7 @@ var RecipeFields = recipeFields{
 	Directions:       "directions",
 	ImageURI:         "image_uri",
 	IngredientGroups: "ingredient_groups",
+	VisibilityLevel:  "visibility_level",
 }
 
 type recipeFields struct {
@@ -39,6 +40,7 @@ type recipeFields struct {
 	Directions       string
 	ImageURI         string
 	IngredientGroups string
+	VisibilityLevel  string
 }
 
 // Map maps the recipe fields to their corresponding model values.
@@ -50,6 +52,7 @@ func (fields recipeFields) Map(m Recipe) map[string]any {
 		fields.Directions:       m.Directions,
 		fields.ImageURI:         m.ImageURI,
 		fields.IngredientGroups: m.IngredientGroups,
+		fields.VisibilityLevel:  m.VisibilityLevel,
 	}
 }
 
@@ -62,6 +65,7 @@ func (fields recipeFields) Mask() []string {
 		fields.Directions,
 		fields.ImageURI,
 		fields.IngredientGroups,
+		fields.VisibilityLevel,
 	}
 }
 
@@ -72,8 +76,8 @@ type Recipe struct {
 	Description      string
 	Directions       []byte `gorm:"type:jsonb"`
 	ImageURI         string
-	IngredientGroups []byte `gorm:"type:jsonb"`
-	VisibilityLevel  types.VisibilityLevel
+	IngredientGroups []byte                `gorm:"type:jsonb"`
+	VisibilityLevel  types.VisibilityLevel `gorm:"not null;default:300"`
 }
 
 // TableName -

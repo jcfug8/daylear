@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package api.types;
+
+// the visibility levels
+enum AccessState {
+  // This status should never get used.
+  ACCESS_STATE_UNSPECIFIED = 0;
+  // The access is pending and can either be accepted or deleted.
+  ACCESS_STATE_PENDING = 100;
+  // The access is accepted and can be deleted.
+  ACCESS_STATE_ACCEPTED = 200;
+}

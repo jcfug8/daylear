@@ -1,7 +1,6 @@
 package model
 
 import (
-	pb "github.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
@@ -27,7 +26,7 @@ type CircleAccess struct {
 	Requester AuthAccount
 	Recipient int64
 	Level     types.PermissionLevel
-	State     pb.Access_State
+	State     types.AccessState
 }
 
 type CircleAccessParent struct {

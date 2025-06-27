@@ -71,7 +71,7 @@
                   "title": "the permission level of the access"
                 },
                 "state": {
-                  "$ref": "#/definitions/mealsrecipev1alpha1AccessState",
+                  "$ref": "#/definitions/typesAccessState",
                   "title": "the status of the access",
                   "readOnly": true
                 }
@@ -382,7 +382,7 @@
           "title": "the permission level of the access"
         },
         "state": {
-          "$ref": "#/definitions/mealsrecipev1alpha1AccessState",
+          "$ref": "#/definitions/typesAccessState",
           "title": "the status of the access",
           "readOnly": true
         }
@@ -392,17 +392,6 @@
         "recipient",
         "level"
       ]
-    },
-    "mealsrecipev1alpha1AccessState": {
-      "type": "string",
-      "enum": [
-        "STATE_UNSPECIFIED",
-        "STATE_PENDING",
-        "STATE_ACCEPTED"
-      ],
-      "default": "STATE_UNSPECIFIED",
-      "description": "- STATE_UNSPECIFIED: This status should never get used.\n - STATE_PENDING: The access is pending and can either be accepted or deleted.\n - STATE_ACCEPTED: The access is accepted and can be deleted.",
-      "title": "the status of the access"
     },
     "mealsrecipev1alpha1ListAccessesResponse": {
       "type": "object",
@@ -449,6 +438,17 @@
           }
         }
       }
+    },
+    "typesAccessState": {
+      "type": "string",
+      "enum": [
+        "ACCESS_STATE_UNSPECIFIED",
+        "ACCESS_STATE_PENDING",
+        "ACCESS_STATE_ACCEPTED"
+      ],
+      "default": "ACCESS_STATE_UNSPECIFIED",
+      "description": "- ACCESS_STATE_UNSPECIFIED: This status should never get used.\n - ACCESS_STATE_PENDING: The access is pending and can either be accepted or deleted.\n - ACCESS_STATE_ACCEPTED: The access is accepted and can be deleted.",
+      "title": "the visibility levels"
     },
     "typesPermissionLevel": {
       "type": "string",

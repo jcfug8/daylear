@@ -26,59 +26,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// the status of the access
-type Access_State int32
-
-const (
-	// This status should never get used.
-	Access_STATE_UNSPECIFIED Access_State = 0
-	// The access is pending and can either be accepted or deleted.
-	Access_STATE_PENDING Access_State = 100
-	// The access is accepted and can be deleted.
-	Access_STATE_ACCEPTED Access_State = 200
-)
-
-// Enum value maps for Access_State.
-var (
-	Access_State_name = map[int32]string{
-		0:   "STATE_UNSPECIFIED",
-		100: "STATE_PENDING",
-		200: "STATE_ACCEPTED",
-	}
-	Access_State_value = map[string]int32{
-		"STATE_UNSPECIFIED": 0,
-		"STATE_PENDING":     100,
-		"STATE_ACCEPTED":    200,
-	}
-)
-
-func (x Access_State) Enum() *Access_State {
-	p := new(Access_State)
-	*p = x
-	return p
-}
-
-func (x Access_State) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (Access_State) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_circles_circle_v1alpha1_circle_access_proto_enumTypes[0].Descriptor()
-}
-
-func (Access_State) Type() protoreflect.EnumType {
-	return &file_api_circles_circle_v1alpha1_circle_access_proto_enumTypes[0]
-}
-
-func (x Access_State) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use Access_State.Descriptor instead.
-func (Access_State) EnumDescriptor() ([]byte, []int) {
-	return file_api_circles_circle_v1alpha1_circle_access_proto_rawDescGZIP(), []int{0, 0}
-}
-
 // This represents the data about a user's access to a circle
 type Access struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -91,7 +38,7 @@ type Access struct {
 	// the permission level of the access
 	Level types.PermissionLevel `protobuf:"varint,4,opt,name=level,proto3,enum=api.types.PermissionLevel" json:"level,omitempty"`
 	// the status of the access
-	State         Access_State `protobuf:"varint,5,opt,name=state,proto3,enum=api.circles.circle.v1alpha1.Access_State" json:"state,omitempty"`
+	State         types.AccessState `protobuf:"varint,5,opt,name=state,proto3,enum=api.types.AccessState" json:"state,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -154,11 +101,11 @@ func (x *Access) GetLevel() types.PermissionLevel {
 	return types.PermissionLevel(0)
 }
 
-func (x *Access) GetState() Access_State {
+func (x *Access) GetState() types.AccessState {
 	if x != nil {
 		return x.State
 	}
-	return Access_STATE_UNSPECIFIED
+	return types.AccessState(0)
 }
 
 // The request to create an access to a circle
@@ -626,21 +573,17 @@ var File_api_circles_circle_v1alpha1_circle_access_proto protoreflect.FileDescri
 
 const file_api_circles_circle_v1alpha1_circle_access_proto_rawDesc = "" +
 	"\n" +
-	"/api/circles/circle/v1alpha1/circle_access.proto\x12\x1bapi.circles.circle.v1alpha1\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xff\x03\n" +
+	"/api/circles/circle/v1alpha1/circle_access.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xa4\x03\n" +
 	"\x06Access\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12P\n" +
 	"\trequester\x18\x02 \x01(\v2-.api.circles.circle.v1alpha1.Access.RequesterB\x03\xe0A\x03R\trequester\x12!\n" +
 	"\trecipient\x18\x03 \x01(\tB\x03\xe0A\x02R\trecipient\x125\n" +
-	"\x05level\x18\x04 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x02R\x05level\x12D\n" +
-	"\x05state\x18\x05 \x01(\x0e2).api.circles.circle.v1alpha1.Access.StateB\x03\xe0A\x03R\x05state\x1aC\n" +
+	"\x05level\x18\x04 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x02R\x05level\x121\n" +
+	"\x05state\x18\x05 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state\x1aC\n" +
 	"\tRequester\x12\x14\n" +
 	"\x04user\x18\x01 \x01(\tH\x00R\x04user\x12\x18\n" +
 	"\x06circle\x18\x02 \x01(\tH\x00R\x06circleB\x06\n" +
-	"\x04name\"F\n" +
-	"\x05State\x12\x15\n" +
-	"\x11STATE_UNSPECIFIED\x10\x00\x12\x11\n" +
-	"\rSTATE_PENDING\x10d\x12\x13\n" +
-	"\x0eSTATE_ACCEPTED\x10\xc8\x01:]\xeaAZ\n" +
+	"\x04name:]\xeaAZ\n" +
 	"\"api.circles.circle.v1alpha1/Access\x12\"circles/{circle}/accesses/{access}*\baccesses2\x06access\"\x9b\x01\n" +
 	"\x13CreateAccessRequest\x12B\n" +
 	"\x06parent\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\n" +
@@ -715,43 +658,42 @@ func file_api_circles_circle_v1alpha1_circle_access_proto_rawDescGZIP() []byte {
 	return file_api_circles_circle_v1alpha1_circle_access_proto_rawDescData
 }
 
-var file_api_circles_circle_v1alpha1_circle_access_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_api_circles_circle_v1alpha1_circle_access_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_api_circles_circle_v1alpha1_circle_access_proto_goTypes = []any{
-	(Access_State)(0),             // 0: api.circles.circle.v1alpha1.Access.State
-	(*Access)(nil),                // 1: api.circles.circle.v1alpha1.Access
-	(*CreateAccessRequest)(nil),   // 2: api.circles.circle.v1alpha1.CreateAccessRequest
-	(*DeleteAccessRequest)(nil),   // 3: api.circles.circle.v1alpha1.DeleteAccessRequest
-	(*GetAccessRequest)(nil),      // 4: api.circles.circle.v1alpha1.GetAccessRequest
-	(*ListAccessesRequest)(nil),   // 5: api.circles.circle.v1alpha1.ListAccessesRequest
-	(*ListAccessesResponse)(nil),  // 6: api.circles.circle.v1alpha1.ListAccessesResponse
-	(*UpdateAccessRequest)(nil),   // 7: api.circles.circle.v1alpha1.UpdateAccessRequest
-	(*AcceptAccessRequest)(nil),   // 8: api.circles.circle.v1alpha1.AcceptAccessRequest
-	(*Access_Requester)(nil),      // 9: api.circles.circle.v1alpha1.Access.Requester
-	(types.PermissionLevel)(0),    // 10: api.types.PermissionLevel
+	(*Access)(nil),                // 0: api.circles.circle.v1alpha1.Access
+	(*CreateAccessRequest)(nil),   // 1: api.circles.circle.v1alpha1.CreateAccessRequest
+	(*DeleteAccessRequest)(nil),   // 2: api.circles.circle.v1alpha1.DeleteAccessRequest
+	(*GetAccessRequest)(nil),      // 3: api.circles.circle.v1alpha1.GetAccessRequest
+	(*ListAccessesRequest)(nil),   // 4: api.circles.circle.v1alpha1.ListAccessesRequest
+	(*ListAccessesResponse)(nil),  // 5: api.circles.circle.v1alpha1.ListAccessesResponse
+	(*UpdateAccessRequest)(nil),   // 6: api.circles.circle.v1alpha1.UpdateAccessRequest
+	(*AcceptAccessRequest)(nil),   // 7: api.circles.circle.v1alpha1.AcceptAccessRequest
+	(*Access_Requester)(nil),      // 8: api.circles.circle.v1alpha1.Access.Requester
+	(types.PermissionLevel)(0),    // 9: api.types.PermissionLevel
+	(types.AccessState)(0),        // 10: api.types.AccessState
 	(*fieldmaskpb.FieldMask)(nil), // 11: google.protobuf.FieldMask
 	(*emptypb.Empty)(nil),         // 12: google.protobuf.Empty
 }
 var file_api_circles_circle_v1alpha1_circle_access_proto_depIdxs = []int32{
-	9,  // 0: api.circles.circle.v1alpha1.Access.requester:type_name -> api.circles.circle.v1alpha1.Access.Requester
-	10, // 1: api.circles.circle.v1alpha1.Access.level:type_name -> api.types.PermissionLevel
-	0,  // 2: api.circles.circle.v1alpha1.Access.state:type_name -> api.circles.circle.v1alpha1.Access.State
-	1,  // 3: api.circles.circle.v1alpha1.CreateAccessRequest.access:type_name -> api.circles.circle.v1alpha1.Access
-	1,  // 4: api.circles.circle.v1alpha1.ListAccessesResponse.accesses:type_name -> api.circles.circle.v1alpha1.Access
-	1,  // 5: api.circles.circle.v1alpha1.UpdateAccessRequest.access:type_name -> api.circles.circle.v1alpha1.Access
+	8,  // 0: api.circles.circle.v1alpha1.Access.requester:type_name -> api.circles.circle.v1alpha1.Access.Requester
+	9,  // 1: api.circles.circle.v1alpha1.Access.level:type_name -> api.types.PermissionLevel
+	10, // 2: api.circles.circle.v1alpha1.Access.state:type_name -> api.types.AccessState
+	0,  // 3: api.circles.circle.v1alpha1.CreateAccessRequest.access:type_name -> api.circles.circle.v1alpha1.Access
+	0,  // 4: api.circles.circle.v1alpha1.ListAccessesResponse.accesses:type_name -> api.circles.circle.v1alpha1.Access
+	0,  // 5: api.circles.circle.v1alpha1.UpdateAccessRequest.access:type_name -> api.circles.circle.v1alpha1.Access
 	11, // 6: api.circles.circle.v1alpha1.UpdateAccessRequest.update_mask:type_name -> google.protobuf.FieldMask
-	2,  // 7: api.circles.circle.v1alpha1.CircleAccessService.CreateAccess:input_type -> api.circles.circle.v1alpha1.CreateAccessRequest
-	3,  // 8: api.circles.circle.v1alpha1.CircleAccessService.DeleteAccess:input_type -> api.circles.circle.v1alpha1.DeleteAccessRequest
-	4,  // 9: api.circles.circle.v1alpha1.CircleAccessService.GetAccess:input_type -> api.circles.circle.v1alpha1.GetAccessRequest
-	5,  // 10: api.circles.circle.v1alpha1.CircleAccessService.ListAccesses:input_type -> api.circles.circle.v1alpha1.ListAccessesRequest
-	7,  // 11: api.circles.circle.v1alpha1.CircleAccessService.UpdateAccess:input_type -> api.circles.circle.v1alpha1.UpdateAccessRequest
-	8,  // 12: api.circles.circle.v1alpha1.CircleAccessService.AcceptAccess:input_type -> api.circles.circle.v1alpha1.AcceptAccessRequest
-	1,  // 13: api.circles.circle.v1alpha1.CircleAccessService.CreateAccess:output_type -> api.circles.circle.v1alpha1.Access
+	1,  // 7: api.circles.circle.v1alpha1.CircleAccessService.CreateAccess:input_type -> api.circles.circle.v1alpha1.CreateAccessRequest
+	2,  // 8: api.circles.circle.v1alpha1.CircleAccessService.DeleteAccess:input_type -> api.circles.circle.v1alpha1.DeleteAccessRequest
+	3,  // 9: api.circles.circle.v1alpha1.CircleAccessService.GetAccess:input_type -> api.circles.circle.v1alpha1.GetAccessRequest
+	4,  // 10: api.circles.circle.v1alpha1.CircleAccessService.ListAccesses:input_type -> api.circles.circle.v1alpha1.ListAccessesRequest
+	6,  // 11: api.circles.circle.v1alpha1.CircleAccessService.UpdateAccess:input_type -> api.circles.circle.v1alpha1.UpdateAccessRequest
+	7,  // 12: api.circles.circle.v1alpha1.CircleAccessService.AcceptAccess:input_type -> api.circles.circle.v1alpha1.AcceptAccessRequest
+	0,  // 13: api.circles.circle.v1alpha1.CircleAccessService.CreateAccess:output_type -> api.circles.circle.v1alpha1.Access
 	12, // 14: api.circles.circle.v1alpha1.CircleAccessService.DeleteAccess:output_type -> google.protobuf.Empty
-	1,  // 15: api.circles.circle.v1alpha1.CircleAccessService.GetAccess:output_type -> api.circles.circle.v1alpha1.Access
-	6,  // 16: api.circles.circle.v1alpha1.CircleAccessService.ListAccesses:output_type -> api.circles.circle.v1alpha1.ListAccessesResponse
-	1,  // 17: api.circles.circle.v1alpha1.CircleAccessService.UpdateAccess:output_type -> api.circles.circle.v1alpha1.Access
-	1,  // 18: api.circles.circle.v1alpha1.CircleAccessService.AcceptAccess:output_type -> api.circles.circle.v1alpha1.Access
+	0,  // 15: api.circles.circle.v1alpha1.CircleAccessService.GetAccess:output_type -> api.circles.circle.v1alpha1.Access
+	5,  // 16: api.circles.circle.v1alpha1.CircleAccessService.ListAccesses:output_type -> api.circles.circle.v1alpha1.ListAccessesResponse
+	0,  // 17: api.circles.circle.v1alpha1.CircleAccessService.UpdateAccess:output_type -> api.circles.circle.v1alpha1.Access
+	0,  // 18: api.circles.circle.v1alpha1.CircleAccessService.AcceptAccess:output_type -> api.circles.circle.v1alpha1.Access
 	13, // [13:19] is the sub-list for method output_type
 	7,  // [7:13] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name
@@ -773,14 +715,13 @@ func file_api_circles_circle_v1alpha1_circle_access_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_circles_circle_v1alpha1_circle_access_proto_rawDesc), len(file_api_circles_circle_v1alpha1_circle_access_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      0,
 			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_api_circles_circle_v1alpha1_circle_access_proto_goTypes,
 		DependencyIndexes: file_api_circles_circle_v1alpha1_circle_access_proto_depIdxs,
-		EnumInfos:         file_api_circles_circle_v1alpha1_circle_access_proto_enumTypes,
 		MessageInfos:      file_api_circles_circle_v1alpha1_circle_access_proto_msgTypes,
 	}.Build()
 	File_api_circles_circle_v1alpha1_circle_access_proto = out.File

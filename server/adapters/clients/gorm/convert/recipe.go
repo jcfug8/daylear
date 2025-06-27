@@ -11,10 +11,11 @@ import (
 func RecipeFromCoreModel(m cmodel.Recipe) (gmodel.Recipe, error) {
 	var err error
 	recipe := gmodel.Recipe{
-		RecipeId:    m.Id.RecipeId,
-		Title:       m.Title,
-		Description: m.Description,
-		ImageURI:    m.ImageURI,
+		RecipeId:        m.Id.RecipeId,
+		Title:           m.Title,
+		Description:     m.Description,
+		ImageURI:        m.ImageURI,
+		VisibilityLevel: m.Visibility,
 	}
 
 	recipe.Directions, err = json.Marshal(m.Directions)
@@ -24,7 +25,7 @@ func RecipeFromCoreModel(m cmodel.Recipe) (gmodel.Recipe, error) {
 
 	recipe.IngredientGroups, err = json.Marshal(m.IngredientGroups)
 	if err != nil {
-		return gmodel.Recipe{} ,err
+		return gmodel.Recipe{}, err
 	}
 
 	return recipe, nil
@@ -40,6 +41,7 @@ func RecipeToCoreModel(m gmodel.Recipe) (cmodel.Recipe, error) {
 		Title:       m.Title,
 		Description: m.Description,
 		ImageURI:    m.ImageURI,
+		Visibility:  m.VisibilityLevel,
 	}
 
 	if m.Directions != nil {

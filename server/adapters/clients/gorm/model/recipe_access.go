@@ -1,8 +1,7 @@
 package model
 
 import (
-	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
-	permPb "github.com/jcfug8/daylear/server/genapi/api/types"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
 // RecipeAccessFields defines the recipeAccess fields.
@@ -62,15 +61,15 @@ func (fields recipeAccessFields) Mask() []string {
 
 // RecipeAccess -
 type RecipeAccess struct {
-	RecipeAccessId    int64                  `gorm:"primaryKey;bigint;not null;<-:false"`
-	RecipeId          int64                  `gorm:"not null;index"`
-	requesterUserId   int64                  `gorm:"index"`
-	requesterCircleId int64                  `gorm:"index"`
-	RecipientUserId   int64                  `gorm:"index"`
-	RecipientCircleId int64                  `gorm:"index"`
-	PermissionLevel   permPb.PermissionLevel `gorm:"not null"`
-	State             pb.Access_State        `gorm:"not null"`
-	Title             string                 `gorm:"->"` // read only from join
+	RecipeAccessId    int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
+	RecipeId          int64                 `gorm:"not null;index"`
+	requesterUserId   int64                 `gorm:"index"`
+	requesterCircleId int64                 `gorm:"index"`
+	RecipientUserId   int64                 `gorm:"index"`
+	RecipientCircleId int64                 `gorm:"index"`
+	PermissionLevel   types.PermissionLevel `gorm:"not null"`
+	State             types.AccessState     `gorm:"not null"`
+	Title             string                `gorm:"->"` // read only from join
 }
 
 // TableName -

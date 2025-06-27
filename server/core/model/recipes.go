@@ -28,54 +28,14 @@ type RecipeDirection struct {
 
 type IngredientGroup struct {
 	Title             string
-	RecipeIngredients []RecipeIngredient `json:"-"`
+	RecipeIngredients []RecipeIngredient
 }
 
 type RecipeIngredient struct {
-	RecipeIngredientId   int64
-	Optional             bool
-	MeasurementAmount    float64
-	MeasurementType      pb.Recipe_MeasurementType
-	IngredientGroupIndex int
-	Ingredient
-}
-
-type Ingredient struct {
-	IngredientId int64
-	Title        string
-}
-
-func (r Recipe) GetIngredients() []Ingredient {
-	ingredients := make([]Ingredient, 0)
-	for _, ig := range r.IngredientGroups {
-		for _, ri := range ig.RecipeIngredients {
-			ingredients = append(ingredients, ri.Ingredient)
-		}
-	}
-	return ingredients
-}
-
-func (r *Recipe) SetIngredients(ingredients []Ingredient) {
-	k := 0
-	for i := range r.IngredientGroups {
-		for j := range r.IngredientGroups[i].RecipeIngredients {
-			if k >= len(ingredients) {
-				continue
-			}
-			r.IngredientGroups[i].RecipeIngredients[j].Ingredient = ingredients[k]
-			k++
-		}
-	}
-}
-
-func (r *Recipe) SetRecipeIngredients(recipeIngredients []RecipeIngredient) {
-	for i := range recipeIngredients {
-		groupIndex := recipeIngredients[i].IngredientGroupIndex
-		for len(r.IngredientGroups) <= int(groupIndex) {
-			r.IngredientGroups = append(r.IngredientGroups, IngredientGroup{})
-		}
-		r.IngredientGroups[groupIndex].RecipeIngredients = append(r.IngredientGroups[groupIndex].RecipeIngredients, recipeIngredients[i])
-	}
+	Optional          bool
+	MeasurementAmount float64
+	MeasurementType   pb.Recipe_MeasurementType
+	Title             string
 }
 
 // RecipeId defines the name for a recipe.

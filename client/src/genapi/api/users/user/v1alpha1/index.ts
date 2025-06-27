@@ -34,14 +34,14 @@ export type User = {
 export type apitypes_VisibilityLevel =
   // the visibility is not specified
   | "VISIBILITY_LEVEL_UNSPECIFIED"
-  // the visibility is hidden
-  | "VISIBILITY_LEVEL_HIDDEN"
-  // the visibility is private
-  | "VISIBILITY_LEVEL_PRIVATE"
+  // the visibility is public
+  | "VISIBILITY_LEVEL_PUBLIC"
   // the visibility is restricted
   | "VISIBILITY_LEVEL_RESTRICTED"
-  // the visibility is public
-  | "VISIBILITY_LEVEL_PUBLIC";
+  // the visibility is private
+  | "VISIBILITY_LEVEL_PRIVATE"
+  // the visibility is hidden
+  | "VISIBILITY_LEVEL_HIDDEN";
 // the request to get a user
 export type GetUserRequest = {
   // the name of the user to get
@@ -228,7 +228,7 @@ export type Access = {
   // the status of the access
   //
   // Behaviors: OUTPUT_ONLY
-  state: Access_State | undefined;
+  state: apitypes_AccessState | undefined;
 };
 
 // the permission levels
@@ -243,14 +243,14 @@ export type apitypes_PermissionLevel =
   | "PERMISSION_LEVEL_WRITE"
   // the permission is admin
   | "PERMISSION_LEVEL_ADMIN";
-// the status of the access
-export type Access_State =
+// the visibility levels
+export type apitypes_AccessState =
   // This status should never get used.
-  | "STATE_UNSPECIFIED"
+  | "ACCESS_STATE_UNSPECIFIED"
   // The access is pending and can either be accepted or deleted.
-  | "STATE_PENDING"
+  | "ACCESS_STATE_PENDING"
   // The access is accepted and can be deleted.
-  | "STATE_ACCEPTED";
+  | "ACCESS_STATE_ACCEPTED";
 // The request to create an access to a user
 export type CreateAccessRequest = {
   // parent

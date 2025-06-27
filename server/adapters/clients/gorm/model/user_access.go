@@ -1,8 +1,7 @@
 package model
 
 import (
-	permPb "github.com/jcfug8/daylear/server/genapi/api/types"
-	pb "github.com/jcfug8/daylear/server/genapi/api/users/user/v1alpha1"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
 // UserAccessFields defines the userAccess fields.
@@ -56,13 +55,13 @@ func (fields userAccessFields) Mask() []string {
 
 // UserAccess -
 type UserAccess struct {
-	UserAccessId    int64                  `gorm:"primaryKey;bigint;not null;<-:false"`
-	UserId          int64                  `gorm:"not null;index"`
-	RequesterUserId int64                  `gorm:"index"`
-	RecipientUserId int64                  `gorm:"not null;index"`
-	PermissionLevel permPb.PermissionLevel `gorm:"not null"`
-	State           pb.Access_State        `gorm:"not null"`
-	Title           string                 `gorm:"->"` // read only from join
+	UserAccessId    int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
+	UserId          int64                 `gorm:"not null;index"`
+	RequesterUserId int64                 `gorm:"index"`
+	RecipientUserId int64                 `gorm:"not null;index"`
+	PermissionLevel types.PermissionLevel `gorm:"not null"`
+	State           types.AccessState     `gorm:"not null"`
+	Title           string                `gorm:"->"` // read only from join
 }
 
 // TableName -

@@ -66,9 +66,6 @@ func ProtosToIngredientGroups(protos []*pb.Recipe_IngredientGroup) []model.Ingre
 	ingredientGroups := make([]model.IngredientGroup, len(protos))
 	for i, proto := range protos {
 		ingredientGroup := ProtoToIngredientGroup(proto)
-		for j := range ingredientGroup.RecipeIngredients {
-			ingredientGroup.RecipeIngredients[j].IngredientGroupIndex = i
-		}
 		ingredientGroups[i] = ingredientGroup
 	}
 	return ingredientGroups
