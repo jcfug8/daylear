@@ -3,6 +3,7 @@ package model
 import (
 	"github.com/jcfug8/daylear/server/core/masks"
 	"github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
 // RecipeMap maps the Recipe fields to their corresponding
@@ -72,6 +73,7 @@ type Recipe struct {
 	Directions       []byte `gorm:"type:jsonb"`
 	ImageURI         string
 	IngredientGroups []byte `gorm:"type:jsonb"`
+	VisibilityLevel  types.VisibilityLevel
 }
 
 // TableName -

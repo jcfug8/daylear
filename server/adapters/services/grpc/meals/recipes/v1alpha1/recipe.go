@@ -160,12 +160,6 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 		return nil, err
 	}
 
-	fieldMask := s.recipeFieldMasker.GetFieldMaskFromCtx(ctx)
-	readMask, err := s.recipeFieldMasker.GetReadMask(fieldMask)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid field mask")
-	}
-
 	pageToken, pageSize, err := grpc.SetupPagination(request, grpc.PaginationConfig{
 		DefaultPageSize: recipeDefaultPageSize,
 		MaxPageSize:     recipeMaxPageSize,
@@ -175,7 +169,7 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 	}
 	request.PageSize = pageSize
 
-	res, err := s.domain.ListRecipes(ctx, authAccount, request.GetPageSize(), pageToken.Offset, request.GetFilter(), readMask)
+	res, err := s.domain.ListRecipes(ctx, authAccount, request.GetPageSize(), pageToken.Offset)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

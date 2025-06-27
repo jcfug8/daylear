@@ -156,8 +156,12 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
+  
+  // Wait for auth initialization to complete
+  await authStore.waitForAuthInit()
+  
   if (to.meta.requiresAuth) {
     if (authStore.isLoggedIn) {
       // User is authenticated, proceed to the route

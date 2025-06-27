@@ -100,14 +100,14 @@ export type Recipe_MeasurementType =
 export type apitypes_VisibilityLevel =
   // the visibility is not specified
   | "VISIBILITY_LEVEL_UNSPECIFIED"
-  // the visibility is public
-  | "VISIBILITY_LEVEL_PUBLIC"
-  // the visibility is restricted
-  | "VISIBILITY_LEVEL_RESTRICTED"
+  // the visibility is hidden
+  | "VISIBILITY_LEVEL_HIDDEN"
   // the visibility is private
   | "VISIBILITY_LEVEL_PRIVATE"
-  // the visibility is hidden
-  | "VISIBILITY_LEVEL_HIDDEN";
+  // the visibility is restricted
+  | "VISIBILITY_LEVEL_RESTRICTED"
+  // the visibility is public
+  | "VISIBILITY_LEVEL_PUBLIC";
 // the request to create a recipe
 export type CreateRecipeRequest = {
   // the recipe to create
@@ -130,10 +130,6 @@ export type ListRecipesRequest = {
   //
   // Behaviors: OPTIONAL
   pageToken: string | undefined;
-  // used to specify the filter
-  //
-  // Behaviors: OPTIONAL
-  filter: string | undefined;
 };
 
 // the response to list recipes
@@ -255,9 +251,6 @@ export function createRecipeServiceClient(
       }
       if (request.pageToken) {
         queryParams.push(`pageToken=${encodeURIComponent(request.pageToken.toString())}`)
-      }
-      if (request.filter) {
-        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {

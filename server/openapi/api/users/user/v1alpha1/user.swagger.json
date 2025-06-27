@@ -225,13 +225,13 @@
       "type": "string",
       "enum": [
         "VISIBILITY_LEVEL_UNSPECIFIED",
-        "VISIBILITY_LEVEL_PUBLIC",
-        "VISIBILITY_LEVEL_RESTRICTED",
+        "VISIBILITY_LEVEL_HIDDEN",
         "VISIBILITY_LEVEL_PRIVATE",
-        "VISIBILITY_LEVEL_HIDDEN"
+        "VISIBILITY_LEVEL_RESTRICTED",
+        "VISIBILITY_LEVEL_PUBLIC"
       ],
       "default": "VISIBILITY_LEVEL_UNSPECIFIED",
-      "description": "- VISIBILITY_LEVEL_UNSPECIFIED: the visibility is not specified\n - VISIBILITY_LEVEL_PUBLIC: the visibility is public\n - VISIBILITY_LEVEL_RESTRICTED: the visibility is restricted\n - VISIBILITY_LEVEL_PRIVATE: the visibility is private\n - VISIBILITY_LEVEL_HIDDEN: the visibility is hidden",
+      "description": "- VISIBILITY_LEVEL_UNSPECIFIED: the visibility is not specified\n - VISIBILITY_LEVEL_HIDDEN: the visibility is hidden\n - VISIBILITY_LEVEL_PRIVATE: the visibility is private\n - VISIBILITY_LEVEL_RESTRICTED: the visibility is restricted\n - VISIBILITY_LEVEL_PUBLIC: the visibility is public",
       "title": "the visibility levels"
     },
     "v1alpha1ListUsersResponse": {

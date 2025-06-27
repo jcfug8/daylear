@@ -260,9 +260,7 @@ type ListRecipesRequest struct {
 	// returned page
 	PageSize int32 `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	// used to specify the page token
-	PageToken string `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	// used to specify the filter
-	Filter        string `protobuf:"bytes,3,opt,name=filter,proto3" json:"filter,omitempty"`
+	PageToken     string `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -307,13 +305,6 @@ func (x *ListRecipesRequest) GetPageSize() int32 {
 func (x *ListRecipesRequest) GetPageToken() string {
 	if x != nil {
 		return x.PageToken
-	}
-	return ""
-}
-
-func (x *ListRecipesRequest) GetFilter() string {
-	if x != nil {
-		return x.Filter
 	}
 	return ""
 }
@@ -744,12 +735,11 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	" api.meals.recipe.v1alpha1/Recipe\x12\x10recipes/{recipe}*\arecipes2\x06recipe\"w\n" +
 	"\x13CreateRecipeRequest\x12>\n" +
 	"\x06recipe\x18\x01 \x01(\v2!.api.meals.recipe.v1alpha1.RecipeB\x03\xe0A\x02R\x06recipe\x12 \n" +
-	"\trecipe_id\x18\x02 \x01(\tB\x03\xe0A\x02R\brecipeId\"w\n" +
+	"\trecipe_id\x18\x02 \x01(\tB\x03\xe0A\x02R\brecipeId\"Z\n" +
 	"\x12ListRecipesRequest\x12 \n" +
 	"\tpage_size\x18\x01 \x01(\x05B\x03\xe0A\x01R\bpageSize\x12\"\n" +
 	"\n" +
-	"page_token\x18\x02 \x01(\tB\x03\xe0A\x01R\tpageToken\x12\x1b\n" +
-	"\x06filter\x18\x03 \x01(\tB\x03\xe0A\x01R\x06filter\"z\n" +
+	"page_token\x18\x02 \x01(\tB\x03\xe0A\x01R\tpageToken\"z\n" +
 	"\x13ListRecipesResponse\x12;\n" +
 	"\arecipes\x18\x01 \x03(\v2!.api.meals.recipe.v1alpha1.RecipeR\arecipes\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x97\x01\n" +

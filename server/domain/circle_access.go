@@ -2,9 +2,11 @@ package domain
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jcfug8/daylear/server/core/model"
-	permPb "github.com/jcfug8/daylear/server/genapi/api/types"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
+	domain "github.com/jcfug8/daylear/server/ports/domain"
 )
 
 // CreateCircleAccess creates a new circle access
@@ -29,7 +31,7 @@ func (d *Domain) CreateCircleAccess(ctx context.Context, authAccount model.AuthA
 	// if err != nil {
 	// 	return model.CircleAccess{}, err
 	// }
-	// if permission < permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
+	// if permission < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
 	// 	return model.CircleAccess{}, domain.ErrPermissionDenied{Msg: "requester does not have write permission to circle"}
 	// }
 
@@ -86,7 +88,7 @@ func (d *Domain) DeleteCircleAccess(ctx context.Context, authAccount model.AuthA
 	// 	if err != nil && !errors.Is(err, domain.ErrNotFound{}) {
 	// 		return err
 	// 	}
-	// 	if permission >= permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
+	// 	if permission >= types.PermissionLevel_PERMISSION_LEVEL_WRITE {
 	// 		canDelete = true
 	// 	}
 	// }
@@ -134,7 +136,7 @@ func (d *Domain) GetCircleAccess(ctx context.Context, authAccount model.AuthAcco
 	// 	if err != nil {
 	// 		return model.CircleAccess{}, err
 	// 	}
-	// 	if permission < permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
+	// 	if permission < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
 	// 		return model.CircleAccess{}, domain.ErrPermissionDenied{Msg: "user does not have access to circle"}
 	// 	}
 	// }
@@ -181,7 +183,7 @@ func (d *Domain) UpdateCircleAccess(ctx context.Context, authAccount model.AuthA
 	// if err != nil {
 	// 	return model.CircleAccess{}, err
 	// }
-	// if permission < permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
+	// if permission < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
 	// 	return model.CircleAccess{}, domain.ErrPermissionDenied{Msg: "user does not have write permission to circle"}
 	// }
 
@@ -233,12 +235,12 @@ func (d *Domain) AcceptCircleAccess(ctx context.Context, authAccount model.AuthA
 	// }
 
 	// // verify access is pending
-	// if access.State != permPb.Access_STATE_PENDING {
+	// if access.State != types.Access_STATE_PENDING {
 	// 	return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "access is not pending"}
 	// }
 
 	// // update state to accepted
-	// access.State = permPb.Access_STATE_ACCEPTED
+	// access.State = types.Access_STATE_ACCEPTED
 
 	// // update access using the repository
 	// acceptedAccess, err := d.repo.UpdateCircleAccess(ctx, access)
@@ -250,31 +252,55 @@ func (d *Domain) AcceptCircleAccess(ctx context.Context, authAccount model.AuthA
 	return model.CircleAccess{}, nil
 }
 
-func (d *Domain) verifyCircleAccess(ctx context.Context, authAccount model.AuthAccount) (permPb.PermissionLevel, error) {
-	// // verify auth account is set
-	// if authAccount.UserId == 0 {
-	// 	return permPb.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "auth user is required"}
-	// }
+func (d *Domain) verifyCircleAccess(ctx context.Context, authAccount model.AuthAccount) (types.PermissionLevel, types.VisibilityLevel, error) {
+	// verify auth account is set
+	if authAccount.UserId == 0 {
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "auth user is required"}
+	}
 
-	// // verify circle id is set
-	// if authAccount.CircleId == 0 {
-	// 	return permPb.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "circle id is required"}
-	// }
+	// verify circle id is set
+	if authAccount.CircleId == 0 {
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "circle id is required"}
+	}
 
-	// // verify circle exists
-	// circle, err := d.repo.GetCircle(ctx, model.Circle{Id: model.CircleId{CircleId: authAccount.CircleId}}, []string{model.CircleFields.Id})
-	// if err != nil {
-	// 	return permPb.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, err
-	// }
+	// verify circle exists
+	circle, err := d.repo.GetCircle(ctx, model.CircleId{CircleId: authAccount.CircleId}, []string{model.CircleFields.Id})
+	if err != nil {
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+	}
 
-	// // check if user is a member of the circle
-	// permissionLevel, err := d.repo.GetCircleUserPermission(ctx, authAccount.UserId, authAccount.CircleId)
-	// if errors.Is(err, domain.ErrNotFound{}) && circle.Visibility != permPb.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC {
-	// 	return permPb.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user not a member of the circle"}
-	// } else if err != nil && !errors.Is(err, domain.ErrNotFound{}) {
-	// 	return permPb.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, err
-	// }
+	// check if user is a member of the circle
+	circleAccesses, err := d.repo.ListCircleAccesses(
+		ctx, authAccount,
+		model.CircleAccessParent{
+			CircleId: model.CircleId{
+				CircleId: authAccount.CircleId,
+			},
+		},
+		1, 0, fmt.Sprintf("recipient.user_id = %d", authAccount.UserId),
+	)
+	if len(circleAccesses) == 0 && circle.Visibility != types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC {
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user not a member of the circle"}
+	} else if err != nil {
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+	}
 
-	// return permissionLevel, nil
-	return permPb.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, nil
+	permissionLevel := types.PermissionLevel_PERMISSION_LEVEL_PUBLIC
+	visibilityLevel := types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC
+	if len(circleAccesses) > 0 {
+		permissionLevel = circleAccesses[0].Level
+	}
+
+	switch permissionLevel {
+	case types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED:
+		visibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED
+	case types.PermissionLevel_PERMISSION_LEVEL_PUBLIC:
+		visibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC
+	case types.PermissionLevel_PERMISSION_LEVEL_READ, types.PermissionLevel_PERMISSION_LEVEL_WRITE, types.PermissionLevel_PERMISSION_LEVEL_ADMIN:
+		visibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_RESTRICTED
+	default:
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "invalid permission level"}
+	}
+
+	return permissionLevel, visibilityLevel, nil
 }

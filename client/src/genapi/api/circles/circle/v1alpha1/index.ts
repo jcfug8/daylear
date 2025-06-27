@@ -22,14 +22,14 @@ export type Circle = {
 export type apitypes_VisibilityLevel =
   // the visibility is not specified
   | "VISIBILITY_LEVEL_UNSPECIFIED"
-  // the visibility is public
-  | "VISIBILITY_LEVEL_PUBLIC"
-  // the visibility is restricted
-  | "VISIBILITY_LEVEL_RESTRICTED"
+  // the visibility is hidden
+  | "VISIBILITY_LEVEL_HIDDEN"
   // the visibility is private
   | "VISIBILITY_LEVEL_PRIVATE"
-  // the visibility is hidden
-  | "VISIBILITY_LEVEL_HIDDEN";
+  // the visibility is restricted
+  | "VISIBILITY_LEVEL_RESTRICTED"
+  // the visibility is public
+  | "VISIBILITY_LEVEL_PUBLIC";
 // the request to create a circle
 export type CreateCircleRequest = {
   // the circle to create

@@ -11,6 +11,8 @@ export enum AccountType {
 
 export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = ref(false)
+  const authInitialized = ref(false)
+  let authInitPromise: Promise<void> | null = null
   const userId = ref<number>(0)
   const user = ref<User>({
     name: '',
@@ -18,6 +20,7 @@ export const useAuthStore = defineStore('auth', () => {
     username: '',
     givenName: '',
     familyName: '',
+    visibility: undefined,
   })
   const circles = ref<Circle[]>([])
   const activeAccount = ref<User | Circle>()
@@ -138,6 +141,21 @@ export const useAuthStore = defineStore('auth', () => {
       console.log('No JWT found in sessionStorage')
       _clearAuthData()
     }
+    
+    authInitialized.value = true
+  }
+
+  /**
+   * Returns a promise that resolves when auth initialization is complete
+   */
+  function waitForAuthInit(): Promise<void> {
+    if (authInitialized.value) {
+      return Promise.resolve()
+    }
+    if (!authInitPromise) {
+      authInitPromise = _checkAuth()
+    }
+    return authInitPromise
   }
 
   /**
@@ -182,13 +200,16 @@ export const useAuthStore = defineStore('auth', () => {
       username: '',
       givenName: '',
       familyName: '',
+      visibility: undefined,
     }
     circles.value = []
     activeAccount.value = undefined
   }
 
   // Run authentication check on store initialization
-  _checkAuth()
+  if (!authInitPromise) {
+    authInitPromise = _checkAuth()
+  }
 
   return {
     user,
@@ -198,6 +219,8 @@ export const useAuthStore = defineStore('auth', () => {
     activeAccountType,
     activeAccountTitle,
     isLoggedIn,
+    authInitialized,
+    waitForAuthInit,
     loadAuthUser,
     loadAuthCircles,
     updateAuthUser,

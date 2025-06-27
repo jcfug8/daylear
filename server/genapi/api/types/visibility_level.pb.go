@@ -27,31 +27,31 @@ type VisibilityLevel int32
 const (
 	// the visibility is not specified
 	VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED VisibilityLevel = 0
-	// the visibility is public
-	VisibilityLevel_VISIBILITY_LEVEL_PUBLIC VisibilityLevel = 1
-	// the visibility is restricted
-	VisibilityLevel_VISIBILITY_LEVEL_RESTRICTED VisibilityLevel = 2
-	// the visibility is private
-	VisibilityLevel_VISIBILITY_LEVEL_PRIVATE VisibilityLevel = 3
 	// the visibility is hidden
-	VisibilityLevel_VISIBILITY_LEVEL_HIDDEN VisibilityLevel = 4
+	VisibilityLevel_VISIBILITY_LEVEL_HIDDEN VisibilityLevel = 1
+	// the visibility is private
+	VisibilityLevel_VISIBILITY_LEVEL_PRIVATE VisibilityLevel = 100
+	// the visibility is restricted
+	VisibilityLevel_VISIBILITY_LEVEL_RESTRICTED VisibilityLevel = 200
+	// the visibility is public
+	VisibilityLevel_VISIBILITY_LEVEL_PUBLIC VisibilityLevel = 300
 )
 
 // Enum value maps for VisibilityLevel.
 var (
 	VisibilityLevel_name = map[int32]string{
-		0: "VISIBILITY_LEVEL_UNSPECIFIED",
-		1: "VISIBILITY_LEVEL_PUBLIC",
-		2: "VISIBILITY_LEVEL_RESTRICTED",
-		3: "VISIBILITY_LEVEL_PRIVATE",
-		4: "VISIBILITY_LEVEL_HIDDEN",
+		0:   "VISIBILITY_LEVEL_UNSPECIFIED",
+		1:   "VISIBILITY_LEVEL_HIDDEN",
+		100: "VISIBILITY_LEVEL_PRIVATE",
+		200: "VISIBILITY_LEVEL_RESTRICTED",
+		300: "VISIBILITY_LEVEL_PUBLIC",
 	}
 	VisibilityLevel_value = map[string]int32{
 		"VISIBILITY_LEVEL_UNSPECIFIED": 0,
-		"VISIBILITY_LEVEL_PUBLIC":      1,
-		"VISIBILITY_LEVEL_RESTRICTED":  2,
-		"VISIBILITY_LEVEL_PRIVATE":     3,
-		"VISIBILITY_LEVEL_HIDDEN":      4,
+		"VISIBILITY_LEVEL_HIDDEN":      1,
+		"VISIBILITY_LEVEL_PRIVATE":     100,
+		"VISIBILITY_LEVEL_RESTRICTED":  200,
+		"VISIBILITY_LEVEL_PUBLIC":      300,
 	}
 )
 
@@ -86,13 +86,13 @@ var File_api_types_visibility_level_proto protoreflect.FileDescriptor
 
 const file_api_types_visibility_level_proto_rawDesc = "" +
 	"\n" +
-	" api/types/visibility_level.proto\x12\tapi.types*\xac\x01\n" +
+	" api/types/visibility_level.proto\x12\tapi.types*\xae\x01\n" +
 	"\x0fVisibilityLevel\x12 \n" +
 	"\x1cVISIBILITY_LEVEL_UNSPECIFIED\x10\x00\x12\x1b\n" +
-	"\x17VISIBILITY_LEVEL_PUBLIC\x10\x01\x12\x1f\n" +
-	"\x1bVISIBILITY_LEVEL_RESTRICTED\x10\x02\x12\x1c\n" +
-	"\x18VISIBILITY_LEVEL_PRIVATE\x10\x03\x12\x1b\n" +
-	"\x17VISIBILITY_LEVEL_HIDDEN\x10\x04B\x9d\x01\n" +
+	"\x17VISIBILITY_LEVEL_HIDDEN\x10\x01\x12\x1c\n" +
+	"\x18VISIBILITY_LEVEL_PRIVATE\x10d\x12 \n" +
+	"\x1bVISIBILITY_LEVEL_RESTRICTED\x10\xc8\x01\x12\x1c\n" +
+	"\x17VISIBILITY_LEVEL_PUBLIC\x10\xac\x02B\x9d\x01\n" +
 	"\rcom.api.typesB\x14VisibilityLevelProtoP\x01Z1github.com/jcfug8/daylear/server/genapi/api/types\xa2\x02\x03ATX\xaa\x02\tApi.Types\xca\x02\tApi\\Types\xe2\x02\x15Api\\Types\\GPBMetadata\xea\x02\n" +
 	"Api::Typesb\x06proto3"
 

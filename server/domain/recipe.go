@@ -10,6 +10,7 @@ import (
 	// "strings"
 
 	model "github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
 	// "github.com/jcfug8/daylear/server/ports/repository"
 	// uuid "github.com/satori/go.uuid"
@@ -186,22 +187,32 @@ func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, i
 }
 
 // ListRecipes lists recipes.
-func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount, pageSize int32, pageOffset int64, filter string, fieldMask []string) (recipes []model.Recipe, err error) {
-	// TODO: Implement ListRecipes
-	// Implementation commented out for refactoring
-	/*
-		recipes, err = d.repo.ListRecipes(ctx, page, parent, filter, fieldMask)
+func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount, pageSize int32, pageOffset int64) (recipes []model.Recipe, err error) {
+	if authAccount.UserId == 0 {
+		return nil, domain.ErrInvalidArgument{Msg: "user_id required"}
+	}
+
+	authAccount.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
+	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
+
+	if authAccount.CircleId != 0 {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccess(ctx, authAccount)
 		if err != nil {
 			return nil, err
 		}
+	}
 
-		for i := range recipes {
-			recipes[i].Parent = parent
-		}
+	if authAccount.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+		return nil, domain.ErrPermissionDenied{Msg: "user does not have access"}
+	}
 
-		return recipes, nil
-	*/
-	return nil, domain.ErrInternal{Msg: "ListRecipes method not implemented"}
+	recipes, err = d.repo.ListRecipes(ctx, authAccount, pageSize, pageOffset)
+	if err != nil {
+		return nil, err
+	}
+
+	return recipes, nil
+
 }
 
 // UpdateRecipe updates a recipe.
