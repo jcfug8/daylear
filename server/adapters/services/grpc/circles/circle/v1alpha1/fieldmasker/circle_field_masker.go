@@ -41,7 +41,7 @@ func NewCircleFieldMasker() CircleFieldMasker {
 	// IRIOMO:CUSTOM_CODE_SLOT_START resourceNamerMapFields
 	fm.mapFieldMaskPathToDomainMasks("name", model.CircleFields.Id)
 	fm.mapFieldMaskPathToDomainMasks("title", model.CircleFields.Title)
-	fm.mapFieldMaskPathToDomainMasks("is_public", model.CircleFields.IsPublic)
+	fm.mapFieldMaskPathToDomainMasks("visibility", model.CircleFields.Visibility)
 	// IRIOMO:CUSTOM_CODE_SLOT_END
 
 	return fm

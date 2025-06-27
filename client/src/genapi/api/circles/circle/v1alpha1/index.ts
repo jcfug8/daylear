@@ -268,7 +268,7 @@ export type Access = {
   // the name of the requesting user
   //
   // Behaviors: OUTPUT_ONLY
-  requester: string | undefined;
+  requester: Access_Requester | undefined;
   // the name of the receiving user
   //
   // Behaviors: REQUIRED
@@ -281,6 +281,14 @@ export type Access = {
   //
   // Behaviors: OUTPUT_ONLY
   state: Access_State | undefined;
+};
+
+// the requester of the access
+export type Access_Requester = {
+  // the name of the user
+  user?: string;
+  // the name of the circle
+  circle?: string;
 };
 
 // the permission levels

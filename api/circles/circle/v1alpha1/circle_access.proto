@@ -172,7 +172,7 @@ message Access {
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
   // the name of the requesting user
-  string requester = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  Requester requester = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // the name of the receiving user
   string recipient = 3 [(google.api.field_behavior) = REQUIRED];
@@ -182,6 +182,16 @@ message Access {
 
   // the status of the access
   State state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the requester of the access
+  message Requester {
+    oneof name {
+      // the name of the user
+      string user = 1;
+      // the name of the circle
+      string circle = 2;
+    }
+  }
 
   // the status of the access
   enum State {

@@ -9,8 +9,8 @@ import (
 var CircleAccessFields = circleAccessFields{
 	CircleAccessId:    "circle_access.circle_access_id",
 	CircleId:          "circle_access.circle_id",
-	requesterUserId:   "circle_access.requester_user_id",
-	requesterCircleId: "circle_access.requester_circle_id",
+	RequesterUserId:   "circle_access.requester_user_id",
+	RequesterCircleId: "circle_access.requester_circle_id",
 	RecipientUserId:   "circle_access.recipient_user_id",
 	PermissionLevel:   "circle_access.permission_level",
 	State:             "circle_access.state",
@@ -20,8 +20,8 @@ var CircleAccessFields = circleAccessFields{
 type circleAccessFields struct {
 	CircleAccessId    string
 	CircleId          string
-	requesterUserId   string
-	requesterCircleId string
+	RequesterUserId   string
+	RequesterCircleId string
 	RecipientUserId   string
 	PermissionLevel   string
 	State             string
@@ -33,8 +33,8 @@ func (fields circleAccessFields) Map(m CircleAccess) map[string]any {
 	return map[string]any{
 		fields.CircleAccessId:    m.CircleAccessId,
 		fields.CircleId:          m.CircleId,
-		fields.requesterUserId:   m.requesterUserId,
-		fields.requesterCircleId: m.requesterCircleId,
+		fields.RequesterUserId:   m.RequesterUserId,
+		fields.RequesterCircleId: m.RequesterCircleId,
 		fields.RecipientUserId:   m.RecipientUserId,
 		fields.PermissionLevel:   m.PermissionLevel,
 		fields.State:             m.State,
@@ -47,8 +47,8 @@ func (fields circleAccessFields) Mask() []string {
 	return []string{
 		fields.CircleAccessId,
 		fields.CircleId,
-		fields.requesterUserId,
-		fields.requesterCircleId,
+		fields.RequesterUserId,
+		fields.RequesterCircleId,
 		fields.RecipientUserId,
 		fields.PermissionLevel,
 		fields.State,
@@ -60,8 +60,8 @@ func (fields circleAccessFields) Mask() []string {
 type CircleAccess struct {
 	CircleAccessId    int64                  `gorm:"primaryKey;bigint;not null;<-:false"`
 	CircleId          int64                  `gorm:"not null;index"`
-	requesterUserId   int64                  `gorm:"index"`
-	requesterCircleId int64                  `gorm:"index"`
+	RequesterUserId   int64                  `gorm:"index"`
+	RequesterCircleId int64                  `gorm:"index"`
 	RecipientUserId   int64                  `gorm:"not null;index"`
 	PermissionLevel   permPb.PermissionLevel `gorm:"not null"`
 	State             pb.Access_State        `gorm:"not null"`

@@ -18,34 +18,35 @@ type NewUserServiceParams struct {
 	Domain          domain.Domain
 	Log             zerolog.Logger
 	UserFieldMasker fieldMasker.UserFieldMasker
+	UserNamer       namer.ReflectNamer `name:"v1alpha1UserNamer"`
+	AccessNamer     namer.ReflectNamer `name:"v1alpha1UserAccessNamer"`
 }
 
 // NewUserService creates a new UserService.
 func NewUserService(params NewUserServiceParams) (*UserService, error) {
-	userNamer, err := namer.NewReflectNamer[*pb.User]()
-	if err != nil {
-		return nil, err
-	}
-
 	return &UserService{
 		domain:          params.Domain,
 		log:             params.Log,
 		userFieldMasker: params.UserFieldMasker,
-		userNamer:       userNamer,
+		userNamer:       params.UserNamer,
+		accessNamer:     params.AccessNamer,
 	}, nil
 }
 
 // UserService defines the grpc handlers for the UserService.
 type UserService struct {
 	pb.UnimplementedUserServiceServer
+	pb.UnimplementedUserAccessServiceServer
 	domain          domain.Domain
 	log             zerolog.Logger
 	userFieldMasker fieldMasker.UserFieldMasker
 	userNamer       namer.ReflectNamer
+	accessNamer     namer.ReflectNamer
 }
 
 // Register registers s to the grpc implementation of the service.
 func (s *UserService) Register(server *grpc.Server) error {
 	pb.RegisterUserServiceServer(server, s)
+	pb.RegisterUserAccessServiceServer(server, s)
 	return nil
 }

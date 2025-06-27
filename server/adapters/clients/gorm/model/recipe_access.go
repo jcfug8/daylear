@@ -9,8 +9,8 @@ import (
 var RecipeAccessFields = recipeAccessFields{
 	RecipeAccessId:    "recipe_access.recipe_access_id",
 	RecipeId:          "recipe_access.recipe_id",
-	requesterUserId:   "recipe_access.requester_user_id",
-	requesterCircleId: "recipe_access.requester_circle_id",
+	RequesterUserId:   "recipe_access.requester_user_id",
+	RequesterCircleId: "recipe_access.requester_circle_id",
 	RecipientUserId:   "recipe_access.recipient_user_id",
 	RecipientCircleId: "recipe_access.recipient_circle_id",
 	PermissionLevel:   "recipe_access.permission_level",
@@ -21,8 +21,8 @@ var RecipeAccessFields = recipeAccessFields{
 type recipeAccessFields struct {
 	RecipeAccessId    string
 	RecipeId          string
-	requesterUserId   string
-	requesterCircleId string
+	RequesterUserId   string
+	RequesterCircleId string
 	RecipientUserId   string
 	RecipientCircleId string
 	PermissionLevel   string
@@ -35,8 +35,8 @@ func (fields recipeAccessFields) Map(m RecipeAccess) map[string]any {
 	return map[string]any{
 		fields.RecipeAccessId:    m.RecipeAccessId,
 		fields.RecipeId:          m.RecipeId,
-		fields.requesterUserId:   m.requesterUserId,
-		fields.requesterCircleId: m.requesterCircleId,
+		fields.RequesterUserId:   m.requesterUserId,
+		fields.RequesterCircleId: m.requesterCircleId,
 		fields.RecipientUserId:   m.RecipientUserId,
 		fields.RecipientCircleId: m.RecipientCircleId,
 		fields.PermissionLevel:   m.PermissionLevel,
@@ -50,8 +50,8 @@ func (fields recipeAccessFields) Mask() []string {
 	return []string{
 		fields.RecipeAccessId,
 		fields.RecipeId,
-		fields.requesterUserId,
-		fields.requesterCircleId,
+		fields.RequesterUserId,
+		fields.RequesterCircleId,
 		fields.RecipientUserId,
 		fields.RecipientCircleId,
 		fields.PermissionLevel,

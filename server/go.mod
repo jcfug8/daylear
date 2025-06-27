@@ -22,7 +22,6 @@ require (
 	go.einride.tech/aip v0.68.1
 	go.uber.org/fx v1.23.0
 	golang.org/x/oauth2 v0.24.0
-	google.golang.org/genproto v0.0.0-20240711142825-46eb208f015d
 	google.golang.org/genproto/googleapis/api v0.0.0-20241219192143-6b3ec007d9bb
 	google.golang.org/grpc v1.69.2
 	google.golang.org/protobuf v1.36.0

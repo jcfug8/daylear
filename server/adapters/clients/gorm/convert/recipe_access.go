@@ -8,12 +8,12 @@ import (
 // CoreRecipeAccessToRecipeAccess converts a core RecipeAccess model to a gorm RecipeAccess model.
 func CoreRecipeAccessToRecipeAccess(access coreModel.RecipeAccess) dbModel.RecipeAccess {
 	return dbModel.RecipeAccess{
-		RecipeAccessId:  access.RecipeAccessId.RecipeAccessId,
-		RecipeId:        access.RecipeId.RecipeId,
-		UserId:          access.Recipient.UserId,
-		CircleId:        access.Recipient.CircleId,
-		PermissionLevel: access.Level,
-		State:           access.State,
+		RecipeAccessId:    access.RecipeAccessId.RecipeAccessId,
+		RecipeId:          access.RecipeId.RecipeId,
+		RecipientUserId:   access.Recipient.UserId,
+		RecipientCircleId: access.Recipient.CircleId,
+		PermissionLevel:   access.Level,
+		State:             access.State,
 	}
 }
 
@@ -27,9 +27,9 @@ func RecipeAccessToCoreRecipeAccess(dbAccess dbModel.RecipeAccess) coreModel.Rec
 			RecipeId: coreModel.RecipeId{
 				RecipeId: dbAccess.RecipeId,
 			},
-			Recipient: coreModel.RecipeParent{
-				UserId:   dbAccess.UserId,
-				CircleId: dbAccess.CircleId,
+			Recipient: coreModel.AuthAccount{
+				UserId:   dbAccess.RecipientUserId,
+				CircleId: dbAccess.RecipientCircleId,
 			},
 		},
 		Level: dbAccess.PermissionLevel,

@@ -6,10 +6,7 @@ import (
 
 // Client defines how to interact with a database client.
 type Client interface {
-	// eventClient
 	circleClient
-	// mealClient
-	ingredientClient
 	recipeClient
 	userClient
 
@@ -19,10 +16,7 @@ type Client interface {
 
 // TxClient defines how to interact with a database transaction.
 type TxClient interface {
-	// eventClient
 	circleClient
-	// mealClient
-	ingredientClient
 	recipeClient
 	userClient
 

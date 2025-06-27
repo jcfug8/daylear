@@ -37,7 +37,7 @@ func (s *Service) UploadRecipeImage(w http.ResponseWriter, r *http.Request) {
 		body = file
 	}
 
-	authAccount, err := headers.ParseAuthData(r.Context(), s.recipeNamer)
+	authAccount, err := headers.ParseAuthData(r.Context())
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return

@@ -3,39 +3,36 @@ package v1alpha1
 import (
 	"context"
 
+	"github.com/jcfug8/daylear/server/adapters/services/grpc"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
-	"go.einride.tech/aip/fieldbehavior"
-	"go.einride.tech/aip/pagination"
-	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-const (
+var (
 	accessMaxPageSize     int32 = 1000
 	accessDefaultPageSize int32 = 100
 )
 
 func (s *RecipeService) CreateAccess(ctx context.Context, request *pb.CreateAccessRequest) (*pb.Access, error) {
-	authAccount, err := headers.ParseAuthData(ctx, s.circleNamer)
+	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// check field behavior
-	fieldbehavior.ClearFields(request, annotations.FieldBehavior_OUTPUT_ONLY)
-	err = fieldbehavior.ValidateRequiredFields(request)
+	err = grpc.ProcessRequestFieldBehavior(request)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid request data: %v", err)
+		return nil, err
 	}
 
 	// convert proto to model
 	pbAccess := request.GetAccess()
 	pbAccess.Name = ""
-	modelAccess, err := s.convertProtoToModel(pbAccess)
+	modelAccess, err := s.ProtoToRecipeAccess(pbAccess)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid access: %v", err)
 	}
@@ -49,205 +46,206 @@ func (s *RecipeService) CreateAccess(ctx context.Context, request *pb.CreateAcce
 	// create access
 	createdAccess, err := s.domain.CreateRecipeAccess(ctx, authAccount, modelAccess)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to create access: %v", err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert model to proto
-	pbAccess, err = s.convertModelToProto(createdAccess)
+	pbAccess, err = s.RecipeAccessToProto(createdAccess)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to convert model to proto: %v", err)
+		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
 	// check field behavior
-	fieldbehavior.ClearFields(pbAccess, annotations.FieldBehavior_INPUT_ONLY)
+	grpc.ProcessResponseFieldBehavior(pbAccess)
 
 	return pbAccess, nil
 }
 
 func (s *RecipeService) DeleteAccess(ctx context.Context, request *pb.DeleteAccessRequest) (*emptypb.Empty, error) {
-	authAccount, err := headers.ParseAuthData(ctx, s.circleNamer)
+	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// parse name
 	recipeAccess := &model.RecipeAccess{}
-
 	_, err = s.accessNamer.Parse(request.Name, recipeAccess)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.Name)
 	}
 
 	// delete access
 	err = s.domain.DeleteRecipeAccess(ctx, authAccount, recipeAccess.RecipeAccessParent, recipeAccess.RecipeAccessId)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to delete access: %v", err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return nil, nil
+	return &emptypb.Empty{}, nil
 }
 
 func (s *RecipeService) GetAccess(ctx context.Context, request *pb.GetAccessRequest) (*pb.Access, error) {
-	authAccount, err := headers.ParseAuthData(ctx, s.circleNamer)
+	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// set requester
-	var recipeAccess model.RecipeAccess
-
 	// parse name
+	var recipeAccess model.RecipeAccess
 	_, err = s.accessNamer.Parse(request.Name, &recipeAccess)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.Name)
 	}
 
 	// get access
 	access, err := s.domain.GetRecipeAccess(ctx, authAccount, recipeAccess.RecipeAccessParent, recipeAccess.RecipeAccessId)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to get access: %v", err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert model to proto
-	pbAccess, err := s.convertModelToProto(access)
+	pbAccess, err := s.RecipeAccessToProto(access)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to convert model to proto: %v", err)
+		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
 	// check field behavior
-	fieldbehavior.ClearFields(pbAccess, annotations.FieldBehavior_INPUT_ONLY)
+	grpc.ProcessResponseFieldBehavior(pbAccess)
 
 	return pbAccess, nil
 }
 
 func (s *RecipeService) ListAccesses(ctx context.Context, request *pb.ListAccessesRequest) (*pb.ListAccessesResponse, error) {
-	authAccount, err := headers.ParseAuthData(ctx, s.circleNamer)
+	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// set requester
-	var recipeAccessParent model.RecipeAccessParent
-
 	// parse parent
+	var recipeAccessParent model.RecipeAccessParent
 	_, err = s.accessNamer.ParseParent(request.Parent, &recipeAccessParent)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.Parent)
 	}
 
-	// pagination
-	pageToken, err := pagination.ParsePageToken(request)
+	pageToken, pageSize, err := grpc.SetupPagination(request, grpc.PaginationConfig{
+		DefaultPageSize: accessDefaultPageSize,
+		MaxPageSize:     accessMaxPageSize,
+	})
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid page token")
+		return nil, err
 	}
-
-	if request.GetPageSize() == 0 {
-		request.PageSize = accessDefaultPageSize
-	}
-	request.PageSize = min(request.PageSize, accessMaxPageSize)
+	request.PageSize = pageSize
 
 	// list accesses
 	accesses, err := s.domain.ListRecipeAccesses(ctx, authAccount, recipeAccessParent, request.GetPageSize(), pageToken.Offset, request.GetFilter())
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to list accesses: %v", err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert models to protos
 	pbAccesses := make([]*pb.Access, len(accesses))
 	for i, access := range accesses {
-		pbAccess, err := s.convertModelToProto(access)
+		pbAccess, err := s.RecipeAccessToProto(access)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "failed to convert model to proto: %v", err)
+			return nil, status.Error(codes.Internal, "unable to prepare response")
 		}
 		pbAccesses[i] = pbAccess
 	}
 
-	// return response
-	return &pb.ListAccessesResponse{
-		NextPageToken: pageToken.Next(request).String(),
-		Accesses:      pbAccesses,
-	}, nil
+	// check field behavior
+	for _, pbAccess := range pbAccesses {
+		grpc.ProcessResponseFieldBehavior(pbAccess)
+	}
+
+	response := &pb.ListAccessesResponse{
+		Accesses: pbAccesses,
+	}
+
+	if len(pbAccesses) > 0 {
+		response.NextPageToken = pageToken.Next(request).String()
+	}
+
+	return response, nil
 }
 
 func (s *RecipeService) UpdateAccess(ctx context.Context, request *pb.UpdateAccessRequest) (*pb.Access, error) {
-	authAccount, err := headers.ParseAuthData(ctx, s.circleNamer)
+	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// check field behavior
-	fieldbehavior.ClearFields(request, annotations.FieldBehavior_OUTPUT_ONLY)
-	err = fieldbehavior.ValidateRequiredFields(request)
+	err = grpc.ProcessRequestFieldBehavior(request)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid request data: %v", err)
+		return nil, err
 	}
 
 	// convert proto to model
-	modelAccess, err := s.convertProtoToModel(request.Access)
+	modelAccess, err := s.ProtoToRecipeAccess(request.Access)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid access: %v", err)
+		return nil, status.Error(codes.InvalidArgument, "invalid request data")
 	}
+
+	// TODO: update mask
 
 	// update access
 	updatedAccess, err := s.domain.UpdateRecipeAccess(ctx, authAccount, modelAccess)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to update access: %v", err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert model to proto
-	pbAccess, err := s.convertModelToProto(updatedAccess)
+	pbAccess, err := s.RecipeAccessToProto(updatedAccess)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to convert model to proto: %v", err)
+		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
 	// check field behavior
-	fieldbehavior.ClearFields(pbAccess, annotations.FieldBehavior_INPUT_ONLY)
+	grpc.ProcessResponseFieldBehavior(pbAccess)
 
 	return pbAccess, nil
 }
 
 func (s *RecipeService) AcceptRecipeAccess(ctx context.Context, request *pb.AcceptRecipeAccessRequest) (*pb.Access, error) {
-	authAccount, err := headers.ParseAuthData(ctx, s.circleNamer)
+	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// check field behavior
-	err = fieldbehavior.ValidateRequiredFields(request)
+	err = grpc.ProcessRequestFieldBehavior(request)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid request data: %v", err)
+		return nil, err
 	}
 
-	// create access parent with requester (user accepting the access)
-	var access model.RecipeAccess
-
 	// parse name to get the parent and access id
+	var access model.RecipeAccess
 	_, err = s.accessNamer.Parse(request.GetName(), &access)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
 	// accept the access
 	updatedAccess, err := s.domain.AcceptRecipeAccess(ctx, authAccount, access.RecipeAccessParent, access.RecipeAccessId)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to accept access: %v", err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert model to proto
-	pbAccess, err := s.convertModelToProto(updatedAccess)
+	pbAccess, err := s.RecipeAccessToProto(updatedAccess)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to convert model to proto: %v", err)
+		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
 	// check field behavior
-	fieldbehavior.ClearFields(pbAccess, annotations.FieldBehavior_INPUT_ONLY)
+	grpc.ProcessResponseFieldBehavior(pbAccess)
 
 	return pbAccess, nil
 }
 
 // UTILS
 
-func (s *RecipeService) convertProtoToModel(pbAccess *pb.Access) (model.RecipeAccess, error) {
+func (s *RecipeService) ProtoToRecipeAccess(pbAccess *pb.Access) (model.RecipeAccess, error) {
 	modelAccess := model.RecipeAccess{
 		Level: pbAccess.GetLevel(),
 		State: pbAccess.GetState(),
@@ -260,7 +258,7 @@ func (s *RecipeService) convertProtoToModel(pbAccess *pb.Access) (model.RecipeAc
 		}
 	}
 
-	switch pbrequester := pbAccess.Getrequester().GetName().(type) {
+	switch pbrequester := pbAccess.GetRequester().GetName().(type) {
 	case *pb.Access_RequesterOrRecipient_User:
 		modelAccess.Requester = model.AuthAccount{}
 		_, err := s.userNamer.Parse(pbrequester.User, &modelAccess.Requester)
@@ -293,7 +291,7 @@ func (s *RecipeService) convertProtoToModel(pbAccess *pb.Access) (model.RecipeAc
 	return modelAccess, nil
 }
 
-func (s *RecipeService) convertModelToProto(modelAccess model.RecipeAccess) (*pb.Access, error) {
+func (s *RecipeService) RecipeAccessToProto(modelAccess model.RecipeAccess) (*pb.Access, error) {
 	pbAccess := &pb.Access{
 		Level: modelAccess.Level,
 		State: modelAccess.State,

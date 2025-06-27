@@ -6,6 +6,7 @@ import (
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	cmodel "github.com/jcfug8/daylear/server/core/model"
 	model "github.com/jcfug8/daylear/server/core/model"
 	permPb "github.com/jcfug8/daylear/server/genapi/api/types"
 	"github.com/jcfug8/daylear/server/ports/repository"
@@ -17,8 +18,8 @@ import (
 var RecipeAccessMap = map[string]string{
 	model.RecipeAccessFields.Level:           dbModel.RecipeAccessFields.PermissionLevel,
 	model.RecipeAccessFields.State:           dbModel.RecipeAccessFields.State,
-	model.RecipeAccessFields.RecipientUser:   dbModel.RecipeAccessFields.UserId,
-	model.RecipeAccessFields.RecipientCircle: dbModel.RecipeAccessFields.CircleId,
+	model.RecipeAccessFields.RecipientUser:   dbModel.RecipeAccessFields.RecipientUserId,
+	model.RecipeAccessFields.RecipientCircle: dbModel.RecipeAccessFields.RecipientCircleId,
 }
 
 func (repo *Client) CreateRecipeAccess(ctx context.Context, access model.RecipeAccess) (model.RecipeAccess, error) {
@@ -71,7 +72,7 @@ func (repo *Client) GetRecipeAccess(ctx context.Context, parent model.RecipeAcce
 	return convert.RecipeAccessToCoreRecipeAccess(recipeAccess), nil
 }
 
-func (repo *Client) ListRecipeAccesses(ctx context.Context, parent model.RecipeAccessParent, pageSize int64, pageOffset int64, filterStr string) ([]model.RecipeAccess, error) {
+func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent model.RecipeAccessParent, pageSize int32, pageOffset int64, filterStr string) ([]model.RecipeAccess, error) {
 	conversion, err := repo.recipeAccessSQLConverter.Convert(filterStr)
 	if err != nil {
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
@@ -90,7 +91,7 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, parent model.RecipeA
 	}
 
 	// Add authorization check - only allow access if the requester has write permission or is the recipient
-	if parent.requester.UserId != 0 {
+	if parent.Requester.UserId != 0 {
 		db = db.Where(`
 			EXISTS (
 				SELECT 1 FROM recipe_access ra 
@@ -98,8 +99,8 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, parent model.RecipeA
 				AND ra.permission_level >= ? 
 				AND ra.recipe_id = recipe_access.recipe_id
 			) OR recipe_access.user_id = ?`,
-			parent.requester.UserId, permPb.PermissionLevel_PERMISSION_LEVEL_WRITE, parent.requester.UserId)
-	} else if parent.requester.CircleId != 0 {
+			parent.Requester.UserId, permPb.PermissionLevel_PERMISSION_LEVEL_WRITE, parent.Requester.UserId)
+	} else if parent.Requester.CircleId != 0 {
 		db = db.Where(`
 			EXISTS (
 				SELECT 1 FROM recipe_access ra 
@@ -107,7 +108,7 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, parent model.RecipeA
 				AND ra.permission_level >= ? 
 				AND ra.recipe_id = recipe_access.recipe_id
 			) OR recipe_access.circle_id = ?`,
-			parent.requester.CircleId, permPb.PermissionLevel_PERMISSION_LEVEL_WRITE, parent.requester.CircleId)
+			parent.Requester.CircleId, permPb.PermissionLevel_PERMISSION_LEVEL_WRITE, parent.Requester.CircleId)
 	} else {
 		return nil, repository.ErrInvalidArgument{Msg: "requester is required"}
 	}

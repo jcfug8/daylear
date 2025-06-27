@@ -22,15 +22,15 @@ type CircleId struct {
 
 // CircleFields defines the circle fields.
 var CircleFields = circleFields{
-	Id:       "id",
-	Title:    "title",
-	IsPublic: "is_public",
+	Id:         "id",
+	Title:      "title",
+	Visibility: "visibility",
 }
 
 type circleFields struct {
-	Id       string
-	Title    string
-	IsPublic string
+	Id         string
+	Title      string
+	Visibility string
 }
 
 // Mask returns a FieldMask for the circle fields.
@@ -38,7 +38,7 @@ func (fields circleFields) Mask() []string {
 	return []string{
 		fields.Id,
 		fields.Title,
-		fields.IsPublic,
+		fields.Visibility,
 	}
 }
 
@@ -46,7 +46,7 @@ func (fields circleFields) Mask() []string {
 func (fields circleFields) UpdateMask(mask []string) []string {
 	updatable := []string{
 		fields.Title,
-		fields.IsPublic,
+		fields.Visibility,
 	}
 
 	if len(mask) == 0 {

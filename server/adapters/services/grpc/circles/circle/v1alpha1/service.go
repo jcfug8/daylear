@@ -18,26 +18,20 @@ type NewCircleServiceParams struct {
 	Domain            domain.Domain
 	Log               zerolog.Logger
 	CircleFieldMasker fieldMasker.CircleFieldMasker
+	CircleNamer       namer.ReflectNamer `name:"v1alpha1CircleNamer"`
+	AccessNamer       namer.ReflectNamer `name:"v1alpha1CircleAccessNamer"`
+	UserNamer         namer.ReflectNamer `name:"v1alpha1UserNamer"`
 }
 
 // NewCircleService creates a new CircleService.
 func NewCircleService(params NewCircleServiceParams) (*CircleService, error) {
-	circleNamer, err := namer.NewReflectNamer[*pb.Circle]()
-	if err != nil {
-		return nil, err
-	}
-
-	accessNamer, err := namer.NewReflectNamer[*pb.Access]()
-	if err != nil {
-		return nil, err
-	}
-
 	return &CircleService{
 		domain:            params.Domain,
 		log:               params.Log,
 		circleFieldMasker: params.CircleFieldMasker,
-		circleNamer:       circleNamer,
-		accessNamer:       accessNamer,
+		circleNamer:       params.CircleNamer,
+		accessNamer:       params.AccessNamer,
+		userNamer:         params.UserNamer,
 	}, nil
 }
 
@@ -50,6 +44,7 @@ type CircleService struct {
 	circleFieldMasker fieldMasker.CircleFieldMasker
 	circleNamer       namer.ReflectNamer
 	accessNamer       namer.ReflectNamer
+	userNamer         namer.ReflectNamer
 }
 
 // Register registers s to the grpc implementation of the service.

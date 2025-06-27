@@ -85,7 +85,7 @@ type Access struct {
 	// The name of the access
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// the name of the requesting user
-	Requester string `protobuf:"bytes,2,opt,name=requester,proto3" json:"requester,omitempty"`
+	Requester *Access_Requester `protobuf:"bytes,2,opt,name=requester,proto3" json:"requester,omitempty"`
 	// the name of the receiving user
 	Recipient string `protobuf:"bytes,3,opt,name=recipient,proto3" json:"recipient,omitempty"`
 	// the permission level of the access
@@ -133,11 +133,11 @@ func (x *Access) GetName() string {
 	return ""
 }
 
-func (x *Access) GetRequester() string {
+func (x *Access) GetRequester() *Access_Requester {
 	if x != nil {
 		return x.Requester
 	}
-	return ""
+	return nil
 }
 
 func (x *Access) GetRecipient() string {
@@ -537,17 +537,106 @@ func (x *AcceptAccessRequest) GetName() string {
 	return ""
 }
 
+// the requester of the access
+type Access_Requester struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Name:
+	//
+	//	*Access_Requester_User
+	//	*Access_Requester_Circle
+	Name          isAccess_Requester_Name `protobuf_oneof:"name"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Access_Requester) Reset() {
+	*x = Access_Requester{}
+	mi := &file_api_circles_circle_v1alpha1_circle_access_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Access_Requester) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Access_Requester) ProtoMessage() {}
+
+func (x *Access_Requester) ProtoReflect() protoreflect.Message {
+	mi := &file_api_circles_circle_v1alpha1_circle_access_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Access_Requester.ProtoReflect.Descriptor instead.
+func (*Access_Requester) Descriptor() ([]byte, []int) {
+	return file_api_circles_circle_v1alpha1_circle_access_proto_rawDescGZIP(), []int{0, 0}
+}
+
+func (x *Access_Requester) GetName() isAccess_Requester_Name {
+	if x != nil {
+		return x.Name
+	}
+	return nil
+}
+
+func (x *Access_Requester) GetUser() string {
+	if x != nil {
+		if x, ok := x.Name.(*Access_Requester_User); ok {
+			return x.User
+		}
+	}
+	return ""
+}
+
+func (x *Access_Requester) GetCircle() string {
+	if x != nil {
+		if x, ok := x.Name.(*Access_Requester_Circle); ok {
+			return x.Circle
+		}
+	}
+	return ""
+}
+
+type isAccess_Requester_Name interface {
+	isAccess_Requester_Name()
+}
+
+type Access_Requester_User struct {
+	// the name of the user
+	User string `protobuf:"bytes,1,opt,name=user,proto3,oneof"`
+}
+
+type Access_Requester_Circle struct {
+	// the name of the circle
+	Circle string `protobuf:"bytes,2,opt,name=circle,proto3,oneof"`
+}
+
+func (*Access_Requester_User) isAccess_Requester_Name() {}
+
+func (*Access_Requester_Circle) isAccess_Requester_Name() {}
+
 var File_api_circles_circle_v1alpha1_circle_access_proto protoreflect.FileDescriptor
 
 const file_api_circles_circle_v1alpha1_circle_access_proto_rawDesc = "" +
 	"\n" +
-	"/api/circles/circle/v1alpha1/circle_access.proto\x12\x1bapi.circles.circle.v1alpha1\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x8b\x03\n" +
+	"/api/circles/circle/v1alpha1/circle_access.proto\x12\x1bapi.circles.circle.v1alpha1\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xff\x03\n" +
 	"\x06Access\x12\x17\n" +
-	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12!\n" +
-	"\trequester\x18\x02 \x01(\tB\x03\xe0A\x03R\trequester\x12!\n" +
+	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12P\n" +
+	"\trequester\x18\x02 \x01(\v2-.api.circles.circle.v1alpha1.Access.RequesterB\x03\xe0A\x03R\trequester\x12!\n" +
 	"\trecipient\x18\x03 \x01(\tB\x03\xe0A\x02R\trecipient\x125\n" +
 	"\x05level\x18\x04 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x02R\x05level\x12D\n" +
-	"\x05state\x18\x05 \x01(\x0e2).api.circles.circle.v1alpha1.Access.StateB\x03\xe0A\x03R\x05state\"F\n" +
+	"\x05state\x18\x05 \x01(\x0e2).api.circles.circle.v1alpha1.Access.StateB\x03\xe0A\x03R\x05state\x1aC\n" +
+	"\tRequester\x12\x14\n" +
+	"\x04user\x18\x01 \x01(\tH\x00R\x04user\x12\x18\n" +
+	"\x06circle\x18\x02 \x01(\tH\x00R\x06circleB\x06\n" +
+	"\x04name\"F\n" +
 	"\x05State\x12\x15\n" +
 	"\x11STATE_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rSTATE_PENDING\x10d\x12\x13\n" +
@@ -627,7 +716,7 @@ func file_api_circles_circle_v1alpha1_circle_access_proto_rawDescGZIP() []byte {
 }
 
 var file_api_circles_circle_v1alpha1_circle_access_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_api_circles_circle_v1alpha1_circle_access_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_api_circles_circle_v1alpha1_circle_access_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_api_circles_circle_v1alpha1_circle_access_proto_goTypes = []any{
 	(Access_State)(0),             // 0: api.circles.circle.v1alpha1.Access.State
 	(*Access)(nil),                // 1: api.circles.circle.v1alpha1.Access
@@ -638,34 +727,36 @@ var file_api_circles_circle_v1alpha1_circle_access_proto_goTypes = []any{
 	(*ListAccessesResponse)(nil),  // 6: api.circles.circle.v1alpha1.ListAccessesResponse
 	(*UpdateAccessRequest)(nil),   // 7: api.circles.circle.v1alpha1.UpdateAccessRequest
 	(*AcceptAccessRequest)(nil),   // 8: api.circles.circle.v1alpha1.AcceptAccessRequest
-	(types.PermissionLevel)(0),    // 9: api.types.PermissionLevel
-	(*fieldmaskpb.FieldMask)(nil), // 10: google.protobuf.FieldMask
-	(*emptypb.Empty)(nil),         // 11: google.protobuf.Empty
+	(*Access_Requester)(nil),      // 9: api.circles.circle.v1alpha1.Access.Requester
+	(types.PermissionLevel)(0),    // 10: api.types.PermissionLevel
+	(*fieldmaskpb.FieldMask)(nil), // 11: google.protobuf.FieldMask
+	(*emptypb.Empty)(nil),         // 12: google.protobuf.Empty
 }
 var file_api_circles_circle_v1alpha1_circle_access_proto_depIdxs = []int32{
-	9,  // 0: api.circles.circle.v1alpha1.Access.level:type_name -> api.types.PermissionLevel
-	0,  // 1: api.circles.circle.v1alpha1.Access.state:type_name -> api.circles.circle.v1alpha1.Access.State
-	1,  // 2: api.circles.circle.v1alpha1.CreateAccessRequest.access:type_name -> api.circles.circle.v1alpha1.Access
-	1,  // 3: api.circles.circle.v1alpha1.ListAccessesResponse.accesses:type_name -> api.circles.circle.v1alpha1.Access
-	1,  // 4: api.circles.circle.v1alpha1.UpdateAccessRequest.access:type_name -> api.circles.circle.v1alpha1.Access
-	10, // 5: api.circles.circle.v1alpha1.UpdateAccessRequest.update_mask:type_name -> google.protobuf.FieldMask
-	2,  // 6: api.circles.circle.v1alpha1.CircleAccessService.CreateAccess:input_type -> api.circles.circle.v1alpha1.CreateAccessRequest
-	3,  // 7: api.circles.circle.v1alpha1.CircleAccessService.DeleteAccess:input_type -> api.circles.circle.v1alpha1.DeleteAccessRequest
-	4,  // 8: api.circles.circle.v1alpha1.CircleAccessService.GetAccess:input_type -> api.circles.circle.v1alpha1.GetAccessRequest
-	5,  // 9: api.circles.circle.v1alpha1.CircleAccessService.ListAccesses:input_type -> api.circles.circle.v1alpha1.ListAccessesRequest
-	7,  // 10: api.circles.circle.v1alpha1.CircleAccessService.UpdateAccess:input_type -> api.circles.circle.v1alpha1.UpdateAccessRequest
-	8,  // 11: api.circles.circle.v1alpha1.CircleAccessService.AcceptAccess:input_type -> api.circles.circle.v1alpha1.AcceptAccessRequest
-	1,  // 12: api.circles.circle.v1alpha1.CircleAccessService.CreateAccess:output_type -> api.circles.circle.v1alpha1.Access
-	11, // 13: api.circles.circle.v1alpha1.CircleAccessService.DeleteAccess:output_type -> google.protobuf.Empty
-	1,  // 14: api.circles.circle.v1alpha1.CircleAccessService.GetAccess:output_type -> api.circles.circle.v1alpha1.Access
-	6,  // 15: api.circles.circle.v1alpha1.CircleAccessService.ListAccesses:output_type -> api.circles.circle.v1alpha1.ListAccessesResponse
-	1,  // 16: api.circles.circle.v1alpha1.CircleAccessService.UpdateAccess:output_type -> api.circles.circle.v1alpha1.Access
-	1,  // 17: api.circles.circle.v1alpha1.CircleAccessService.AcceptAccess:output_type -> api.circles.circle.v1alpha1.Access
-	12, // [12:18] is the sub-list for method output_type
-	6,  // [6:12] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	9,  // 0: api.circles.circle.v1alpha1.Access.requester:type_name -> api.circles.circle.v1alpha1.Access.Requester
+	10, // 1: api.circles.circle.v1alpha1.Access.level:type_name -> api.types.PermissionLevel
+	0,  // 2: api.circles.circle.v1alpha1.Access.state:type_name -> api.circles.circle.v1alpha1.Access.State
+	1,  // 3: api.circles.circle.v1alpha1.CreateAccessRequest.access:type_name -> api.circles.circle.v1alpha1.Access
+	1,  // 4: api.circles.circle.v1alpha1.ListAccessesResponse.accesses:type_name -> api.circles.circle.v1alpha1.Access
+	1,  // 5: api.circles.circle.v1alpha1.UpdateAccessRequest.access:type_name -> api.circles.circle.v1alpha1.Access
+	11, // 6: api.circles.circle.v1alpha1.UpdateAccessRequest.update_mask:type_name -> google.protobuf.FieldMask
+	2,  // 7: api.circles.circle.v1alpha1.CircleAccessService.CreateAccess:input_type -> api.circles.circle.v1alpha1.CreateAccessRequest
+	3,  // 8: api.circles.circle.v1alpha1.CircleAccessService.DeleteAccess:input_type -> api.circles.circle.v1alpha1.DeleteAccessRequest
+	4,  // 9: api.circles.circle.v1alpha1.CircleAccessService.GetAccess:input_type -> api.circles.circle.v1alpha1.GetAccessRequest
+	5,  // 10: api.circles.circle.v1alpha1.CircleAccessService.ListAccesses:input_type -> api.circles.circle.v1alpha1.ListAccessesRequest
+	7,  // 11: api.circles.circle.v1alpha1.CircleAccessService.UpdateAccess:input_type -> api.circles.circle.v1alpha1.UpdateAccessRequest
+	8,  // 12: api.circles.circle.v1alpha1.CircleAccessService.AcceptAccess:input_type -> api.circles.circle.v1alpha1.AcceptAccessRequest
+	1,  // 13: api.circles.circle.v1alpha1.CircleAccessService.CreateAccess:output_type -> api.circles.circle.v1alpha1.Access
+	12, // 14: api.circles.circle.v1alpha1.CircleAccessService.DeleteAccess:output_type -> google.protobuf.Empty
+	1,  // 15: api.circles.circle.v1alpha1.CircleAccessService.GetAccess:output_type -> api.circles.circle.v1alpha1.Access
+	6,  // 16: api.circles.circle.v1alpha1.CircleAccessService.ListAccesses:output_type -> api.circles.circle.v1alpha1.ListAccessesResponse
+	1,  // 17: api.circles.circle.v1alpha1.CircleAccessService.UpdateAccess:output_type -> api.circles.circle.v1alpha1.Access
+	1,  // 18: api.circles.circle.v1alpha1.CircleAccessService.AcceptAccess:output_type -> api.circles.circle.v1alpha1.Access
+	13, // [13:19] is the sub-list for method output_type
+	7,  // [7:13] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_api_circles_circle_v1alpha1_circle_access_proto_init() }
@@ -673,13 +764,17 @@ func file_api_circles_circle_v1alpha1_circle_access_proto_init() {
 	if File_api_circles_circle_v1alpha1_circle_access_proto != nil {
 		return
 	}
+	file_api_circles_circle_v1alpha1_circle_access_proto_msgTypes[8].OneofWrappers = []any{
+		(*Access_Requester_User)(nil),
+		(*Access_Requester_Circle)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_circles_circle_v1alpha1_circle_access_proto_rawDesc), len(file_api_circles_circle_v1alpha1_circle_access_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   8,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

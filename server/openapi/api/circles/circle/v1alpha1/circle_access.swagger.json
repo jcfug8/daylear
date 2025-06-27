@@ -58,7 +58,7 @@
               "type": "object",
               "properties": {
                 "requester": {
-                  "type": "string",
+                  "$ref": "#/definitions/AccessRequester",
                   "title": "the name of the requesting user",
                   "readOnly": true
                 },
@@ -343,6 +343,20 @@
     }
   },
   "definitions": {
+    "AccessRequester": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "type": "string",
+          "title": "the name of the user"
+        },
+        "circle": {
+          "type": "string",
+          "title": "the name of the circle"
+        }
+      },
+      "title": "the requester of the access"
+    },
     "circlescirclev1alpha1Access": {
       "type": "object",
       "properties": {
@@ -351,7 +365,7 @@
           "title": "The name of the access"
         },
         "requester": {
-          "type": "string",
+          "$ref": "#/definitions/AccessRequester",
           "title": "the name of the requesting user",
           "readOnly": true
         },

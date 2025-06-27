@@ -24,14 +24,14 @@ type circleAccessFields struct {
 type CircleAccess struct {
 	CircleAccessParent
 	CircleAccessId
-	Level types.PermissionLevel
-	State pb.Access_State
+	Requester AuthAccount
+	Recipient int64
+	Level     types.PermissionLevel
+	State     pb.Access_State
 }
 
 type CircleAccessParent struct {
 	CircleId
-	Requester AuthAccount
-	Recipient int64
 }
 
 type CircleAccessId struct {

@@ -7,11 +7,22 @@ import (
 
 	"github.com/jcfug8/daylear/server/core/model"
 	namer "github.com/jcfug8/daylear/server/core/namer"
+	circlePb "github.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1"
 	"github.com/jcfug8/daylear/server/ports/domain"
 	"github.com/jcfug8/daylear/server/ports/fileretriever"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+func init() {
+	var err error
+	circleNamer, err = namer.NewReflectNamer[*circlePb.Circle]()
+	if err != nil {
+		panic(err)
+	}
+}
+
+var circleNamer namer.ReflectNamer
 
 type keyType string
 
@@ -71,7 +82,7 @@ func GetCircleName(r *http.Request) string {
 	return headers[0]
 }
 
-func ParseAuthData(ctx context.Context, circleNamer namer.ReflectNamer) (model.AuthAccount, error) {
+func ParseAuthData(ctx context.Context) (model.AuthAccount, error) {
 	user, ok := ctx.Value(UserKey).(model.User)
 	if !ok {
 		return model.AuthAccount{}, status.Error(codes.Unauthenticated, "user not found")

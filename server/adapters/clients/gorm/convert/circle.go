@@ -8,17 +8,17 @@ import (
 // CircleFromCoreModel converts a core model.Circle to a GORM model.Circle
 func CircleFromCoreModel(m cmodel.Circle) (gmodel.Circle, error) {
 	return gmodel.Circle{
-		CircleId: m.Id.CircleId,
-		Title:    m.Title,
-		IsPublic: m.IsPublic,
+		CircleId:   m.Id.CircleId,
+		Title:      m.Title,
+		Visibility: m.Visibility,
 	}, nil
 }
 
 // CircleToCoreModel converts a GORM model.Circle to a core model.Circle
 func CircleToCoreModel(g gmodel.Circle) (cmodel.Circle, error) {
 	return cmodel.Circle{
-		Id:       cmodel.CircleId{CircleId: g.CircleId},
-		Title:    g.Title,
-		IsPublic: g.IsPublic,
+		Id:         cmodel.CircleId{CircleId: g.CircleId},
+		Title:      g.Title,
+		Visibility: g.Visibility,
 	}, nil
 }
