@@ -20,7 +20,7 @@ import (
 	// uuid "github.com/satori/go.uuid"
 )
 
-const RecipeImageRoot = "recipe_images/"
+const RecipeImageRoot = "recipes"
 
 // CreateRecipe creates a new recipe.
 func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe) (model.Recipe, error) {
@@ -231,23 +231,28 @@ func (d *Domain) UpdateRecipe(ctx context.Context, authAccount model.AuthAccount
 		return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
 	}
 
+	previousDbRecipe, err := d.repo.GetRecipe(ctx, authAccount, recipe.Id)
+	if err != nil {
+		return model.Recipe{}, err
+	}
+
 	tx, err := d.repo.Begin(ctx)
 	if err != nil {
 		return model.Recipe{}, err
 	}
 
-	dbRecipe, err = d.repo.UpdateRecipe(ctx, authAccount, recipe, updateMask)
-	if err != nil {
-		return model.Recipe{}, err
-	}
-
 	for _, updateMaskField := range updateMask {
-		if updateMaskField == model.RecipeFields.ImageURI {
+		if updateMaskField == model.RecipeFields.ImageURI && recipe.ImageURI != previousDbRecipe.ImageURI {
 			recipe.ImageURI, err = d.updateImageURI(ctx, authAccount, recipe)
 			if err != nil {
 				return model.Recipe{}, err
 			}
 		}
+	}
+
+	dbRecipe, err = d.repo.UpdateRecipe(ctx, authAccount, recipe, updateMask)
+	if err != nil {
+		return model.Recipe{}, err
 	}
 
 	err = tx.Commit()
@@ -262,60 +267,50 @@ func (d *Domain) UpdateRecipe(ctx context.Context, authAccount model.AuthAccount
 
 // UploadRecipeImage uploads a recipe image.
 func (d *Domain) UploadRecipeImage(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId, imageReader io.Reader) (imageURI string, err error) {
-	// TODO: Implement UploadRecipeImage
-	// Implementation commented out for refactoring
-	/*
-		if parent.UserId == 0 {
-			return "", domain.ErrInvalidArgument{Msg: "parent required"}
-		}
+	if authAccount.UserId == 0 {
+		return "", domain.ErrInvalidArgument{Msg: "parent required"}
+	}
 
-		if id.RecipeId == 0 {
-			return "", domain.ErrInvalidArgument{Msg: "id required"}
-		}
+	if id.RecipeId == 0 {
+		return "", domain.ErrInvalidArgument{Msg: "id required"}
+	}
 
-		recipient, err := d.repo.GetRecipeRecipient(ctx, parent, id)
+	authAccount.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
+	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
+
+	if authAccount.CircleId != 0 {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccess(ctx, authAccount)
 		if err != nil {
 			return "", err
 		}
-		if recipient.PermissionLevel != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
-			return "", domain.ErrPermissionDenied{Msg: "user does not have write permission"}
-		}
-		if parent.CircleId != 0 {
-			permission, err := d.repo.GetCircleUserPermission(ctx, parent.UserId, parent.CircleId)
-			if err != nil {
-				return "", err
-			}
-			if permission != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
-				return "", domain.ErrPermissionDenied{Msg: "circle does not have write permission"}
-			}
+	}
 
-		}
+	if authAccount.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+		return "", domain.ErrPermissionDenied{Msg: "user does not have access"}
+	}
 
-		recipe, err := d.GetRecipe(ctx, parent, id, []string{model.RecipeFields.ImageURI})
-		if err != nil {
-			return "", err
-		}
-		oldImageURI := recipe.ImageURI
+	recipe, err := d.repo.GetRecipe(ctx, authAccount, id)
+	if err != nil {
+		return "", err
+	}
+	oldImageURI := recipe.ImageURI
 
-		imageURI, err = d.uploadRecipeImage(ctx, id, imageReader)
-		if err != nil {
-			return "", err
-		}
+	imageURI, err = d.uploadRecipeImage(ctx, id, imageReader)
+	if err != nil {
+		return "", err
+	}
 
-		_, err = d.repo.UpdateRecipe(ctx, model.Recipe{
-			Parent:   parent,
-			Id:       id,
-			ImageURI: imageURI,
-		}, []string{model.RecipeFields.ImageURI})
-		if err != nil {
-			return "", err
-		}
+	_, err = d.repo.UpdateRecipe(ctx, authAccount, model.Recipe{
+		Id:       id,
+		ImageURI: imageURI,
+	}, []string{model.RecipeFields.ImageURI})
+	if err != nil {
+		return "", err
+	}
 
-		go d.fileStore.DeleteFile(context.Background(), oldImageURI)
+	go d.fileStore.DeleteFile(context.Background(), oldImageURI)
 
-		return imageURI, nil
-	*/
-	return "", domain.ErrInternal{Msg: "UploadRecipeImage method not implemented"}
+	return imageURI, nil
 }
 
 // Helper methods (commented out)

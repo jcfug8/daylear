@@ -38,7 +38,7 @@ func (s *Service) Register(m *http.ServeMux) error {
 	r := mux.NewRouter().StrictSlash(true)
 
 	s.log.Info().Msg("Registering files service routes")
-	r.HandleFunc("/meals/v1alpha1/{name:users/[0-9]+/recipes/[0-9]+}/image", s.UploadRecipeImage).Methods(http.MethodPut)
+	r.HandleFunc("/meals/v1alpha1/{name:recipes/[0-9]+}/image", s.UploadRecipeImage).Methods(http.MethodPut)
 
 	s.log.Info().Msg("Mounting files service at /files/")
 	m.Handle("/files/", headers.NewAuthTokenMiddleware(s.domain)(http.StripPrefix("/files", r)))
