@@ -43,6 +43,8 @@ func NewRecipeFieldMasker() RecipeFieldMasker {
 	fm.mapFieldMaskPathToDomainMasks("directions", model.RecipeFields.Directions)
 	fm.mapFieldMaskPathToDomainMasks("ingredient_groups", model.RecipeFields.IngredientGroups)
 	fm.mapFieldMaskPathToDomainMasks("image_uri", model.RecipeFields.ImageURI)
+	fm.mapFieldMaskPathToDomainMasks("visibility", model.RecipeFields.VisibilityLevel)
+	fm.mapFieldMaskPathToDomainMasks("permission", model.RecipeFields.PermissionLevel)
 
 	return fm
 }

@@ -58,6 +58,9 @@ var RecipeFields = recipeFields{
 	IngredientGroups: "ingredient_groups",
 
 	ImageURI: "image_uri",
+
+	VisibilityLevel: "visibility_level",
+	PermissionLevel: "permission_level",
 }
 
 type recipeFields struct {
@@ -70,6 +73,9 @@ type recipeFields struct {
 	IngredientGroups string
 
 	ImageURI string
+
+	VisibilityLevel string
+	PermissionLevel string
 }
 
 // Mask returns a FieldMask for the recipe fields.

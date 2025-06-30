@@ -79,10 +79,16 @@ func (repo *Client) CreateRecipe(ctx context.Context, m cmodel.Recipe) (cmodel.R
 }
 
 // DeleteRecipe deletes a recipe.
-func (repo *Client) DeleteRecipe(ctx context.Context, id cmodel.RecipeId) (cmodel.Recipe, error) {
+func (repo *Client) DeleteRecipe(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.RecipeId) (cmodel.Recipe, error) {
+	// use GetRecipe to verify the user has access to it
+	_, err := repo.GetRecipe(ctx, authAccount, id)
+	if err != nil {
+		return cmodel.Recipe{}, err
+	}
+
 	gm := gmodel.Recipe{RecipeId: id.RecipeId}
 
-	err := repo.db.WithContext(ctx).
+	err = repo.db.WithContext(ctx).
 		Select(gmodel.RecipeFields.Mask()).
 		Clauses(clause.Returning{}).
 		Delete(&gm).Error
@@ -128,7 +134,13 @@ func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccoun
 }
 
 // UpdateRecipe updates a recipe.
-func (repo *Client) UpdateRecipe(ctx context.Context, m cmodel.Recipe, fields []string) (cmodel.Recipe, error) {
+func (repo *Client) UpdateRecipe(ctx context.Context, authAccount cmodel.AuthAccount, m cmodel.Recipe, fields []string) (cmodel.Recipe, error) {
+	// use GetRecipe to verify the user has access to it
+	_, err := repo.GetRecipe(ctx, authAccount, m.Id)
+	if err != nil {
+		return cmodel.Recipe{}, err
+	}
+
 	gm, err := convert.RecipeFromCoreModel(m)
 	if err != nil {
 		return cmodel.Recipe{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("error reading recipe: %v", err)}

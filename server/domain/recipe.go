@@ -208,73 +208,54 @@ func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount,
 }
 
 // UpdateRecipe updates a recipe.
-func (d *Domain) UpdateRecipe(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe, updateMask []string) (model.Recipe, error) {
-	// TODO: Implement UpdateRecipe
-	// Implementation commented out for refactoring
-	/*
-		if recipe.Parent.UserId == 0 {
-			return model.Recipe{}, domain.ErrInvalidArgument{Msg: "parent required"}
-		}
+func (d *Domain) UpdateRecipe(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe, updateMask []string) (dbRecipe model.Recipe, err error) {
+	if authAccount.UserId == 0 {
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "parent required"}
+	}
 
-		if recipe.Id.RecipeId == 0 {
-			return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
-		}
+	if recipe.Id.RecipeId == 0 {
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
+	}
 
-		recipient, err := d.repo.GetRecipeRecipient(ctx, recipe.Parent, recipe.Id)
+	authAccount.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
+	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
+
+	if authAccount.CircleId != 0 {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccess(ctx, authAccount)
 		if err != nil {
 			return model.Recipe{}, err
 		}
-		if recipient.PermissionLevel != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
-			return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
-		}
-		if recipe.Parent.CircleId != 0 {
-			permission, err := d.repo.GetCircleUserPermission(ctx, recipe.Parent.UserId, recipe.Parent.CircleId)
+	}
+
+	if authAccount.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+		return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
+	}
+
+	tx, err := d.repo.Begin(ctx)
+	if err != nil {
+		return model.Recipe{}, err
+	}
+
+	dbRecipe, err = d.repo.UpdateRecipe(ctx, authAccount, recipe, updateMask)
+	if err != nil {
+		return model.Recipe{}, err
+	}
+
+	for _, updateMaskField := range updateMask {
+		if updateMaskField == model.RecipeFields.ImageURI {
+			recipe.ImageURI, err = d.updateImageURI(ctx, authAccount, recipe)
 			if err != nil {
 				return model.Recipe{}, err
 			}
-			if permission != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
-				return model.Recipe{}, domain.ErrPermissionDenied{Msg: "circle does not have write permission"}
-			}
 		}
+	}
 
-		tx, err := d.repo.Begin(ctx)
-		if err != nil {
-			return model.Recipe{}, err
-		}
+	err = tx.Commit()
+	if err != nil {
+		return model.Recipe{}, err
+	}
 
-		for _, updateMaskField := range updateMask {
-			if updateMaskField == model.RecipeFields.ImageURI {
-				recipe.ImageURI, err = d.updateImageURI(ctx, recipe)
-				if err != nil {
-					return model.Recipe{}, err
-				}
-			}
-		}
-
-		dbRecipe, err := tx.UpdateRecipe(ctx, recipe, updateMask)
-		if err != nil {
-			return model.Recipe{}, err
-		}
-		dbRecipe.Parent = recipe.Parent
-
-		for _, updateMaskField := range updateMask {
-			if updateMaskField == model.RecipeFields.IngredientGroups {
-				dbRecipe.IngredientGroups = recipe.IngredientGroups
-				dbRecipe.IngredientGroups, err = d.updateIngredientGroups(ctx, tx, dbRecipe)
-				if err != nil {
-					return model.Recipe{}, err
-				}
-			}
-		}
-
-		err = tx.Commit()
-		if err != nil {
-			return model.Recipe{}, err
-		}
-
-		return dbRecipe, nil
-	*/
-	return model.Recipe{}, domain.ErrInternal{Msg: "UpdateRecipe method not implemented"}
+	return dbRecipe, nil
 }
 
 // Recipe Image Methods

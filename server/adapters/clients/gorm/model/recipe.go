@@ -20,7 +20,11 @@ var RecipeMap = masks.NewFieldMap().
 	MapFieldToFields(model.RecipeFields.ImageURI,
 		RecipeFields.ImageURI).
 	MapFieldToFields(model.RecipeFields.IngredientGroups,
-		RecipeFields.IngredientGroups)
+		RecipeFields.IngredientGroups).
+	MapFieldToFields(model.RecipeFields.VisibilityLevel,
+		RecipeFields.VisibilityLevel).
+	MapFieldToFields(model.RecipeFields.PermissionLevel,
+		RecipeFields.PermissionLevel)
 
 // RecipeFields defines the recipe fields.
 var RecipeFields = recipeFields{
