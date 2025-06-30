@@ -1,6 +1,6 @@
-import { createRecipeServiceClient } from '@/genapi/api/meals/recipe/v1alpha1'
-import { createUserServiceClient } from '@/genapi/api/users/user/v1alpha1'
-import { createCircleServiceClient } from '@/genapi/api/circles/circle/v1alpha1'
+import { createRecipeServiceClient, createRecipeAccessServiceClient } from '@/genapi/api/meals/recipe/v1alpha1'
+import { createUserServiceClient, createUserAccessServiceClient } from '@/genapi/api/users/user/v1alpha1'
+import { createCircleServiceClient, createCircleAccessServiceClient } from '@/genapi/api/circles/circle/v1alpha1'
 import { createAuthServiceClient } from './auth'
 import { createFileServiceClient } from './files'
 
@@ -33,7 +33,10 @@ export const authenticatedFetchHandler = function(contentType: string = 'applica
 }
 
 export const recipeService = createRecipeServiceClient(authenticatedFetchHandler())
+export const recipeAccessService = createRecipeAccessServiceClient(authenticatedFetchHandler())
 export const userService = createUserServiceClient(authenticatedFetchHandler())
+export const userAccessService = createUserAccessServiceClient(authenticatedFetchHandler())
 export const authService = createAuthServiceClient(authenticatedFetchHandler())
 export const circleService = createCircleServiceClient(authenticatedFetchHandler())
+export const circleAccessService = createCircleAccessServiceClient(authenticatedFetchHandler())
 export const fileService = createFileServiceClient(authenticatedFetchHandler("application/octet-stream"))

@@ -22,6 +22,7 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 	}}
 
 	tx := repo.db.WithContext(ctx).
+		Select("recipe.*, recipe_access.permission_level").
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(offset)).
@@ -98,18 +99,22 @@ func (repo *Client) DeleteRecipe(ctx context.Context, id cmodel.RecipeId) (cmode
 }
 
 // GetRecipe gets a recipe.
-func (repo *Client) GetRecipe(ctx context.Context, id cmodel.RecipeId, fields []string) (cmodel.Recipe, error) {
-	gm := gmodel.Recipe{RecipeId: id.RecipeId}
+func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.RecipeId) (cmodel.Recipe, error) {
+	gm := gmodel.Recipe{}
 
-	mask := masks.Map(fields, gmodel.RecipeMap)
-	if len(mask) == 0 {
-		mask = gmodel.RecipeFields.Mask()
+	tx := repo.db.WithContext(ctx).
+		Select("recipe.*, recipe_access.permission_level").
+		Joins("JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id").
+		Where("recipe.visibility_level <= ? AND recipe_access.permission_level <= ?", authAccount.VisibilityLevel, authAccount.PermissionLevel).
+		Where("recipe.recipe_id = ?", id.RecipeId)
+
+	if authAccount.CircleId != 0 {
+		tx = tx.Where("recipe_access.recipient_circle_id = ?", authAccount.CircleId)
+	} else {
+		tx = tx.Where("recipe_access.recipient_user_id = ?", authAccount.UserId)
 	}
 
-	err := repo.db.WithContext(ctx).
-		Select(mask).
-		Clauses(clause.Returning{}).
-		First(&gm).Error
+	err := tx.First(&gm).Error
 	if err != nil {
 		return cmodel.Recipe{}, ConvertGormError(err)
 	}

@@ -165,6 +165,9 @@ message Recipe {
   // the visibility of the recipe
   api.types.VisibilityLevel visibility = 7 [(google.api.field_behavior) = REQUIRED];
 
+  // the permission level the user has to the recipe
+  api.types.PermissionLevel permission = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+
   // the directions to make the recipe
   message Direction {
     // the title of the step

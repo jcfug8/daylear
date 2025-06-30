@@ -10,7 +10,7 @@ import (
 type recipeClient interface {
 	CreateRecipe(ctx context.Context, recipe model.Recipe) (model.Recipe, error)
 	DeleteRecipe(ctx context.Context, id model.RecipeId) (model.Recipe, error)
-	GetRecipe(ctx context.Context, id model.RecipeId, fieldMask []string) (model.Recipe, error)
+	GetRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (model.Recipe, error)
 	ListRecipes(ctx context.Context, authAccount model.AuthAccount, pageSize int32, offset int64) ([]model.Recipe, error)
 	UpdateRecipe(ctx context.Context, recipe model.Recipe, updateMask []string) (model.Recipe, error)
 

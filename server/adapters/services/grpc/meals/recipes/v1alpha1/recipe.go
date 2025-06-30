@@ -90,19 +90,13 @@ func (s *RecipeService) GetRecipe(ctx context.Context, request *pb.GetRecipeRequ
 		return nil, err
 	}
 
-	fieldMask := s.recipeFieldMasker.GetFieldMaskFromCtx(ctx)
-	readMask, err := s.recipeFieldMasker.GetReadMask(fieldMask)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid field mask")
-	}
-
 	mRecipe := model.Recipe{}
 	_, err = s.recipeNamer.Parse(request.GetName(), &mRecipe)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	mRecipe, err = s.domain.GetRecipe(ctx, authAccount, mRecipe.Id, readMask)
+	mRecipe, err = s.domain.GetRecipe(ctx, authAccount, mRecipe.Id)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

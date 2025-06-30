@@ -19,6 +19,7 @@ type Recipe struct {
 	ImageURI string
 
 	Visibility types.VisibilityLevel
+	Permission types.PermissionLevel
 }
 
 type RecipeDirection struct {

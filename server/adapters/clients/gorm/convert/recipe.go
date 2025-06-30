@@ -16,6 +16,7 @@ func RecipeFromCoreModel(m cmodel.Recipe) (gmodel.Recipe, error) {
 		Description:     m.Description,
 		ImageURI:        m.ImageURI,
 		VisibilityLevel: m.Visibility,
+		PermissionLevel: m.Permission,
 	}
 
 	recipe.Directions, err = json.Marshal(m.Directions)
@@ -42,6 +43,7 @@ func RecipeToCoreModel(m gmodel.Recipe) (cmodel.Recipe, error) {
 		Description: m.Description,
 		ImageURI:    m.ImageURI,
 		Visibility:  m.VisibilityLevel,
+		Permission:  m.PermissionLevel,
 	}
 
 	if m.Directions != nil {

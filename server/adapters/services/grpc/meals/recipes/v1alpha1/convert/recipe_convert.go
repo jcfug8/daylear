@@ -23,6 +23,7 @@ func ProtoToRecipe(RecipeNamer namer.ReflectNamer, proto *pb.Recipe) (model.Reci
 	recipe.IngredientGroups = ProtosToIngredientGroups(proto.IngredientGroups)
 	recipe.ImageURI = proto.ImageUri
 	recipe.Visibility = proto.Visibility
+	recipe.Permission = proto.Permission
 
 	return recipe, nil
 }
@@ -42,6 +43,7 @@ func RecipeToProto(RecipeNamer namer.ReflectNamer, recipe model.Recipe) (*pb.Rec
 	proto.IngredientGroups = IngredientGroupsToProtos(recipe.IngredientGroups)
 	proto.ImageUri = recipe.ImageURI
 	proto.Visibility = recipe.Visibility
+	proto.Permission = recipe.Permission
 
 	return proto, nil
 }

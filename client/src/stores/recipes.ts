@@ -5,6 +5,8 @@ import type {
   Recipe,
   ListRecipesRequest,
   ListRecipesResponse,
+  apitypes_VisibilityLevel,
+  apitypes_PermissionLevel,
 } from '@/genapi/api/meals/recipe/v1alpha1'
 
 export const useRecipesStore = defineStore('recipes', () => {
@@ -47,6 +49,8 @@ export const useRecipesStore = defineStore('recipes', () => {
       directions: [],
       ingredientGroups: [],
       imageUri: undefined,
+      visibility: 'VISIBILITY_LEVEL_UNSPECIFIED' as apitypes_VisibilityLevel,
+      permission: 'PERMISSION_LEVEL_UNSPECIFIED' as apitypes_PermissionLevel,
     }
   }
 
@@ -61,7 +65,6 @@ export const useRecipesStore = defineStore('recipes', () => {
     console.log('Parent path:', parent)
     try {
       const created = await recipeService.CreateRecipe({
-        parent,
         recipe: recipe.value,
         recipeId: crypto.randomUUID(),
       })

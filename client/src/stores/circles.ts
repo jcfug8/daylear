@@ -1,35 +1,15 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { circleService, publicCircleService } from '@/api/api'
+import { circleService } from '@/api/api'
 import type {
   Circle,
-  PublicCircle,
-  ListCirclesRequest,
-  ListCirclesResponse,
-  ListPublicCirclesRequest,
-  ListPublicCirclesResponse,
+  apitypes_VisibilityLevel,
 } from '@/genapi/api/circles/circle/v1alpha1'
 
 export const useCirclesStore = defineStore('circles', () => {
   const circles = ref<Circle[]>([])
-  const publicCircles = ref<PublicCircle[]>([])
   const circle = ref<Circle | undefined>()
-  const publicCircle = ref<PublicCircle | undefined>()
 
-  async function loadPublicCircles(filter?: string) {
-    try {
-      const request: ListPublicCirclesRequest = {
-        pageSize: undefined,
-        pageToken: undefined,
-        filter: filter,
-      }
-      const response = (await publicCircleService.ListPublicCircles(request)) as ListPublicCirclesResponse
-      publicCircles.value = response.publicCircles ?? []
-    } catch (error) {
-      console.error('Failed to load circles:', error)
-      circles.value = []
-    }
-  }
 
   async function loadCircle(circleName: string) {
     try {
@@ -41,21 +21,12 @@ export const useCirclesStore = defineStore('circles', () => {
     }
   }
 
-  async function loadPublicCircle(circleName: string) {
-    try {
-      const result = await publicCircleService.GetPublicCircle({ name: circleName })
-      publicCircle.value = result
-    } catch (error) {
-      console.error('Failed to load public circle:', error)
-      publicCircle.value = undefined
-    }
-  }
 
   function initEmptyCircle() {
     circle.value = {
       name: undefined,
       title: '',
-      isPublic: false,
+      visibility: 'VISIBILITY_LEVEL_PRIVATE' as apitypes_VisibilityLevel,
     }
   }
 
@@ -68,7 +39,6 @@ export const useCirclesStore = defineStore('circles', () => {
     }
     try {
       const created = await circleService.CreateCircle({
-        parent,
         circle: circle.value,
         circleId: crypto.randomUUID(),
       })
@@ -102,14 +72,10 @@ export const useCirclesStore = defineStore('circles', () => {
 
   return {
     loadCircle,
-    loadPublicCircles,
-    loadPublicCircle,
     initEmptyCircle,
     createCircle,
     updateCircle,
     circles,
     circle,
-    publicCircles,
-    publicCircle,
   }
 }) 

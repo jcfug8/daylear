@@ -25,7 +25,7 @@ const RecipeImageRoot = "recipe_images/"
 // CreateRecipe creates a new recipe.
 func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe) (model.Recipe, error) {
 	if authAccount.UserId == 0 {
-		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "parent required"}
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "user id required"}
 	}
 
 	recipe.Id.RecipeId = 0
@@ -45,6 +45,8 @@ func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount
 	if err != nil {
 		return model.Recipe{}, err
 	}
+
+	dbRecipe.Permission = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
 
 	recipeAccess := model.RecipeAccess{
 		RecipeAccessParent: model.RecipeAccessParent{
@@ -145,57 +147,35 @@ func (d *Domain) DeleteRecipe(ctx context.Context, authAccount model.AuthAccount
 }
 
 // GetRecipe gets a recipe.
-func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId, fieldMask []string) (model.Recipe, error) {
-	// TODO: Implement GetRecipe
-	// Implementation commented out for refactoring
-	/*
-		if parent.UserId == 0 {
-			return model.Recipe{}, domain.ErrInvalidArgument{Msg: "parent required"}
-		}
+func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (recipe model.Recipe, err error) {
+	if authAccount.UserId == 0 {
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "parent required"}
+	}
 
-		if id.RecipeId == 0 {
-			return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
-		}
+	if id.RecipeId == 0 {
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
+	}
 
-		_, err := d.repo.GetRecipeRecipient(ctx, parent, id)
+	authAccount.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
+	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
+
+	if authAccount.CircleId != 0 {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccess(ctx, authAccount)
 		if err != nil {
 			return model.Recipe{}, err
 		}
-		if parent.CircleId != 0 {
-			_, err := d.repo.GetCircleUserPermission(ctx, parent.UserId, parent.CircleId)
-			if err != nil {
-				return model.Recipe{}, err
-			}
-		}
+	}
 
-		dbRecipe, err := d.repo.GetRecipe(ctx, model.Recipe{
-			Id:     id,
-			Parent: parent,
-		}, fieldMask)
-		if err != nil {
-			return model.Recipe{}, err
-		}
-		dbRecipe.Parent = parent
+	if authAccount.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+		return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
+	}
 
-		getIngredients := false
-		for _, fieldMaskField := range fieldMask {
-			if fieldMaskField == model.RecipeFields.IngredientGroups {
-				getIngredients = true
-			}
-		}
+	recipe, err = d.repo.GetRecipe(ctx, authAccount, id)
+	if err != nil {
+		return model.Recipe{}, err
+	}
 
-		if getIngredients {
-			filter := fmt.Sprintf("recipe_id = %d", dbRecipe.Id.RecipeId)
-			recipeIngredients, err := d.repo.ListRecipeIngredients(ctx, nil, filter, nil)
-			if err != nil {
-				return model.Recipe{}, err
-			}
-			dbRecipe.SetRecipeIngredients(recipeIngredients)
-		}
-
-		return dbRecipe, nil
-	*/
-	return model.Recipe{}, domain.ErrInternal{Msg: "GetRecipe method not implemented"}
+	return recipe, nil
 }
 
 // ListRecipes lists recipes.
@@ -420,7 +400,7 @@ func (d *Domain) uploadRecipeImage(ctx context.Context, id model.RecipeId, image
 }
 
 func (d *Domain) removeRecipeImage(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (err error) {
-	recipe, err := d.GetRecipe(ctx, authAccount, id, []string{model.RecipeFields.ImageURI})
+	recipe, err := d.GetRecipe(ctx, authAccount, id)
 	if err != nil {
 		return err
 	}

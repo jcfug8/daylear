@@ -70,15 +70,15 @@
     <v-fab location="bottom right" app color="primary"  icon @click="speedDialOpen = !speedDialOpen">
       <v-icon>mdi-dots-horizontal</v-icon>
       <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
-        <v-btn key="edit" v-if="permissionLevel === 'RESOURCE_PERMISSION_WRITE' && recipe && recipe.name" icon="mdi-pencil"
+        <v-btn key="edit" v-if="hasWritePermission(recipe.permission)" icon="mdi-pencil"
         @click="router.push({ name: 'recipeEdit', params: { recipeId: recipe.name } })" color="primary"></v-btn>
 
-        <v-btn key="share" v-if="permissionLevel === 'RESOURCE_PERMISSION_WRITE'" icon="mdi-share-variant"
+        <v-btn key="share" v-if="hasWritePermission(recipe.permission)" icon="mdi-share-variant"
           @click="showShareDialog = true" color="primary"></v-btn>
   
         <v-btn key="remove-access" icon="mdi-link-variant-off" @click="showRemoveAccessDialog = true" color="warning"></v-btn>
   
-        <v-btn key="delete" v-if="permissionLevel === 'RESOURCE_PERMISSION_WRITE' && recipe && recipe.name" icon="mdi-delete"
+        <v-btn key="delete" v-if="hasWritePermission(recipe.permission)" icon="mdi-delete"
           @click="showDeleteDialog = true" color="error"></v-btn>
       </v-speed-dial>
     </v-fab>
@@ -156,8 +156,8 @@
             <v-list-item v-for="share in currentShares" :key="share.id" :title="share.name" :subtitle="share.type">
               <template #append>
                 <div class="d-flex align-center gap-2">
-                  <v-chip size="small" :color="share.permission === 'RESOURCE_PERMISSION_WRITE' ? 'primary' : 'grey'">
-                    {{ share.permission === 'RESOURCE_PERMISSION_WRITE' ? 'Read & Write' : 'Read Only' }}
+                  <v-chip size="small" :color="hasWritePermission(share.permission) ? 'primary' : 'grey'">
+                    {{ hasWritePermission(share.permission) ? 'Read & Write' : 'Read Only' }}
                   </v-chip>
                   <v-btn icon="mdi-delete" variant="text" @click="removeShare(share.id)"></v-btn>
                 </div>
@@ -207,11 +207,12 @@ import { useRecipeFormStore } from '@/stores/recipeForm'
 import { storeToRefs } from 'pinia'
 import { onMounted, onBeforeUnmount, watch, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { publicUserService, publicCircleService, recipeService, recipeRecipientsService } from '@/api/api'
-import type { PublicUser, ListPublicUsersRequest } from '@/genapi/api/users/user/v1alpha1'
-import type { PublicCircle, ListPublicCirclesRequest } from '@/genapi/api/circles/circle/v1alpha1'
+import {   recipeService, userService, circleService, recipeAccessService } from '@/api/api'
+import type { User, ListUsersRequest } from '@/genapi/api/users/user/v1alpha1'
+import type { Circle, ListCirclesRequest } from '@/genapi/api/circles/circle/v1alpha1'
 import { useAuthStore } from '@/stores/auth'
 import type { PermissionLevel } from '@/genapi/api/types'
+import { hasWritePermission } from '@/utils/permissions'
 
 const route = useRoute()
 const router = useRouter()
@@ -221,7 +222,6 @@ const recipesStore = useRecipesStore()
 const recipeFormStore = useRecipeFormStore()
 const { recipe } = storeToRefs(recipesStore)
 const { activeTab } = storeToRefs(recipeFormStore)
-var permissionLevel = ref<PermissionLevel | undefined>(undefined)
 
 // Use the store's activeTab as our local tab
 const tab = computed({
@@ -302,8 +302,8 @@ const showShareDialog = ref(false)
 const shareTab = ref('users')
 const usernameInput = ref('')
 const circleInput = ref('')
-const selectedUser = ref<PublicUser | null>(null)
-const selectedCircle = ref<PublicCircle | null>(null)
+const selectedUser = ref<User | null>(null)
+const selectedCircle = ref<Circle | null>(null)
 const sharing = ref(false)
 
 // Validation states
@@ -359,15 +359,15 @@ async function checkUsername(username: string) {
 
   isLoadingUsername.value = true
   try {
-    const request: ListPublicUsersRequest = {
+    const request: ListUsersRequest = {
       filter: `username = "${username}"`,
       pageSize: 1,
       pageToken: undefined
     }
-    const response = await publicUserService.ListPublicUsers(request)
+    const response = await userService.ListUsers(request)
 
-    if (response.publicUsers?.length === 1 && response.publicUsers[0].name !== authStore.activeAccount?.publicName) {
-      selectedUser.value = response.publicUsers[0]
+    if (response.users?.length === 1 && response.users[0].name !== authStore.activeAccount?.name) {
+      selectedUser.value = response.users[0]
       isValidUsername.value = true
     } else {
       selectedUser.value = null
@@ -391,15 +391,15 @@ async function checkCircle(circleName: string) {
 
   isLoadingCircle.value = true
   try {
-    const request: ListPublicCirclesRequest = {
+    const request: ListCirclesRequest = {
       filter: `title = "${circleName}"`,
       pageSize: 1,
       pageToken: undefined
     }
-    const response = await publicCircleService.ListPublicCircles(request)
+    const response = await circleService.ListCircles(request)
 
-    if (response.publicCircles?.length === 1 && response.publicCircles[0].name !== authStore.activeAccount?.publicName) {
-      selectedCircle.value = response.publicCircles[0]
+    if (response.circles?.length === 1 && response.circles[0].name !== authStore.activeAccount?.name) {
+      selectedCircle.value = response.circles[0]
       isValidCircle.value = true
     } else {
       selectedCircle.value = null
@@ -453,11 +453,11 @@ function validateCircle(value: string): boolean | string {
 }
 
 // Add these new refs and constants
-const selectedPermission = ref<PermissionLevel>('RESOURCE_PERMISSION_READ')
+const selectedPermission = ref<PermissionLevel>('PERMISSION_LEVEL_READ')
 
 const permissionOptions = [
-  { title: 'Read Only', value: 'RESOURCE_PERMISSION_READ' },
-  { title: 'Read & Write', value: 'RESOURCE_PERMISSION_WRITE' },
+  { title: 'Read Only', value: 'PERMISSION_LEVEL_READ' },
+  { title: 'Read & Write', value: 'PERMISSION_LEVEL_WRITE' },
 ]
 
 // Update the shareRecipe function
@@ -471,17 +471,17 @@ async function shareRecipe() {
       recipients: [selectedUser.value?.name || selectedCircle.value?.name || ''],
       permission: selectedPermission.value
     }
-    await recipeService.ShareRecipe(request)
-    // Refresh the recipients list
-    await fetchRecipeRecipients()
-    // Reset selections and inputs after sharing
-    selectedUser.value = null
-    selectedCircle.value = null
-    usernameInput.value = ''
-    circleInput.value = ''
-    isValidUsername.value = false
-    isValidCircle.value = false
-    selectedPermission.value = 'RESOURCE_PERMISSION_READ' // Reset to default
+    // await recipeService.ShareRecipe(request)
+    // // Refresh the recipients list
+    // await fetchRecipeRecipients()
+    // // Reset selections and inputs after sharing
+    // selectedUser.value = null
+    // selectedCircle.value = null
+    // usernameInput.value = ''
+    // circleInput.value = ''
+    // isValidUsername.value = false
+    // isValidCircle.value = false
+    // selectedPermission.value = 'RESOURCE_PERMISSION_READ' // Reset to default
   } catch (error) {
     console.error('Error sharing recipe:', error)
     // You might want to show an error notification here
@@ -496,9 +496,9 @@ async function removeShare(shareId: string) {
       name: recipe.value?.name || '',
       recipients: [shareId]
     }
-    await recipeService.UnshareRecipe(request)
-    // Remove from local state after successful API call
-    currentShares.value = currentShares.value.filter(share => share.id !== shareId)
+    // await recipeService.UnshareRecipe(request)
+    // // Remove from local state after successful API call
+    // currentShares.value = currentShares.value.filter(share => share.id !== shareId)
   } catch (error) {
     console.error('Error removing share:', error)
     // You might want to show an error notification here
@@ -510,24 +510,24 @@ async function fetchRecipeRecipients() {
   if (!recipe.value?.name) return
 
   try {
-    const response = await recipeRecipientsService.GetRecipeRecipients({
-      name: recipe.value.name
-    })
+    // const response = await recipeAccessService.ListAccesses({
+    //   name: recipe.value.name
+    // })
 
-    if (response.recipients) {
-      currentShares.value = response.recipients.filter(recipient => {
-        if (recipient.name === authStore.activeAccount?.name) {
-          permissionLevel.value = recipient.permission
-          return false
-        }
-        return true
-      }).map(recipient => ({
-        id: recipient.name || '',
-        name: recipient.title || '',
-        type: recipient.name?.includes('circles') ? 'circle' : 'user',
-        permission: recipient.permission || 'RESOURCE_PERMISSION_READ'
-      }))
-    }
+    // if (response.recipients) {
+    //   currentShares.value = response.recipients.filter(recipient => {
+    //     if (recipient.name === authStore.activeAccount?.name) {
+    //       permissionLevel.value = recipient.permission
+    //       return false
+    //     }
+    //     return true
+    //   }).map(recipient => ({
+    //     id: recipient.name || '',
+    //     name: recipient.title || '',
+    //     type: recipient.name?.includes('circles') ? 'circle' : 'user',
+    //     permission: recipient.permission || 'RESOURCE_PERMISSION_READ'
+    //   }))
+    // }
   } catch (error) {
     console.error('Error fetching recipe recipients:', error)
   }
@@ -549,12 +549,12 @@ async function handleRemoveAccess() {
 
   removingAccess.value = true
   try {
-    const request = {
-      name: recipe.value.name,
-      recipients: [authStore.activeAccount?.name || '']
-    }
-    await recipeService.UnshareRecipe(request)
-    router.push({ name: 'recipes' })
+    // const request = {
+    //   name: recipe.value.name,
+    //   recipients: [authStore.activeAccount?.name || '']
+    // }
+    // await recipeService.UnshareRecipe(request)
+    // router.push({ name: 'recipes' })
   } catch (error) {
     console.error('Error removing access:', error)
     alert(error instanceof Error ? error.message : String(error))
