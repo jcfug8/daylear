@@ -25,9 +25,48 @@
           <v-row>
             <v-spacer></v-spacer>
             <v-col align-self="auto" cols="12" sm="8">
-              <v-img class="mt-1" style="background-color: lightgray" :src="recipe.imageUri" cover></v-img>
+              <div class="image-container">
+                <v-img 
+                  v-if="recipe.imageUri" 
+                  class="mt-1" 
+                  style="background-color: lightgray" 
+                  :src="recipe.imageUri" 
+                  cover
+                  height="300"
+                ></v-img>
+                <div 
+                  v-else 
+                  class="mt-1 d-flex align-center justify-center"
+                  style="background-color: lightgray; height: 300px; border-radius: 4px;"
+                >
+                  <div class="text-center">
+                    <v-icon size="64" color="grey-darken-1">mdi-image-outline</v-icon>
+                    <div class="text-grey-darken-1 mt-2">No image available</div>
+                  </div>
+                </div>
+              </div>
             </v-col>
             <v-spacer></v-spacer>
+          </v-row>
+
+          <!-- Visibility Section -->
+          <v-row>
+            <v-col cols="12">
+              <div class="mt-4">
+                <div v-if="selectedVisibilityDescription" class="mt-2">
+                  <v-alert
+                    :icon="selectedVisibilityIcon"
+                    density="compact"
+                    variant="tonal"
+                    :color="selectedVisibilityColor"
+                  >
+                    <div class="text-body-2">
+                      <strong>{{ selectedVisibilityLabel }}:</strong> {{ selectedVisibilityDescription }}
+                    </div>
+                  </v-alert>
+                </div>
+              </div>
+            </v-col>
           </v-row>
         </v-container>
       </v-tabs-window-item>
@@ -200,7 +239,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Recipe_MeasurementType } from '@/genapi/api/meals/recipe/v1alpha1'
+import type { Recipe_MeasurementType, apitypes_VisibilityLevel } from '@/genapi/api/meals/recipe/v1alpha1'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRecipesStore } from '@/stores/recipes'
 import { useRecipeFormStore } from '@/stores/recipeForm'
@@ -260,6 +299,59 @@ const measurementTypeToString: Record<Recipe_MeasurementType, string> = {
 function convertMeasurementTypeToString(type: Recipe_MeasurementType | undefined): string {
   return type ? measurementTypeToString[type] || '' : ''
 }
+
+// Visibility options with descriptions and icons
+const visibilityOptions = [
+  {
+    value: 'VISIBILITY_LEVEL_PUBLIC' as apitypes_VisibilityLevel,
+    label: 'Public',
+    icon: 'mdi-earth',
+    color: 'success',
+    description: 'Everyone can see this recipe'
+  },
+  {
+    value: 'VISIBILITY_LEVEL_RESTRICTED' as apitypes_VisibilityLevel,
+    label: 'Restricted',
+    icon: 'mdi-account-group',
+    color: 'warning',
+    description: 'Shared users, circles and their connections can see this'
+  },
+  {
+    value: 'VISIBILITY_LEVEL_PRIVATE' as apitypes_VisibilityLevel,
+    label: 'Private',
+    icon: 'mdi-lock',
+    color: 'info',
+    description: 'Only specifically shared users and circles can see this'
+  },
+  {
+    value: 'VISIBILITY_LEVEL_HIDDEN' as apitypes_VisibilityLevel,
+    label: 'Hidden',
+    icon: 'mdi-eye-off',
+    color: 'secondary',
+    description: 'Only you can see this recipe'
+  }
+]
+
+// Computed properties for the selected visibility
+const selectedVisibility = computed(() => {
+  return visibilityOptions.find(option => option.value === recipe.value?.visibility)
+})
+
+const selectedVisibilityDescription = computed(() => {
+  return selectedVisibility.value?.description || ''
+})
+
+const selectedVisibilityLabel = computed(() => {
+  return selectedVisibility.value?.label || ''
+})
+
+const selectedVisibilityIcon = computed(() => {
+  return selectedVisibility.value?.icon || 'mdi-help-circle'
+})
+
+const selectedVisibilityColor = computed(() => {
+  return selectedVisibility.value?.color || 'primary'
+})
 
 onMounted(async () => {
   // First check URL hash
@@ -587,3 +679,9 @@ async function handleDelete() {
   }
 }
 </script>
+
+<style scoped>
+.image-container {
+  position: relative;
+}
+</style>
