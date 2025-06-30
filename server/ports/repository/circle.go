@@ -10,7 +10,7 @@ import (
 type circleClient interface {
 	CreateCircle(ctx context.Context, circle model.Circle) (model.Circle, error)
 	DeleteCircle(ctx context.Context, id model.CircleId) (model.Circle, error)
-	GetCircle(ctx context.Context, id model.CircleId, fieldMask []string) (model.Circle, error)
+	GetCircle(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (model.Circle, error)
 	ListCircles(ctx context.Context, authAccount model.AuthAccount, pageSize int32, offset int64, filter string, fieldMask []string) ([]model.Circle, error)
 	UpdateCircle(ctx context.Context, circle model.Circle, updateMask []string) (model.Circle, error)
 

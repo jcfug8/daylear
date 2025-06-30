@@ -2,7 +2,6 @@ package domain
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
@@ -252,6 +251,28 @@ func (d *Domain) AcceptCircleAccess(ctx context.Context, authAccount model.AuthA
 	return model.CircleAccess{}, nil
 }
 
+func (d *Domain) verifyCircleAccessForRecipe(ctx context.Context, authAccount model.AuthAccount) (types.PermissionLevel, types.VisibilityLevel, error) {
+	permissionLevel, _, err := d.verifyCircleAccess(ctx, authAccount)
+	if err != nil {
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+	}
+
+	return permissionLevel, circlePermissionToRecipeVisibility(permissionLevel), nil
+}
+
+func circlePermissionToRecipeVisibility(permissionLevel types.PermissionLevel) types.VisibilityLevel {
+	switch permissionLevel {
+	case types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED:
+		return types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED
+	case types.PermissionLevel_PERMISSION_LEVEL_PUBLIC:
+		return types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC
+	case types.PermissionLevel_PERMISSION_LEVEL_READ, types.PermissionLevel_PERMISSION_LEVEL_WRITE, types.PermissionLevel_PERMISSION_LEVEL_ADMIN:
+		return types.VisibilityLevel_VISIBILITY_LEVEL_RESTRICTED
+	default:
+		return types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED
+	}
+}
+
 func (d *Domain) verifyCircleAccess(ctx context.Context, authAccount model.AuthAccount) (types.PermissionLevel, types.VisibilityLevel, error) {
 	// verify auth account is set
 	if authAccount.UserId == 0 {
@@ -264,43 +285,19 @@ func (d *Domain) verifyCircleAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// verify circle exists
-	circle, err := d.repo.GetCircle(ctx, model.CircleId{CircleId: authAccount.CircleId}, []string{model.CircleFields.Id})
+	circle, err := d.repo.GetCircle(ctx, authAccount, model.CircleId{CircleId: authAccount.CircleId})
 	if err != nil {
 		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
 	}
 
-	// check if user is a member of the circle
-	circleAccesses, err := d.repo.ListCircleAccesses(
-		ctx, authAccount,
-		model.CircleAccessParent{
-			CircleId: model.CircleId{
-				CircleId: authAccount.CircleId,
-			},
-		},
-		1, 0, fmt.Sprintf("recipient.user_id = %d", authAccount.UserId),
-	)
-	if len(circleAccesses) == 0 && circle.Visibility != types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC {
-		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user not a member of the circle"}
-	} else if err != nil {
-		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+	permissionLevel := circle.PermissionLevel
+	if circle.VisibilityLevel == types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC && circle.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+		permissionLevel = types.PermissionLevel_PERMISSION_LEVEL_PUBLIC
+	} else if circle.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user does not have access to circle"}
 	}
 
-	permissionLevel := types.PermissionLevel_PERMISSION_LEVEL_PUBLIC
-	visibilityLevel := types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC
-	if len(circleAccesses) > 0 {
-		permissionLevel = circleAccesses[0].Level
-	}
-
-	switch permissionLevel {
-	case types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED:
-		visibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED
-	case types.PermissionLevel_PERMISSION_LEVEL_PUBLIC:
-		visibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC
-	case types.PermissionLevel_PERMISSION_LEVEL_READ, types.PermissionLevel_PERMISSION_LEVEL_WRITE, types.PermissionLevel_PERMISSION_LEVEL_ADMIN:
-		visibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_RESTRICTED
-	default:
-		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "invalid permission level"}
-	}
+	visibilityLevel := circlePermissionToRecipeVisibility(permissionLevel)
 
 	return permissionLevel, visibilityLevel, nil
 }

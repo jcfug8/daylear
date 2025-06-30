@@ -160,7 +160,7 @@ func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, i
 	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
 
 	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccess(ctx, authAccount)
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccessForRecipe(ctx, authAccount)
 		if err != nil {
 			return model.Recipe{}, err
 		}
@@ -188,7 +188,7 @@ func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount,
 	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
 
 	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccess(ctx, authAccount)
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccessForRecipe(ctx, authAccount)
 		if err != nil {
 			return nil, err
 		}
@@ -221,7 +221,7 @@ func (d *Domain) UpdateRecipe(ctx context.Context, authAccount model.AuthAccount
 	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
 
 	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccess(ctx, authAccount)
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccessForRecipe(ctx, authAccount)
 		if err != nil {
 			return model.Recipe{}, err
 		}
@@ -279,7 +279,7 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, authAccount model.AuthAc
 	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
 
 	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccess(ctx, authAccount)
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccessForRecipe(ctx, authAccount)
 		if err != nil {
 			return "", err
 		}

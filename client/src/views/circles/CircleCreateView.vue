@@ -7,7 +7,14 @@
         label="Circle Title"
         required
       />
-      <v-checkbox v-model="circle.isPublic" label="Public" />
+      <v-select
+        v-model="circle.visibility"
+        :items="visibilityOptions"
+        item-title="label"
+        item-value="value"
+        label="Visibility"
+        required
+      />
     </v-card-text>
     <v-card-actions>
       <v-btn color="primary" @click="saveCircle">Save</v-btn>
@@ -23,6 +30,7 @@ import { onMounted, computed } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
+import type { apitypes_VisibilityLevel } from '@/genapi/api/circles/circle/v1alpha1'
 
 const router = useRouter()
 const circlesStore = useCirclesStore()
@@ -30,6 +38,13 @@ const breadcrumbStore = useBreadcrumbStore()
 const authStore = useAuthStore()
 
 const { circle } = storeToRefs(circlesStore)
+
+const visibilityOptions = [
+  { label: 'Public', value: 'VISIBILITY_LEVEL_PUBLIC' as apitypes_VisibilityLevel },
+  { label: 'Restricted', value: 'VISIBILITY_LEVEL_RESTRICTED' as apitypes_VisibilityLevel },
+  { label: 'Private', value: 'VISIBILITY_LEVEL_PRIVATE' as apitypes_VisibilityLevel },
+  { label: 'Hidden', value: 'VISIBILITY_LEVEL_HIDDEN' as apitypes_VisibilityLevel },
+]
 
 function navigateBack() {
   router.push({ name: 'publicCircles' })

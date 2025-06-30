@@ -7,9 +7,10 @@ import (
 
 // Circle defines the model for a circle.
 type Circle struct {
-	Id         CircleId
-	Title      string
-	Visibility types.VisibilityLevel
+	Id              CircleId
+	Title           string
+	VisibilityLevel types.VisibilityLevel
+	PermissionLevel types.PermissionLevel
 }
 
 // CircleId defines the identifier for a circle.
@@ -25,12 +26,14 @@ var CircleFields = circleFields{
 	Id:         "id",
 	Title:      "title",
 	Visibility: "visibility",
+	Permission: "permission",
 }
 
 type circleFields struct {
 	Id         string
 	Title      string
 	Visibility string
+	Permission string
 }
 
 // Mask returns a FieldMask for the circle fields.
@@ -39,6 +42,7 @@ func (fields circleFields) Mask() []string {
 		fields.Id,
 		fields.Title,
 		fields.Visibility,
+		fields.Permission,
 	}
 }
 

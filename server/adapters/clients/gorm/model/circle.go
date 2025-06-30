@@ -33,7 +33,7 @@ func (fields circleFields) Map(m Circle) map[string]any {
 	return map[string]any{
 		fields.CircleId:   m.CircleId,
 		fields.Title:      m.Title,
-		fields.Visibility: m.Visibility,
+		fields.Visibility: m.VisibilityLevel,
 	}
 }
 
@@ -48,9 +48,10 @@ func (fields circleFields) Mask() []string {
 
 // Circle is the GORM model for a circle.
 type Circle struct {
-	CircleId   int64                 `gorm:"primaryKey;column:circle_id;autoIncrement;<-:false"`
-	Title      string                `gorm:"column:title;not null"`
-	Visibility types.VisibilityLevel `gorm:"column:visibility;not null;default:1"`
+	CircleId        int64                 `gorm:"primaryKey;column:circle_id;autoIncrement;<-:false"`
+	Title           string                `gorm:"column:title;not null"`
+	VisibilityLevel types.VisibilityLevel `gorm:"column:visibility_level;not null;default:1"`
+	PermissionLevel types.PermissionLevel `gorm:"<-:false"` // only used for read from a join
 }
 
 // TableName sets the table name for the Circle model.

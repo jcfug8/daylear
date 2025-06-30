@@ -10,10 +10,14 @@
             required
           ></v-text-field>
 
-          <v-checkbox
-            v-model="editedCircle.isPublic"
-            label="Public"
-          ></v-checkbox>
+          <v-select
+            v-model="editedCircle.visibility"
+            :items="visibilityOptions"
+            item-title="label"
+            item-value="value"
+            label="Visibility"
+            required
+          />
         </v-form>
       </v-card-text>
       <v-card-actions>
@@ -41,7 +45,7 @@ import { storeToRefs } from 'pinia'
 import { onMounted, ref, watch } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRouter, useRoute } from 'vue-router'
-import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
+import type { Circle, apitypes_VisibilityLevel, apitypes_PermissionLevel } from '@/genapi/api/circles/circle/v1alpha1'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -54,8 +58,16 @@ const authStore = useAuthStore()
 const editedCircle = ref<Circle>({
   name: '',
   title: '',
-  isPublic: false,
+  visibility: 'VISIBILITY_LEVEL_PRIVATE' as apitypes_VisibilityLevel,
+  permission: 'PERMISSION_LEVEL_UNSPECIFIED' as apitypes_PermissionLevel,
 })
+
+const visibilityOptions = [
+  { label: 'Public', value: 'VISIBILITY_LEVEL_PUBLIC' as apitypes_VisibilityLevel },
+  { label: 'Restricted', value: 'VISIBILITY_LEVEL_RESTRICTED' as apitypes_VisibilityLevel },
+  { label: 'Private', value: 'VISIBILITY_LEVEL_PRIVATE' as apitypes_VisibilityLevel },
+  { label: 'Hidden', value: 'VISIBILITY_LEVEL_HIDDEN' as apitypes_VisibilityLevel },
+]
 
 function navigateBack() {
   router.push({ name: 'circle-settings', params: { circleId: editedCircle.value.name } })

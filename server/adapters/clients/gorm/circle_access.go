@@ -2,11 +2,14 @@ package gorm
 
 import (
 	"context"
+	"errors"
 
+	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	model "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/ports/repository"
+	"gorm.io/gorm"
 )
 
 // CircleAccessMap maps the core model fields to the database model fields for the unified CircleAccess model.
@@ -17,25 +20,24 @@ var CircleAccessMap = map[string]string{
 }
 
 func (repo *Client) CreateCircleAccess(ctx context.Context, access model.CircleAccess) (model.CircleAccess, error) {
-	// db := repo.db.WithContext(ctx)
+	db := repo.db.WithContext(ctx)
 
-	// // Validate that exactly one recipient type is set
-	// if access.Recipient != 0 {
-	// 	return model.CircleAccess{}, repository.ErrInvalidArgument{Msg: "recipient is required"}
-	// }
+	// Validate that exactly one recipient type is set
+	if access.Recipient == 0 {
+		return model.CircleAccess{}, repository.ErrInvalidArgument{Msg: "recipient is required"}
+	}
 
-	// circleAccess := convert.CircleAccessFromCoreModel(access)
-	// res := db.Create(&circleAccess)
-	// if res.Error != nil {
-	// 	if errors.Is(res.Error, gorm.ErrDuplicatedKey) {
-	// 		return model.CircleAccess{}, repository.ErrNewAlreadyExists{}
-	// 	}
-	// 	return model.CircleAccess{}, res.Error
-	// }
+	circleAccess := convert.CoreCircleAccessToCircleAccess(access)
+	res := db.Create(&circleAccess)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrDuplicatedKey) {
+			return model.CircleAccess{}, repository.ErrNewAlreadyExists{}
+		}
+		return model.CircleAccess{}, res.Error
+	}
 
-	// access.CircleAccessId.CircleAccessId = circleAccess.CircleAccessId
-	// return access, nil
-	return model.CircleAccess{}, nil
+	access.CircleAccessId.CircleAccessId = circleAccess.CircleAccessId
+	return access, nil
 }
 
 func (repo *Client) DeleteCircleAccess(ctx context.Context, parent model.CircleAccessParent, id model.CircleAccessId) error {

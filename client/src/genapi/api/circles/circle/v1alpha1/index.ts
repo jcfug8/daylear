@@ -16,6 +16,10 @@ export type Circle = {
   //
   // Behaviors: REQUIRED
   visibility: apitypes_VisibilityLevel | undefined;
+  // the permission of the circle
+  //
+  // Behaviors: OUTPUT_ONLY
+  permission: apitypes_PermissionLevel | undefined;
 };
 
 // the visibility levels
@@ -30,6 +34,18 @@ export type apitypes_VisibilityLevel =
   | "VISIBILITY_LEVEL_PRIVATE"
   // the visibility is hidden
   | "VISIBILITY_LEVEL_HIDDEN";
+// the permission levels
+export type apitypes_PermissionLevel =
+  // the permission is not specified
+  | "PERMISSION_LEVEL_UNSPECIFIED"
+  // the permission is public
+  | "PERMISSION_LEVEL_PUBLIC"
+  // the permission is read
+  | "PERMISSION_LEVEL_READ"
+  // the permission is write
+  | "PERMISSION_LEVEL_WRITE"
+  // the permission is admin
+  | "PERMISSION_LEVEL_ADMIN";
 // the request to create a circle
 export type CreateCircleRequest = {
   // the circle to create
@@ -291,18 +307,6 @@ export type Access_Requester = {
   circle?: string;
 };
 
-// the permission levels
-export type apitypes_PermissionLevel =
-  // the permission is not specified
-  | "PERMISSION_LEVEL_UNSPECIFIED"
-  // the permission is public
-  | "PERMISSION_LEVEL_PUBLIC"
-  // the permission is read
-  | "PERMISSION_LEVEL_READ"
-  // the permission is write
-  | "PERMISSION_LEVEL_WRITE"
-  // the permission is admin
-  | "PERMISSION_LEVEL_ADMIN";
 // the visibility levels
 export type apitypes_AccessState =
   // This status should never get used.

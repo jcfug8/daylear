@@ -36,5 +36,3 @@ func RecipeAccessToCoreRecipeAccess(dbAccess dbModel.RecipeAccess) coreModel.Rec
 		State: dbAccess.State,
 	}
 }
-
-// Legacy conversion functions for backward compatibility - these can be removed once all code is updated

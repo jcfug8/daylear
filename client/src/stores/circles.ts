@@ -4,12 +4,14 @@ import { circleService } from '@/api/api'
 import type {
   Circle,
   apitypes_VisibilityLevel,
+  apitypes_PermissionLevel,
 } from '@/genapi/api/circles/circle/v1alpha1'
 
 export const useCirclesStore = defineStore('circles', () => {
   const circles = ref<Circle[]>([])
   const circle = ref<Circle | undefined>()
-
+  const publicCircles = ref<Circle[]>([])
+  const publicCircle = ref<Circle | undefined>()
 
   async function loadCircle(circleName: string) {
     try {
@@ -21,12 +23,36 @@ export const useCirclesStore = defineStore('circles', () => {
     }
   }
 
+  async function loadPublicCircle(circleName: string) {
+    try {
+      const result = await circleService.GetCircle({ name: circleName })
+      publicCircle.value = result
+    } catch (error) {
+      console.error('Failed to load public circle:', error)
+      publicCircle.value = undefined
+    }
+  }
+
+  async function loadPublicCircles(filter?: string) {
+    try {
+      const result = await circleService.ListCircles({ 
+        filter: filter || undefined,
+        pageSize: 50,
+        pageToken: undefined
+      })
+      publicCircles.value = result.circles || []
+    } catch (error) {
+      console.error('Failed to load public circles:', error)
+      publicCircles.value = []
+    }
+  }
 
   function initEmptyCircle() {
     circle.value = {
       name: undefined,
       title: '',
       visibility: 'VISIBILITY_LEVEL_PRIVATE' as apitypes_VisibilityLevel,
+      permission: 'PERMISSION_LEVEL_UNSPECIFIED' as apitypes_PermissionLevel,
     }
   }
 
@@ -72,10 +98,14 @@ export const useCirclesStore = defineStore('circles', () => {
 
   return {
     loadCircle,
+    loadPublicCircle,
+    loadPublicCircles,
     initEmptyCircle,
     createCircle,
     updateCircle,
     circles,
     circle,
+    publicCircles,
+    publicCircle,
   }
 }) 

@@ -86,7 +86,7 @@ type Recipe struct {
 	ImageURI         string
 	IngredientGroups []byte                `gorm:"type:jsonb"`
 	VisibilityLevel  types.VisibilityLevel `gorm:"not null;default:300"`
-	PermissionLevel  types.PermissionLevel
+	PermissionLevel  types.PermissionLevel `gorm:"<-:false"` // only used for read from a join
 }
 
 // TableName -

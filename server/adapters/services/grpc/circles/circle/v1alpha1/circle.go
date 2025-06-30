@@ -98,13 +98,7 @@ func (s *CircleService) GetCircle(ctx context.Context, request *pb.GetCircleRequ
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	fieldMask := s.circleFieldMasker.GetFieldMaskFromCtx(ctx)
-	readMask, err := s.circleFieldMasker.GetReadMask(fieldMask)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid field mask")
-	}
-
-	mCircle, err = s.domain.GetCircle(ctx, authAccount, mCircle.Id, readMask)
+	mCircle, err = s.domain.GetCircle(ctx, authAccount, mCircle.Id)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -221,7 +215,8 @@ func (s *CircleService) ProtoToCircle(proto *pb.Circle) (model.Circle, error) {
 		}
 	}
 	circle.Title = proto.Title
-	circle.Visibility = proto.Visibility
+	circle.VisibilityLevel = proto.Visibility
+	circle.PermissionLevel = proto.Permission
 	return circle, nil
 }
 
@@ -235,7 +230,8 @@ func (s *CircleService) CircleToProto(circle model.Circle) (*pb.Circle, error) {
 	proto.Name = name
 
 	proto.Title = circle.Title
-	proto.Visibility = circle.Visibility
+	proto.Visibility = circle.VisibilityLevel
+	proto.Permission = circle.PermissionLevel
 	return proto, nil
 }
 

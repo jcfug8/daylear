@@ -3,6 +3,7 @@ syntax = "proto3";
 package api.circles.circle.v1alpha1;
 
 import "api/types/visibility_level.proto";
+import "api/types/permission_level.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
@@ -145,6 +146,9 @@ message Circle {
 
   // the visibility of the circle
   api.types.VisibilityLevel visibility = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // the permission of the circle
+  api.types.PermissionLevel permission = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 // the request to create a circle
