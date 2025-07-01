@@ -107,7 +107,7 @@
 
     <!-- Speed Dial -->
     <v-fab location="bottom right" app color="primary"  icon @click="speedDialOpen = !speedDialOpen">
-      <v-icon>mdi-dots-horizontal</v-icon>
+      <v-icon>mdi-dots-vertical</v-icon>
       <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
         <v-btn key="edit" v-if="hasWritePermission(recipe.permission)" icon="mdi-pencil"
         @click="router.push({ name: 'recipeEdit', params: { recipeId: recipe.name } })" color="primary"></v-btn>

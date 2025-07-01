@@ -182,9 +182,16 @@ func (d *Domain) UpdateRecipe(ctx context.Context, authAccount model.AuthAccount
 		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, recipe.Id)
-	if err != nil {
-		return model.Recipe{}, err
+	if authAccount.CircleId != 0 {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, recipe.Id)
+		if err != nil {
+			return model.Recipe{}, err
+		}
+	} else {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevels(ctx, authAccount, recipe.Id)
+		if err != nil {
+			return model.Recipe{}, err
+		}
 	}
 
 	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {

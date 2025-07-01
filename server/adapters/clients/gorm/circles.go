@@ -119,8 +119,8 @@ func (repo *Client) ListCircles(ctx context.Context, authAccount cmodel.AuthAcco
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(offset)).
-		Joins("JOIN circle_access ON circle.circle_id = circle_access.circle_id").
-		Where("(circle.visibility_level <= ? AND circle_access.permission_level <= ? AND circle_access.recipient_user_id = ?) OR circle.visibility_level = ?", authAccount.VisibilityLevel, authAccount.PermissionLevel, authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC).
+		Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id").
+		Where("(circle_access.recipient_user_id = ? OR circle.visibility_level = ?)", authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC).
 		Find(&dbCircles).Error
 	if err != nil {
 		return nil, ConvertGormError(err)

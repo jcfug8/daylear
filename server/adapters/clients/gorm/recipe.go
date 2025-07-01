@@ -30,10 +30,10 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 
 	if authAccount.CircleId != 0 {
 		tx = tx.Where("(recipe_access.recipient_circle_id = ? OR recipe.visibility_level = ?)", authAccount.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC).
-			Joins("JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ?", authAccount.CircleId)
+			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ?", authAccount.CircleId)
 	} else {
 		tx = tx.Where("(recipe_access.recipient_user_id = ? OR recipe.visibility_level = ?)", authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC).
-			Joins("JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId)
+			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId)
 	}
 
 	err := tx.Find(&dbRecipes).Error
@@ -108,9 +108,9 @@ func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccoun
 		Where("recipe.recipe_id = ? AND (recipe.visibility_level = ? OR recipe_access.recipient_user_id = ?)", id.RecipeId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.UserId)
 
 	if authAccount.CircleId != 0 {
-		tx = tx.Joins("JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ?", authAccount.CircleId)
+		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ?", authAccount.CircleId)
 	} else {
-		tx = tx.Joins("JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId)
+		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId)
 	}
 
 	err := tx.First(&gm).Error
@@ -128,12 +128,6 @@ func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccoun
 
 // UpdateRecipe updates a recipe.
 func (repo *Client) UpdateRecipe(ctx context.Context, authAccount cmodel.AuthAccount, m cmodel.Recipe, fields []string) (cmodel.Recipe, error) {
-	// use GetRecipe to verify the user has access to it
-	_, err := repo.GetRecipe(ctx, authAccount, m.Id)
-	if err != nil {
-		return cmodel.Recipe{}, err
-	}
-
 	gm, err := convert.RecipeFromCoreModel(m)
 	if err != nil {
 		return cmodel.Recipe{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("error reading recipe: %v", err)}
