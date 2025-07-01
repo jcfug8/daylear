@@ -75,6 +75,7 @@ export const useAuthStore = defineStore('auth', () => {
       })
     } catch (error) {
       console.error('Error:', error)
+      throw error
     }
   }
 
@@ -91,6 +92,7 @@ export const useAuthStore = defineStore('auth', () => {
       circles.value = res.circles ?? []
     } catch (error) {
       console.error('Error:', error)
+      throw error
     }
   }
 
@@ -118,8 +120,8 @@ export const useAuthStore = defineStore('auth', () => {
     const url = new URLSearchParams(window.location.search)
     const value = url.get('token_key')
 
+    try {
     if (value) {
-      try {
         let res = await authService.ExchangeToken({
           tokenKey: value,
         })
@@ -128,20 +130,21 @@ export const useAuthStore = defineStore('auth', () => {
         } else {
           throw new Error('No token returned from auth service')
         }
-      } catch (error) {
-        console.error('Error:', error)
       }
-    }
-
-    const token = sessionStorage.getItem('jwt') // Retrieve the JWT from sessionStorage
-    if (token) {
-      console.log('JWT found in sessionStorage')
-      await _setupAuthData()
-    } else {
-      console.log('No JWT found in sessionStorage')
+      
+      const token = sessionStorage.getItem('jwt') // Retrieve the JWT from sessionStorage
+      if (token) {
+        console.log('JWT found in sessionStorage')
+        await _setupAuthData()
+      } else {
+        console.log('No JWT found in sessionStorage')
+        _clearAuthData()
+      }
+    } catch (error) {
+      console.error('Error:', error)
       _clearAuthData()
     }
-    
+      
     authInitialized.value = true
   }
 
@@ -173,13 +176,14 @@ export const useAuthStore = defineStore('auth', () => {
       } else {
         throw new Error('No user id returned from auth service')
       }
+      await loadAuthUser()
+  
+      await loadAuthCircles()
     } catch (error) {
       console.error('Error:', error)
+      throw error
     }
 
-    await loadAuthUser()
-
-    await loadAuthCircles()
 
     if (activeAccount.value === undefined) {
       activeAccount.value = user.value

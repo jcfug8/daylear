@@ -27,6 +27,7 @@ func NewClient(p ClientParams) (*Client, error) {
 		db:                       p.DB,
 		log:                      p.Log,
 		recipeAccessSQLConverter: filter.NewSQLConverter(RecipeAccessMap, true),
+		circleSQLConverter:       filter.NewSQLConverter(CircleMap, true),
 	}, nil
 }
 
@@ -37,6 +38,7 @@ type Client struct {
 	log   zerolog.Logger
 
 	recipeAccessSQLConverter *filter.SQLConverter
+	circleSQLConverter       *filter.SQLConverter
 }
 
 // Migrate migrates the database.

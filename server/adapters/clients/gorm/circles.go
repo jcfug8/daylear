@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
+	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	"github.com/jcfug8/daylear/server/core/masks"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
@@ -12,6 +13,11 @@ import (
 	"github.com/jcfug8/daylear/server/ports/repository"
 	"gorm.io/gorm/clause"
 )
+
+// CircleMap maps the core model fields to the database model fields for the unified CircleAccess model.
+var CircleMap = map[string]string{
+	"permission": dbModel.CircleAccessFields.PermissionLevel,
+}
 
 // CreateCircle creates a new circle.
 func (repo *Client) CreateCircle(ctx context.Context, m cmodel.Circle) (cmodel.Circle, error) {
@@ -114,14 +120,24 @@ func (repo *Client) ListCircles(ctx context.Context, authAccount cmodel.AuthAcco
 		Desc:   true,
 	}}
 
-	err := repo.db.WithContext(ctx).
+	tx := repo.db.WithContext(ctx).
 		Select("circle.*, circle_access.permission_level").
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(offset)).
-		Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id").
-		Where("(circle_access.recipient_user_id = ? OR circle.visibility_level = ?)", authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC).
-		Find(&dbCircles).Error
+		Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.UserId).
+		Where("(circle_access.recipient_user_id = ? OR circle.visibility_level = ?)", authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC)
+
+	conversion, err := repo.recipeAccessSQLConverter.Convert(filter)
+	if err != nil {
+		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
+	}
+
+	if conversion.WhereClause != "" {
+		tx = tx.Where(conversion.WhereClause, conversion.Params...)
+	}
+
+	err = tx.Find(&dbCircles).Error
 	if err != nil {
 		return nil, ConvertGormError(err)
 	}

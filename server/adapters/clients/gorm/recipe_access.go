@@ -8,7 +8,6 @@ import (
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	model "github.com/jcfug8/daylear/server/core/model"
-	permPb "github.com/jcfug8/daylear/server/genapi/api/types"
 	"github.com/jcfug8/daylear/server/ports/repository"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -99,6 +98,10 @@ func (repo *Client) GetRecipeAccess(ctx context.Context, parent model.RecipeAcce
 }
 
 func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent model.RecipeAccessParent, pageSize int32, pageOffset int64, filterStr string) ([]model.RecipeAccess, error) {
+	if authAccount.UserId == 0 {
+		return nil, repository.ErrInvalidArgument{Msg: "user id is required"}
+	}
+
 	conversion, err := repo.recipeAccessSQLConverter.Convert(filterStr)
 	if err != nil {
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
@@ -114,29 +117,10 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 	// Filter by recipe ID
 	if parent.RecipeId.RecipeId != 0 {
 		db = db.Where("recipe_access.recipe_id = ?", parent.RecipeId.RecipeId)
-	}
-
-	// Add authorization check - only allow access if the requester has write permission or is the recipient
-	if parent.Requester.UserId != 0 {
-		db = db.Where(`
-			EXISTS (
-				SELECT 1 FROM recipe_access ra 
-				WHERE ra.user_id = ? 
-				AND ra.permission_level >= ? 
-				AND ra.recipe_id = recipe_access.recipe_id
-			) OR recipe_access.user_id = ?`,
-			parent.Requester.UserId, permPb.PermissionLevel_PERMISSION_LEVEL_WRITE, parent.Requester.UserId)
-	} else if parent.Requester.CircleId != 0 {
-		db = db.Where(`
-			EXISTS (
-				SELECT 1 FROM recipe_access ra 
-				WHERE ra.circle_id = ? 
-				AND ra.permission_level >= ? 
-				AND ra.recipe_id = recipe_access.recipe_id
-			) OR recipe_access.circle_id = ?`,
-			parent.Requester.CircleId, permPb.PermissionLevel_PERMISSION_LEVEL_WRITE, parent.Requester.CircleId)
+	} else if authAccount.CircleId != 0 {
+		db = db.Where("recipe_access.recipient_circle_id = ?", authAccount.CircleId)
 	} else {
-		return nil, repository.ErrInvalidArgument{Msg: "requester is required"}
+		db = db.Where("recipe_access.recipient_user_id = ?", authAccount.UserId)
 	}
 
 	err = db.Limit(int(pageSize)).

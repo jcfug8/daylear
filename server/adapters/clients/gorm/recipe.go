@@ -29,10 +29,12 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 		Offset(int(offset))
 
 	if authAccount.CircleId != 0 {
-		tx = tx.Where("(recipe_access.recipient_circle_id = ? OR recipe.visibility_level = ?)", authAccount.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC).
+		tx = tx.Where("(recipe_access.recipient_circle_id = ? OR recipe.visibility_level = ?) AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?)",
+			authAccount.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
 			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ?", authAccount.CircleId)
 	} else {
-		tx = tx.Where("(recipe_access.recipient_user_id = ? OR recipe.visibility_level = ?)", authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC).
+		tx = tx.Where("(recipe_access.recipient_user_id = ? OR recipe.visibility_level = ?) AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?)",
+			authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
 			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId)
 	}
 
