@@ -82,12 +82,6 @@ func (repo *Client) GetCircle(ctx context.Context, authAccount cmodel.AuthAccoun
 
 // UpdateCircle updates a circle.
 func (repo *Client) UpdateCircle(ctx context.Context, authAccount cmodel.AuthAccount, m cmodel.Circle, fields []string) (cmodel.Circle, error) {
-	// use GetCircle to verify the user has access to it
-	_, err := repo.GetCircle(ctx, authAccount, m.Id)
-	if err != nil {
-		return cmodel.Circle{}, err
-	}
-
 	gm, err := convert.CircleFromCoreModel(m)
 	if err != nil {
 		return cmodel.Circle{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid circle: %v", err)}

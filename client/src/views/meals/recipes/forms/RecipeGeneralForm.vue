@@ -64,7 +64,6 @@
                 <template #prepend>
                   <v-icon :icon="item.raw.icon" size="small"></v-icon>
                 </template>
-                <v-list-item-title>{{ item.raw.label }}</v-list-item-title>
                 <v-list-item-subtitle class="text-wrap">
                   {{ item.raw.description }}
                 </v-list-item-subtitle>

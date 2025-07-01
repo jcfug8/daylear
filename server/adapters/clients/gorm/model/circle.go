@@ -19,7 +19,7 @@ var CircleMap = masks.NewFieldMap().
 var CircleFields = circleFields{
 	CircleId:   "circle_id",
 	Title:      "title",
-	Visibility: "visibility",
+	Visibility: "visibility_level",
 }
 
 type circleFields struct {
