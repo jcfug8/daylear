@@ -19,14 +19,14 @@ import { storeToRefs } from 'pinia'
 const route = useRoute()
 const breadcrumbStore = useBreadcrumbStore()
 const circlesStore = useCirclesStore()
-const { publicCircle } = storeToRefs(circlesStore)
+const { circle } = storeToRefs(circlesStore)
 const loading = ref(true)
 
 async function fetchCircle() {
   loading.value = true
   let circleId = route.params.circleId
   if (Array.isArray(circleId)) circleId = circleId[0]
-  await circlesStore.loadPublicCircle(circleId as string)
+  await circlesStore.loadCircle(circleId as string)
   setCrumbs()
   loading.value = false
 }
@@ -35,15 +35,14 @@ function setCrumbs() {
   let circleId = route.params.circleId
   if (Array.isArray(circleId)) circleId = circleId[0]
   breadcrumbStore.setBreadcrumbs([
-    { title: 'Circles', to: { name: 'publicCircles' } },
-    { title: publicCircle.value?.title || circleId, to: { name: 'publicCircle', params: { circleId } } },
+    { title: 'Circles', to: { name: 'circles' } },
+    { title: circle.value?.title || circleId, to: { name: 'circle', params: { circleId } } },
   ])
 }
 
 onMounted(fetchCircle)
 watch(() => route.params.circleId, fetchCircle)
 
-const circle = publicCircle
 </script>
 
 <style scoped>

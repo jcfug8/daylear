@@ -80,70 +80,52 @@ func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount
 }
 
 // DeleteRecipe deletes a recipe.
-func (d *Domain) DeleteRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (model.Recipe, error) {
-	// TODO: Implement DeleteRecipe
-	// Implementation commented out for refactoring
-	/*
-		if parent.UserId == 0 {
-			return model.Recipe{}, domain.ErrInvalidArgument{Msg: "parent required"}
-		}
+func (d *Domain) DeleteRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (recipe model.Recipe, err error) {
+	if authAccount.UserId == 0 {
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "parent required"}
+	}
 
-		if id.RecipeId == 0 {
-			return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
-		}
+	if id.RecipeId == 0 {
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
+	}
 
-		recipient, err := d.repo.GetRecipeRecipient(ctx, parent, id)
+	authAccount.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
+	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
+
+	if authAccount.CircleId != 0 {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccessForRecipe(ctx, authAccount)
 		if err != nil {
 			return model.Recipe{}, err
 		}
-		if recipient.PermissionLevel != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
-			return model.Recipe{}, domain.ErrPermissionDenied{Msg: "circle does not have write permission"}
-		}
-		if parent.CircleId != 0 {
-			permission, err := d.repo.GetCircleUserPermission(ctx, parent.UserId, parent.CircleId)
-			if err != nil {
-				return model.Recipe{}, err
-			}
-			if permission != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
-				return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
-			}
-		}
+	}
 
-		tx, err := d.repo.Begin(ctx)
-		if err != nil {
-			return model.Recipe{}, err
-		}
+	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_ADMIN {
+		return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
+	}
 
-		defer tx.Rollback()
+	tx, err := d.repo.Begin(ctx)
+	if err != nil {
+		return model.Recipe{}, err
+	}
 
-		recipe, err := tx.DeleteRecipe(ctx, model.Recipe{
-			Id:     id,
-			Parent: parent,
-		})
-		if err != nil {
-			return model.Recipe{}, err
-		}
+	defer tx.Rollback()
 
-		filter := fmt.Sprintf("recipe_id = %d", recipe.Id.RecipeId)
-		recipeIngredients, err := tx.BulkDeleteRecipeIngredients(ctx, filter)
-		if err != nil {
-			return model.Recipe{}, err
-		}
-		recipe.SetRecipeIngredients(recipeIngredients)
+	recipe, err = tx.DeleteRecipe(ctx, authAccount, id)
+	if err != nil {
+		return model.Recipe{}, err
+	}
 
-		err = tx.BulkDeleteRecipeRecipients(ctx, []model.RecipeParent{}, id)
-		if err != nil {
-			return model.Recipe{}, err
-		}
+	err = tx.BulkDeleteRecipeAccess(ctx, model.RecipeAccessParent{RecipeId: id})
+	if err != nil {
+		return model.Recipe{}, err
+	}
 
-		err = tx.Commit()
-		if err != nil {
-			return model.Recipe{}, err
-		}
+	err = tx.Commit()
+	if err != nil {
+		return model.Recipe{}, err
+	}
 
-		return recipe, nil
-	*/
-	return model.Recipe{}, domain.ErrInternal{Msg: "DeleteRecipe method not implemented"}
+	return recipe, nil
 }
 
 // GetRecipe gets a recipe.
@@ -166,7 +148,7 @@ func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, i
 		}
 	}
 
-	if authAccount.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_PUBLIC {
 		return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
 	}
 
@@ -227,7 +209,7 @@ func (d *Domain) UpdateRecipe(ctx context.Context, authAccount model.AuthAccount
 		}
 	}
 
-	if authAccount.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
 		return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
 	}
 

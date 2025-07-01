@@ -10,8 +10,6 @@ import type {
 export const useCirclesStore = defineStore('circles', () => {
   const circles = ref<Circle[]>([])
   const circle = ref<Circle | undefined>()
-  const publicCircles = ref<Circle[]>([])
-  const publicCircle = ref<Circle | undefined>()
 
   async function loadCircle(circleName: string) {
     try {
@@ -23,27 +21,17 @@ export const useCirclesStore = defineStore('circles', () => {
     }
   }
 
-  async function loadPublicCircle(circleName: string) {
-    try {
-      const result = await circleService.GetCircle({ name: circleName })
-      publicCircle.value = result
-    } catch (error) {
-      console.error('Failed to load public circle:', error)
-      publicCircle.value = undefined
-    }
-  }
-
-  async function loadPublicCircles(filter?: string) {
+  async function loadCircles(filter?: string) {
     try {
       const result = await circleService.ListCircles({ 
         filter: filter || undefined,
         pageSize: 50,
         pageToken: undefined
       })
-      publicCircles.value = result.circles || []
+      circles.value = result.circles || []
     } catch (error) {
       console.error('Failed to load public circles:', error)
-      publicCircles.value = []
+      circles.value = []
     }
   }
 
@@ -98,14 +86,11 @@ export const useCirclesStore = defineStore('circles', () => {
 
   return {
     loadCircle,
-    loadPublicCircle,
-    loadPublicCircles,
+    loadCircles,
     initEmptyCircle,
     createCircle,
     updateCircle,
     circles,
     circle,
-    publicCircles,
-    publicCircle,
   }
 }) 

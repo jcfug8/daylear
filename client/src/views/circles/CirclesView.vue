@@ -1,19 +1,12 @@
 <template>
   <div class="pa-4">
-    <v-text-field
-      v-model="search"
-      label="Search Circles"
-      prepend-inner-icon="mdi-magnify"
-      @input="onSearch"
-      clearable
-    />
-    <v-list v-if="publicCircles &&publicCircles.length > 0">
+    <v-list v-if="circles &&circles.length > 0">
       <v-list-item
-        v-for="circle in publicCircles"
+        v-for="circle in circles"
         :key="circle.name"
         :title="circle.title"
         :subtitle="circle.name"
-        :to="{ name: 'publicCircle', params: { circleId: circle.name } }"
+        :to="{ name: 'circle', params: { circleId: circle.name } }"
       />
     </v-list>
     <div v-else-if="search">No circles found.</div>
@@ -33,27 +26,16 @@ import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { storeToRefs } from 'pinia'
 const search = ref('')
 const circlesStore = useCirclesStore()
-const { publicCircles } = storeToRefs(circlesStore)
+const { circles } = storeToRefs(circlesStore)
 const breadcrumbStore = useBreadcrumbStore()
 
 onMounted(() => {
   breadcrumbStore.setBreadcrumbs([
-    { title: 'Circles', to: { name: 'publicCircles' } },
+    { title: 'Circles', to: { name: 'circles' } },
   ])
+  circlesStore.loadCircles()
 })
 
-let debounceTimer: ReturnType<typeof setTimeout> | null = null
-
-function onSearch() {
-  if (debounceTimer) clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => {
-    if (search.value) {
-      circlesStore.loadPublicCircles(`title = '${search.value}'`)
-    } else {
-      publicCircles.value.length = 0 // Clear results if search is cleared
-    }
-  }, 1000)
-}
 </script>
 
 <style scoped>

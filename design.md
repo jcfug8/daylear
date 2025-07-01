@@ -70,7 +70,7 @@ The Circle resource should return the circle information plus the access data of
 
 THe UI should show a UI to list circles. I would expect there to be a table for public circles and a table for circles the user has access to.
 
-I need to remove the current publicCircle resource because it is not needed. If a circle is public then you don't need access to view it. You can, however, ask for write access to a public circle.
+I need to remove the current circle resource because it is not needed. If a circle is public then you don't need access to view it. You can, however, ask for write access to a public circle.
 ## Levels
 - Unspecified
   - the circle basic details can be viewed

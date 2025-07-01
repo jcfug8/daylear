@@ -44,9 +44,35 @@ func (repo *Client) CreateRecipeAccess(ctx context.Context, access model.RecipeA
 }
 
 func (repo *Client) DeleteRecipeAccess(ctx context.Context, parent model.RecipeAccessParent, id model.RecipeAccessId) error {
+	if parent.RecipeId.RecipeId == 0 {
+		return repository.ErrInvalidArgument{Msg: "recipe id is required"}
+	}
+
+	if id.RecipeAccessId == 0 {
+		return repository.ErrInvalidArgument{Msg: "recipe access id is required"}
+	}
+
 	db := repo.db.WithContext(ctx)
 
-	res := db.Delete(&dbModel.RecipeAccess{}, id.RecipeAccessId)
+	res := db.Where("recipe_id = ? AND recipe_access_id = ?", parent.RecipeId.RecipeId, id.RecipeAccessId).Delete(&dbModel.RecipeAccess{})
+	if res.Error != nil {
+		return ConvertGormError(res.Error)
+	}
+	if res.RowsAffected == 0 {
+		return repository.ErrNotFound{}
+	}
+
+	return nil
+}
+
+func (repo *Client) BulkDeleteRecipeAccess(ctx context.Context, parent model.RecipeAccessParent) error {
+	if parent.RecipeId.RecipeId == 0 {
+		return repository.ErrInvalidArgument{Msg: "recipe id is required"}
+	}
+
+	db := repo.db.WithContext(ctx)
+
+	res := db.Where("recipe_id = ?", parent.RecipeId.RecipeId).Delete(&dbModel.RecipeAccess{})
 	if res.Error != nil {
 		return ConvertGormError(res.Error)
 	}

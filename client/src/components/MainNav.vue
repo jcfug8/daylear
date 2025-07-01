@@ -28,7 +28,7 @@
         prepend-icon="mdi-account-group"
         title="Circles"
         value="circles"
-        :to="{ name: 'publicCircles' }"
+        :to="{ name: 'circles' }"
       ></v-list-item>
       <v-list-group value="Meals">
         <template v-slot:activator="{ props }">

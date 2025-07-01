@@ -47,7 +47,7 @@ const visibilityOptions = [
 ]
 
 function navigateBack() {
-  router.push({ name: 'publicCircles' })
+  router.push({ name: 'circles' })
 }
 
 function saveCircle() {
@@ -66,7 +66,7 @@ function saveCircle() {
 onMounted(() => {
   circlesStore.initEmptyCircle()
   breadcrumbStore.setBreadcrumbs([
-    { title: 'Circles', to: { name: 'publicCircles' } },
+    { title: 'Circles', to: { name: 'circles' } },
     { title: 'Create New Circle', to: { name: 'circleCreate' } },
   ])
 })
