@@ -89,14 +89,9 @@ func (d *Domain) DeleteRecipe(ctx context.Context, authAccount model.AuthAccount
 		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	authAccount.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
-
-	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccessForRecipe(ctx, authAccount)
-		if err != nil {
-			return model.Recipe{}, err
-		}
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, id)
+	if err != nil {
+		return model.Recipe{}, err
 	}
 
 	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_ADMIN {
@@ -138,11 +133,13 @@ func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, i
 		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	authAccount.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
-
 	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccessForRecipe(ctx, authAccount)
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, id)
+		if err != nil {
+			return model.Recipe{}, err
+		}
+	} else {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevels(ctx, authAccount, id)
 		if err != nil {
 			return model.Recipe{}, err
 		}
@@ -166,20 +163,6 @@ func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount,
 		return nil, domain.ErrInvalidArgument{Msg: "user_id required"}
 	}
 
-	authAccount.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
-
-	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccessForRecipe(ctx, authAccount)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if authAccount.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
-		return nil, domain.ErrPermissionDenied{Msg: "user does not have access"}
-	}
-
 	recipes, err = d.repo.ListRecipes(ctx, authAccount, pageSize, pageOffset)
 	if err != nil {
 		return nil, err
@@ -199,14 +182,9 @@ func (d *Domain) UpdateRecipe(ctx context.Context, authAccount model.AuthAccount
 		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	authAccount.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
-
-	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccessForRecipe(ctx, authAccount)
-		if err != nil {
-			return model.Recipe{}, err
-		}
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, recipe.Id)
+	if err != nil {
+		return model.Recipe{}, err
 	}
 
 	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
@@ -257,17 +235,12 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, authAccount model.AuthAc
 		return "", domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	authAccount.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
-
-	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccessForRecipe(ctx, authAccount)
-		if err != nil {
-			return "", err
-		}
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, id)
+	if err != nil {
+		return "", err
 	}
 
-	if authAccount.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
 		return "", domain.ErrPermissionDenied{Msg: "user does not have access"}
 	}
 

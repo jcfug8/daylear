@@ -5,6 +5,7 @@ import (
 
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
 // RecipeFromCoreModel converts a core model to a gorm model.
@@ -44,6 +45,10 @@ func RecipeToCoreModel(m gmodel.Recipe) (cmodel.Recipe, error) {
 		ImageURI:    m.ImageURI,
 		Visibility:  m.VisibilityLevel,
 		Permission:  m.PermissionLevel,
+	}
+
+	if m.VisibilityLevel == types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC && m.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+		recipe.Permission = types.PermissionLevel_PERMISSION_LEVEL_PUBLIC
 	}
 
 	if m.Directions != nil {

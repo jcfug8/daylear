@@ -54,6 +54,20 @@ func (repo *Client) DeleteCircleAccess(ctx context.Context, parent model.CircleA
 	return nil
 }
 
+func (repo *Client) BulkDeleteCircleAccess(ctx context.Context, parent model.CircleAccessParent) error {
+	db := repo.db.WithContext(ctx)
+
+	res := db.Where("circle_id = ?", parent.CircleId.CircleId).Delete(&dbModel.CircleAccess{})
+	if res.Error != nil {
+		return ConvertGormError(res.Error)
+	}
+	if res.RowsAffected == 0 {
+		return repository.ErrNotFound{}
+	}
+
+	return nil
+}
+
 func (repo *Client) GetCircleAccess(ctx context.Context, parent model.CircleAccessParent, id model.CircleAccessId) (model.CircleAccess, error) {
 	// db := repo.db.WithContext(ctx)
 

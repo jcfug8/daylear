@@ -8,6 +8,7 @@ import (
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	"github.com/jcfug8/daylear/server/core/masks"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
 	"github.com/jcfug8/daylear/server/ports/repository"
 	"gorm.io/gorm/clause"
 )
@@ -25,14 +26,14 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 		Select("recipe.*, recipe_access.permission_level").
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
-		Offset(int(offset)).
-		Joins("JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id").
-		Where("recipe.visibility_level <= ? AND recipe_access.permission_level <= ?", authAccount.VisibilityLevel, authAccount.PermissionLevel)
+		Offset(int(offset))
 
 	if authAccount.CircleId != 0 {
-		tx = tx.Where("recipe_access.recipient_circle_id = ?", authAccount.CircleId)
+		tx = tx.Where("(recipe_access.recipient_circle_id = ? OR recipe.visibility_level = ?)", authAccount.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC).
+			Joins("JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ?", authAccount.CircleId)
 	} else {
-		tx = tx.Where("recipe_access.recipient_user_id = ?", authAccount.UserId)
+		tx = tx.Where("(recipe_access.recipient_user_id = ? OR recipe.visibility_level = ?)", authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC).
+			Joins("JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId)
 	}
 
 	err := tx.Find(&dbRecipes).Error
@@ -80,15 +81,9 @@ func (repo *Client) CreateRecipe(ctx context.Context, m cmodel.Recipe) (cmodel.R
 
 // DeleteRecipe deletes a recipe.
 func (repo *Client) DeleteRecipe(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.RecipeId) (cmodel.Recipe, error) {
-	// use GetRecipe to verify the user has access to it
-	_, err := repo.GetRecipe(ctx, authAccount, id)
-	if err != nil {
-		return cmodel.Recipe{}, err
-	}
-
 	gm := gmodel.Recipe{RecipeId: id.RecipeId}
 
-	err = repo.db.WithContext(ctx).
+	err := repo.db.WithContext(ctx).
 		Select(gmodel.RecipeFields.Mask()).
 		Clauses(clause.Returning{}).
 		Delete(&gm).Error
@@ -110,14 +105,12 @@ func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccoun
 
 	tx := repo.db.WithContext(ctx).
 		Select("recipe.*, recipe_access.permission_level").
-		Joins("JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id").
-		Where("recipe.visibility_level <= ? AND recipe_access.permission_level <= ?", authAccount.VisibilityLevel, authAccount.PermissionLevel).
-		Where("recipe.recipe_id = ?", id.RecipeId)
+		Where("recipe.recipe_id = ? AND (recipe.visibility_level = ? OR recipe_access.recipient_user_id = ?)", id.RecipeId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.UserId)
 
 	if authAccount.CircleId != 0 {
-		tx = tx.Where("recipe_access.recipient_circle_id = ?", authAccount.CircleId)
+		tx = tx.Joins("JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ?", authAccount.CircleId)
 	} else {
-		tx = tx.Where("recipe_access.recipient_user_id = ?", authAccount.UserId)
+		tx = tx.Joins("JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId)
 	}
 
 	err := tx.First(&gm).Error

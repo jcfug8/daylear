@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+
 	// "fmt"
 
 	model "github.com/jcfug8/daylear/server/core/model"
@@ -56,47 +57,42 @@ func (d *Domain) CreateCircle(ctx context.Context, authAccount model.AuthAccount
 }
 
 // DeleteCircle deletes a circle.
-func (d *Domain) DeleteCircle(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (model.Circle, error) {
-	// TODO: Implement DeleteCircle
-	// Implementation commented out for refactoring
-	/*
-		if parent.UserId == 0 || id.CircleId == 0 {
-			return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent and id required"}
-		}
+func (d *Domain) DeleteCircle(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (circle model.Circle, err error) {
+	if authAccount.UserId == 0 || id.CircleId == 0 {
+		return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent and id required"}
+	}
 
-		permission, err := d.repo.GetCircleUserPermission(ctx, parent.UserId, id.CircleId)
-		if err != nil {
-			return model.Circle{}, err
-		}
-		if permission != permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
-			return model.Circle{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
-		}
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
+	if err != nil {
+		return model.Circle{}, err
+	}
 
-		tx, err := d.repo.Begin(ctx)
-		if err != nil {
-			return model.Circle{}, err
-		}
-		defer tx.Rollback()
+	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
+		return model.Circle{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
+	}
 
-		circle := model.Circle{Id: id, Parent: parent}
-		deleted, err := tx.DeleteCircle(ctx, circle)
-		if err != nil {
-			return model.Circle{}, err
-		}
+	tx, err := d.repo.Begin(ctx)
+	if err != nil {
+		return model.Circle{}, err
+	}
+	defer tx.Rollback()
 
-		err = tx.BulkDeleteCircleUsers(ctx, fmt.Sprintf("circle_id = %d", id.CircleId))
-		if err != nil {
-			return model.Circle{}, err
-		}
+	circle, err = tx.DeleteCircle(ctx, id)
+	if err != nil {
+		return model.Circle{}, err
+	}
 
-		err = tx.Commit()
-		if err != nil {
-			return model.Circle{}, err
-		}
+	err = tx.BulkDeleteCircleAccess(ctx, model.CircleAccessParent{CircleId: id})
+	if err != nil {
+		return model.Circle{}, err
+	}
 
-		return deleted, nil
-	*/
-	return model.Circle{}, domain.ErrInternal{Msg: "DeleteCircle method not implemented"}
+	err = tx.Commit()
+	if err != nil {
+		return model.Circle{}, err
+	}
+
+	return circle, nil
 }
 
 // GetCircle gets a circle.
@@ -107,20 +103,6 @@ func (d *Domain) GetCircle(ctx context.Context, authAccount model.AuthAccount, i
 
 	if id.CircleId == 0 {
 		return model.Circle{}, domain.ErrInvalidArgument{Msg: "id required"}
-	}
-
-	authAccount.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
-
-	authAccount.CircleId = id.CircleId
-
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.verifyCircleAccess(ctx, authAccount)
-	if err != nil {
-		return model.Circle{}, err
-	}
-
-	if authAccount.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
-		return model.Circle{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
 	}
 
 	circle, err = d.repo.GetCircle(ctx, authAccount, id)
@@ -137,9 +119,6 @@ func (d *Domain) ListCircles(ctx context.Context, authAccount model.AuthAccount,
 		return nil, domain.ErrInvalidArgument{Msg: "parent required"}
 	}
 
-	authAccount.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-	authAccount.VisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN
-
 	circles, err := d.repo.ListCircles(ctx, authAccount, pageSize, pageOffset, filter, fieldMask)
 	if err != nil {
 		return nil, err
@@ -149,44 +128,30 @@ func (d *Domain) ListCircles(ctx context.Context, authAccount model.AuthAccount,
 }
 
 // UpdateCircle updates a circle.
-func (d *Domain) UpdateCircle(ctx context.Context, authAccount model.AuthAccount, circle model.Circle, updateMask []string) (model.Circle, error) {
-	// TODO: Implement UpdateCircle
-	// Implementation commented out for refactoring
-	/*
-		if circle.Parent.UserId == 0 {
-			return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent required"}
-		}
+func (d *Domain) UpdateCircle(ctx context.Context, authAccount model.AuthAccount, circle model.Circle, updateMask []string) (dbCircle model.Circle, err error) {
+	if authAccount.UserId == 0 {
+		return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent required"}
+	}
 
-		if circle.Id.CircleId == 0 {
-			return model.Circle{}, domain.ErrInvalidArgument{Msg: "id required"}
-		}
+	if circle.Id.CircleId == 0 {
+		return model.Circle{}, domain.ErrInvalidArgument{Msg: "id required"}
+	}
 
-		permission, err := d.repo.GetCircleUserPermission(ctx, circle.Parent.UserId, circle.Id.CircleId)
-		if err != nil {
-			return model.Circle{}, err
-		}
-		if permission < permPb.PermissionLevel_PERMISSION_LEVEL_WRITE {
-			return model.Circle{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
-		}
+	authAccount.CircleId = circle.Id.CircleId
 
-		tx, err := d.repo.Begin(ctx)
-		if err != nil {
-			return model.Circle{}, err
-		}
-		defer tx.Rollback()
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
+	if err != nil {
+		return model.Circle{}, err
+	}
 
-		updated, err := tx.UpdateCircle(ctx, circle, updateMask)
-		if err != nil {
-			return model.Circle{}, err
-		}
-		updated.Parent = circle.Parent
+	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
+		return model.Circle{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
+	}
 
-		err = tx.Commit()
-		if err != nil {
-			return model.Circle{}, err
-		}
+	updated, err := d.repo.UpdateCircle(ctx, authAccount, circle, updateMask)
+	if err != nil {
+		return model.Circle{}, err
+	}
 
-		return updated, nil
-	*/
-	return model.Circle{}, domain.ErrInternal{Msg: "UpdateCircle method not implemented"}
+	return updated, nil
 }
