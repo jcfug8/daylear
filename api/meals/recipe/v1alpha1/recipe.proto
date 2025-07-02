@@ -4,6 +4,7 @@ package api.meals.recipe.v1alpha1;
 
 import "api/types/permission_level.proto";
 import "api/types/visibility_level.proto";
+import "api/types/access_state.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
@@ -167,6 +168,9 @@ message Recipe {
 
   // the permission level the user has to the recipe
   api.types.PermissionLevel permission = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the access state of the user to the recipe
+  api.types.AccessState state = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // the directions to make the recipe
   message Direction {

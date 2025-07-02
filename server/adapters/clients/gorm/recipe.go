@@ -17,6 +17,7 @@ import (
 var RecipeMap = map[string]string{
 	"permission": gmodel.RecipeAccessFields.PermissionLevel,
 	"visibility": gmodel.RecipeFields.VisibilityLevel,
+	"state":      gmodel.RecipeAccessFields.State,
 }
 
 // ListRecipes lists recipes.
@@ -29,7 +30,7 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 	}}
 
 	tx := repo.db.WithContext(ctx).
-		Select("recipe.*, recipe_access.permission_level").
+		Select("recipe.*, recipe_access.permission_level, recipe_access.state").
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(offset))

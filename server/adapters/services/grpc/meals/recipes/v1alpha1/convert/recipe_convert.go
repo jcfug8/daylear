@@ -24,6 +24,7 @@ func ProtoToRecipe(RecipeNamer namer.ReflectNamer, proto *pb.Recipe) (model.Reci
 	recipe.ImageURI = proto.ImageUri
 	recipe.Visibility = proto.Visibility
 	recipe.Permission = proto.Permission
+	recipe.State = proto.State
 
 	return recipe, nil
 }
@@ -44,6 +45,7 @@ func RecipeToProto(RecipeNamer namer.ReflectNamer, recipe model.Recipe) (*pb.Rec
 	proto.ImageUri = recipe.ImageURI
 	proto.Visibility = recipe.Visibility
 	proto.Permission = recipe.Permission
+	proto.State = recipe.State
 
 	return proto, nil
 }

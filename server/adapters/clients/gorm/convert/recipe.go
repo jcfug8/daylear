@@ -18,6 +18,7 @@ func RecipeFromCoreModel(m cmodel.Recipe) (gmodel.Recipe, error) {
 		ImageURI:        m.ImageURI,
 		VisibilityLevel: m.Visibility,
 		PermissionLevel: m.Permission,
+		State:           m.State,
 	}
 
 	recipe.Directions, err = json.Marshal(m.Directions)
@@ -45,6 +46,7 @@ func RecipeToCoreModel(m gmodel.Recipe) (cmodel.Recipe, error) {
 		ImageURI:    m.ImageURI,
 		Visibility:  m.VisibilityLevel,
 		Permission:  m.PermissionLevel,
+		State:       m.State,
 	}
 
 	if m.VisibilityLevel == types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC && m.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {

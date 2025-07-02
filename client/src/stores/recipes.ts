@@ -13,13 +13,13 @@ export const useRecipesStore = defineStore('recipes', () => {
   const recipes = ref<Recipe[]>([])
   const recipe = ref<Recipe | undefined>()
 
-  async function loadRecipes(parent: string) {
+  async function loadRecipes(parent: string, filter?: string) {
     try {
       const request = {
         parent,
         pageSize: undefined,
         pageToken: undefined,
-        filter: undefined,
+        filter,
       }
       const response = (await recipeService.ListRecipes(
         request as ListRecipesRequest,
@@ -29,6 +29,27 @@ export const useRecipesStore = defineStore('recipes', () => {
       console.error('Failed to load recipes:', error)
       recipes.value = []
     }
+  }
+
+  // Load my recipes (recipes where I have admin permission)
+  async function loadMyRecipes(parent: string) {
+    await loadRecipes(parent, 'permission = 300')
+  }
+
+  // Load shared recipes (recipes shared with me - read or write permission)
+  async function loadSharedRecipes(parent: string, state?: number) {
+    let filter = 'permission = 100 OR permission = 200'
+    if (state === 100) {
+      filter += ' AND state = 100'
+    } else if (state === 200) {
+      filter += ' AND state = 200'
+    }
+    await loadRecipes(parent, filter)
+  }
+
+  // Load public recipes (recipes with public visibility)
+  async function loadPublicRecipes(parent: string) {
+    await loadRecipes(parent, 'visibility = 1')
   }
 
   async function loadRecipe(recipeName: string) {
@@ -51,6 +72,7 @@ export const useRecipesStore = defineStore('recipes', () => {
       imageUri: undefined,
       visibility: 'VISIBILITY_LEVEL_UNSPECIFIED' as apitypes_VisibilityLevel,
       permission: 'PERMISSION_LEVEL_UNSPECIFIED' as apitypes_PermissionLevel,
+      state: 'ACCESS_STATE_UNSPECIFIED',
     }
   }
 
@@ -98,6 +120,9 @@ export const useRecipesStore = defineStore('recipes', () => {
 
   return {
     loadRecipes,
+    loadMyRecipes,
+    loadSharedRecipes,
+    loadPublicRecipes,
     loadRecipe,
     initEmptyRecipe,
     createRecipe,

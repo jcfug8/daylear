@@ -36,6 +36,10 @@ export type Recipe = {
   //
   // Behaviors: OUTPUT_ONLY
   permission: apitypes_PermissionLevel | undefined;
+  // the access state of the user to the recipe
+  //
+  // Behaviors: OUTPUT_ONLY
+  state: apitypes_AccessState | undefined;
 };
 
 // the directions to make the recipe
@@ -124,6 +128,14 @@ export type apitypes_PermissionLevel =
   | "PERMISSION_LEVEL_WRITE"
   // the permission is admin
   | "PERMISSION_LEVEL_ADMIN";
+// the visibility levels
+export type apitypes_AccessState =
+  // This status should never get used.
+  | "ACCESS_STATE_UNSPECIFIED"
+  // The access is pending and can either be accepted or deleted.
+  | "ACCESS_STATE_PENDING"
+  // The access is accepted and can be deleted.
+  | "ACCESS_STATE_ACCEPTED";
 // the request to create a recipe
 export type CreateRecipeRequest = {
   // the recipe to create
@@ -385,14 +397,6 @@ export type Access_RequesterOrRecipient = {
   circle?: string;
 };
 
-// the visibility levels
-export type apitypes_AccessState =
-  // This status should never get used.
-  | "ACCESS_STATE_UNSPECIFIED"
-  // The access is pending and can either be accepted or deleted.
-  | "ACCESS_STATE_PENDING"
-  // The access is accepted and can be deleted.
-  | "ACCESS_STATE_ACCEPTED";
 // The request to create an access to a recipe
 export type CreateAccessRequest = {
   // parent

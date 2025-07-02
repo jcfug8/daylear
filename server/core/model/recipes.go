@@ -20,6 +20,7 @@ type Recipe struct {
 
 	Visibility types.VisibilityLevel
 	Permission types.PermissionLevel
+	State      types.AccessState
 }
 
 type RecipeDirection struct {
@@ -61,6 +62,7 @@ var RecipeFields = recipeFields{
 
 	VisibilityLevel: "visibility_level",
 	PermissionLevel: "permission_level",
+	State:           "state",
 }
 
 type recipeFields struct {
@@ -76,6 +78,7 @@ type recipeFields struct {
 
 	VisibilityLevel string
 	PermissionLevel string
+	State           string
 }
 
 // Mask returns a FieldMask for the recipe fields.

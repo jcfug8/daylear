@@ -35,7 +35,8 @@ var RecipeFields = recipeFields{
 	ImageURI:         "recipe.image_uri",
 	IngredientGroups: "recipe.ingredient_groups",
 	VisibilityLevel:  "recipe.visibility_level",
-	PermissionLevel:  "recipe.permission_level",
+	PermissionLevel:  "recipe_access.permission_level",
+	State:            "recipe_access.state",
 }
 
 type recipeFields struct {
@@ -47,6 +48,7 @@ type recipeFields struct {
 	IngredientGroups string
 	VisibilityLevel  string
 	PermissionLevel  string
+	State            string
 }
 
 // Map maps the recipe fields to their corresponding model values.
@@ -87,6 +89,7 @@ type Recipe struct {
 	IngredientGroups []byte                `gorm:"type:jsonb"`
 	VisibilityLevel  types.VisibilityLevel `gorm:"not null;default:300"`
 	PermissionLevel  types.PermissionLevel `gorm:"<-:false"` // only used for read from a join
+	State            types.AccessState     `gorm:"<-:false"` // only used for read from a join
 }
 
 // TableName -
