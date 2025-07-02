@@ -21,6 +21,7 @@
       </v-col>
     </v-row>
     <v-btn
+      v-if="hasWritePermission(authStore.activeAccountPermissionLevel)"
       color="primary"
       icon="mdi-plus"
       style="position: fixed; bottom: 16px; right: 16px"
@@ -35,6 +36,7 @@ import { storeToRefs } from 'pinia'
 import { onMounted } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useAuthStore } from '@/stores/auth'
+import { hasWritePermission } from '@/utils/permissions'
 
 const authStore = useAuthStore()
 const recipesStore = useRecipesStore()

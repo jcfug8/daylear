@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import type { User } from '@/genapi/api/users/user/v1alpha1'
 import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
 import { userService, authService, circleService } from '@/api/api'
+import type { PermissionLevel  } from '@/genapi/api/types'
 
 export enum AccountType {
   USER = 'user',
@@ -47,6 +48,14 @@ export const useAuthStore = defineStore('auth', () => {
     } else if (activeAccount.value) {
       return AccountType.CIRCLE
     }
+  })
+  const activeAccountPermissionLevel = computed<PermissionLevel>(() => {
+    if (activeAccount.value && 'username' in activeAccount.value) {
+      return "PERMISSION_LEVEL_ADMIN"
+    } else if (activeAccount.value) {
+      return activeAccount.value.permission as PermissionLevel ?? "PERMISSION_LEVEL_UNSPECIFIED"
+    }
+    return "PERMISSION_LEVEL_UNSPECIFIED"
   })
   /**
    * Logs the user out by clearing authentication data and removing the JWT from sessionStorage.
@@ -311,6 +320,7 @@ export const useAuthStore = defineStore('auth', () => {
     circles,
     activeAccount,
     activeAccountName,
+    activeAccountPermissionLevel,
     activeAccountType,
     activeAccountTitle,
     isLoggedIn,

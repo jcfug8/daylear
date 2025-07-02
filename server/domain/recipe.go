@@ -23,12 +23,22 @@ import (
 const RecipeImageRoot = "recipes"
 
 // CreateRecipe creates a new recipe.
-func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe) (model.Recipe, error) {
+func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe) (dbRecipe model.Recipe, err error) {
 	if authAccount.UserId == 0 {
 		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "user id required"}
 	}
 
 	recipe.Id.RecipeId = 0
+
+	if authAccount.CircleId != 0 {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
+		if err != nil {
+			return model.Recipe{}, err
+		}
+		if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
+			return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
+		}
+	}
 
 	tx, err := d.repo.Begin(ctx)
 	if err != nil {
@@ -41,7 +51,7 @@ func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount
 		return model.Recipe{}, err
 	}
 
-	dbRecipe, err := tx.CreateRecipe(ctx, recipe)
+	dbRecipe, err = tx.CreateRecipe(ctx, recipe)
 	if err != nil {
 		return model.Recipe{}, err
 	}
@@ -154,6 +164,10 @@ func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, i
 		return model.Recipe{}, err
 	}
 
+	if authAccount.PermissionLevel < recipe.Permission {
+		recipe.Permission = authAccount.PermissionLevel
+	}
+
 	return recipe, nil
 }
 
@@ -166,6 +180,18 @@ func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount,
 	recipes, err = d.repo.ListRecipes(ctx, authAccount, pageSize, pageOffset)
 	if err != nil {
 		return nil, err
+	}
+
+	if authAccount.CircleId != 0 {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
+		if err != nil {
+			return nil, err
+		}
+		for _, recipe := range recipes {
+			if recipe.Permission < authAccount.PermissionLevel {
+				recipe.Permission = authAccount.PermissionLevel
+			}
+		}
 	}
 
 	return recipes, nil
