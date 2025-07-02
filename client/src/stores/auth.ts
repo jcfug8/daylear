@@ -9,6 +9,9 @@ export enum AccountType {
   CIRCLE = 'circle',
 }
 
+const JWT_STORAGE_KEY = 'jwt'
+const ACTIVE_ACCOUNT_STORAGE_KEY = 'daylear_active_account_name'
+
 export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = ref(false)
   const authInitialized = ref(false)
@@ -50,7 +53,8 @@ export const useAuthStore = defineStore('auth', () => {
    */
   function logOut() {
     console.log('logOut')
-    sessionStorage.removeItem('jwt') // Remove the JWT from sessionStorage
+    sessionStorage.removeItem(JWT_STORAGE_KEY) // Remove the JWT from sessionStorage
+    sessionStorage.removeItem(ACTIVE_ACCOUNT_STORAGE_KEY) // Remove the active account from sessionStorage
     _clearAuthData()
     isLoggedIn.value = false
   }
@@ -63,6 +67,7 @@ export const useAuthStore = defineStore('auth', () => {
   function setActiveAccount(account: User | Circle) {
     console.log('setActiveAccount', account)
     activeAccount.value = account
+    _saveActiveAccountToStorage(account)
   }
 
   /**
@@ -126,13 +131,13 @@ export const useAuthStore = defineStore('auth', () => {
           tokenKey: value,
         })
         if (res.token) {
-          sessionStorage.setItem('jwt', res.token)
+          sessionStorage.setItem(JWT_STORAGE_KEY, res.token)
         } else {
           throw new Error('No token returned from auth service')
         }
       }
       
-      const token = sessionStorage.getItem('jwt') // Retrieve the JWT from sessionStorage
+      const token = sessionStorage.getItem(JWT_STORAGE_KEY) // Retrieve the JWT from sessionStorage
       if (token) {
         console.log('JWT found in sessionStorage')
         await _setupAuthData()
@@ -184,10 +189,15 @@ export const useAuthStore = defineStore('auth', () => {
       throw error
     }
 
-
-    if (activeAccount.value === undefined) {
+    // Try to restore the active account from session storage
+    const restoredAccount = _restoreActiveAccountFromStorage()
+    if (restoredAccount) {
+      activeAccount.value = restoredAccount
+    } else {
+      // Fall back to user account if no valid stored account
       activeAccount.value = user.value
     }
+    
     isLoggedIn.value = true
   }
 
@@ -208,6 +218,87 @@ export const useAuthStore = defineStore('auth', () => {
     }
     circles.value = []
     activeAccount.value = undefined
+  }
+
+  /**
+   * Saves the active account name to session storage.
+   *
+   * @private
+   * @param {User | Circle} account - The account to save.
+   */
+  function _saveActiveAccountToStorage(account: User | Circle) {
+    try {
+      if (account?.name) {
+        sessionStorage.setItem(ACTIVE_ACCOUNT_STORAGE_KEY, account.name)
+      }
+    } catch (error) {
+      console.warn('Failed to save active account to session storage:', error)
+    }
+  }
+
+  /**
+   * Gets the stored active account name from session storage.
+   *
+   * @private
+   * @returns {string | null} The stored account name or null if not found.
+   */
+  function _getStoredActiveAccountName(): string | null {
+    try {
+      return sessionStorage.getItem(ACTIVE_ACCOUNT_STORAGE_KEY)
+    } catch (error) {
+      console.warn('Failed to retrieve active account from session storage:', error)
+      return null
+    }
+  }
+
+  /**
+   * Finds an account by name in the user or circles data.
+   *
+   * @private
+   * @param {string} name - The account name to find.
+   * @returns {User | Circle | null} The found account or null.
+   */
+  function _findAccountByName(name: string): User | Circle | null {
+    // Check if it matches the user
+    if (user.value?.name === name) {
+      return user.value
+    }
+    
+    // Check if it matches any circle
+    const circle = circles.value.find(c => c.name === name)
+    if (circle) {
+      return circle
+    }
+    
+    return null
+  }
+
+  /**
+   * Restores the active account from session storage if the user still has access.
+   *
+   * @private
+   * @returns {User | Circle | null} The restored account or null if not found/accessible.
+   */
+  function _restoreActiveAccountFromStorage(): User | Circle | null {
+    const storedAccountName = _getStoredActiveAccountName()
+    if (!storedAccountName) {
+      return null
+    }
+
+    const account = _findAccountByName(storedAccountName)
+    if (account) {
+      console.log('Restored active account from session storage:', storedAccountName)
+      return account
+    } else {
+      console.log('Stored active account no longer accessible, clearing from storage:', storedAccountName)
+      // Clear the invalid stored account
+      try {
+        sessionStorage.removeItem(ACTIVE_ACCOUNT_STORAGE_KEY)
+      } catch (error) {
+        console.warn('Failed to clear invalid active account from session storage:', error)
+      }
+      return null
+    }
   }
 
   // Run authentication check on store initialization
