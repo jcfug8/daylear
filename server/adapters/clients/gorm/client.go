@@ -27,6 +27,7 @@ func NewClient(p ClientParams) (*Client, error) {
 		db:                       p.DB,
 		log:                      p.Log,
 		recipeAccessSQLConverter: filter.NewSQLConverter(RecipeAccessMap, true),
+		recipeSQLConverter:       filter.NewSQLConverter(RecipeMap, true),
 		circleSQLConverter:       filter.NewSQLConverter(CircleMap, true),
 		circleAccessSQLConverter: filter.NewSQLConverter(CircleAccessMap, true),
 	}, nil
@@ -39,6 +40,7 @@ type Client struct {
 	log   zerolog.Logger
 
 	recipeAccessSQLConverter *filter.SQLConverter
+	recipeSQLConverter       *filter.SQLConverter
 	circleSQLConverter       *filter.SQLConverter
 	circleAccessSQLConverter *filter.SQLConverter
 }

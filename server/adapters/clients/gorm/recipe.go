@@ -13,8 +13,14 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// RecipeMap maps the core model fields to the database model fields for the unified Recipe model.
+var RecipeMap = map[string]string{
+	"permission": gmodel.RecipeAccessFields.PermissionLevel,
+	"visibility": gmodel.RecipeFields.VisibilityLevel,
+}
+
 // ListRecipes lists recipes.
-func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAccount, pageSize int32, offset int64) ([]cmodel.Recipe, error) {
+func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAccount, pageSize int32, offset int64, filter string) ([]cmodel.Recipe, error) {
 	dbRecipes := []gmodel.Recipe{}
 
 	orders := []clause.OrderByColumn{{
@@ -38,7 +44,16 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId)
 	}
 
-	err := tx.Find(&dbRecipes).Error
+	conversion, err := repo.recipeSQLConverter.Convert(filter)
+	if err != nil {
+		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
+	}
+
+	if conversion.WhereClause != "" {
+		tx = tx.Where(conversion.WhereClause, conversion.Params...)
+	}
+
+	err = tx.Find(&dbRecipes).Error
 	if err != nil {
 		return nil, ConvertGormError(err)
 	}

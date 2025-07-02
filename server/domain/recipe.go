@@ -172,12 +172,12 @@ func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, i
 }
 
 // ListRecipes lists recipes.
-func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount, pageSize int32, pageOffset int64) (recipes []model.Recipe, err error) {
+func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount, pageSize int32, pageOffset int64, filter string) (recipes []model.Recipe, err error) {
 	if authAccount.UserId == 0 {
 		return nil, domain.ErrInvalidArgument{Msg: "user_id required"}
 	}
 
-	recipes, err = d.repo.ListRecipes(ctx, authAccount, pageSize, pageOffset)
+	recipes, err = d.repo.ListRecipes(ctx, authAccount, pageSize, pageOffset, filter)
 	if err != nil {
 		return nil, err
 	}

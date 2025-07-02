@@ -28,14 +28,14 @@ var RecipeMap = masks.NewFieldMap().
 
 // RecipeFields defines the recipe fields.
 var RecipeFields = recipeFields{
-	RecipeId:         "recipe_id",
-	Title:            "title",
-	Description:      "description",
-	Directions:       "directions",
-	ImageURI:         "image_uri",
-	IngredientGroups: "ingredient_groups",
-	VisibilityLevel:  "visibility_level",
-	PermissionLevel:  "permission_level",
+	RecipeId:         "recipe.recipe_id",
+	Title:            "recipe.title",
+	Description:      "recipe.description",
+	Directions:       "recipe.directions",
+	ImageURI:         "recipe.image_uri",
+	IngredientGroups: "recipe.ingredient_groups",
+	VisibilityLevel:  "recipe.visibility_level",
+	PermissionLevel:  "recipe.permission_level",
 }
 
 type recipeFields struct {

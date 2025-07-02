@@ -146,6 +146,10 @@ export type ListRecipesRequest = {
   //
   // Behaviors: OPTIONAL
   pageToken: string | undefined;
+  // used to specify the filter
+  //
+  // Behaviors: OPTIONAL
+  filter: string | undefined;
 };
 
 // the response to list recipes
@@ -267,6 +271,9 @@ export function createRecipeServiceClient(
       }
       if (request.pageToken) {
         queryParams.push(`pageToken=${encodeURIComponent(request.pageToken.toString())}`)
+      }
+      if (request.filter) {
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {

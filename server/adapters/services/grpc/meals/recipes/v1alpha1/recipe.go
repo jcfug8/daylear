@@ -163,7 +163,7 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 	}
 	request.PageSize = pageSize
 
-	res, err := s.domain.ListRecipes(ctx, authAccount, request.GetPageSize(), pageToken.Offset)
+	res, err := s.domain.ListRecipes(ctx, authAccount, request.GetPageSize(), pageToken.Offset, request.GetFilter())
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -171,6 +171,11 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 	recipes, err := convert.RecipeListToProto(s.recipeNamer, res)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "unable to prepare response")
+	}
+
+	// check field behavior
+	for _, recipeProto := range recipes {
+		grpc.ProcessResponseFieldBehavior(recipeProto)
 	}
 
 	response := &pb.ListRecipesResponse{

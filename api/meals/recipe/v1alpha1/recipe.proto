@@ -232,6 +232,8 @@ message ListRecipesRequest {
   int32 page_size = 1 [(google.api.field_behavior) = OPTIONAL];
   // used to specify the page token
   string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+  // used to specify the filter
+  string filter = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // the response to list recipes

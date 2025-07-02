@@ -52,6 +52,13 @@
             "type": "string"
           },
           {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "X-Daylear-Circle",
             "description": "the name of the circle to act as",
             "in": "header",
