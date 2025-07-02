@@ -12,6 +12,7 @@ var Module = fx.Module(
 	fx.Provide(
 		NewCircleService,
 		func(s *CircleService) pb.CircleServiceServer { return s },
+		func(s *CircleService) pb.CircleAccessServiceServer { return s },
 		fx.Annotate(
 			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.Access]() },
 			fx.ResultTags(`name:"v1alpha1CircleAccessNamer"`),

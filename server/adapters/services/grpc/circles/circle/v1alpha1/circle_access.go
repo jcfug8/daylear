@@ -234,13 +234,24 @@ func (s *CircleService) AcceptAccess(ctx context.Context, request *pb.AcceptAcce
 
 // Helper conversion functions (to be implemented)
 func (s *CircleService) ProtoToCircleAccess(proto *pb.Access) (model.CircleAccess, error) {
-	circleAccess := model.CircleAccess{}
+	circleAccess := model.CircleAccess{
+		Level: proto.GetLevel(),
+		State: proto.GetState(),
+	}
 	if proto.GetName() != "" {
 		_, err := s.accessNamer.Parse(proto.GetName(), &circleAccess)
 		if err != nil {
 			return circleAccess, err
 		}
 	}
+
+	if proto.GetRecipient() != "" {
+		_, err := s.userNamer.Parse(proto.GetRecipient(), &circleAccess)
+		if err != nil {
+			return circleAccess, err
+		}
+	}
+
 	switch pbrequester := proto.GetRequester().GetName().(type) {
 	case *pb.Access_Requester_User:
 		circleAccess.Requester = model.AuthAccount{}
@@ -255,10 +266,45 @@ func (s *CircleService) ProtoToCircleAccess(proto *pb.Access) (model.CircleAcces
 			return circleAccess, err
 		}
 	}
+
 	return circleAccess, nil
 }
 
 func (s *CircleService) CircleAccessToProto(circleAccess model.CircleAccess) (*pb.Access, error) {
-	// TODO: Implement conversion logic
-	return &pb.Access{}, nil
+	proto := &pb.Access{
+		Level: circleAccess.Level,
+		State: circleAccess.State,
+	}
+
+	if circleAccess.CircleId.CircleId != 0 {
+		name, err := s.accessNamer.Format(circleAccess)
+		if err != nil {
+			return nil, err
+		}
+		proto.Name = name
+	}
+
+	if circleAccess.Recipient != 0 {
+		name, err := s.userNamer.Format(circleAccess)
+		if err != nil {
+			return nil, err
+		}
+		proto.Recipient = name
+	}
+
+	if circleAccess.Requester.CircleId != 0 {
+		name, err := s.circleNamer.Format(circleAccess.Requester)
+		if err != nil {
+			return nil, err
+		}
+		proto.Requester = &pb.Access_Requester{Name: &pb.Access_Requester_Circle{Circle: name}}
+	} else if circleAccess.Requester.UserId != 0 {
+		name, err := s.userNamer.Format(circleAccess.Requester)
+		if err != nil {
+			return nil, err
+		}
+		proto.Requester = &pb.Access_Requester{Name: &pb.Access_Requester_User{User: name}}
+	}
+
+	return proto, nil
 }

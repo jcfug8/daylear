@@ -15,7 +15,7 @@ type Circle struct {
 
 // CircleId defines the identifier for a circle.
 type CircleId struct {
-	CircleId int64 `aip_pattern:"key=circle,public_circle"`
+	CircleId int64 `aip_pattern:"key=circle"`
 }
 
 // ----------------------------------------------------------------------------

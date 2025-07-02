@@ -18,8 +18,9 @@ import (
 type Service struct {
 	userV1alpha1Service    userV1alpha1.UserServiceServer
 	recipesV1alpha1Service recipesV1alpha1.RecipeServiceServer
-	circleV1alpha1Service  circleV1alpha1.CircleServiceServer
 	recipeAccessService    recipesV1alpha1.RecipeAccessServiceServer
+	circleV1alpha1Service  circleV1alpha1.CircleServiceServer
+	circleAccessService    circleV1alpha1.CircleAccessServiceServer
 	domain                 domain.Domain
 }
 
@@ -28,8 +29,9 @@ type NewServiceParams struct {
 
 	UserV1alpha1Service    userV1alpha1.UserServiceServer
 	RecipesV1alpha1Service recipesV1alpha1.RecipeServiceServer
-	CircleV1alpha1Service  circleV1alpha1.CircleServiceServer
 	RecipeAccessService    recipesV1alpha1.RecipeAccessServiceServer
+	CircleV1alpha1Service  circleV1alpha1.CircleServiceServer
+	CircleAccessService    circleV1alpha1.CircleAccessServiceServer
 	Domain                 domain.Domain
 }
 
@@ -37,9 +39,10 @@ func NewService(params NewServiceParams) *Service {
 	return &Service{
 		userV1alpha1Service:    params.UserV1alpha1Service,
 		recipesV1alpha1Service: params.RecipesV1alpha1Service,
-		circleV1alpha1Service:  params.CircleV1alpha1Service,
-		domain:                 params.Domain,
 		recipeAccessService:    params.RecipeAccessService,
+		circleV1alpha1Service:  params.CircleV1alpha1Service,
+		circleAccessService:    params.CircleAccessService,
+		domain:                 params.Domain,
 	}
 }
 
@@ -58,11 +61,15 @@ func (s *Service) Register(m *http.ServeMux) error {
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
 	}
+	err = recipesV1alpha1.RegisterRecipeAccessServiceHandlerServer(ctx, mux, s.recipeAccessService)
+	if err != nil {
+		log.Printf("Failed to register gRPC gateway: %v", err)
+	}
 	err = circleV1alpha1.RegisterCircleServiceHandlerServer(ctx, mux, s.circleV1alpha1Service)
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
 	}
-	err = recipesV1alpha1.RegisterRecipeAccessServiceHandlerServer(ctx, mux, s.recipeAccessService)
+	err = circleV1alpha1.RegisterCircleAccessServiceHandlerServer(ctx, mux, s.circleAccessService)
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
 	}

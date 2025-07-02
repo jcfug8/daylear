@@ -87,7 +87,7 @@ export const useAuthStore = defineStore('auth', () => {
       let res = await circleService.ListCircles({
         pageSize: 100,
         pageToken: '',
-        filter: '',
+        filter: 'permission > 1',
       })
       circles.value = res.circles ?? []
     } catch (error) {

@@ -159,6 +159,9 @@ func extractStructKeyDetailsRec(typ reflect.Type, patternVarMap map[string]patte
 				continue
 			}
 			for _, patternKey := range patternKeys {
+				if _, ok := patternVarMap[patternKey]; ok {
+					continue
+				}
 				patternVarMap[patternKey] = patternKeyDetails{
 					patternKey:     patternKey,
 					fieldIndexPath: currentIndex,

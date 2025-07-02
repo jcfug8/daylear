@@ -86,7 +86,7 @@
             icon="mdi-cog"
             density="comfortable"
             @click.stop
-            :to="{ name: 'circle-settings', params: { circleId: circle.name } }"
+            :to="{ name: 'circle', params: { circleId: circle.name } }"
           ></v-btn>
         </template>
       </v-list-item>

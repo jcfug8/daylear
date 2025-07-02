@@ -23,8 +23,8 @@ type circleAccessFields struct {
 type CircleAccess struct {
 	CircleAccessParent
 	CircleAccessId
+	Recipient int64 `aip_pattern:"key=user"`
 	Requester AuthAccount
-	Recipient int64
 	Level     types.PermissionLevel
 	State     types.AccessState
 }

@@ -101,18 +101,9 @@ const router = createRouter({
       },
     },
     {
-      path: '/circle/:circleId/settings',
-      name: 'circle-settings',
-      component: () => import('../views/circles/CircleSettingsView.vue'),
-      meta: {
-        requiresAuth: true,
-        breadcrumbs: true,
-      },
-    },
-    {
-      path: '/circle/:circleId/settings/edit',
-      name: 'circle-settings-edit',
-      component: () => import('../views/circles/CircleSettingsEditView.vue'),
+      path: '/circle/:circleId/edit',
+      name: 'circle-edit',
+      component: () => import('../views/circles/CircleEditView.vue'),
       meta: {
         requiresAuth: true,
         breadcrumbs: true,

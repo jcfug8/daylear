@@ -128,7 +128,7 @@ func (repo *Client) ListCircles(ctx context.Context, authAccount cmodel.AuthAcco
 		Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.UserId).
 		Where("(circle_access.recipient_user_id = ? OR circle.visibility_level = ?)", authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC)
 
-	conversion, err := repo.recipeAccessSQLConverter.Convert(filter)
+	conversion, err := repo.circleSQLConverter.Convert(filter)
 	if err != nil {
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
 	}
