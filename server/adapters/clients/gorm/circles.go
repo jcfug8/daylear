@@ -17,6 +17,7 @@ import (
 // CircleMap maps the core model fields to the database model fields for the unified CircleAccess model.
 var CircleMap = map[string]string{
 	"permission": dbModel.CircleAccessFields.PermissionLevel,
+	"title":      dbModel.CircleFields.Title,
 }
 
 // CreateCircle creates a new circle.

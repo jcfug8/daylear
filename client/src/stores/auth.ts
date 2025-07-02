@@ -41,7 +41,7 @@ export const useAuthStore = defineStore('auth', () => {
   const activeAccountType = computed(() => {
     if (activeAccount.value && 'username' in activeAccount.value) {
       return AccountType.USER
-    } else {
+    } else if (activeAccount.value) {
       return AccountType.CIRCLE
     }
   })

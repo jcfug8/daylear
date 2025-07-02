@@ -5,6 +5,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/justinas/alice"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog"
@@ -36,7 +37,7 @@ func (m *MiddlewareMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c = c.Append(cors.New(cors.Options{
 		AllowedOrigins:   m.origins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
-		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowedHeaders:   []string{headers.AuthorizationHeaderKey, "Content-Type", headers.ActingAsCircleHeaderKey},
 		AllowCredentials: true,
 	}).Handler)
 

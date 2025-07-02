@@ -29,8 +29,8 @@ type keyType string
 const UserKey keyType = "auth-token-user"
 const CircleNameKey keyType = "auth-circle-name"
 
-const authorizationHeaderKey = "Authorization"
-const actingAsCircleHeaderKey = "X-Daylear-Circle"
+const AuthorizationHeaderKey = "Authorization"
+const ActingAsCircleHeaderKey = "X-Daylear-Circle"
 
 func NewAuthTokenMiddleware(domain domain.Domain) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -63,7 +63,7 @@ func NewAuthTokenMiddleware(domain domain.Domain) func(next http.Handler) http.H
 
 func GetAuthToken(r *http.Request) (string, error) {
 	// Retrieve the auth-token cookie
-	headers := r.Header[authorizationHeaderKey]
+	headers := r.Header[AuthorizationHeaderKey]
 	if len(headers) != 1 {
 		// For any other error, return a bad request status
 		return "", fileretriever.ErrInvalidArgument{Msg: "missing or invalid authorization token"}
@@ -75,7 +75,7 @@ func GetAuthToken(r *http.Request) (string, error) {
 }
 
 func GetCircleName(r *http.Request) string {
-	headers := r.Header[actingAsCircleHeaderKey]
+	headers := r.Header[ActingAsCircleHeaderKey]
 	if len(headers) != 1 {
 		return ""
 	}

@@ -3,6 +3,7 @@ import { createUserServiceClient, createUserAccessServiceClient } from '@/genapi
 import { createCircleServiceClient, createCircleAccessServiceClient } from '@/genapi/api/circles/circle/v1alpha1'
 import { createAuthServiceClient } from './auth'
 import { createFileServiceClient } from './files'
+import { AccountType, useAuthStore } from '@/stores/auth'
 
 const API_BASE_URL = 'http://localhost:8080/'
 
@@ -12,9 +13,15 @@ export const authenticatedFetchHandler = function(contentType: string = 'applica
     request: { path: string; method: string; body: T },
     _meta?: { service: string; method: string },
   ) {
+    const authStore = useAuthStore()
+
     const token = sessionStorage.getItem('jwt')
     const headers: Record<string, string> = {
       'Content-Type': contentType,
+    }
+
+    if (authStore.activeAccountType === AccountType.CIRCLE) {
+      headers["X-Daylear-Circle"] = authStore.activeAccount?.name ? authStore.activeAccount?.name : ""
     }
     if (token) {
       headers['Authorization'] = `Bearer ${token}`

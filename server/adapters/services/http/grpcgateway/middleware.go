@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/rs/cors"
 	"github.com/rs/zerolog"
 )
 
@@ -24,41 +23,6 @@ func NewMiddlewareManager(logger zerolog.Logger, mux *runtime.ServeMux) *Middlew
 		logger: logger,
 		mux:    mux,
 	}
-}
-
-// WithCORS adds CORS middleware
-func (m *MiddlewareManager) WithCORS() http.Handler {
-	return cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"}, // Configure this based on your needs
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
-		AllowCredentials: true,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
-	}).Handler(m.mux)
-}
-
-// WithLogging adds request logging middleware
-func (m *MiddlewareManager) WithLogging(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-
-		// Create a custom response writer to capture the status code
-		rw := &responseWriter{
-			ResponseWriter: w,
-			status:         http.StatusOK,
-		}
-
-		// Call the next handler
-		next.ServeHTTP(rw, r)
-
-		// Log the request details
-		m.logger.Info().
-			Str("method", r.Method).
-			Str("path", r.URL.Path).
-			Int("status", rw.status).
-			Str("duration", time.Since(start).String()).
-			Msg("HTTP Request")
-	})
 }
 
 // WithRequestID adds a request ID to the context

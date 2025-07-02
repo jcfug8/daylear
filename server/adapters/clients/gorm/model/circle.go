@@ -17,9 +17,9 @@ var CircleMap = masks.NewFieldMap().
 
 // CircleFields defines the circle fields in the GORM model.
 var CircleFields = circleFields{
-	CircleId:   "circle_id",
-	Title:      "title",
-	Visibility: "visibility_level",
+	CircleId:   "circle.circle_id",
+	Title:      "circle.title",
+	Visibility: "circle.visibility_level",
 }
 
 type circleFields struct {
