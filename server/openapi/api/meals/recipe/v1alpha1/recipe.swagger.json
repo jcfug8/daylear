@@ -572,10 +572,11 @@
         "MEASUREMENT_TYPE_POUND",
         "MEASUREMENT_TYPE_GRAM",
         "MEASUREMENT_TYPE_MILLILITER",
-        "MEASUREMENT_TYPE_LITER"
+        "MEASUREMENT_TYPE_LITER",
+        "MEASUREMENT_TYPE_CUP"
       ],
       "default": "MEASUREMENT_TYPE_UNSPECIFIED",
-      "description": "- MEASUREMENT_TYPE_UNSPECIFIED: the measurement is in cups\n - MEASUREMENT_TYPE_TABLESPOON: the measurement is in tablespoons\n - MEASUREMENT_TYPE_TEASPOON: the measurement is in teaspoons\n - MEASUREMENT_TYPE_OUNCE: the measurement is in ounces\n - MEASUREMENT_TYPE_POUND: the measurement is in pounds\n - MEASUREMENT_TYPE_GRAM: the measurement is in grams\n - MEASUREMENT_TYPE_MILLILITER: the measurement is in milliliters\n - MEASUREMENT_TYPE_LITER: the measurement is in liters",
+      "description": "- MEASUREMENT_TYPE_UNSPECIFIED: the measurement is in cups\n - MEASUREMENT_TYPE_TABLESPOON: the measurement is in tablespoons\n - MEASUREMENT_TYPE_TEASPOON: the measurement is in teaspoons\n - MEASUREMENT_TYPE_OUNCE: the measurement is in ounces\n - MEASUREMENT_TYPE_POUND: the measurement is in pounds\n - MEASUREMENT_TYPE_GRAM: the measurement is in grams\n - MEASUREMENT_TYPE_MILLILITER: the measurement is in milliliters\n - MEASUREMENT_TYPE_LITER: the measurement is in liters\n - MEASUREMENT_TYPE_CUP: the measurement is in cups",
       "title": "the type of measurement"
     },
     "RecipeServiceAcceptRecipeBody": {

@@ -301,6 +301,7 @@ const tabToHash: Record<string, string> = {
 // Map MeasurmentType to string
 const measurementTypeToString: Record<Recipe_MeasurementType, string> = {
   MEASUREMENT_TYPE_UNSPECIFIED: '',
+  MEASUREMENT_TYPE_CUP: 'cups',
   MEASUREMENT_TYPE_TABLESPOON: 'tablespoons',
   MEASUREMENT_TYPE_TEASPOON: 'teaspoons',
   MEASUREMENT_TYPE_OUNCE: 'ounces',

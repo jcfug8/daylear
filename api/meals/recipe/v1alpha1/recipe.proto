@@ -260,6 +260,8 @@ message Recipe {
     MEASUREMENT_TYPE_MILLILITER = 6;
     // the measurement is in liters
     MEASUREMENT_TYPE_LITER = 7;
+    // the measurement is in cups
+    MEASUREMENT_TYPE_CUP = 8;
   }
 }
 

@@ -46,6 +46,8 @@ const (
 	Recipe_MEASUREMENT_TYPE_MILLILITER Recipe_MeasurementType = 6
 	// the measurement is in liters
 	Recipe_MEASUREMENT_TYPE_LITER Recipe_MeasurementType = 7
+	// the measurement is in cups
+	Recipe_MEASUREMENT_TYPE_CUP Recipe_MeasurementType = 8
 )
 
 // Enum value maps for Recipe_MeasurementType.
@@ -59,6 +61,7 @@ var (
 		5: "MEASUREMENT_TYPE_GRAM",
 		6: "MEASUREMENT_TYPE_MILLILITER",
 		7: "MEASUREMENT_TYPE_LITER",
+		8: "MEASUREMENT_TYPE_CUP",
 	}
 	Recipe_MeasurementType_value = map[string]int32{
 		"MEASUREMENT_TYPE_UNSPECIFIED": 0,
@@ -69,6 +72,7 @@ var (
 		"MEASUREMENT_TYPE_GRAM":        5,
 		"MEASUREMENT_TYPE_MILLILITER":  6,
 		"MEASUREMENT_TYPE_LITER":       7,
+		"MEASUREMENT_TYPE_CUP":         8,
 	}
 )
 
@@ -900,7 +904,8 @@ var File_api_meals_recipe_v1alpha1_recipe_proto protoreflect.FileDescriptor
 
 const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\n" +
-	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xea\t\n" +
+	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x84\n" +
+	"\n" +
 	"\x06Recipe\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
@@ -928,7 +933,7 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12\x1f\n" +
 	"\boptional\x18\x03 \x01(\bB\x03\xe0A\x01R\boptional\x122\n" +
 	"\x12measurement_amount\x18\x04 \x01(\x01B\x03\xe0A\x02R\x11measurementAmount\x12a\n" +
-	"\x10measurement_type\x18\x05 \x01(\x0e21.api.meals.recipe.v1alpha1.Recipe.MeasurementTypeB\x03\xe0A\x02R\x0fmeasurementType\"\x83\x02\n" +
+	"\x10measurement_type\x18\x05 \x01(\x0e21.api.meals.recipe.v1alpha1.Recipe.MeasurementTypeB\x03\xe0A\x02R\x0fmeasurementType\"\x9d\x02\n" +
 	"\x0fMeasurementType\x12 \n" +
 	"\x1cMEASUREMENT_TYPE_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bMEASUREMENT_TYPE_TABLESPOON\x10\x01\x12\x1d\n" +
@@ -937,7 +942,8 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\x16MEASUREMENT_TYPE_POUND\x10\x04\x12\x19\n" +
 	"\x15MEASUREMENT_TYPE_GRAM\x10\x05\x12\x1f\n" +
 	"\x1bMEASUREMENT_TYPE_MILLILITER\x10\x06\x12\x1a\n" +
-	"\x16MEASUREMENT_TYPE_LITER\x10\a:H\xeaAE\n" +
+	"\x16MEASUREMENT_TYPE_LITER\x10\a\x12\x18\n" +
+	"\x14MEASUREMENT_TYPE_CUP\x10\b:H\xeaAE\n" +
 	" api.meals.recipe.v1alpha1/Recipe\x12\x10recipes/{recipe}*\arecipes2\x06recipe\"w\n" +
 	"\x13CreateRecipeRequest\x12>\n" +
 	"\x06recipe\x18\x01 \x01(\v2!.api.meals.recipe.v1alpha1.RecipeB\x03\xe0A\x02R\x06recipe\x12 \n" +

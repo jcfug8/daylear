@@ -103,7 +103,9 @@ export type Recipe_MeasurementType =
   // the measurement is in milliliters
   | "MEASUREMENT_TYPE_MILLILITER"
   // the measurement is in liters
-  | "MEASUREMENT_TYPE_LITER";
+  | "MEASUREMENT_TYPE_LITER"
+  // the measurement is in cups
+  | "MEASUREMENT_TYPE_CUP";
 // the visibility levels
 export type apitypes_VisibilityLevel =
   // the visibility is not specified

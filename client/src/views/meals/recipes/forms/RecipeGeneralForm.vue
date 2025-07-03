@@ -1,5 +1,29 @@
 <template>
   <v-container max-width="600" class="pa-1">
+    <!-- Scrape Recipe by URL (only in create mode) -->
+    <template v-if="isCreate">
+      <v-row>
+        <v-col cols="9">
+          <v-text-field
+            v-model="scrapeUrl"
+            label="Import Recipe from URL"
+            placeholder="Paste recipe URL (e.g. https://...)"
+            density="compact"
+            :disabled="scrapeLoading"
+          />
+        </v-col>
+        <v-col cols="3" class="d-flex align-end">
+          <v-btn color="primary" :loading="scrapeLoading" @click="scrapeRecipe" :disabled="!scrapeUrl || scrapeLoading">
+            Scrape
+          </v-btn>
+        </v-col>
+      </v-row>
+      <v-row v-if="scrapeError">
+        <v-col cols="12">
+          <v-alert type="error" density="compact">{{ scrapeError }}</v-alert>
+        </v-col>
+      </v-row>
+    </template>
     <v-row>
       <v-col class="pt-5">
         <div class="text-h4">
@@ -149,8 +173,11 @@ import type { Recipe, apitypes_VisibilityLevel } from '@/genapi/api/meals/recipe
 import { recipeService } from '@/api/api'
 
 const props = defineProps<{
-  modelValue: Recipe
+  modelValue: Recipe,
+  isCreate?: boolean
 }>()
+
+const isCreate = computed(() => props.isCreate ?? false)
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: Recipe): void
@@ -161,6 +188,28 @@ const recipe = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value),
 })
+
+// Scrape logic
+const scrapeUrl = ref('')
+const scrapeLoading = ref(false)
+const scrapeError = ref('')
+
+async function scrapeRecipe() {
+  scrapeError.value = ''
+  scrapeLoading.value = true
+  try {
+    const resp = await recipeService.ScrapeRecipe({ uri: scrapeUrl.value })
+    if (resp && resp.recipe) {
+      emit('update:modelValue', resp.recipe)
+    } else {
+      scrapeError.value = 'No recipe found at that URL.'
+    }
+  } catch (err: any) {
+    scrapeError.value = err?.message || 'Failed to scrape recipe.'
+  } finally {
+    scrapeLoading.value = false
+  }
+}
 
 // Visibility options with descriptions and icons
 const visibilityOptions = [

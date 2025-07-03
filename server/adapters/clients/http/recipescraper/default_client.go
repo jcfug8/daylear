@@ -217,8 +217,8 @@ func parseFraction(s string) (float64, error) {
 func mapUnitToMeasurementType(unit string) pb.Recipe_MeasurementType {
 	switch strings.ToLower(unit) {
 	case "cup", "cups":
-		return pb.Recipe_MEASUREMENT_TYPE_UNSPECIFIED // TODO: Add CUP if needed
-	case "tablespoon", "tablespoons", "tbsp":
+		return pb.Recipe_MEASUREMENT_TYPE_CUP
+	case "tablespoon", "tablespoons", "tbsp", "tbs":
 		return pb.Recipe_MEASUREMENT_TYPE_TABLESPOON
 	case "teaspoon", "teaspoons", "tsp":
 		return pb.Recipe_MEASUREMENT_TYPE_TEASPOON

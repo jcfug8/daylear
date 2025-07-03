@@ -16,6 +16,7 @@
           <recipe-general-form 
             v-model="recipe" 
             @image-selected="handleImageSelected"
+            :is-create="isCreate"
           />
         </v-tabs-window-item>
         <v-tabs-window-item value="ingredients">
@@ -138,4 +139,6 @@ watch(tab, (newTab) => {
     router.replace({ hash: newHash })
   }
 })
+
+const isCreate = computed(() => !recipe.value?.name)
 </script>
