@@ -217,3 +217,33 @@ func (s *RecipeService) AcceptRecipe(ctx context.Context, request *pb.AcceptReci
 
 	return &pb.AcceptRecipeResponse{}, nil
 }
+
+// ScrapeRecipe -
+func (s *RecipeService) ScrapeRecipe(ctx context.Context, request *pb.ScrapeRecipeRequest) (*pb.ScrapeRecipeResponse, error) {
+	authAccount, err := headers.ParseAuthData(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// check field behavior
+	err = grpc.ProcessRequestFieldBehavior(request)
+	if err != nil {
+		return nil, err
+	}
+
+	// scrape the recipe
+	recipe, err := s.domain.ScrapeRecipe(ctx, authAccount, request.GetUri())
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	// convert the recipe to a proto
+	recipeProto, err := convert.RecipeToProto(s.recipeNamer, recipe)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "unable to prepare response")
+	}
+
+	return &pb.ScrapeRecipeResponse{
+		Recipe: recipeProto,
+	}, nil
+}

@@ -25,6 +25,7 @@ const (
 	RecipeService_DeleteRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/DeleteRecipe"
 	RecipeService_GetRecipe_FullMethodName    = "/api.meals.recipe.v1alpha1.RecipeService/GetRecipe"
 	RecipeService_AcceptRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/AcceptRecipe"
+	RecipeService_ScrapeRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/ScrapeRecipe"
 )
 
 // RecipeServiceClient is the client API for RecipeService service.
@@ -45,6 +46,8 @@ type RecipeServiceClient interface {
 	GetRecipe(ctx context.Context, in *GetRecipeRequest, opts ...grpc.CallOption) (*Recipe, error)
 	// Accept a recipe's access
 	AcceptRecipe(ctx context.Context, in *AcceptRecipeRequest, opts ...grpc.CallOption) (*AcceptRecipeResponse, error)
+	// scrape and save a recipe from a uri
+	ScrapeRecipe(ctx context.Context, in *ScrapeRecipeRequest, opts ...grpc.CallOption) (*ScrapeRecipeResponse, error)
 }
 
 type recipeServiceClient struct {
@@ -115,6 +118,16 @@ func (c *recipeServiceClient) AcceptRecipe(ctx context.Context, in *AcceptRecipe
 	return out, nil
 }
 
+func (c *recipeServiceClient) ScrapeRecipe(ctx context.Context, in *ScrapeRecipeRequest, opts ...grpc.CallOption) (*ScrapeRecipeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ScrapeRecipeResponse)
+	err := c.cc.Invoke(ctx, RecipeService_ScrapeRecipe_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RecipeServiceServer is the server API for RecipeService service.
 // All implementations must embed UnimplementedRecipeServiceServer
 // for forward compatibility.
@@ -133,6 +146,8 @@ type RecipeServiceServer interface {
 	GetRecipe(context.Context, *GetRecipeRequest) (*Recipe, error)
 	// Accept a recipe's access
 	AcceptRecipe(context.Context, *AcceptRecipeRequest) (*AcceptRecipeResponse, error)
+	// scrape and save a recipe from a uri
+	ScrapeRecipe(context.Context, *ScrapeRecipeRequest) (*ScrapeRecipeResponse, error)
 	mustEmbedUnimplementedRecipeServiceServer()
 }
 
@@ -160,6 +175,9 @@ func (UnimplementedRecipeServiceServer) GetRecipe(context.Context, *GetRecipeReq
 }
 func (UnimplementedRecipeServiceServer) AcceptRecipe(context.Context, *AcceptRecipeRequest) (*AcceptRecipeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AcceptRecipe not implemented")
+}
+func (UnimplementedRecipeServiceServer) ScrapeRecipe(context.Context, *ScrapeRecipeRequest) (*ScrapeRecipeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ScrapeRecipe not implemented")
 }
 func (UnimplementedRecipeServiceServer) mustEmbedUnimplementedRecipeServiceServer() {}
 func (UnimplementedRecipeServiceServer) testEmbeddedByValue()                       {}
@@ -290,6 +308,24 @@ func _RecipeService_AcceptRecipe_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RecipeService_ScrapeRecipe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ScrapeRecipeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecipeServiceServer).ScrapeRecipe(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RecipeService_ScrapeRecipe_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecipeServiceServer).ScrapeRecipe(ctx, req.(*ScrapeRecipeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RecipeService_ServiceDesc is the grpc.ServiceDesc for RecipeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -320,6 +356,10 @@ var RecipeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AcceptRecipe",
 			Handler:    _RecipeService_AcceptRecipe_Handler,
+		},
+		{
+			MethodName: "ScrapeRecipe",
+			Handler:    _RecipeService_ScrapeRecipe_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

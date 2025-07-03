@@ -121,6 +121,47 @@
         ]
       }
     },
+    "/meals/v1alpha1/recipes:scrape": {
+      "post": {
+        "summary": "Scrape a recipe from a uri",
+        "description": "Scrapes a recipe from a uri.",
+        "operationId": "RecipeService_ScrapeRecipe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ScrapeRecipeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ScrapeRecipeRequest"
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      }
+    },
     "/meals/v1alpha1/{name}": {
       "get": {
         "summary": "Get a recipe",
@@ -683,6 +724,29 @@
         "title",
         "visibility"
       ]
+    },
+    "v1alpha1ScrapeRecipeRequest": {
+      "type": "object",
+      "properties": {
+        "uri": {
+          "type": "string",
+          "title": "the uri of the recipe"
+        }
+      },
+      "title": "the request to scrape a recipe from a url",
+      "required": [
+        "uri"
+      ]
+    },
+    "v1alpha1ScrapeRecipeResponse": {
+      "type": "object",
+      "properties": {
+        "recipe": {
+          "$ref": "#/definitions/v1alpha1Recipe",
+          "title": "the recipe"
+        }
+      },
+      "title": "the response to scrape a recipe from a url"
     }
   },
   "securityDefinitions": {

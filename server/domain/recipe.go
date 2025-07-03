@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/url"
 	"path"
 	"strconv"
 
@@ -15,6 +16,7 @@ import (
 	model "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
+	"github.com/jcfug8/daylear/server/ports/recipescraper"
 	uuid "github.com/satori/go.uuid"
 	// "github.com/jcfug8/daylear/server/ports/repository"
 	// uuid "github.com/satori/go.uuid"
@@ -342,6 +344,45 @@ func (d *Domain) AcceptRecipe(ctx context.Context, authAccount model.AuthAccount
 	}
 
 	return nil
+}
+
+func (d *Domain) ScrapeRecipe(ctx context.Context, authAccount model.AuthAccount, uri string) (recipe model.Recipe, err error) {
+	if authAccount.UserId == 0 {
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "user id required"}
+	}
+
+	recipe.Id.RecipeId = 0
+
+	if authAccount.CircleId != 0 {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
+		if err != nil {
+			return model.Recipe{}, err
+		}
+		if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
+			return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
+		}
+	}
+
+	parsedURI, err := url.Parse(uri)
+	if err != nil {
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "invalid uri"}
+	}
+
+	host := parsedURI.Host
+
+	var scraper recipescraper.DefaultClient
+
+	scraper, ok := d.recipeScrapers[host]
+	if !ok {
+		scraper = d.defaultRecipeScraper
+	}
+
+	recipe, err = scraper.ScrapeRecipe(ctx, uri)
+	if err != nil {
+		return model.Recipe{}, err
+	}
+
+	return recipe, nil
 }
 
 // Helper methods

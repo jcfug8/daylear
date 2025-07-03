@@ -155,6 +155,27 @@ service RecipeService {
       }
     };
   }
+
+  // scrape and save a recipe from a uri
+  rpc ScrapeRecipe(ScrapeRecipeRequest) returns (ScrapeRecipeResponse) {
+    option (google.api.method_signature) = "uri";
+    option (google.api.http) = {
+      post: "/meals/v1alpha1/recipes:scrape"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Scrape a recipe from a uri"
+      description: "Scrapes a recipe from a uri."
+      tags: "RecipeService"
+      parameters: {
+        headers: {
+          name: "X-Daylear-Circle"
+          description: "the name of the circle to act as"
+          type: STRING
+        }
+      }
+    };
+  }
 }
 
 // the main recipe object
@@ -307,3 +328,15 @@ message AcceptRecipeRequest {
 
 // the response to accept a recipe
 message AcceptRecipeResponse {}
+
+// the request to scrape a recipe from a url
+message ScrapeRecipeRequest {
+  // the uri of the recipe
+  string uri = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// the response to scrape a recipe from a url
+message ScrapeRecipeResponse {
+  // the recipe
+  Recipe recipe = 1;
+}

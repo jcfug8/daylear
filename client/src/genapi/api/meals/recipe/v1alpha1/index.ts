@@ -240,6 +240,20 @@ export type AcceptRecipeRequest = {
 export type AcceptRecipeResponse = {
 };
 
+// the request to scrape a recipe from a url
+export type ScrapeRecipeRequest = {
+  // the uri of the recipe
+  //
+  // Behaviors: REQUIRED
+  uri: string | undefined;
+};
+
+// the response to scrape a recipe from a url
+export type ScrapeRecipeResponse = {
+  // the recipe
+  recipe: Recipe | undefined;
+};
+
 // the recipe service
 export interface RecipeService {
   // create a recipe
@@ -254,6 +268,8 @@ export interface RecipeService {
   GetRecipe(request: GetRecipeRequest): Promise<Recipe>;
   // Accept a recipe's access
   AcceptRecipe(request: AcceptRecipeRequest): Promise<AcceptRecipeResponse>;
+  // scrape and save a recipe from a uri
+  ScrapeRecipe(request: ScrapeRecipeRequest): Promise<ScrapeRecipeResponse>;
 }
 
 type RequestType = {
@@ -396,6 +412,23 @@ export function createRecipeServiceClient(
         service: "RecipeService",
         method: "AcceptRecipe",
       }) as Promise<AcceptRecipeResponse>;
+    },
+    ScrapeRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `meals/v1alpha1/recipes:scrape`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "RecipeService",
+        method: "ScrapeRecipe",
+      }) as Promise<ScrapeRecipeResponse>;
     },
   };
 }

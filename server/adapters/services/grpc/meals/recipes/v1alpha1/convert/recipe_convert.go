@@ -32,11 +32,14 @@ func ProtoToRecipe(RecipeNamer namer.ReflectNamer, proto *pb.Recipe) (model.Reci
 // RecipeToProto converts a model Recipe to a protobuf Recipe
 func RecipeToProto(RecipeNamer namer.ReflectNamer, recipe model.Recipe) (*pb.Recipe, error) {
 	proto := &pb.Recipe{}
-	name, err := RecipeNamer.Format(recipe)
-	if err != nil {
-		return proto, err
+
+	if recipe.Id.RecipeId != 0 {
+		name, err := RecipeNamer.Format(recipe)
+		if err != nil {
+			return proto, err
+		}
+		proto.Name = name
 	}
-	proto.Name = name
 
 	proto.Title = recipe.Title
 	proto.Description = recipe.Description
