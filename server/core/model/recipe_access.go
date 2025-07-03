@@ -8,8 +8,8 @@ import (
 var RecipeAccessFields = recipeAccessFields{
 	Level:           "permission_level",
 	State:           "state",
-	RecipientUser:   "user_id",
-	RecipientCircle: "circle_id",
+	RecipientUser:   "recipient.user_id",
+	RecipientCircle: "recipient.circle_id",
 }
 
 type recipeAccessFields struct {

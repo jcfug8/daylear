@@ -43,7 +43,18 @@
           >
             {{ getPermissionText(recipe.permission) }}
           </v-chip>
+
+          <!-- Accept button for pending recipes -->
         </v-card>
+        <v-btn
+          v-if="recipe.state === 'ACCESS_STATE_PENDING'"
+          color="success"
+          class="accept-btn"
+          @click.stop.prevent="$emit('accept', recipe)"
+          block
+        >
+          Accept
+        </v-btn>
       </v-col>
     </v-row>
   </div>
@@ -51,6 +62,7 @@
 
 <script setup lang="ts">
 import type { Recipe } from '@/genapi/api/meals/recipe/v1alpha1'
+import { defineEmits } from 'vue'
 
 interface Props {
   recipes: Recipe[]
@@ -58,6 +70,7 @@ interface Props {
 }
 
 defineProps<Props>()
+const emit = defineEmits(['accept'])
 
 function getPermissionColor(permission: string) {
   switch (permission) {
@@ -105,5 +118,9 @@ function getPermissionText(permission: string) {
   top: 8px;
   right: 8px;
   z-index: 1;
+}
+
+.accept-btn {
+  margin-top: 12px;
 }
 </style> 

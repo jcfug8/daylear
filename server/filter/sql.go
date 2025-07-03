@@ -334,7 +334,7 @@ func (c *Conversion) convertFieldExpr(expr *expr.Expr) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return c.useField(field), nil
+	return c.useField(field)
 }
 
 func (c *Conversion) convertFieldExprRecursive(expr *expr.Expr) (string, error) {
@@ -365,17 +365,17 @@ func (c *Conversion) convertFieldExprRecursive(expr *expr.Expr) (string, error) 
 	return field, nil
 }
 
-func (c *Conversion) useField(field string) string {
+func (c *Conversion) useField(field string) (string, error) {
 	sqlField, ok := c.FieldMapping[field]
 	if !ok {
-		sqlField = field
+		return "", fmt.Errorf("field not found in field mapping: %s", field)
 	}
 
 	if _, ok := c.UsedColumns[sqlField]; !ok {
 		c.UsedColumns[sqlField] = 0
 	}
 	c.UsedColumns[sqlField]++
-	return sqlField
+	return sqlField, nil
 }
 
 func (c *Conversion) convertFieldCallExpr(call *expr.Expr_Call) (string, error) {

@@ -20,12 +20,11 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	RecipeAccessService_CreateAccess_FullMethodName       = "/api.meals.recipe.v1alpha1.RecipeAccessService/CreateAccess"
-	RecipeAccessService_DeleteAccess_FullMethodName       = "/api.meals.recipe.v1alpha1.RecipeAccessService/DeleteAccess"
-	RecipeAccessService_GetAccess_FullMethodName          = "/api.meals.recipe.v1alpha1.RecipeAccessService/GetAccess"
-	RecipeAccessService_ListAccesses_FullMethodName       = "/api.meals.recipe.v1alpha1.RecipeAccessService/ListAccesses"
-	RecipeAccessService_UpdateAccess_FullMethodName       = "/api.meals.recipe.v1alpha1.RecipeAccessService/UpdateAccess"
-	RecipeAccessService_AcceptRecipeAccess_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeAccessService/AcceptRecipeAccess"
+	RecipeAccessService_CreateAccess_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeAccessService/CreateAccess"
+	RecipeAccessService_DeleteAccess_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeAccessService/DeleteAccess"
+	RecipeAccessService_GetAccess_FullMethodName    = "/api.meals.recipe.v1alpha1.RecipeAccessService/GetAccess"
+	RecipeAccessService_ListAccesses_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeAccessService/ListAccesses"
+	RecipeAccessService_UpdateAccess_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeAccessService/UpdateAccess"
 )
 
 // RecipeAccessServiceClient is the client API for RecipeAccessService service.
@@ -44,8 +43,6 @@ type RecipeAccessServiceClient interface {
 	ListAccesses(ctx context.Context, in *ListAccessesRequest, opts ...grpc.CallOption) (*ListAccessesResponse, error)
 	// Update an access to a recipe
 	UpdateAccess(ctx context.Context, in *UpdateAccessRequest, opts ...grpc.CallOption) (*Access, error)
-	// Accept a recipe access
-	AcceptRecipeAccess(ctx context.Context, in *AcceptRecipeAccessRequest, opts ...grpc.CallOption) (*Access, error)
 }
 
 type recipeAccessServiceClient struct {
@@ -106,16 +103,6 @@ func (c *recipeAccessServiceClient) UpdateAccess(ctx context.Context, in *Update
 	return out, nil
 }
 
-func (c *recipeAccessServiceClient) AcceptRecipeAccess(ctx context.Context, in *AcceptRecipeAccessRequest, opts ...grpc.CallOption) (*Access, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Access)
-	err := c.cc.Invoke(ctx, RecipeAccessService_AcceptRecipeAccess_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // RecipeAccessServiceServer is the server API for RecipeAccessService service.
 // All implementations must embed UnimplementedRecipeAccessServiceServer
 // for forward compatibility.
@@ -132,8 +119,6 @@ type RecipeAccessServiceServer interface {
 	ListAccesses(context.Context, *ListAccessesRequest) (*ListAccessesResponse, error)
 	// Update an access to a recipe
 	UpdateAccess(context.Context, *UpdateAccessRequest) (*Access, error)
-	// Accept a recipe access
-	AcceptRecipeAccess(context.Context, *AcceptRecipeAccessRequest) (*Access, error)
 	mustEmbedUnimplementedRecipeAccessServiceServer()
 }
 
@@ -158,9 +143,6 @@ func (UnimplementedRecipeAccessServiceServer) ListAccesses(context.Context, *Lis
 }
 func (UnimplementedRecipeAccessServiceServer) UpdateAccess(context.Context, *UpdateAccessRequest) (*Access, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateAccess not implemented")
-}
-func (UnimplementedRecipeAccessServiceServer) AcceptRecipeAccess(context.Context, *AcceptRecipeAccessRequest) (*Access, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AcceptRecipeAccess not implemented")
 }
 func (UnimplementedRecipeAccessServiceServer) mustEmbedUnimplementedRecipeAccessServiceServer() {}
 func (UnimplementedRecipeAccessServiceServer) testEmbeddedByValue()                             {}
@@ -273,24 +255,6 @@ func _RecipeAccessService_UpdateAccess_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RecipeAccessService_AcceptRecipeAccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AcceptRecipeAccessRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RecipeAccessServiceServer).AcceptRecipeAccess(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: RecipeAccessService_AcceptRecipeAccess_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RecipeAccessServiceServer).AcceptRecipeAccess(ctx, req.(*AcceptRecipeAccessRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // RecipeAccessService_ServiceDesc is the grpc.ServiceDesc for RecipeAccessService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -317,10 +281,6 @@ var RecipeAccessService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateAccess",
 			Handler:    _RecipeAccessService_UpdateAccess_Handler,
-		},
-		{
-			MethodName: "AcceptRecipeAccess",
-			Handler:    _RecipeAccessService_AcceptRecipeAccess_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

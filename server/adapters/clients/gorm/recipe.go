@@ -122,7 +122,7 @@ func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccoun
 	gm := gmodel.Recipe{}
 
 	tx := repo.db.WithContext(ctx).
-		Select("recipe.*, recipe_access.permission_level").
+		Select("recipe.*, recipe_access.permission_level, recipe_access.state").
 		Where("recipe.recipe_id = ?", id.RecipeId)
 
 	if authAccount.CircleId != 0 {

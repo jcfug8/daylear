@@ -178,55 +178,6 @@
         ]
       }
     },
-    "/meals/v1alpha1/{name}:accept": {
-      "post": {
-        "summary": "Accept a recipe access",
-        "description": "Accepts a pending recipe access, changing its state from PENDING to ACCEPTED.",
-        "operationId": "RecipeAccessService_AcceptRecipeAccess",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/mealsrecipev1alpha1Access"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "description": "name",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "pattern": "recipes/[^/]+/accesses/[^/]+"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/RecipeAccessServiceAcceptRecipeAccessBody"
-            }
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "RecipeAccessService"
-        ]
-      }
-    },
     "/meals/v1alpha1/{parent}/accesses": {
       "get": {
         "summary": "List recipe accesses",
@@ -356,10 +307,6 @@
         }
       },
       "title": "the requester or recipient of the access"
-    },
-    "RecipeAccessServiceAcceptRecipeAccessBody": {
-      "type": "object",
-      "title": "The request to accept an access to a recipe"
     },
     "mealsrecipev1alpha1Access": {
       "type": "object",

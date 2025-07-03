@@ -121,6 +121,16 @@
           @click="showDeleteDialog = true" color="error"></v-btn>
       </v-speed-dial>
     </v-fab>
+
+    <v-btn
+      v-if="recipe.state === 'ACCESS_STATE_PENDING'"
+      color="success"
+      class="mb-4"
+      @click="acceptRecipe"
+      block
+    >
+      Accept Recipe
+    </v-btn>
   </v-container>
   <!-- Remove Access Dialog -->
   <v-dialog v-model="showRemoveAccessDialog" max-width="500">
@@ -660,14 +670,14 @@ async function fetchRecipeRecipients() {
 
 // Fetch recipients when recipe is loaded or when share dialog is opened
 watch(recipe, (newRecipe) => {
-  if (newRecipe) {
+  if (newRecipe && hasWritePermission(newRecipe.permission)) {
     fetchRecipeRecipients()
   }
 }, { immediate: true })
 
 // Fetch recipients when share dialog is opened
 watch(showShareDialog, (isOpen) => {
-  if (isOpen && recipe.value) {
+  if (isOpen && recipe.value && hasWritePermission(recipe.value.permission)) {
     fetchRecipeRecipients()
   }
 })
@@ -735,6 +745,16 @@ async function handleDelete() {
   } finally {
     deleting.value = false
     showDeleteDialog.value = false
+  }
+}
+
+async function acceptRecipe() {
+  if (!recipe.value?.name || !authStore.user?.name) return
+  try {
+    await recipesStore.acceptRecipe(recipe.value.name)
+    recipesStore.loadRecipe(recipe.value.name)
+  } catch (error) {
+    // Optionally show a notification
   }
 }
 </script>

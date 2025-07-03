@@ -118,6 +118,15 @@ export const useRecipesStore = defineStore('recipes', () => {
     }
   }
 
+  async function acceptRecipe(recipeName: string) {
+    try {
+      await recipeService.AcceptRecipe({ name: recipeName })
+    } catch (error) {
+      console.error('Failed to accept recipe access:', error)
+      throw error
+    }
+  }
+
   return {
     loadRecipes,
     loadMyRecipes,
@@ -127,6 +136,7 @@ export const useRecipesStore = defineStore('recipes', () => {
     initEmptyRecipe,
     createRecipe,
     updateRecipe,
+    acceptRecipe,
     recipes,
     recipe,
   }

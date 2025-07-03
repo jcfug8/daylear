@@ -117,9 +117,11 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 	// Filter by recipe ID
 	if parent.RecipeId.RecipeId != 0 {
 		db = db.Where("recipe_access.recipe_id = ?", parent.RecipeId.RecipeId)
-	} else if authAccount.CircleId != 0 {
+	}
+
+	if authAccount.CircleId != 0 {
 		db = db.Where("recipe_access.recipient_circle_id = ?", authAccount.CircleId)
-	} else {
+	} else if authAccount.UserId != 0 {
 		db = db.Where("recipe_access.recipient_user_id = ?", authAccount.UserId)
 	}
 

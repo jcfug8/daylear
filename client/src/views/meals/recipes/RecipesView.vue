@@ -31,7 +31,7 @@
               <RecipeGrid :recipes="sharedAcceptedRecipes" :loading="loadingSharedRecipes" />
             </v-tabs-window-item>
             <v-tabs-window-item value="pending">
-              <RecipeGrid :recipes="sharedPendingRecipes" :loading="loadingSharedRecipes" />
+              <RecipeGrid :recipes="sharedPendingRecipes" :loading="loadingSharedRecipes" @accept="onAcceptRecipe" />
             </v-tabs-window-item>
           </v-tabs-window>
         </v-tabs-window-item>
@@ -135,6 +135,16 @@ async function loadPublicRecipes() {
     publicRecipes.value = []
   } finally {
     loadingPublicRecipes.value = false
+  }
+}
+
+async function onAcceptRecipe(recipe: Recipe) {
+  if (!recipe.name) return
+  try {
+    await recipesStore.acceptRecipe(recipe.name)
+    await loadSharedRecipes()
+  } catch (error) {
+    // Optionally show a notification
   }
 }
 

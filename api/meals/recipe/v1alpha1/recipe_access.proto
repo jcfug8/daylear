@@ -137,27 +137,6 @@ service RecipeAccessService {
       }
     };
   }
-
-  // Accept a recipe access
-  rpc AcceptRecipeAccess(AcceptRecipeAccessRequest) returns (Access) {
-    option (google.api.method_signature) = "name";
-    option (google.api.http) = {
-      post: "/meals/v1alpha1/{name=recipes/*/accesses/*}:accept"
-      body: "*"
-    };
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "Accept a recipe access"
-      description: "Accepts a pending recipe access, changing its state from PENDING to ACCEPTED."
-      tags: "RecipeAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
-    };
-  }
 }
 
 // This represents the data about a user's or circle's access to a recipe
@@ -259,13 +238,4 @@ message UpdateAccessRequest {
 
   // update mask
   google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
-}
-
-// The request to accept an access to a recipe
-message AcceptRecipeAccessRequest {
-  // name
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).type = "api.meals.recipe.v1alpha1/Access"
-  ];
 }
