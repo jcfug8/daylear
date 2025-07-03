@@ -52,8 +52,28 @@ func (r *DefaultClient) ScrapeRecipe(ctx context.Context, uri string) (model.Rec
 		schemaRecipe = SchemaOrgRecipe{}
 
 		jsonText := s.Text()
+		// Try @graph object
+		var graphObj map[string]interface{}
+		err := json.Unmarshal([]byte(jsonText), &graphObj)
+		if err == nil {
+			if graph, ok := graphObj["@graph"]; ok {
+				if arr, ok := graph.([]interface{}); ok {
+					for _, item := range arr {
+						if m, ok := item.(map[string]interface{}); ok {
+							typeVal, _ := m["@type"].(string)
+							if typeVal == "Recipe" {
+								b, _ := json.Marshal(m)
+								_ = json.Unmarshal(b, &schemaRecipe)
+								found = true
+								return false // break
+							}
+						}
+					}
+				}
+			}
+		}
 		// Try array of recipes
-		err := json.Unmarshal([]byte(jsonText), &schemaRecipes)
+		err = json.Unmarshal([]byte(jsonText), &schemaRecipes)
 		if err == nil && len(schemaRecipes) > 0 {
 			for _, rec := range schemaRecipes {
 				if asString(rec.Type) == "Recipe" {
@@ -85,10 +105,14 @@ func (r *DefaultClient) ScrapeRecipe(ctx context.Context, uri string) (model.Rec
 	var ingredients = asStringSlice(schemaRecipe.RecipeIngredient)
 	for _, ing := range ingredients {
 		amount, unit, name := parseIngredient(ing)
+		measurementType := mapUnitToMeasurementType(unit)
+		if measurementType == pb.Recipe_MEASUREMENT_TYPE_UNSPECIFIED {
+			name = unit + " " + name
+		}
 		ingredientGroup.RecipeIngredients = append(ingredientGroup.RecipeIngredients, model.RecipeIngredient{
 			Optional:          false,
 			MeasurementAmount: amount,
-			MeasurementType:   mapUnitToMeasurementType(unit),
+			MeasurementType:   measurementType,
 			Title:             name,
 		})
 	}
@@ -97,17 +121,18 @@ func (r *DefaultClient) ScrapeRecipe(ctx context.Context, uri string) (model.Rec
 	var directions []model.RecipeDirection
 	var parseInstructions func(interface{}, string)
 	parseInstructions = func(instr interface{}, sectionTitle string) {
+		var steps []string
 		switch v := instr.(type) {
 		case string:
 			if v != "" {
-				directions = append(directions, model.RecipeDirection{Title: sectionTitle, Steps: []string{v}})
+				steps = append(steps, v)
 			}
 		case []interface{}:
 			for _, step := range v {
 				switch st := step.(type) {
 				case string:
 					if st != "" {
-						directions = append(directions, model.RecipeDirection{Title: sectionTitle, Steps: []string{st}})
+						steps = append(steps, st)
 					}
 				case map[string]interface{}:
 					typeVal, _ := st["@type"].(string)
@@ -116,14 +141,17 @@ func (r *DefaultClient) ScrapeRecipe(ctx context.Context, uri string) (model.Rec
 						parseInstructions(st["itemListElement"], name)
 					} else if typeVal == "HowToStep" {
 						if txt, ok := st["text"].(string); ok && txt != "" {
-							directions = append(directions, model.RecipeDirection{Title: sectionTitle, Steps: []string{txt}})
+							steps = append(steps, txt)
 						}
 					}
 				}
 			}
 		}
+		if len(steps) > 0 {
+			directions = append(directions, model.RecipeDirection{Title: sectionTitle, Steps: steps})
+		}
 	}
-	parseInstructions(schemaRecipe.RecipeInstructions, "Main")
+	parseInstructions(schemaRecipe.RecipeInstructions, "")
 	if len(directions) > 0 {
 		coreRecipe.Directions = directions
 	}
