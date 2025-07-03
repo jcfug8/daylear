@@ -39,10 +39,8 @@ export const useRecipesStore = defineStore('recipes', () => {
   // Load shared recipes (recipes shared with me - read or write permission)
   async function loadSharedRecipes(parent: string, state?: number) {
     let filter = 'permission = 100 OR permission = 200'
-    if (state === 100) {
-      filter += ' AND state = 100'
-    } else if (state === 200) {
-      filter += ' AND state = 200'
+    if (state) {
+      filter += ` AND state = ${state}`
     }
     await loadRecipes(parent, filter)
   }

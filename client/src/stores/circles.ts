@@ -1,15 +1,21 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { circleService } from '@/api/api'
+import { circleService, circleAccessService } from '@/api/api'
 import type {
   Circle,
   apitypes_VisibilityLevel,
   apitypes_PermissionLevel,
+  apitypes_AccessState,
 } from '@/genapi/api/circles/circle/v1alpha1'
+import { useAuthStore } from '@/stores/auth'
 
 export const useCirclesStore = defineStore('circles', () => {
   const circles = ref<Circle[]>([])
   const circle = ref<Circle | undefined>()
+  const myCircles = ref<Circle[]>([])
+  const sharedAcceptedCircles = ref<Circle[]>([])
+  const sharedPendingCircles = ref<Circle[]>([])
+  const publicCircles = ref<Circle[]>([])
 
   async function loadCircle(circleName: string) {
     try {
@@ -41,6 +47,7 @@ export const useCirclesStore = defineStore('circles', () => {
       title: '',
       visibility: 'VISIBILITY_LEVEL_PRIVATE' as apitypes_VisibilityLevel,
       permission: 'PERMISSION_LEVEL_UNSPECIFIED' as apitypes_PermissionLevel,
+      state: 'ACCESS_STATE_UNSPECIFIED' as apitypes_AccessState,
     }
   }
 
@@ -84,6 +91,25 @@ export const useCirclesStore = defineStore('circles', () => {
     }
   }
 
+  // Load my circles (admin permission)
+  async function loadMyCircles() {
+    await loadCircles('permission = 300')
+  }
+
+  // Load shared circles (accepted or pending)
+  async function loadSharedCircles(state?: number) {
+    let filter = 'permission = 100 OR permission = 200'
+    if (state) {
+      filter += ` AND state = ${state}`
+    }
+    await loadCircles(filter)
+  }
+
+  // Load public circles
+  async function loadPublicCircles() {
+    await loadCircles('visibility = 1')
+  }
+
   return {
     loadCircle,
     loadCircles,
@@ -92,5 +118,12 @@ export const useCirclesStore = defineStore('circles', () => {
     updateCircle,
     circles,
     circle,
+    myCircles,
+    sharedAcceptedCircles,
+    sharedPendingCircles,
+    publicCircles,
+    loadMyCircles,
+    loadSharedCircles,
+    loadPublicCircles,
   }
 }) 

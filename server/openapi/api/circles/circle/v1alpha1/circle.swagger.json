@@ -169,6 +169,11 @@
                   "$ref": "#/definitions/typesPermissionLevel",
                   "title": "the permission of the circle",
                   "readOnly": true
+                },
+                "state": {
+                  "$ref": "#/definitions/typesAccessState",
+                  "title": "the access state of the user to the circle",
+                  "readOnly": true
                 }
               },
               "title": "the circle to update",
@@ -302,6 +307,17 @@
         }
       }
     },
+    "typesAccessState": {
+      "type": "string",
+      "enum": [
+        "ACCESS_STATE_UNSPECIFIED",
+        "ACCESS_STATE_PENDING",
+        "ACCESS_STATE_ACCEPTED"
+      ],
+      "default": "ACCESS_STATE_UNSPECIFIED",
+      "description": "- ACCESS_STATE_UNSPECIFIED: This status should never get used.\n - ACCESS_STATE_PENDING: The access is pending and can either be accepted or deleted.\n - ACCESS_STATE_ACCEPTED: The access is accepted and can be deleted.",
+      "title": "the visibility levels"
+    },
     "typesPermissionLevel": {
       "type": "string",
       "enum": [
@@ -346,6 +362,11 @@
         "permission": {
           "$ref": "#/definitions/typesPermissionLevel",
           "title": "the permission of the circle",
+          "readOnly": true
+        },
+        "state": {
+          "$ref": "#/definitions/typesAccessState",
+          "title": "the access state of the user to the circle",
           "readOnly": true
         }
       },

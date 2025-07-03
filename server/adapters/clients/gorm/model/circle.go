@@ -20,12 +20,16 @@ var CircleFields = circleFields{
 	CircleId:   "circle.circle_id",
 	Title:      "circle.title",
 	Visibility: "circle.visibility_level",
+	Permission: "circle_access.permission_level",
+	State:      "circle_access.state",
 }
 
 type circleFields struct {
 	CircleId   string
 	Title      string
 	Visibility string
+	Permission string
+	State      string
 }
 
 // Map maps the circle fields to their corresponding model values.
@@ -34,6 +38,8 @@ func (fields circleFields) Map(m Circle) map[string]any {
 		fields.CircleId:   m.CircleId,
 		fields.Title:      m.Title,
 		fields.Visibility: m.VisibilityLevel,
+		fields.Permission: m.PermissionLevel,
+		fields.State:      m.AccessState,
 	}
 }
 
@@ -43,6 +49,8 @@ func (fields circleFields) Mask() []string {
 		fields.CircleId,
 		fields.Title,
 		fields.Visibility,
+		fields.Permission,
+		fields.State,
 	}
 }
 
@@ -52,6 +60,7 @@ type Circle struct {
 	Title           string                `gorm:"column:title;not null"`
 	VisibilityLevel types.VisibilityLevel `gorm:"column:visibility_level;not null;default:1"`
 	PermissionLevel types.PermissionLevel `gorm:"<-:false"` // only used for read from a join
+	AccessState     types.AccessState     `gorm:"<-:false"` // only used for read from a join
 }
 
 // TableName sets the table name for the Circle model.

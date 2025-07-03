@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package api.meals.recipe.v1alpha1;
 
+import "api/types/access_state.proto";
 import "api/types/permission_level.proto";
 import "api/types/visibility_level.proto";
-import "api/types/access_state.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";

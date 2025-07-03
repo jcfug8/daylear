@@ -16,8 +16,10 @@ import (
 
 // CircleMap maps the core model fields to the database model fields for the unified CircleAccess model.
 var CircleMap = map[string]string{
-	"permission": dbModel.CircleAccessFields.PermissionLevel,
+	"permission": dbModel.CircleFields.Permission,
+	"state":      dbModel.CircleFields.State,
 	"title":      dbModel.CircleFields.Title,
+	"visibility": dbModel.CircleFields.Visibility,
 }
 
 // CreateCircle creates a new circle.
@@ -70,7 +72,7 @@ func (repo *Client) GetCircle(ctx context.Context, authAccount cmodel.AuthAccoun
 	gm := gmodel.Circle{}
 
 	tx := repo.db.WithContext(ctx).
-		Select("circle.*", "circle_access.permission_level").
+		Select("circle.*", "circle_access.permission_level", "circle_access.state").
 		Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.UserId).
 		Where("circle.circle_id = ? AND (circle.visibility_level = ? OR circle_access.recipient_user_id = ?)", id.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.UserId)
 
@@ -122,7 +124,7 @@ func (repo *Client) ListCircles(ctx context.Context, authAccount cmodel.AuthAcco
 	}}
 
 	tx := repo.db.WithContext(ctx).
-		Select("circle.*, circle_access.permission_level").
+		Select("circle.*", "circle_access.permission_level", "circle_access.state").
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(offset)).

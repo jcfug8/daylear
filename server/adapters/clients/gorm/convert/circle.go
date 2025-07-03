@@ -13,6 +13,7 @@ func CircleFromCoreModel(m cmodel.Circle) (gmodel.Circle, error) {
 		Title:           m.Title,
 		VisibilityLevel: m.VisibilityLevel,
 		PermissionLevel: m.PermissionLevel,
+		AccessState:     m.AccessState,
 	}, nil
 }
 
@@ -27,5 +28,6 @@ func CircleToCoreModel(g gmodel.Circle) (cmodel.Circle, error) {
 		Title:           g.Title,
 		VisibilityLevel: g.VisibilityLevel,
 		PermissionLevel: g.PermissionLevel,
+		AccessState:     g.AccessState,
 	}, nil
 }
