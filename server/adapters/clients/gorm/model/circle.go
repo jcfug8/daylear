@@ -19,6 +19,7 @@ var CircleMap = masks.NewFieldMap().
 var CircleFields = circleFields{
 	CircleId:   "circle.circle_id",
 	Title:      "circle.title",
+	ImageURI:   "circle.image_uri",
 	Visibility: "circle.visibility_level",
 	Permission: "circle_access.permission_level",
 	State:      "circle_access.state",
@@ -27,6 +28,7 @@ var CircleFields = circleFields{
 type circleFields struct {
 	CircleId   string
 	Title      string
+	ImageURI   string
 	Visibility string
 	Permission string
 	State      string
@@ -37,6 +39,7 @@ func (fields circleFields) Map(m Circle) map[string]any {
 	return map[string]any{
 		fields.CircleId:   m.CircleId,
 		fields.Title:      m.Title,
+		fields.ImageURI:   m.ImageURI,
 		fields.Visibility: m.VisibilityLevel,
 		fields.Permission: m.PermissionLevel,
 		fields.State:      m.AccessState,
@@ -48,6 +51,7 @@ func (fields circleFields) Mask() []string {
 	return []string{
 		fields.CircleId,
 		fields.Title,
+		fields.ImageURI,
 		fields.Visibility,
 		fields.Permission,
 		fields.State,
@@ -58,6 +62,7 @@ func (fields circleFields) Mask() []string {
 type Circle struct {
 	CircleId        int64                 `gorm:"primaryKey;column:circle_id;autoIncrement;<-:false"`
 	Title           string                `gorm:"column:title;not null"`
+	ImageURI        string                `gorm:"column:image_uri"`
 	VisibilityLevel types.VisibilityLevel `gorm:"column:visibility_level;not null;default:1"`
 	PermissionLevel types.PermissionLevel `gorm:"->;-:migration"` // only used for read from a join
 	AccessState     types.AccessState     `gorm:"->;-:migration"` // only used for read from a join

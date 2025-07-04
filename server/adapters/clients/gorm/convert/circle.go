@@ -11,6 +11,7 @@ func CircleFromCoreModel(m cmodel.Circle) (gmodel.Circle, error) {
 	return gmodel.Circle{
 		CircleId:        m.Id.CircleId,
 		Title:           m.Title,
+		ImageURI:        m.ImageURI,
 		VisibilityLevel: m.VisibilityLevel,
 		PermissionLevel: m.PermissionLevel,
 		AccessState:     m.AccessState,
@@ -26,6 +27,7 @@ func CircleToCoreModel(g gmodel.Circle) (cmodel.Circle, error) {
 	return cmodel.Circle{
 		Id:              cmodel.CircleId{CircleId: g.CircleId},
 		Title:           g.Title,
+		ImageURI:        g.ImageURI,
 		VisibilityLevel: g.VisibilityLevel,
 		PermissionLevel: g.PermissionLevel,
 		AccessState:     g.AccessState,

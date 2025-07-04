@@ -161,6 +161,10 @@
                   "type": "string",
                   "title": "the title of the circle"
                 },
+                "imageUri": {
+                  "type": "string",
+                  "title": "the image url for the circle"
+                },
                 "visibility": {
                   "$ref": "#/definitions/typesVisibilityLevel",
                   "title": "the visibility of the circle"
@@ -354,6 +358,10 @@
         "title": {
           "type": "string",
           "title": "the title of the circle"
+        },
+        "imageUri": {
+          "type": "string",
+          "title": "the image url for the circle"
         },
         "visibility": {
           "$ref": "#/definitions/typesVisibilityLevel",

@@ -32,6 +32,8 @@ type Circle struct {
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// the title of the circle
 	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	// the image url for the circle
+	ImageUri string `protobuf:"bytes,6,opt,name=image_uri,json=imageUri,proto3" json:"image_uri,omitempty"`
 	// the visibility of the circle
 	Visibility types.VisibilityLevel `protobuf:"varint,3,opt,name=visibility,proto3,enum=api.types.VisibilityLevel" json:"visibility,omitempty"`
 	// the permission of the circle
@@ -82,6 +84,13 @@ func (x *Circle) GetName() string {
 func (x *Circle) GetTitle() string {
 	if x != nil {
 		return x.Title
+	}
+	return ""
+}
+
+func (x *Circle) GetImageUri() string {
+	if x != nil {
+		return x.ImageUri
 	}
 	return ""
 }
@@ -432,10 +441,11 @@ var File_api_circles_circle_v1alpha1_circle_proto protoreflect.FileDescriptor
 
 const file_api_circles_circle_v1alpha1_circle_proto_rawDesc = "" +
 	"\n" +
-	"(api/circles/circle/v1alpha1/circle.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xbd\x02\n" +
+	"(api/circles/circle/v1alpha1/circle.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xdf\x02\n" +
 	"\x06Circle\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
-	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12?\n" +
+	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12 \n" +
+	"\timage_uri\x18\x06 \x01(\tB\x03\xe0A\x01R\bimageUri\x12?\n" +
 	"\n" +
 	"visibility\x18\x03 \x01(\x0e2\x1a.api.types.VisibilityLevelB\x03\xe0A\x02R\n" +
 	"visibility\x12?\n" +

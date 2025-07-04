@@ -5,6 +5,7 @@
     :is-editing="true"
     @save="saveSettings"
     @close="navigateBack"
+    @imageSelected="handleImageSelected"
   />
 </template>
 
@@ -14,9 +15,10 @@ import { storeToRefs } from 'pinia'
 import { onMounted, ref, watch } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRouter, useRoute } from 'vue-router'
-import type { Circle, apitypes_VisibilityLevel, apitypes_PermissionLevel } from '@/genapi/api/circles/circle/v1alpha1'
+import type { Circle, apitypes_VisibilityLevel, apitypes_PermissionLevel, apitypes_AccessState } from '@/genapi/api/circles/circle/v1alpha1'
 import { useAuthStore } from '@/stores/auth'
 import CircleForm from '@/views/circles/forms/CircleForm.vue'
+import { fileService } from '@/api/api'
 
 const router = useRouter()
 const route = useRoute()
@@ -28,9 +30,13 @@ const authStore = useAuthStore()
 const editedCircle = ref<Circle>({
   name: '',
   title: '',
+  imageUri: '',
   visibility: 'VISIBILITY_LEVEL_PRIVATE' as apitypes_VisibilityLevel,
   permission: 'PERMISSION_LEVEL_UNSPECIFIED' as apitypes_PermissionLevel,
+  state: 'ACCESS_STATE_UNSPECIFIED' as apitypes_AccessState,
 })
+
+const pendingImageFile = ref<File | null>(null)
 
 function navigateBack() {
   router.push({ name: 'circle', params: { circleId: editedCircle.value.name } })
@@ -40,11 +46,26 @@ async function saveSettings() {
   try {
     circlesStore.circle = editedCircle.value
     await circlesStore.updateCircle()
+    // Upload image if there's a pending file
+    if (pendingImageFile.value && circlesStore.circle?.name) {
+      const response = await fileService.UploadCircleImage({
+        name: circlesStore.circle.name,
+        file: pendingImageFile.value,
+      })
+      circlesStore.circle.imageUri = response.imageUri
+    }
     authStore.loadAuthCircles()
     navigateBack()
   } catch (error) {
     console.error('Error saving settings:', error)
     alert('Failed to save settings')
+  }
+}
+
+function handleImageSelected(file: File | null, url: string | null) {
+  pendingImageFile.value = file
+  if (url) {
+    editedCircle.value.imageUri = url
   }
 }
 

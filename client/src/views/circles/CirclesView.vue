@@ -13,7 +13,14 @@
           :title="circle.title"
           :subtitle="circle.name"
           :to="{ name: 'circle', params: { circleId: circle.name } }"
-        />
+        >
+          <template #prepend>
+            <v-avatar size="48">
+              <v-img v-if="circle.imageUri" :src="circle.imageUri" />
+              <v-icon v-else color="grey-darken-1">mdi-image-outline</v-icon>
+            </v-avatar>
+          </template>
+        </v-list-item>
       </v-list>
       <div v-else>No circles found.</div>
     </template>
@@ -25,7 +32,14 @@
           :title="circle.title"
           :subtitle="circle.name"
           :to="{ name: 'circle', params: { circleId: circle.name } }"
-        />
+        >
+          <template #prepend>
+            <v-avatar size="48">
+              <v-img v-if="circle.imageUri" :src="circle.imageUri" />
+              <v-icon v-else color="grey-darken-1">mdi-image-outline</v-icon>
+            </v-avatar>
+          </template>
+        </v-list-item>
       </v-list>
       <div v-else>No accepted shared circles found.</div>
     </template>
@@ -38,6 +52,12 @@
           :subtitle="circle.name"
           :to="{ name: 'circle', params: { circleId: circle.name } }"
         >
+          <template #prepend>
+            <v-avatar size="48">
+              <v-img v-if="circle.imageUri" :src="circle.imageUri" />
+              <v-icon v-else color="grey-darken-1">mdi-image-outline</v-icon>
+            </v-avatar>
+          </template>
           <template #append>
             <v-btn color="success" @click.stop.prevent="acceptCircleAccess(circle)" :loading="acceptingCircleId === circle.name">
               Accept
@@ -58,7 +78,14 @@
           :title="circle.title"
           :subtitle="circle.name"
           :to="{ name: 'circle', params: { circleId: circle.name } }"
-        />
+        >
+          <template #prepend>
+            <v-avatar size="48">
+              <v-img v-if="circle.imageUri" :src="circle.imageUri" />
+              <v-icon v-else color="grey-darken-1">mdi-image-outline</v-icon>
+            </v-avatar>
+          </template>
+        </v-list-item>
       </v-list>
       <div v-else>No public circles found.</div>
     </template>

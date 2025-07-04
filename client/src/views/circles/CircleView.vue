@@ -2,6 +2,30 @@
   <v-container v-if="circle">
     <v-container max-width="600" class="pa-1">
       <v-row>
+        <v-col align-self="auto" cols="12" sm="8">
+          <div class="image-container">
+            <v-img 
+              v-if="circle.imageUri" 
+              class="mt-1" 
+              style="background-color: lightgray" 
+              :src="circle.imageUri" 
+              cover
+              height="300"
+            ></v-img>
+            <div 
+              v-else 
+              class="mt-1 d-flex align-center justify-center"
+              style="background-color: lightgray; height: 300px; border-radius: 4px;"
+            >
+              <div class="text-center">
+                <v-icon size="64" color="grey-darken-1">mdi-image-outline</v-icon>
+                <div class="text-grey-darken-1 mt-2">No image available</div>
+              </div>
+            </div>
+          </div>
+        </v-col>
+      </v-row>
+      <v-row>
         <v-col class="pt-5">
           <div class="text-h4">
             {{ circle.title }}
@@ -504,4 +528,8 @@ async function handleDelete() {
 }
 </script>
 
-<style></style>
+<style scoped>
+.image-container {
+  position: relative;
+}
+</style>

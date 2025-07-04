@@ -12,6 +12,10 @@ export type Circle = {
   //
   // Behaviors: REQUIRED
   title: string | undefined;
+  // the image url for the circle
+  //
+  // Behaviors: OPTIONAL
+  imageUri: string | undefined;
   // the visibility of the circle
   //
   // Behaviors: REQUIRED

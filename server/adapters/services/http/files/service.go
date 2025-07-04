@@ -16,6 +16,7 @@ type Service struct {
 	log         zerolog.Logger
 	domain      domain.Domain
 	recipeNamer namer.ReflectNamer
+	circleNamer namer.ReflectNamer
 }
 
 type NewServiceParams struct {
@@ -24,6 +25,7 @@ type NewServiceParams struct {
 	Log         zerolog.Logger
 	Domain      domain.Domain
 	RecipeNamer namer.ReflectNamer `name:"v1alpha1RecipeNamer"`
+	CircleNamer namer.ReflectNamer `name:"v1alpha1CircleNamer"`
 }
 
 func NewService(params NewServiceParams) (*Service, error) {
@@ -31,6 +33,7 @@ func NewService(params NewServiceParams) (*Service, error) {
 		log:         params.Log,
 		domain:      params.Domain,
 		recipeNamer: params.RecipeNamer,
+		circleNamer: params.CircleNamer,
 	}, nil
 }
 
@@ -39,6 +42,8 @@ func (s *Service) Register(m *http.ServeMux) error {
 
 	s.log.Info().Msg("Registering files service routes")
 	r.HandleFunc("/meals/v1alpha1/{name:recipes/[0-9]+}/image", s.UploadRecipeImage).Methods(http.MethodPut)
+
+	r.HandleFunc("/circles/v1alpha1/{name:circles/[0-9]+}/image", s.UploadCircleImage).Methods(http.MethodPut)
 
 	r.HandleFunc("/meals/v1alpha1/recipes:ocr", s.OCRRecipe).Methods(http.MethodPost)
 

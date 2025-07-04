@@ -49,7 +49,7 @@ func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount
 	}
 	defer tx.Rollback()
 
-	recipe.ImageURI, err = d.createImageURI(ctx, recipe)
+	recipe.ImageURI, err = d.createRecipeImageURI(ctx, recipe)
 	if err != nil {
 		return model.Recipe{}, err
 	}
@@ -239,7 +239,7 @@ func (d *Domain) UpdateRecipe(ctx context.Context, authAccount model.AuthAccount
 
 	for _, updateMaskField := range updateMask {
 		if updateMaskField == model.RecipeFields.ImageURI && recipe.ImageURI != previousDbRecipe.ImageURI {
-			recipe.ImageURI, err = d.updateImageURI(ctx, authAccount, recipe)
+			recipe.ImageURI, err = d.updateRecipeImageURI(ctx, authAccount, recipe)
 			if err != nil {
 				return model.Recipe{}, err
 			}
@@ -412,7 +412,7 @@ func (d *Domain) OCRRecipe(ctx context.Context, authAccount model.AuthAccount, i
 
 // Helper methods
 
-func (d *Domain) createImageURI(ctx context.Context, recipe model.Recipe) (string, error) {
+func (d *Domain) createRecipeImageURI(ctx context.Context, recipe model.Recipe) (string, error) {
 	if recipe.ImageURI == "" {
 		return "", nil
 	}
@@ -431,7 +431,7 @@ func (d *Domain) createImageURI(ctx context.Context, recipe model.Recipe) (strin
 	return imageURI, nil
 }
 
-func (d *Domain) updateImageURI(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe) (string, error) {
+func (d *Domain) updateRecipeImageURI(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe) (string, error) {
 	if recipe.ImageURI == "" {
 		err := d.removeRecipeImage(ctx, authAccount, recipe.Id)
 		if err != nil {

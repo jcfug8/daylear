@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"io"
 
 	model "github.com/jcfug8/daylear/server/core/model"
 )
@@ -12,6 +13,8 @@ type circleDomain interface {
 	GetCircle(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (model.Circle, error)
 	ListCircles(ctx context.Context, authAccount model.AuthAccount, pageSize int32, offset int64, filter string, fieldMask []string) ([]model.Circle, error)
 	UpdateCircle(ctx context.Context, authAccount model.AuthAccount, recipe model.Circle, updateMask []string) (model.Circle, error)
+
+	UploadCircleImage(ctx context.Context, authAccount model.AuthAccount, id model.CircleId, imageReader io.Reader) (imageURI string, err error)
 
 	CreateCircleAccess(ctx context.Context, authAccount model.AuthAccount, access model.CircleAccess) (model.CircleAccess, error)
 	DeleteCircleAccess(ctx context.Context, authAccount model.AuthAccount, parent model.CircleAccessParent, id model.CircleAccessId) error

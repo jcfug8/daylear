@@ -215,6 +215,7 @@ func (s *CircleService) ProtoToCircle(proto *pb.Circle) (model.Circle, error) {
 		}
 	}
 	circle.Title = proto.Title
+	circle.ImageURI = proto.ImageUri
 	circle.VisibilityLevel = proto.Visibility
 	circle.PermissionLevel = proto.Permission
 	circle.AccessState = proto.State
@@ -231,6 +232,7 @@ func (s *CircleService) CircleToProto(circle model.Circle) (*pb.Circle, error) {
 	proto.Name = name
 
 	proto.Title = circle.Title
+	proto.ImageUri = circle.ImageURI
 	proto.Visibility = circle.VisibilityLevel
 	proto.Permission = circle.PermissionLevel
 	proto.State = circle.AccessState

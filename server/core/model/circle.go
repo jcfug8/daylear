@@ -9,6 +9,7 @@ import (
 type Circle struct {
 	Id              CircleId
 	Title           string
+	ImageURI        string
 	VisibilityLevel types.VisibilityLevel
 	PermissionLevel types.PermissionLevel
 	AccessState     types.AccessState
@@ -26,6 +27,7 @@ type CircleId struct {
 var CircleFields = circleFields{
 	Id:         "id",
 	Title:      "title",
+	ImageURI:   "image_uri",
 	Visibility: "visibility",
 	Permission: "permission",
 	State:      "state",
@@ -34,6 +36,7 @@ var CircleFields = circleFields{
 type circleFields struct {
 	Id         string
 	Title      string
+	ImageURI   string
 	Visibility string
 	Permission string
 	State      string
@@ -44,6 +47,7 @@ func (fields circleFields) Mask() []string {
 	return []string{
 		fields.Id,
 		fields.Title,
+		fields.ImageURI,
 		fields.Visibility,
 		fields.Permission,
 		fields.State,
@@ -54,6 +58,7 @@ func (fields circleFields) Mask() []string {
 func (fields circleFields) UpdateMask(mask []string) []string {
 	updatable := []string{
 		fields.Title,
+		fields.ImageURI,
 		fields.Visibility,
 	}
 
