@@ -61,7 +61,7 @@ type UserAccess struct {
 	RecipientUserId int64                 `gorm:"not null;index"`
 	PermissionLevel types.PermissionLevel `gorm:"not null"`
 	State           types.AccessState     `gorm:"not null"`
-	Title           string                `gorm:"->"` // read only from join
+	Title           string                `gorm:"->;-:migration"` // read only from join
 }
 
 // TableName -

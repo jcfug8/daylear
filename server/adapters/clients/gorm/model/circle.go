@@ -59,8 +59,8 @@ type Circle struct {
 	CircleId        int64                 `gorm:"primaryKey;column:circle_id;autoIncrement;<-:false"`
 	Title           string                `gorm:"column:title;not null"`
 	VisibilityLevel types.VisibilityLevel `gorm:"column:visibility_level;not null;default:1"`
-	PermissionLevel types.PermissionLevel `gorm:"<-:false"` // only used for read from a join
-	AccessState     types.AccessState     `gorm:"<-:false"` // only used for read from a join
+	PermissionLevel types.PermissionLevel `gorm:"->;-:migration"` // only used for read from a join
+	AccessState     types.AccessState     `gorm:"->;-:migration"` // only used for read from a join
 }
 
 // TableName sets the table name for the Circle model.

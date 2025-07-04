@@ -58,13 +58,13 @@ func (fields circleAccessFields) Mask() []string {
 // CircleAccess -
 type CircleAccess struct {
 	CircleAccessId    int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
-	CircleId          int64                 `gorm:"not null;index"`
+	CircleId          int64                 `gorm:"not null;index;uniqueIndex:idx_circle_id_recipient_user_id"`
 	RequesterUserId   int64                 `gorm:"index"`
 	RequesterCircleId int64                 `gorm:"index"`
-	RecipientUserId   int64                 `gorm:"not null;index"`
+	RecipientUserId   int64                 `gorm:"not null;uniqueIndex:idx_circle_id_recipient_user_id,where:recipient_user_id <> 0"`
 	PermissionLevel   types.PermissionLevel `gorm:"not null"`
 	State             types.AccessState     `gorm:"not null"`
-	Title             string                `gorm:"->"` // read only from join
+	Title             string                `gorm:"->;-:migration"` // read only from join
 }
 
 // TableName -

@@ -8,6 +8,7 @@ import (
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	model "github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
 	"github.com/jcfug8/daylear/server/ports/repository"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -98,8 +99,39 @@ func (repo *Client) GetRecipeAccess(ctx context.Context, parent model.RecipeAcce
 }
 
 func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent model.RecipeAccessParent, pageSize int32, pageOffset int64, filterStr string) ([]model.RecipeAccess, error) {
-	if authAccount.UserId == 0 {
-		return nil, repository.ErrInvalidArgument{Msg: "user id is required"}
+	if authAccount.UserId == 0 && authAccount.CircleId == 0 {
+		return nil, repository.ErrInvalidArgument{Msg: "user id or circle id is required"}
+	}
+
+	orders := []clause.OrderByColumn{{
+		Column: clause.Column{Name: "recipe_access.recipe_access_id"},
+		Desc:   true,
+	}}
+
+	var recipeAccesses []dbModel.RecipeAccess
+	// Start building the query
+	db := repo.db.WithContext(ctx).
+		Select("recipe_access.*, recipe.title").
+		Joins("LEFT JOIN recipe ON recipe_access.recipe_id = recipe.recipe_id").
+		Order(clause.OrderBy{Columns: orders}).
+		Limit(int(pageSize)).
+		Offset(int(pageOffset))
+
+	// Filter by recipe ID if provided
+	if parent.RecipeId.RecipeId != 0 {
+		db = db.Where("recipe_access.recipe_id = ?", parent.RecipeId.RecipeId)
+	}
+
+	if authAccount.CircleId != 0 {
+		db = db.Where(
+			"recipe_access.recipient_circle_id = ? OR recipe_access.recipe_id IN (SELECT recipe_id FROM recipe_access WHERE recipient_circle_id = ? AND permission_level >= ?)",
+			authAccount.CircleId, authAccount.CircleId, types.PermissionLevel_PERMISSION_LEVEL_WRITE,
+		)
+	} else if authAccount.UserId != 0 {
+		db = db.Where(
+			"recipe_access.recipient_user_id = ? OR recipe_access.recipe_id IN (SELECT recipe_id FROM recipe_access WHERE recipient_user_id = ? AND permission_level >= ?)",
+			authAccount.UserId, authAccount.UserId, types.PermissionLevel_PERMISSION_LEVEL_WRITE,
+		)
 	}
 
 	conversion, err := repo.recipeAccessSQLConverter.Convert(filterStr)
@@ -107,22 +139,8 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
 	}
 
-	var recipeAccesses []dbModel.RecipeAccess
-	db := repo.db.WithContext(ctx).Model(&dbModel.RecipeAccess{})
-
 	if conversion.WhereClause != "" {
 		db = db.Where(conversion.WhereClause, conversion.Params...)
-	}
-
-	// Filter by recipe ID
-	if parent.RecipeId.RecipeId != 0 {
-		db = db.Where("recipe_access.recipe_id = ?", parent.RecipeId.RecipeId)
-	}
-
-	if authAccount.CircleId != 0 {
-		db = db.Where("recipe_access.recipient_circle_id = ?", authAccount.CircleId)
-	} else if authAccount.UserId != 0 {
-		db = db.Where("recipe_access.recipient_user_id = ?", authAccount.UserId)
 	}
 
 	err = db.Limit(int(pageSize)).
