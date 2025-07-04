@@ -1,13 +1,14 @@
 package files
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 	"strings"
 
+	"github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/convert"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
-	"github.com/jcfug8/daylear/server/core/model"
+	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func (s *Service) OCRRecipe(w http.ResponseWriter, r *http.Request) {
@@ -46,11 +47,19 @@ func (s *Service) OCRRecipe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, recipe)
+	if err != nil {
+		s.log.Error().Err(err).Msg("unable to convert recipe to proto")
+		http.Error(w, "Interal Error", http.StatusInternalServerError)
+		return
+	}
+
+	scrapeRecipeResponse := &pb.ScrapeRecipeResponse{
+		Recipe: pbRecipe,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	res, _ := json.Marshal(struct {
-		Recipe model.Recipe `json:"recipe"`
-	}{Recipe: recipe})
-
-	w.Write(res)
+	jsonRecipe, _ := protojson.Marshal(scrapeRecipeResponse)
+	w.Write(jsonRecipe)
 }
