@@ -237,9 +237,9 @@ message Recipe {
     // wheter the ingredient is optional
     bool optional = 3 [(google.api.field_behavior) = OPTIONAL];
     // the quantity of the ingredient
-    double measurement_amount = 4 [(google.api.field_behavior) = REQUIRED];
+    double measurement_amount = 4 [(google.api.field_behavior) = OPTIONAL];
     // the type of measurement
-    MeasurementType measurement_type = 5 [(google.api.field_behavior) = REQUIRED];
+    MeasurementType measurement_type = 5 [(google.api.field_behavior) = OPTIONAL];
   }
 
   // the type of measurement

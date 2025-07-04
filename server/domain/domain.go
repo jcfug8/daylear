@@ -7,6 +7,7 @@ import (
 	"github.com/jcfug8/daylear/server/ports/fileinspector"
 	"github.com/jcfug8/daylear/server/ports/fileretriever"
 	"github.com/jcfug8/daylear/server/ports/filestorage"
+	"github.com/jcfug8/daylear/server/ports/recipeocr"
 	"github.com/jcfug8/daylear/server/ports/recipescraper"
 	"github.com/jcfug8/daylear/server/ports/repository"
 	"github.com/jcfug8/daylear/server/ports/token"
@@ -31,6 +32,8 @@ type DomainParams struct {
 
 	RecipeScrapers       []recipescraper.HostSpecificClient `group:"recipescrapers"`
 	DefaultRecipeScraper recipescraper.DefaultClient
+
+	RecipeOCR recipeocr.Client
 }
 
 // NewDomain creates a new domain.
@@ -54,6 +57,8 @@ func NewDomain(params DomainParams) domainPort.Domain {
 
 		recipeScrapers:       recipeScrapers,
 		defaultRecipeScraper: params.DefaultRecipeScraper,
+
+		recipeOCR: params.RecipeOCR,
 	}
 	return d
 }
@@ -71,4 +76,6 @@ type Domain struct {
 
 	recipeScrapers       map[string]recipescraper.HostSpecificClient
 	defaultRecipeScraper recipescraper.DefaultClient
+
+	recipeOCR recipeocr.Client
 }

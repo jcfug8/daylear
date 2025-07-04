@@ -932,8 +932,8 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"Ingredient\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12\x1f\n" +
 	"\boptional\x18\x03 \x01(\bB\x03\xe0A\x01R\boptional\x122\n" +
-	"\x12measurement_amount\x18\x04 \x01(\x01B\x03\xe0A\x02R\x11measurementAmount\x12a\n" +
-	"\x10measurement_type\x18\x05 \x01(\x0e21.api.meals.recipe.v1alpha1.Recipe.MeasurementTypeB\x03\xe0A\x02R\x0fmeasurementType\"\x9d\x02\n" +
+	"\x12measurement_amount\x18\x04 \x01(\x01B\x03\xe0A\x01R\x11measurementAmount\x12a\n" +
+	"\x10measurement_type\x18\x05 \x01(\x0e21.api.meals.recipe.v1alpha1.Recipe.MeasurementTypeB\x03\xe0A\x01R\x0fmeasurementType\"\x9d\x02\n" +
 	"\x0fMeasurementType\x12 \n" +
 	"\x1cMEASUREMENT_TYPE_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bMEASUREMENT_TYPE_TABLESPOON\x10\x01\x12\x1d\n" +

@@ -6,17 +6,13 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gorilla/mux"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/core/model"
 )
 
-const maxUploadSize = 2 * 1024 * 1024   // 2 MB
-const maxInmemoryUploadSize = 10 * 1024 // 100K
-
-func (s *Service) UploadRecipeImage(w http.ResponseWriter, r *http.Request) {
+func (s *Service) OCRRecipe(w http.ResponseWriter, r *http.Request) {
 	// Limit the size of the request body
-	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+	// r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 
 	var body io.Reader = r.Body
 	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
@@ -43,20 +39,7 @@ func (s *Service) UploadRecipeImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	name, ok := mux.Vars(r)["name"]
-	if !ok {
-		http.Error(w, "No recipe name", http.StatusBadRequest)
-		return
-	}
-
-	mRecipe := model.Recipe{}
-	_, err = s.recipeNamer.Parse(name, &mRecipe)
-	if err != nil {
-		http.Error(w, "Invalid recipe name", http.StatusBadRequest)
-		return
-	}
-
-	imageURI, err := s.domain.UploadRecipeImage(r.Context(), authAccount, mRecipe.Id, body)
+	recipe, err := s.domain.OCRRecipe(r.Context(), authAccount, body)
 	if err != nil {
 		s.log.Error().Err(err).Msg("unable to upload recipe image")
 		http.Error(w, "Interal Error", http.StatusInternalServerError)
@@ -66,7 +49,8 @@ func (s *Service) UploadRecipeImage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	res, _ := json.Marshal(struct {
-		ImageURI string `json:"image_uri"`
-	}{ImageURI: imageURI})
+		Recipe model.Recipe `json:"recipe"`
+	}{Recipe: recipe})
+
 	w.Write(res)
 }

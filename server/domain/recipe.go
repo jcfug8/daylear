@@ -385,6 +385,25 @@ func (d *Domain) ScrapeRecipe(ctx context.Context, authAccount model.AuthAccount
 	return recipe, nil
 }
 
+func (d *Domain) OCRRecipe(ctx context.Context, authAccount model.AuthAccount, imageReader io.Reader) (recipe model.Recipe, err error) {
+	if authAccount.UserId == 0 {
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "user id required"}
+	}
+
+	file, err := d.fileInspector.Inspect(ctx, imageReader)
+	if err != nil {
+		return model.Recipe{}, err
+	}
+	defer file.Close()
+
+	recipe, err = d.recipeOCR.OCRRecipe(ctx, file)
+	if err != nil {
+		return model.Recipe{}, err
+	}
+
+	return recipe, nil
+}
+
 // Helper methods
 
 func (d *Domain) createImageURI(ctx context.Context, recipe model.Recipe) (string, error) {

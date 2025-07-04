@@ -536,9 +536,7 @@
       },
       "title": "an ingredient in a recipe",
       "required": [
-        "title",
-        "measurementAmount",
-        "measurementType"
+        "title"
       ]
     },
     "RecipeIngredientGroup": {

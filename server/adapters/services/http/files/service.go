@@ -40,6 +40,8 @@ func (s *Service) Register(m *http.ServeMux) error {
 	s.log.Info().Msg("Registering files service routes")
 	r.HandleFunc("/meals/v1alpha1/{name:recipes/[0-9]+}/image", s.UploadRecipeImage).Methods(http.MethodPut)
 
+	r.HandleFunc("/meals/v1alpha1/recipes:ocr", s.OCRRecipe).Methods(http.MethodPost)
+
 	s.log.Info().Msg("Mounting files service at /files/")
 	m.Handle("/files/", headers.NewAuthTokenMiddleware(s.domain)(http.StripPrefix("/files", r)))
 	return nil

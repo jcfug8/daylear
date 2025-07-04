@@ -78,8 +78,8 @@
               <v-list>
                 <v-list-item slim prepend-icon="mdi-circle-small" v-for="(ingredient, j) in ingredientGroup.ingredients"
                   :key="j">
-                  {{ ingredient.measurementAmount }}
-                  {{ convertMeasurementTypeToString(ingredient.measurementType) }}
+                  <span v-if="ingredient.measurementAmount">{{ isFranctional(ingredient.measurementType) ? toFraction(ingredient.measurementAmount ?? 0) : ingredient.measurementAmount }}</span>
+                  {{ measurementTypeLabel(ingredient.measurementType, ingredient.measurementAmount) }}
                   {{ ingredient.title }} <span v-if="ingredient.optional">(optional)</span>
                 </v-list-item>
               </v-list>
@@ -757,6 +757,65 @@ async function acceptRecipe() {
   } catch (error) {
     // Optionally show a notification
   }
+}
+
+function isFranctional(type: Recipe_MeasurementType | undefined): boolean {
+  return [
+    'MEASUREMENT_TYPE_CUP',
+    'MEASUREMENT_TYPE_TABLESPOON',
+    'MEASUREMENT_TYPE_TEASPOON',
+    'MEASUREMENT_TYPE_POUND',
+  ].includes(type as string)
+}
+
+function toFraction(amount: number): string {
+  if (isNaN(amount)) return ''
+  const whole = Math.floor(amount)
+  let frac = amount - whole
+  // Find the closest common fraction denominator
+  const denominators = [2, 3, 4, 8, 16]
+  let best = { num: 0, den: 1, diff: 1 }
+  for (const den of denominators) {
+    const num = Math.round(frac * den)
+    const diff = Math.abs(frac - num / den)
+    if (num > 0 && diff < best.diff) {
+      best = { num, den, diff }
+    }
+  }
+  let result = ''
+  if (whole > 0) result += whole
+  if (best.num > 0) {
+    if (whole > 0) result += ' '
+    result += `${best.num}/${best.den}`
+  }
+  if (result === '') result = '0'
+  return result
+}
+
+function measurementTypeLabel(type: Recipe_MeasurementType | undefined, amount: number | undefined): string {
+  const singular: Record<string, string> = {
+    MEASUREMENT_TYPE_CUP: 'cup',
+    MEASUREMENT_TYPE_TABLESPOON: 'tablespoon',
+    MEASUREMENT_TYPE_TEASPOON: 'teaspoon',
+    MEASUREMENT_TYPE_OUNCE: 'ounce',
+    MEASUREMENT_TYPE_POUND: 'pound',
+    MEASUREMENT_TYPE_GRAM: 'gram',
+    MEASUREMENT_TYPE_MILLILITER: 'milliliter',
+    MEASUREMENT_TYPE_LITER: 'liter',
+  }
+  const plural: Record<string, string> = {
+    MEASUREMENT_TYPE_CUP: 'cups',
+    MEASUREMENT_TYPE_TABLESPOON: 'tablespoons',
+    MEASUREMENT_TYPE_TEASPOON: 'teaspoons',
+    MEASUREMENT_TYPE_OUNCE: 'ounces',
+    MEASUREMENT_TYPE_POUND: 'pounds',
+    MEASUREMENT_TYPE_GRAM: 'grams',
+    MEASUREMENT_TYPE_MILLILITER: 'milliliters',
+    MEASUREMENT_TYPE_LITER: 'liters',
+  }
+  if (!type || type === 'MEASUREMENT_TYPE_UNSPECIFIED') return ''
+  if ((amount ?? 0) <= 1) return singular[type] || ''
+  return plural[type] || ''
 }
 </script>
 

@@ -4,6 +4,7 @@ import (
 	"flag"
 
 	config "github.com/jcfug8/daylear/server/adapters/clients/config"
+	"github.com/jcfug8/daylear/server/adapters/clients/gemini"
 	gorm "github.com/jcfug8/daylear/server/adapters/clients/gorm"
 	gorm_dialer "github.com/jcfug8/daylear/server/adapters/clients/gorm/dialer"
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/dialer/dialects/postgres"
@@ -80,6 +81,7 @@ func start(opts ...fx.Option) error {
 		mimetype.Module,
 		fileretriever.Module,
 		recipescraper.Module,
+		gemini.Module,
 
 		// domain
 		domain.Module,

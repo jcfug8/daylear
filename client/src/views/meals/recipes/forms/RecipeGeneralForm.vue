@@ -23,6 +23,29 @@
           <v-alert type="error" density="compact">{{ scrapeError }}</v-alert>
         </v-col>
       </v-row>
+      <!-- OCR Recipe from Image -->
+      <v-row class="mt-2">
+        <v-col cols="9">
+          <v-file-input
+            v-model="ocrImageFile"
+            label="Import Recipe from Image (OCR)"
+            accept="image/*"
+            density="compact"
+            :disabled="ocrLoading"
+            prepend-icon="mdi-camera"
+          />
+        </v-col>
+        <v-col cols="3" class="d-flex align-end">
+          <v-btn color="primary" :loading="ocrLoading" @click="ocrRecipe" :disabled="!ocrImageFile || ocrLoading">
+            OCR
+          </v-btn>
+        </v-col>
+      </v-row>
+      <v-row v-if="ocrError">
+        <v-col cols="12">
+          <v-alert type="error" density="compact">{{ ocrError }}</v-alert>
+        </v-col>
+      </v-row>
     </template>
     <v-row>
       <v-col class="pt-5">
@@ -170,7 +193,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { Recipe, apitypes_VisibilityLevel } from '@/genapi/api/meals/recipe/v1alpha1'
-import { recipeService } from '@/api/api'
+import { recipeService, fileService } from '@/api/api'
 
 const props = defineProps<{
   modelValue: Recipe,
@@ -310,6 +333,29 @@ function handleImageSubmit() {
   showImageDialog.value = false
   imageUrl.value = ''
   imageFile.value = null
+}
+
+// OCR logic
+const ocrImageFile = ref<File | null>(null)
+const ocrLoading = ref(false)
+const ocrError = ref('')
+
+async function ocrRecipe() {
+  ocrError.value = ''
+  ocrLoading.value = true
+  try {
+    if (!ocrImageFile.value) throw new Error('No image selected')
+    const resp = await fileService.OCRRecipe({ file: ocrImageFile.value })
+    if (resp && resp.recipe) {
+      emit('update:modelValue', resp.recipe)
+    } else {
+      ocrError.value = 'No recipe found in image.'
+    }
+  } catch (err: any) {
+    ocrError.value = err?.message || 'Failed to OCR recipe.'
+  } finally {
+    ocrLoading.value = false
+  }
 }
 </script>
 

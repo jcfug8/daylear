@@ -39,11 +39,5 @@ func (c *Client) GetFileContents(ctx context.Context, location string) (io.ReadC
 		}
 	}
 
-	if resp.ContentLength < 0 {
-		return file.File{}, fileretriever.ErrInvalidArgument{
-			Msg: fmt.Sprintf("the file size at %s was unkonown", location),
-		}
-	}
-
 	return resp.Body, nil
 }

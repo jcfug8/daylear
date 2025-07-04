@@ -14,7 +14,9 @@ type recipeDomain interface {
 	ListRecipes(ctx context.Context, authAccount model.AuthAccount, pageSize int32, offset int64, filter string) ([]model.Recipe, error)
 	UpdateRecipe(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe, updateMask []string) (model.Recipe, error)
 	AcceptRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) error
+
 	ScrapeRecipe(ctx context.Context, authAccount model.AuthAccount, uri string) (model.Recipe, error)
+	OCRRecipe(ctx context.Context, authAccount model.AuthAccount, imageReader io.Reader) (model.Recipe, error)
 
 	UploadRecipeImage(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId, imageReader io.Reader) (imageURI string, err error)
 

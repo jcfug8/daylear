@@ -1,10 +1,12 @@
-// the response to exchange a token key for a token
+import type { Recipe } from "@/genapi/api/meals/recipe/v1alpha1";
+
+// the response to upload a recipe image
 export type UploadRecipeImageResponse = {
     // the recipes
     imageUri: string | undefined;
 };
 
-// the request to exchange a token key for a token
+// the request to upload a recipe image
 export type UploadRecipeImageRequest = {
     // the recipe to update
     name: string | undefined;
@@ -12,10 +14,24 @@ export type UploadRecipeImageRequest = {
     file: File | undefined;
 };
 
+// the response to ocr a recipe image
+export type OCRRecipeResponse = {
+    // the recipe
+    recipe: Recipe | undefined;
+};
+
+// the request to ocr a recipe image
+export type OCRRecipeRequest = {
+    // the file to ocr
+    file: File | undefined;
+};
+
 // the auth service
 export interface FileService {
     // exchange a token key for a token
     UploadRecipeImage(request: UploadRecipeImageRequest): Promise<UploadRecipeImageResponse>;
+    // ocr a recipe image
+    OCRRecipe(request: OCRRecipeRequest): Promise<OCRRecipeResponse>;
   }
   
 type RequestType = {
@@ -51,5 +67,25 @@ export function createFileServiceClient(handler: RequestHandler): FileService {
           method: "UploadRecipeImage",
         }) as Promise<UploadRecipeImageResponse>;
       },
+      OCRRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+        if (!request.file) {
+          throw new Error("missing required field request.file");
+        }
+        const path = `files/meals/v1alpha1/recipes:ocr`; // eslint-disable-line quotes
+        const body = request.file;
+        const queryParams: string[] = [];
+        let uri = path;
+        if (queryParams.length > 0) {
+          uri += `?${queryParams.join("&")}`
+        }   
+        return handler({
+          path: uri,
+          method: "POST",
+          body,
+        }, {
+          service: "FileService",
+          method: "OCRRecipe",
+        }) as Promise<OCRRecipeResponse>;
+      }
   }
 }

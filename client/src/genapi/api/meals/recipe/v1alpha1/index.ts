@@ -78,11 +78,11 @@ export type Recipe_Ingredient = {
   optional: boolean | undefined;
   // the quantity of the ingredient
   //
-  // Behaviors: REQUIRED
+  // Behaviors: OPTIONAL
   measurementAmount: number | undefined;
   // the type of measurement
   //
-  // Behaviors: REQUIRED
+  // Behaviors: OPTIONAL
   measurementType: Recipe_MeasurementType | undefined;
 };
 
