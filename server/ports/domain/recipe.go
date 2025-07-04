@@ -16,7 +16,7 @@ type recipeDomain interface {
 	AcceptRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) error
 
 	ScrapeRecipe(ctx context.Context, authAccount model.AuthAccount, uri string) (model.Recipe, error)
-	OCRRecipe(ctx context.Context, authAccount model.AuthAccount, imageReader io.Reader) (model.Recipe, error)
+	OCRRecipe(ctx context.Context, authAccount model.AuthAccount, imageReaders []io.Reader) (model.Recipe, error)
 
 	UploadRecipeImage(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId, imageReader io.Reader) (imageURI string, err error)
 

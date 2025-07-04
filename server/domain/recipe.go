@@ -13,6 +13,7 @@ import (
 	// "strconv"
 	// "strings"
 
+	"github.com/jcfug8/daylear/server/core/file"
 	model "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
@@ -385,18 +386,23 @@ func (d *Domain) ScrapeRecipe(ctx context.Context, authAccount model.AuthAccount
 	return recipe, nil
 }
 
-func (d *Domain) OCRRecipe(ctx context.Context, authAccount model.AuthAccount, imageReader io.Reader) (recipe model.Recipe, err error) {
+func (d *Domain) OCRRecipe(ctx context.Context, authAccount model.AuthAccount, imageReaders []io.Reader) (recipe model.Recipe, err error) {
 	if authAccount.UserId == 0 {
 		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "user id required"}
 	}
 
-	file, err := d.fileInspector.Inspect(ctx, imageReader)
-	if err != nil {
-		return model.Recipe{}, err
-	}
-	defer file.Close()
+	var files []file.File
 
-	recipe, err = d.recipeOCR.OCRRecipe(ctx, file)
+	for _, imageReader := range imageReaders {
+		file, err := d.fileInspector.Inspect(ctx, imageReader)
+		if err != nil {
+			return model.Recipe{}, err
+		}
+		defer file.Close()
+		files = append(files, file)
+	}
+
+	recipe, err = d.recipeOCR.OCRRecipe(ctx, files)
 	if err != nil {
 		return model.Recipe{}, err
 	}

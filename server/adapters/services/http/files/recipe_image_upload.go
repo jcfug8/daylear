@@ -11,8 +11,8 @@ import (
 	"github.com/jcfug8/daylear/server/core/model"
 )
 
-const maxUploadSize = 2 * 1024 * 1024   // 2 MB
-const maxInmemoryUploadSize = 10 * 1024 // 100K
+const maxUploadSize = 10 * 1024 * 1024  // 10 MB
+const maxInmemoryUploadSize = 50 * 1024 // 500 MB
 
 func (s *Service) UploadRecipeImage(w http.ResponseWriter, r *http.Request) {
 	// Limit the size of the request body

@@ -27,16 +27,17 @@
       <v-row class="mt-2">
         <v-col cols="9">
           <v-file-input
-            v-model="ocrImageFile"
+            multiple
+            v-model="ocrImageFiles"
             label="Import Recipe from Image (OCR)"
-            accept="image/*"
+            accept="image/jpeg, image/jpg, image/png, image/gif, image/tiff, image/tif, image/webp, image/bmp, image/svg, image/pdf"
             density="compact"
             :disabled="ocrLoading"
             prepend-icon="mdi-camera"
           />
         </v-col>
         <v-col cols="3" class="d-flex align-end">
-          <v-btn color="primary" :loading="ocrLoading" @click="ocrRecipe" :disabled="!ocrImageFile || ocrLoading">
+          <v-btn color="primary" :loading="ocrLoading" @click="ocrRecipe" :disabled="!ocrImageFiles || ocrLoading">
             OCR
           </v-btn>
         </v-col>
@@ -336,7 +337,7 @@ function handleImageSubmit() {
 }
 
 // OCR logic
-const ocrImageFile = ref<File | null>(null)
+const ocrImageFiles = ref<File[] | null>(null)
 const ocrLoading = ref(false)
 const ocrError = ref('')
 
@@ -344,8 +345,8 @@ async function ocrRecipe() {
   ocrError.value = ''
   ocrLoading.value = true
   try {
-    if (!ocrImageFile.value) throw new Error('No image selected')
-    const resp = await fileService.OCRRecipe({ file: ocrImageFile.value })
+    if (!ocrImageFiles.value) throw new Error('No image selected')
+    const resp = await fileService.OCRRecipe({ files: ocrImageFiles.value })
     if (resp && resp.recipe) {
       emit('update:modelValue', resp.recipe)
     } else {

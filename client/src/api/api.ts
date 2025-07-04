@@ -8,7 +8,7 @@ import { AccountType, useAuthStore } from '@/stores/auth'
 const API_BASE_URL = 'http://localhost:8080/'
 
 // Generic fetch handler for the generated API client
-export const authenticatedFetchHandler = function(contentType: string = 'application/json') {
+export const authenticatedFetchHandler = function(contentType: string) {
   return async function <T = string | null | FormData>(
     request: { path: string; method: string; body: T },
     _meta?: { service: string; method: string },
@@ -16,8 +16,10 @@ export const authenticatedFetchHandler = function(contentType: string = 'applica
     const authStore = useAuthStore()
 
     const token = sessionStorage.getItem('jwt')
-    const headers: Record<string, string> = {
-      'Content-Type': contentType,
+    const headers: Record<string, string> = {}
+
+    if (contentType) {
+      headers['Content-Type'] = contentType
     }
 
     if (authStore.activeAccountType === AccountType.CIRCLE) {
@@ -39,11 +41,11 @@ export const authenticatedFetchHandler = function(contentType: string = 'applica
   }
 }
 
-export const recipeService = createRecipeServiceClient(authenticatedFetchHandler())
-export const recipeAccessService = createRecipeAccessServiceClient(authenticatedFetchHandler())
-export const userService = createUserServiceClient(authenticatedFetchHandler())
-export const userAccessService = createUserAccessServiceClient(authenticatedFetchHandler())
-export const authService = createAuthServiceClient(authenticatedFetchHandler())
-export const circleService = createCircleServiceClient(authenticatedFetchHandler())
-export const circleAccessService = createCircleAccessServiceClient(authenticatedFetchHandler())
-export const fileService = createFileServiceClient(authenticatedFetchHandler("application/octet-stream"))
+export const recipeService = createRecipeServiceClient(authenticatedFetchHandler('application/json'))
+export const recipeAccessService = createRecipeAccessServiceClient(authenticatedFetchHandler('application/json'))
+export const userService = createUserServiceClient(authenticatedFetchHandler('application/json'))
+export const userAccessService = createUserAccessServiceClient(authenticatedFetchHandler('application/json'))
+export const authService = createAuthServiceClient(authenticatedFetchHandler('application/json'))
+export const circleService = createCircleServiceClient(authenticatedFetchHandler('application/json'))
+export const circleAccessService = createCircleAccessServiceClient(authenticatedFetchHandler('application/json'))
+export const fileService = createFileServiceClient(authenticatedFetchHandler(''))

@@ -22,8 +22,8 @@ export type OCRRecipeResponse = {
 
 // the request to ocr a recipe image
 export type OCRRecipeRequest = {
-    // the file to ocr
-    file: File | undefined;
+    // the files to ocr
+    files: File[] | undefined;
 };
 
 // the auth service
@@ -37,7 +37,7 @@ export interface FileService {
 type RequestType = {
     path: string;
     method: string;
-    body: File | null;
+    body: File | FormData | null;
 };
 
 type RequestHandler = (request: RequestType, meta: { service: string, method: string }) => Promise<unknown>;
@@ -52,7 +52,8 @@ export function createFileServiceClient(handler: RequestHandler): FileService {
           throw new Error("missing required field request.file");
         }
         const path = `files/meals/v1alpha1/${request.name}/image`; // eslint-disable-line quotes
-        const body = request.file;
+        const body = new FormData();
+        body.append("file", request.file);
         const queryParams: string[] = [];
         let uri = path;
         if (queryParams.length > 0) {
@@ -68,11 +69,14 @@ export function createFileServiceClient(handler: RequestHandler): FileService {
         }) as Promise<UploadRecipeImageResponse>;
       },
       OCRRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
-        if (!request.file) {
-          throw new Error("missing required field request.file");
+        if (!request.files) {
+          throw new Error("missing required field request.files");
         }
         const path = `files/meals/v1alpha1/recipes:ocr`; // eslint-disable-line quotes
-        const body = request.file;
+        const body = new FormData();
+        for (const file of request.files) {
+            body.append("files", file);
+        }
         const queryParams: string[] = [];
         let uri = path;
         if (queryParams.length > 0) {

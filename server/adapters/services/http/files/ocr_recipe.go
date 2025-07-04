@@ -13,25 +13,30 @@ import (
 
 func (s *Service) OCRRecipe(w http.ResponseWriter, r *http.Request) {
 	// Limit the size of the request body
-	// r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
-
-	var body io.Reader = r.Body
+	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+	var files []io.Reader
 	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
 		// Parse the multipart form
 		err := r.ParseMultipartForm(maxInmemoryUploadSize)
 		if err != nil {
-			http.Error(w, "File too large", http.StatusBadRequest)
+			http.Error(w, "unable to parse multipart form", http.StatusBadRequest)
 			return
 		}
 
 		// Get the file from the form
-		file, _, err := r.FormFile("file")
-		if err != nil {
-			http.Error(w, "Error reading file", http.StatusBadRequest)
-			return
+		fileHeaders := r.MultipartForm.File["files"]
+
+		for _, fileHeader := range fileHeaders {
+			file, err := fileHeader.Open()
+			if err != nil {
+				http.Error(w, "Error reading file", http.StatusBadRequest)
+				return
+			}
+			files = append(files, file)
+			defer file.Close()
 		}
-		defer file.Close()
-		body = file
+	} else {
+		files = append(files, r.Body)
 	}
 
 	authAccount, err := headers.ParseAuthData(r.Context())
@@ -40,7 +45,7 @@ func (s *Service) OCRRecipe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	recipe, err := s.domain.OCRRecipe(r.Context(), authAccount, body)
+	recipe, err := s.domain.OCRRecipe(r.Context(), authAccount, files)
 	if err != nil {
 		s.log.Error().Err(err).Msg("unable to upload recipe image")
 		http.Error(w, "Interal Error", http.StatusInternalServerError)

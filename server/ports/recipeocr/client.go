@@ -8,5 +8,5 @@ import (
 )
 
 type Client interface {
-	OCRRecipe(ctx context.Context, file file.File) (recipe model.Recipe, err error)
+	OCRRecipe(ctx context.Context, files []file.File) (recipe model.Recipe, err error)
 }
