@@ -8,6 +8,7 @@ import (
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	model "github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
 	"github.com/jcfug8/daylear/server/ports/repository"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -85,6 +86,10 @@ func (repo *Client) GetCircleAccess(ctx context.Context, parent model.CircleAcce
 }
 
 func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent model.CircleAccessParent, pageSize int32, pageOffset int64, filterStr string) ([]model.CircleAccess, error) {
+	if authAccount.UserId == 0 {
+		return nil, repository.ErrInvalidArgument{Msg: "user id is required"}
+	}
+
 	conversion, err := repo.circleAccessSQLConverter.Convert(filterStr)
 	if err != nil {
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
@@ -97,10 +102,15 @@ func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.A
 		db = db.Where(conversion.WhereClause, conversion.Params...)
 	}
 
-	// Filter by circle ID
+	// Filter by circle ID if provided
 	if parent.CircleId.CircleId != 0 {
 		db = db.Where("circle_access.circle_id = ?", parent.CircleId.CircleId)
 	}
+
+	db = db.Where(
+		"circle_access.recipient_user_id = ? OR circle_access.circle_id IN (SELECT circle_id FROM circle_access WHERE recipient_user_id = ? AND permission_level >= ?)",
+		authAccount.UserId, authAccount.UserId, types.PermissionLevel_PERMISSION_LEVEL_WRITE,
+	)
 
 	err = db.Limit(int(pageSize)).
 		Offset(int(pageOffset)).
