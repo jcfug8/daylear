@@ -109,21 +109,21 @@
     <v-fab location="bottom right" app color="primary"  icon @click="speedDialOpen = !speedDialOpen">
       <v-icon>mdi-dots-vertical</v-icon>
       <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
-        <v-btn key="edit" v-if="hasWritePermission(recipe.permission)" icon="mdi-pencil"
+        <v-btn key="edit" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)" icon="mdi-pencil"
         @click="router.push({ name: 'recipeEdit', params: { recipeId: recipe.name } })" color="primary"></v-btn>
 
-        <v-btn key="share" v-if="hasWritePermission(recipe.permission) && recipe.visibility !== 'VISIBILITY_LEVEL_HIDDEN'" icon="mdi-share-variant"
+        <v-btn key="share" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)" icon="mdi-share-variant"
           @click="showShareDialog = true" color="primary"></v-btn>
   
         <v-btn key="remove-access" icon="mdi-link-variant-off" @click="showRemoveAccessDialog = true" color="warning"></v-btn>
   
-        <v-btn key="delete" v-if="hasWritePermission(recipe.permission)" icon="mdi-delete"
+        <v-btn key="delete" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)" icon="mdi-delete"
           @click="showDeleteDialog = true" color="error"></v-btn>
       </v-speed-dial>
     </v-fab>
 
     <v-btn
-      v-if="recipe.state === 'ACCESS_STATE_PENDING'"
+      v-if="recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING'"
       color="success"
       class="mb-4"
       @click="acceptRecipe"
@@ -671,14 +671,14 @@ async function fetchRecipeRecipients() {
 
 // Fetch recipients when recipe is loaded or when share dialog is opened
 watch(recipe, (newRecipe) => {
-  if (newRecipe && hasWritePermission(newRecipe.permission)) {
+  if (newRecipe && hasWritePermission(newRecipe.recipeAccess?.permissionLevel)) {
     fetchRecipeRecipients()
   }
 }, { immediate: true })
 
 // Fetch recipients when share dialog is opened
 watch(showShareDialog, (isOpen) => {
-  if (isOpen && recipe.value && hasWritePermission(recipe.value.permission)) {
+  if (isOpen && recipe.value && hasWritePermission(recipe.value.recipeAccess?.permissionLevel)) {
     fetchRecipeRecipients()
   }
 })
@@ -750,10 +750,10 @@ async function handleDelete() {
 }
 
 async function acceptRecipe() {
-  if (!recipe.value?.name || !authStore.user?.name) return
+  if (!recipe.value?.recipeAccess?.name || !authStore.user?.name) return
   try {
-    await recipesStore.acceptRecipe(recipe.value.name)
-    recipesStore.loadRecipe(recipe.value.name)
+    await recipesStore.acceptRecipe(recipe.value.recipeAccess.name)
+    recipesStore.loadRecipe(recipe.value?.name ?? '')
   } catch (error) {
     // Optionally show a notification
   }

@@ -93,10 +93,10 @@ const tabs = [
 ]
 
 async function onAcceptRecipe(recipe: Recipe) {
-  if (!recipe.name) return
-  acceptingRecipeId.value = recipe.name
+  if (!recipe.recipeAccess?.name) return
+  acceptingRecipeId.value = recipe.recipeAccess.name
   try {
-    await recipesStore.acceptRecipe(recipe.name)
+    await recipesStore.acceptRecipe(recipe.recipeAccess.name)
     // Reload pending recipes after accepting
     const pendingTab = tabs.find(t => t.value === 'shared')?.subTabs?.find(s => s.value === 'pending')
     if (pendingTab && pendingTab.loader) await pendingTab.loader()

@@ -135,27 +135,6 @@ service RecipeService {
     };
   }
 
-  // Accept a recipe's access
-  rpc AcceptRecipe(AcceptRecipeRequest) returns (AcceptRecipeResponse) {
-    option (google.api.method_signature) = "name";
-    option (google.api.http) = {
-      post: "/meals/v1alpha1/{name=recipes/*}:accept"
-      body: "*"
-    };
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "Accept a recipe access"
-      description: "Accepts a pending recipe's access, changing its state from PENDING to ACCEPTED."
-      tags: "RecipeService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
-    };
-  }
-
   // scrape and save a recipe from a uri
   rpc ScrapeRecipe(ScrapeRecipeRequest) returns (ScrapeRecipeResponse) {
     option (google.api.method_signature) = "uri";
@@ -327,18 +306,6 @@ message GetRecipeRequest {
     (google.api.resource_reference).type = "api.meals.recipe.v1alpha1/Recipe"
   ];
 }
-
-// The request to accept an access to a recipe
-message AcceptRecipeRequest {
-  // name
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).type = "api.meals.recipe.v1alpha1/Access"
-  ];
-}
-
-// the response to accept a recipe
-message AcceptRecipeResponse {}
 
 // the request to scrape a recipe from a url
 message ScrapeRecipeRequest {

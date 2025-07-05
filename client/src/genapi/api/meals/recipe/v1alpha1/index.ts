@@ -242,18 +242,6 @@ export type GetRecipeRequest = {
   name: string | undefined;
 };
 
-// The request to accept an access to a recipe
-export type AcceptRecipeRequest = {
-  // name
-  //
-  // Behaviors: REQUIRED
-  name: string | undefined;
-};
-
-// the response to accept a recipe
-export type AcceptRecipeResponse = {
-};
-
 // the request to scrape a recipe from a url
 export type ScrapeRecipeRequest = {
   // the uri of the recipe
@@ -280,8 +268,6 @@ export interface RecipeService {
   DeleteRecipe(request: DeleteRecipeRequest): Promise<Recipe>;
   // get a recipe
   GetRecipe(request: GetRecipeRequest): Promise<Recipe>;
-  // Accept a recipe's access
-  AcceptRecipe(request: AcceptRecipeRequest): Promise<AcceptRecipeResponse>;
   // scrape and save a recipe from a uri
   ScrapeRecipe(request: ScrapeRecipeRequest): Promise<ScrapeRecipeResponse>;
 }
@@ -407,26 +393,6 @@ export function createRecipeServiceClient(
         method: "GetRecipe",
       }) as Promise<Recipe>;
     },
-    AcceptRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      if (!request.name) {
-        throw new Error("missing required field request.name");
-      }
-      const path = `meals/v1alpha1/${request.name}:accept`; // eslint-disable-line quotes
-      const body = JSON.stringify(request);
-      const queryParams: string[] = [];
-      let uri = path;
-      if (queryParams.length > 0) {
-        uri += `?${queryParams.join("&")}`
-      }
-      return handler({
-        path: uri,
-        method: "POST",
-        body,
-      }, {
-        service: "RecipeService",
-        method: "AcceptRecipe",
-      }) as Promise<AcceptRecipeResponse>;
-    },
     ScrapeRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `meals/v1alpha1/recipes:scrape`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
@@ -546,6 +512,17 @@ export type UpdateAccessRequest = {
   updateMask: wellKnownFieldMask | undefined;
 };
 
+// The request to accept a recipe access
+export type AcceptRecipeAccessRequest = {
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// The response to accept a recipe access
+export type AcceptRecipeAccessResponse = {
+};
+
 // The recipe recipient list service
 export interface RecipeAccessService {
   // Create an access to a recipe
@@ -558,6 +535,8 @@ export interface RecipeAccessService {
   ListAccesses(request: ListAccessesRequest): Promise<ListAccessesResponse>;
   // Update an access to a recipe
   UpdateAccess(request: UpdateAccessRequest): Promise<Access>;
+  // Accept a recipe access
+  AcceptRecipeAccess(request: AcceptRecipeAccessRequest): Promise<AcceptRecipeAccessResponse>;
 }
 
 export function createRecipeAccessServiceClient(
@@ -675,6 +654,26 @@ export function createRecipeAccessServiceClient(
         service: "RecipeAccessService",
         method: "UpdateAccess",
       }) as Promise<Access>;
+    },
+    AcceptRecipeAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `meals/v1alpha1/${request.name}:accept`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "RecipeAccessService",
+        method: "AcceptRecipeAccess",
+      }) as Promise<AcceptRecipeAccessResponse>;
     },
   };
 }

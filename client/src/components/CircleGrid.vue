@@ -36,16 +36,16 @@
           
           <!-- Permission level indicator -->
           <v-chip
-            v-if="circle.permission"
+            v-if="circle.circleAccess?.permissionLevel"
             size="small"
-            :color="getPermissionColor(circle.permission)"
+            :color="getPermissionColor(circle.circleAccess?.permissionLevel)"
             class="permission-chip"
           >
-            {{ getPermissionText(circle.permission) }}
+            {{ getPermissionText(circle.circleAccess?.permissionLevel) }}
           </v-chip>
         </v-card>
         <v-btn
-          v-if="circle.state === 'ACCESS_STATE_PENDING'"
+          v-if="circle.circleAccess?.state === 'ACCESS_STATE_PENDING'"
           color="success"
           class="accept-btn"
           @click.stop.prevent="$emit('accept', circle)"

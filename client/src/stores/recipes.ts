@@ -8,6 +8,7 @@ import type {
   apitypes_VisibilityLevel,
   apitypes_PermissionLevel,
 } from '@/genapi/api/meals/recipe/v1alpha1'
+import { recipeAccessService } from '@/api/api'
 
 export const useRecipesStore = defineStore('recipes', () => {
   const recipes = ref<Recipe[]>([])
@@ -69,8 +70,7 @@ export const useRecipesStore = defineStore('recipes', () => {
       ingredientGroups: [],
       imageUri: undefined,
       visibility: 'VISIBILITY_LEVEL_UNSPECIFIED' as apitypes_VisibilityLevel,
-      permission: 'PERMISSION_LEVEL_UNSPECIFIED' as apitypes_PermissionLevel,
-      state: 'ACCESS_STATE_UNSPECIFIED',
+      recipeAccess: undefined,
     }
   }
 
@@ -116,9 +116,9 @@ export const useRecipesStore = defineStore('recipes', () => {
     }
   }
 
-  async function acceptRecipe(recipeName: string) {
+  async function acceptRecipe(accessName: string) {
     try {
-      await recipeService.AcceptRecipe({ name: recipeName })
+      await recipeAccessService.AcceptRecipeAccess({ name: accessName })
     } catch (error) {
       console.error('Failed to accept recipe access:', error)
       throw error

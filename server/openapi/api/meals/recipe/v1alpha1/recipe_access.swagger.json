@@ -178,6 +178,54 @@
         ]
       }
     },
+    "/meals/v1alpha1/{name}:accept": {
+      "post": {
+        "summary": "Accept a recipe access",
+        "description": "Accepts a pending recipe access, changing its state from PENDING to ACCEPTED.",
+        "operationId": "RecipeAccessService_AcceptRecipeAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1AcceptRecipeAccessResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "recipes/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecipeAccessServiceAcceptRecipeAccessBody"
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeAccessService"
+        ]
+      }
+    },
     "/meals/v1alpha1/{parent}/accesses": {
       "get": {
         "summary": "List recipe accesses",
@@ -308,6 +356,10 @@
       },
       "title": "the requester or recipient of the access"
     },
+    "RecipeAccessServiceAcceptRecipeAccessBody": {
+      "type": "object",
+      "title": "The request to accept a recipe access"
+    },
     "mealsrecipev1alpha1Access": {
       "type": "object",
       "properties": {
@@ -409,6 +461,10 @@
       "default": "PERMISSION_LEVEL_UNSPECIFIED",
       "description": "- PERMISSION_LEVEL_UNSPECIFIED: the permission is not specified\n - PERMISSION_LEVEL_PUBLIC: the permission is public\n - PERMISSION_LEVEL_READ: the permission is read\n - PERMISSION_LEVEL_WRITE: the permission is write\n - PERMISSION_LEVEL_ADMIN: the permission is admin",
       "title": "the permission levels"
+    },
+    "v1alpha1AcceptRecipeAccessResponse": {
+      "type": "object",
+      "title": "The response to accept a recipe access"
     }
   },
   "securityDefinitions": {

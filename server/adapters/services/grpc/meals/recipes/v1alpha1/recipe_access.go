@@ -206,6 +206,28 @@ func (s *RecipeService) UpdateAccess(ctx context.Context, request *pb.UpdateAcce
 	return pbAccess, nil
 }
 
+// AcceptRecipeAccess -
+func (s *RecipeService) AcceptRecipeAccess(ctx context.Context, request *pb.AcceptRecipeAccessRequest) (*pb.AcceptRecipeAccessResponse, error) {
+	authAccount, err := headers.ParseAuthData(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// parse name to get the parent and access id
+	var access model.RecipeAccess
+	_, err = s.accessNamer.Parse(request.GetName(), &access)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
+	}
+
+	_, err = s.domain.AcceptRecipeAccess(ctx, authAccount, access.RecipeAccessParent, access.RecipeAccessId)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &pb.AcceptRecipeAccessResponse{}, nil
+}
+
 // UTILS
 
 func (s *RecipeService) ProtoToRecipeAccess(pbAccess *pb.Access) (model.RecipeAccess, error) {

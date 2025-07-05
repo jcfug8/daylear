@@ -533,89 +533,6 @@ func (x *GetRecipeRequest) GetName() string {
 	return ""
 }
 
-// The request to accept an access to a recipe
-type AcceptRecipeRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// name
-	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AcceptRecipeRequest) Reset() {
-	*x = AcceptRecipeRequest{}
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AcceptRecipeRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AcceptRecipeRequest) ProtoMessage() {}
-
-func (x *AcceptRecipeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AcceptRecipeRequest.ProtoReflect.Descriptor instead.
-func (*AcceptRecipeRequest) Descriptor() ([]byte, []int) {
-	return file_api_meals_recipe_v1alpha1_recipe_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *AcceptRecipeRequest) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-// the response to accept a recipe
-type AcceptRecipeResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AcceptRecipeResponse) Reset() {
-	*x = AcceptRecipeResponse{}
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AcceptRecipeResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AcceptRecipeResponse) ProtoMessage() {}
-
-func (x *AcceptRecipeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AcceptRecipeResponse.ProtoReflect.Descriptor instead.
-func (*AcceptRecipeResponse) Descriptor() ([]byte, []int) {
-	return file_api_meals_recipe_v1alpha1_recipe_proto_rawDescGZIP(), []int{8}
-}
-
 // the request to scrape a recipe from a url
 type ScrapeRecipeRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -627,7 +544,7 @@ type ScrapeRecipeRequest struct {
 
 func (x *ScrapeRecipeRequest) Reset() {
 	*x = ScrapeRecipeRequest{}
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[9]
+	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -639,7 +556,7 @@ func (x *ScrapeRecipeRequest) String() string {
 func (*ScrapeRecipeRequest) ProtoMessage() {}
 
 func (x *ScrapeRecipeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[9]
+	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -652,7 +569,7 @@ func (x *ScrapeRecipeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScrapeRecipeRequest.ProtoReflect.Descriptor instead.
 func (*ScrapeRecipeRequest) Descriptor() ([]byte, []int) {
-	return file_api_meals_recipe_v1alpha1_recipe_proto_rawDescGZIP(), []int{9}
+	return file_api_meals_recipe_v1alpha1_recipe_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ScrapeRecipeRequest) GetUri() string {
@@ -673,7 +590,7 @@ type ScrapeRecipeResponse struct {
 
 func (x *ScrapeRecipeResponse) Reset() {
 	*x = ScrapeRecipeResponse{}
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[10]
+	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -685,7 +602,7 @@ func (x *ScrapeRecipeResponse) String() string {
 func (*ScrapeRecipeResponse) ProtoMessage() {}
 
 func (x *ScrapeRecipeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[10]
+	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -698,7 +615,7 @@ func (x *ScrapeRecipeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScrapeRecipeResponse.ProtoReflect.Descriptor instead.
 func (*ScrapeRecipeResponse) Descriptor() ([]byte, []int) {
-	return file_api_meals_recipe_v1alpha1_recipe_proto_rawDescGZIP(), []int{10}
+	return file_api_meals_recipe_v1alpha1_recipe_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ScrapeRecipeResponse) GetRecipe() *Recipe {
@@ -721,7 +638,7 @@ type Recipe_Direction struct {
 
 func (x *Recipe_Direction) Reset() {
 	*x = Recipe_Direction{}
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[11]
+	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -733,7 +650,7 @@ func (x *Recipe_Direction) String() string {
 func (*Recipe_Direction) ProtoMessage() {}
 
 func (x *Recipe_Direction) ProtoReflect() protoreflect.Message {
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[11]
+	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -776,7 +693,7 @@ type Recipe_IngredientGroup struct {
 
 func (x *Recipe_IngredientGroup) Reset() {
 	*x = Recipe_IngredientGroup{}
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[12]
+	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -788,7 +705,7 @@ func (x *Recipe_IngredientGroup) String() string {
 func (*Recipe_IngredientGroup) ProtoMessage() {}
 
 func (x *Recipe_IngredientGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[12]
+	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -835,7 +752,7 @@ type Recipe_Ingredient struct {
 
 func (x *Recipe_Ingredient) Reset() {
 	*x = Recipe_Ingredient{}
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[13]
+	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -847,7 +764,7 @@ func (x *Recipe_Ingredient) String() string {
 func (*Recipe_Ingredient) ProtoMessage() {}
 
 func (x *Recipe_Ingredient) ProtoReflect() protoreflect.Message {
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[13]
+	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -906,7 +823,7 @@ type Recipe_RecipeAccess struct {
 
 func (x *Recipe_RecipeAccess) Reset() {
 	*x = Recipe_RecipeAccess{}
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[14]
+	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -918,7 +835,7 @@ func (x *Recipe_RecipeAccess) String() string {
 func (*Recipe_RecipeAccess) ProtoMessage() {}
 
 func (x *Recipe_RecipeAccess) ProtoReflect() protoreflect.Message {
-	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[14]
+	mi := &file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1021,15 +938,11 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	" api.meals.recipe.v1alpha1/RecipeR\x04name\"P\n" +
 	"\x10GetRecipeRequest\x12<\n" +
 	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\"\n" +
-	" api.meals.recipe.v1alpha1/RecipeR\x04name\"S\n" +
-	"\x13AcceptRecipeRequest\x12<\n" +
-	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\"\n" +
-	" api.meals.recipe.v1alpha1/AccessR\x04name\"\x16\n" +
-	"\x14AcceptRecipeResponse\",\n" +
+	" api.meals.recipe.v1alpha1/RecipeR\x04name\",\n" +
 	"\x13ScrapeRecipeRequest\x12\x15\n" +
 	"\x03uri\x18\x01 \x01(\tB\x03\xe0A\x02R\x03uri\"Q\n" +
 	"\x14ScrapeRecipeResponse\x129\n" +
-	"\x06recipe\x18\x01 \x01(\v2!.api.meals.recipe.v1alpha1.RecipeR\x06recipe2\xcc\x11\n" +
+	"\x06recipe\x18\x01 \x01(\v2!.api.meals.recipe.v1alpha1.RecipeR\x06recipe2\xe8\x0e\n" +
 	"\rRecipeService\x12\xad\x02\n" +
 	"\fCreateRecipe\x12..api.meals.recipe.v1alpha1.CreateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\xc9\x01\x92A\x8b\x01\n" +
 	"\rRecipeService\x12\x0fCreate a recipe\x1a/Creates a new recipe with the provided details.r8\n" +
@@ -1050,11 +963,7 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\tGetRecipe\x12+.api.meals.recipe.v1alpha1.GetRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\xb7\x01\x92A\x84\x01\n" +
 	"\rRecipeService\x12\fGet a recipe\x1a+Retrieves a single recipe by resource name.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02\"\x12 /meals/v1alpha1/{name=recipes/*}\x12\xe1\x02\n" +
-	"\fAcceptRecipe\x12..api.meals.recipe.v1alpha1.AcceptRecipeRequest\x1a/.api.meals.recipe.v1alpha1.AcceptRecipeResponse\"\xef\x01\x92A\xb2\x01\n" +
-	"\rRecipeService\x12\x16Accept a recipe access\x1aOAccepts a pending recipe's access, changing its state from PENDING to ACCEPTED.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02,:\x01*\"'/meals/v1alpha1/{name=recipes/*}:accept\x12\xa8\x02\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02\"\x12 /meals/v1alpha1/{name=recipes/*}\x12\xa8\x02\n" +
 	"\fScrapeRecipe\x12..api.meals.recipe.v1alpha1.ScrapeRecipeRequest\x1a/.api.meals.recipe.v1alpha1.ScrapeRecipeResponse\"\xb6\x01\x92A\x83\x01\n" +
 	"\rRecipeService\x12\x1aScrape a recipe from a uri\x1a\x1cScrapes a recipe from a uri.r8\n" +
 	"6\n" +
@@ -1080,7 +989,7 @@ func file_api_meals_recipe_v1alpha1_recipe_proto_rawDescGZIP() []byte {
 }
 
 var file_api_meals_recipe_v1alpha1_recipe_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_api_meals_recipe_v1alpha1_recipe_proto_goTypes = []any{
 	(Recipe_MeasurementType)(0),    // 0: api.meals.recipe.v1alpha1.Recipe.MeasurementType
 	(*Recipe)(nil),                 // 1: api.meals.recipe.v1alpha1.Recipe
@@ -1090,49 +999,45 @@ var file_api_meals_recipe_v1alpha1_recipe_proto_goTypes = []any{
 	(*UpdateRecipeRequest)(nil),    // 5: api.meals.recipe.v1alpha1.UpdateRecipeRequest
 	(*DeleteRecipeRequest)(nil),    // 6: api.meals.recipe.v1alpha1.DeleteRecipeRequest
 	(*GetRecipeRequest)(nil),       // 7: api.meals.recipe.v1alpha1.GetRecipeRequest
-	(*AcceptRecipeRequest)(nil),    // 8: api.meals.recipe.v1alpha1.AcceptRecipeRequest
-	(*AcceptRecipeResponse)(nil),   // 9: api.meals.recipe.v1alpha1.AcceptRecipeResponse
-	(*ScrapeRecipeRequest)(nil),    // 10: api.meals.recipe.v1alpha1.ScrapeRecipeRequest
-	(*ScrapeRecipeResponse)(nil),   // 11: api.meals.recipe.v1alpha1.ScrapeRecipeResponse
-	(*Recipe_Direction)(nil),       // 12: api.meals.recipe.v1alpha1.Recipe.Direction
-	(*Recipe_IngredientGroup)(nil), // 13: api.meals.recipe.v1alpha1.Recipe.IngredientGroup
-	(*Recipe_Ingredient)(nil),      // 14: api.meals.recipe.v1alpha1.Recipe.Ingredient
-	(*Recipe_RecipeAccess)(nil),    // 15: api.meals.recipe.v1alpha1.Recipe.RecipeAccess
-	(types.VisibilityLevel)(0),     // 16: api.types.VisibilityLevel
-	(*fieldmaskpb.FieldMask)(nil),  // 17: google.protobuf.FieldMask
-	(types.PermissionLevel)(0),     // 18: api.types.PermissionLevel
-	(types.AccessState)(0),         // 19: api.types.AccessState
+	(*ScrapeRecipeRequest)(nil),    // 8: api.meals.recipe.v1alpha1.ScrapeRecipeRequest
+	(*ScrapeRecipeResponse)(nil),   // 9: api.meals.recipe.v1alpha1.ScrapeRecipeResponse
+	(*Recipe_Direction)(nil),       // 10: api.meals.recipe.v1alpha1.Recipe.Direction
+	(*Recipe_IngredientGroup)(nil), // 11: api.meals.recipe.v1alpha1.Recipe.IngredientGroup
+	(*Recipe_Ingredient)(nil),      // 12: api.meals.recipe.v1alpha1.Recipe.Ingredient
+	(*Recipe_RecipeAccess)(nil),    // 13: api.meals.recipe.v1alpha1.Recipe.RecipeAccess
+	(types.VisibilityLevel)(0),     // 14: api.types.VisibilityLevel
+	(*fieldmaskpb.FieldMask)(nil),  // 15: google.protobuf.FieldMask
+	(types.PermissionLevel)(0),     // 16: api.types.PermissionLevel
+	(types.AccessState)(0),         // 17: api.types.AccessState
 }
 var file_api_meals_recipe_v1alpha1_recipe_proto_depIdxs = []int32{
-	12, // 0: api.meals.recipe.v1alpha1.Recipe.directions:type_name -> api.meals.recipe.v1alpha1.Recipe.Direction
-	13, // 1: api.meals.recipe.v1alpha1.Recipe.ingredient_groups:type_name -> api.meals.recipe.v1alpha1.Recipe.IngredientGroup
-	16, // 2: api.meals.recipe.v1alpha1.Recipe.visibility:type_name -> api.types.VisibilityLevel
-	15, // 3: api.meals.recipe.v1alpha1.Recipe.recipe_access:type_name -> api.meals.recipe.v1alpha1.Recipe.RecipeAccess
+	10, // 0: api.meals.recipe.v1alpha1.Recipe.directions:type_name -> api.meals.recipe.v1alpha1.Recipe.Direction
+	11, // 1: api.meals.recipe.v1alpha1.Recipe.ingredient_groups:type_name -> api.meals.recipe.v1alpha1.Recipe.IngredientGroup
+	14, // 2: api.meals.recipe.v1alpha1.Recipe.visibility:type_name -> api.types.VisibilityLevel
+	13, // 3: api.meals.recipe.v1alpha1.Recipe.recipe_access:type_name -> api.meals.recipe.v1alpha1.Recipe.RecipeAccess
 	1,  // 4: api.meals.recipe.v1alpha1.CreateRecipeRequest.recipe:type_name -> api.meals.recipe.v1alpha1.Recipe
 	1,  // 5: api.meals.recipe.v1alpha1.ListRecipesResponse.recipes:type_name -> api.meals.recipe.v1alpha1.Recipe
 	1,  // 6: api.meals.recipe.v1alpha1.UpdateRecipeRequest.recipe:type_name -> api.meals.recipe.v1alpha1.Recipe
-	17, // 7: api.meals.recipe.v1alpha1.UpdateRecipeRequest.update_mask:type_name -> google.protobuf.FieldMask
+	15, // 7: api.meals.recipe.v1alpha1.UpdateRecipeRequest.update_mask:type_name -> google.protobuf.FieldMask
 	1,  // 8: api.meals.recipe.v1alpha1.ScrapeRecipeResponse.recipe:type_name -> api.meals.recipe.v1alpha1.Recipe
-	14, // 9: api.meals.recipe.v1alpha1.Recipe.IngredientGroup.ingredients:type_name -> api.meals.recipe.v1alpha1.Recipe.Ingredient
+	12, // 9: api.meals.recipe.v1alpha1.Recipe.IngredientGroup.ingredients:type_name -> api.meals.recipe.v1alpha1.Recipe.Ingredient
 	0,  // 10: api.meals.recipe.v1alpha1.Recipe.Ingredient.measurement_type:type_name -> api.meals.recipe.v1alpha1.Recipe.MeasurementType
-	18, // 11: api.meals.recipe.v1alpha1.Recipe.RecipeAccess.permission_level:type_name -> api.types.PermissionLevel
-	19, // 12: api.meals.recipe.v1alpha1.Recipe.RecipeAccess.state:type_name -> api.types.AccessState
+	16, // 11: api.meals.recipe.v1alpha1.Recipe.RecipeAccess.permission_level:type_name -> api.types.PermissionLevel
+	17, // 12: api.meals.recipe.v1alpha1.Recipe.RecipeAccess.state:type_name -> api.types.AccessState
 	2,  // 13: api.meals.recipe.v1alpha1.RecipeService.CreateRecipe:input_type -> api.meals.recipe.v1alpha1.CreateRecipeRequest
 	3,  // 14: api.meals.recipe.v1alpha1.RecipeService.ListRecipes:input_type -> api.meals.recipe.v1alpha1.ListRecipesRequest
 	5,  // 15: api.meals.recipe.v1alpha1.RecipeService.UpdateRecipe:input_type -> api.meals.recipe.v1alpha1.UpdateRecipeRequest
 	6,  // 16: api.meals.recipe.v1alpha1.RecipeService.DeleteRecipe:input_type -> api.meals.recipe.v1alpha1.DeleteRecipeRequest
 	7,  // 17: api.meals.recipe.v1alpha1.RecipeService.GetRecipe:input_type -> api.meals.recipe.v1alpha1.GetRecipeRequest
-	8,  // 18: api.meals.recipe.v1alpha1.RecipeService.AcceptRecipe:input_type -> api.meals.recipe.v1alpha1.AcceptRecipeRequest
-	10, // 19: api.meals.recipe.v1alpha1.RecipeService.ScrapeRecipe:input_type -> api.meals.recipe.v1alpha1.ScrapeRecipeRequest
-	1,  // 20: api.meals.recipe.v1alpha1.RecipeService.CreateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	4,  // 21: api.meals.recipe.v1alpha1.RecipeService.ListRecipes:output_type -> api.meals.recipe.v1alpha1.ListRecipesResponse
-	1,  // 22: api.meals.recipe.v1alpha1.RecipeService.UpdateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	1,  // 23: api.meals.recipe.v1alpha1.RecipeService.DeleteRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	1,  // 24: api.meals.recipe.v1alpha1.RecipeService.GetRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	9,  // 25: api.meals.recipe.v1alpha1.RecipeService.AcceptRecipe:output_type -> api.meals.recipe.v1alpha1.AcceptRecipeResponse
-	11, // 26: api.meals.recipe.v1alpha1.RecipeService.ScrapeRecipe:output_type -> api.meals.recipe.v1alpha1.ScrapeRecipeResponse
-	20, // [20:27] is the sub-list for method output_type
-	13, // [13:20] is the sub-list for method input_type
+	8,  // 18: api.meals.recipe.v1alpha1.RecipeService.ScrapeRecipe:input_type -> api.meals.recipe.v1alpha1.ScrapeRecipeRequest
+	1,  // 19: api.meals.recipe.v1alpha1.RecipeService.CreateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	4,  // 20: api.meals.recipe.v1alpha1.RecipeService.ListRecipes:output_type -> api.meals.recipe.v1alpha1.ListRecipesResponse
+	1,  // 21: api.meals.recipe.v1alpha1.RecipeService.UpdateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	1,  // 22: api.meals.recipe.v1alpha1.RecipeService.DeleteRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	1,  // 23: api.meals.recipe.v1alpha1.RecipeService.GetRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	9,  // 24: api.meals.recipe.v1alpha1.RecipeService.ScrapeRecipe:output_type -> api.meals.recipe.v1alpha1.ScrapeRecipeResponse
+	19, // [19:25] is the sub-list for method output_type
+	13, // [13:19] is the sub-list for method input_type
 	13, // [13:13] is the sub-list for extension type_name
 	13, // [13:13] is the sub-list for extension extendee
 	0,  // [0:13] is the sub-list for field type_name
@@ -1149,7 +1054,7 @@ func file_api_meals_recipe_v1alpha1_recipe_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc), len(file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   15,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

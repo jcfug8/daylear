@@ -91,7 +91,7 @@ async function acceptCircleAccess(circle: Circle) {
   if (!circle.name) return
   acceptingCircleId.value = circle.name
   try {
-    await circleAccessService.AcceptAccess({ name: circle.name })
+    await circleAccessService.AcceptAccess({ name: circle.circleAccess?.name })
     // Reload pending circles after accepting
     const pendingTab = tabs.find(t => t.value === 'shared')?.subTabs?.find(s => s.value === 'pending')
     if (pendingTab && pendingTab.loader) await pendingTab.loader()

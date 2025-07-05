@@ -24,7 +24,6 @@ const (
 	RecipeService_UpdateRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/UpdateRecipe"
 	RecipeService_DeleteRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/DeleteRecipe"
 	RecipeService_GetRecipe_FullMethodName    = "/api.meals.recipe.v1alpha1.RecipeService/GetRecipe"
-	RecipeService_AcceptRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/AcceptRecipe"
 	RecipeService_ScrapeRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/ScrapeRecipe"
 )
 
@@ -44,8 +43,6 @@ type RecipeServiceClient interface {
 	DeleteRecipe(ctx context.Context, in *DeleteRecipeRequest, opts ...grpc.CallOption) (*Recipe, error)
 	// get a recipe
 	GetRecipe(ctx context.Context, in *GetRecipeRequest, opts ...grpc.CallOption) (*Recipe, error)
-	// Accept a recipe's access
-	AcceptRecipe(ctx context.Context, in *AcceptRecipeRequest, opts ...grpc.CallOption) (*AcceptRecipeResponse, error)
 	// scrape and save a recipe from a uri
 	ScrapeRecipe(ctx context.Context, in *ScrapeRecipeRequest, opts ...grpc.CallOption) (*ScrapeRecipeResponse, error)
 }
@@ -108,16 +105,6 @@ func (c *recipeServiceClient) GetRecipe(ctx context.Context, in *GetRecipeReques
 	return out, nil
 }
 
-func (c *recipeServiceClient) AcceptRecipe(ctx context.Context, in *AcceptRecipeRequest, opts ...grpc.CallOption) (*AcceptRecipeResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AcceptRecipeResponse)
-	err := c.cc.Invoke(ctx, RecipeService_AcceptRecipe_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *recipeServiceClient) ScrapeRecipe(ctx context.Context, in *ScrapeRecipeRequest, opts ...grpc.CallOption) (*ScrapeRecipeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ScrapeRecipeResponse)
@@ -144,8 +131,6 @@ type RecipeServiceServer interface {
 	DeleteRecipe(context.Context, *DeleteRecipeRequest) (*Recipe, error)
 	// get a recipe
 	GetRecipe(context.Context, *GetRecipeRequest) (*Recipe, error)
-	// Accept a recipe's access
-	AcceptRecipe(context.Context, *AcceptRecipeRequest) (*AcceptRecipeResponse, error)
 	// scrape and save a recipe from a uri
 	ScrapeRecipe(context.Context, *ScrapeRecipeRequest) (*ScrapeRecipeResponse, error)
 	mustEmbedUnimplementedRecipeServiceServer()
@@ -172,9 +157,6 @@ func (UnimplementedRecipeServiceServer) DeleteRecipe(context.Context, *DeleteRec
 }
 func (UnimplementedRecipeServiceServer) GetRecipe(context.Context, *GetRecipeRequest) (*Recipe, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRecipe not implemented")
-}
-func (UnimplementedRecipeServiceServer) AcceptRecipe(context.Context, *AcceptRecipeRequest) (*AcceptRecipeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AcceptRecipe not implemented")
 }
 func (UnimplementedRecipeServiceServer) ScrapeRecipe(context.Context, *ScrapeRecipeRequest) (*ScrapeRecipeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ScrapeRecipe not implemented")
@@ -290,24 +272,6 @@ func _RecipeService_GetRecipe_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RecipeService_AcceptRecipe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AcceptRecipeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RecipeServiceServer).AcceptRecipe(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: RecipeService_AcceptRecipe_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RecipeServiceServer).AcceptRecipe(ctx, req.(*AcceptRecipeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _RecipeService_ScrapeRecipe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ScrapeRecipeRequest)
 	if err := dec(in); err != nil {
@@ -352,10 +316,6 @@ var RecipeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRecipe",
 			Handler:    _RecipeService_GetRecipe_Handler,
-		},
-		{
-			MethodName: "AcceptRecipe",
-			Handler:    _RecipeService_AcceptRecipe_Handler,
 		},
 		{
 			MethodName: "ScrapeRecipe",

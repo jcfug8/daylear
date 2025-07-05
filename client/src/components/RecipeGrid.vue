@@ -36,18 +36,18 @@
           
           <!-- Permission level indicator -->
           <v-chip
-            v-if="recipe.permission"
+            v-if="recipe.recipeAccess?.permissionLevel"
             size="small"
-            :color="getPermissionColor(recipe.permission)"
+            :color="getPermissionColor(recipe.recipeAccess?.permissionLevel)"
             class="permission-chip"
           >
-            {{ getPermissionText(recipe.permission) }}
+            {{ getPermissionText(recipe.recipeAccess?.permissionLevel) }}
           </v-chip>
 
           <!-- Accept button for pending recipes -->
         </v-card>
         <v-btn
-          v-if="recipe.state === 'ACCESS_STATE_PENDING'"
+          v-if="recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING'"
           color="success"
           class="accept-btn"
           @click.stop.prevent="$emit('accept', recipe)"

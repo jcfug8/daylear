@@ -304,49 +304,6 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, authAccount model.AuthAc
 	return imageURI, nil
 }
 
-func (d *Domain) AcceptRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) error {
-	// verify recipe is set
-	if id.RecipeId == 0 {
-		return domain.ErrInvalidArgument{Msg: "recipe id is required"}
-	}
-
-	// get the current access
-	accesses, err := d.repo.ListRecipeAccesses(ctx, authAccount, model.RecipeAccessParent{RecipeId: id}, 1, 0, "")
-	if err != nil {
-		return err
-	}
-
-	if len(accesses) != 1 {
-		return domain.ErrInvalidArgument{Msg: "access not found"}
-	}
-
-	access := accesses[0]
-
-	// verify the access is in pending state
-	if access.State != types.AccessState_ACCESS_STATE_PENDING {
-		return domain.ErrInvalidArgument{Msg: "access must be in pending state to be accepted"}
-	}
-
-	// verify the user is the recipient of this access
-	isRecipient := (access.RecipeAccessParent.Recipient.UserId != 0 && access.RecipeAccessParent.Recipient.UserId == authAccount.UserId) ||
-		(access.RecipeAccessParent.Recipient.CircleId != 0 && access.RecipeAccessParent.Recipient.CircleId == authAccount.CircleId)
-
-	if !isRecipient {
-		return domain.ErrPermissionDenied{Msg: "only the recipient can accept this access"}
-	}
-
-	// update the access state to accepted
-	access.State = types.AccessState_ACCESS_STATE_ACCEPTED
-
-	// update access using the repository
-	_, err = d.repo.UpdateRecipeAccess(ctx, access)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (d *Domain) ScrapeRecipe(ctx context.Context, authAccount model.AuthAccount, uri string) (recipe model.Recipe, err error) {
 	if authAccount.UserId == 0 {
 		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "user id required"}
