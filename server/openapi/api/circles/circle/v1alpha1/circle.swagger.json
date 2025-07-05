@@ -169,14 +169,9 @@
                   "$ref": "#/definitions/typesVisibilityLevel",
                   "title": "the visibility of the circle"
                 },
-                "permission": {
-                  "$ref": "#/definitions/typesPermissionLevel",
-                  "title": "the permission of the circle",
-                  "readOnly": true
-                },
-                "state": {
-                  "$ref": "#/definitions/typesAccessState",
-                  "title": "the access state of the user to the circle",
+                "circleAccess": {
+                  "$ref": "#/definitions/CircleCircleAccess",
+                  "title": "circle access data",
                   "readOnly": true
                 }
               },
@@ -283,6 +278,27 @@
     }
   },
   "definitions": {
+    "CircleCircleAccess": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the circle access",
+          "readOnly": true
+        },
+        "permissionLevel": {
+          "$ref": "#/definitions/typesPermissionLevel",
+          "title": "the permission of the circle",
+          "readOnly": true
+        },
+        "state": {
+          "$ref": "#/definitions/typesAccessState",
+          "title": "the access state of the user to the circle",
+          "readOnly": true
+        }
+      },
+      "title": "the circle access details"
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -367,14 +383,9 @@
           "$ref": "#/definitions/typesVisibilityLevel",
           "title": "the visibility of the circle"
         },
-        "permission": {
-          "$ref": "#/definitions/typesPermissionLevel",
-          "title": "the permission of the circle",
-          "readOnly": true
-        },
-        "state": {
-          "$ref": "#/definitions/typesAccessState",
-          "title": "the access state of the user to the circle",
+        "circleAccess": {
+          "$ref": "#/definitions/CircleCircleAccess",
+          "title": "circle access data",
           "readOnly": true
         }
       },

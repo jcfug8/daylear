@@ -43,8 +43,6 @@ func (d *Domain) CreateCircle(ctx context.Context, authAccount model.AuthAccount
 		return model.Circle{}, err
 	}
 
-	dbCircle.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-
 	circleAccess := model.CircleAccess{
 		CircleAccessParent: model.CircleAccessParent{
 			CircleId: dbCircle.Id,
@@ -52,12 +50,12 @@ func (d *Domain) CreateCircle(ctx context.Context, authAccount model.AuthAccount
 		Requester: model.AuthAccount{
 			UserId: authAccount.UserId,
 		},
-		Recipient: authAccount.UserId,
-		Level:     types.PermissionLevel_PERMISSION_LEVEL_ADMIN,
-		State:     types.AccessState_ACCESS_STATE_ACCEPTED,
+		Recipient:       authAccount.UserId,
+		PermissionLevel: types.PermissionLevel_PERMISSION_LEVEL_ADMIN,
+		State:           types.AccessState_ACCESS_STATE_ACCEPTED,
 	}
 
-	_, err = tx.CreateCircleAccess(ctx, circleAccess)
+	dbCircleAccess, err := tx.CreateCircleAccess(ctx, circleAccess)
 	if err != nil {
 		return model.Circle{}, err
 	}
@@ -66,6 +64,8 @@ func (d *Domain) CreateCircle(ctx context.Context, authAccount model.AuthAccount
 	if err != nil {
 		return model.Circle{}, err
 	}
+
+	dbCircle.CircleAccess = dbCircleAccess
 
 	return dbCircle, nil
 }

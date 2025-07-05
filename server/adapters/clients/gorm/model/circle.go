@@ -66,6 +66,9 @@ type Circle struct {
 	Title           string                `gorm:"column:title;not null"`
 	ImageURI        string                `gorm:"column:image_uri"`
 	VisibilityLevel types.VisibilityLevel `gorm:"column:visibility_level;not null;default:1"`
+
+	// CircleAccess data
+	CircleAccessId  int64                 `gorm:"->;-:migration"` // only used for read from a join
 	PermissionLevel types.PermissionLevel `gorm:"->;-:migration"` // only used for read from a join
 	State           types.AccessState     `gorm:"->;-:migration"` // only used for read from a join
 }

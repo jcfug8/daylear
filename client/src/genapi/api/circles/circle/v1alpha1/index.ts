@@ -20,14 +20,10 @@ export type Circle = {
   //
   // Behaviors: REQUIRED
   visibility: apitypes_VisibilityLevel | undefined;
-  // the permission of the circle
+  // circle access data
   //
   // Behaviors: OUTPUT_ONLY
-  permission: apitypes_PermissionLevel | undefined;
-  // the access state of the user to the circle
-  //
-  // Behaviors: OUTPUT_ONLY
-  state: apitypes_AccessState | undefined;
+  circleAccess: Circle_CircleAccess | undefined;
 };
 
 // the visibility levels
@@ -42,6 +38,22 @@ export type apitypes_VisibilityLevel =
   | "VISIBILITY_LEVEL_PRIVATE"
   // the visibility is hidden
   | "VISIBILITY_LEVEL_HIDDEN";
+// the circle access details
+export type Circle_CircleAccess = {
+  // the name of the circle access
+  //
+  // Behaviors: OUTPUT_ONLY
+  name: string | undefined;
+  // the permission of the circle
+  //
+  // Behaviors: OUTPUT_ONLY
+  permissionLevel: apitypes_PermissionLevel | undefined;
+  // the access state of the user to the circle
+  //
+  // Behaviors: OUTPUT_ONLY
+  state: apitypes_AccessState | undefined;
+};
+
 // the permission levels
 export type apitypes_PermissionLevel =
   // the permission is not specified

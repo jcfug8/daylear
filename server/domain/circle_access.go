@@ -38,7 +38,7 @@ func (d *Domain) CreateCircleAccess(ctx context.Context, authAccount model.AuthA
 		return model.CircleAccess{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
 	}
 
-	if permissionLevel < access.Level {
+	if permissionLevel < access.PermissionLevel {
 		return model.CircleAccess{}, domain.ErrPermissionDenied{Msg: "cannot create access with higher level than the requester's level"}
 	}
 
@@ -199,7 +199,7 @@ func (d *Domain) UpdateCircleAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// if updating permission level, ensure it doesn't exceed the requester's level
-	if access.Level > permissionLevel {
+	if access.PermissionLevel > permissionLevel {
 		return model.CircleAccess{}, domain.ErrPermissionDenied{Msg: "cannot update access level to higher than your own level"}
 	}
 

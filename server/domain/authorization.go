@@ -25,11 +25,11 @@ func (d *Domain) getCircleAccessLevels(ctx context.Context, authAccount model.Au
 		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
 	}
 
-	if circle.VisibilityLevel == types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED || circle.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+	if circle.VisibilityLevel == types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED || circle.CircleAccess.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
 		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user does not have access to circle"}
 	}
 
-	return circle.PermissionLevel, circle.VisibilityLevel, nil
+	return circle.CircleAccess.PermissionLevel, circle.VisibilityLevel, nil
 }
 
 func (d *Domain) getRecipeAccessLevels(ctx context.Context, authAccount model.AuthAccount, recipeId model.RecipeId) (types.PermissionLevel, types.VisibilityLevel, error) {

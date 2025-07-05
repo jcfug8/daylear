@@ -146,16 +146,25 @@ message Circle {
   string title = 2 [(google.api.field_behavior) = REQUIRED];
 
   // the image url for the circle
-  string image_uri = 6 [(google.api.field_behavior) = OPTIONAL];
+  string image_uri = 3 [(google.api.field_behavior) = OPTIONAL];
 
   // the visibility of the circle
-  api.types.VisibilityLevel visibility = 3 [(google.api.field_behavior) = REQUIRED];
+  api.types.VisibilityLevel visibility = 4 [(google.api.field_behavior) = REQUIRED];
 
-  // the permission of the circle
-  api.types.PermissionLevel permission = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // circle access data
+  CircleAccess circle_access = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
 
-  // the access state of the user to the circle
-  api.types.AccessState state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // the circle access details
+  message CircleAccess {
+    // the name of the circle access
+    string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the permission of the circle
+    api.types.PermissionLevel permission_level = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  
+    // the access state of the user to the circle
+    api.types.AccessState state = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
 }
 
 // the request to create a circle

@@ -235,8 +235,8 @@ func (s *CircleService) AcceptAccess(ctx context.Context, request *pb.AcceptAcce
 // Helper conversion functions (to be implemented)
 func (s *CircleService) ProtoToCircleAccess(proto *pb.Access) (model.CircleAccess, error) {
 	circleAccess := model.CircleAccess{
-		Level: proto.GetLevel(),
-		State: proto.GetState(),
+		PermissionLevel: proto.GetLevel(),
+		State:           proto.GetState(),
 	}
 	if proto.GetName() != "" {
 		_, err := s.accessNamer.Parse(proto.GetName(), &circleAccess)
@@ -272,7 +272,7 @@ func (s *CircleService) ProtoToCircleAccess(proto *pb.Access) (model.CircleAcces
 
 func (s *CircleService) CircleAccessToProto(circleAccess model.CircleAccess) (*pb.Access, error) {
 	proto := &pb.Access{
-		Level: circleAccess.Level,
+		Level: circleAccess.PermissionLevel,
 		State: circleAccess.State,
 	}
 

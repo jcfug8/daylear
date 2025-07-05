@@ -11,8 +11,7 @@ type Circle struct {
 	Title           string
 	ImageURI        string
 	VisibilityLevel types.VisibilityLevel
-	PermissionLevel types.PermissionLevel
-	AccessState     types.AccessState
+	CircleAccess    CircleAccess
 }
 
 // CircleId defines the identifier for a circle.
@@ -29,6 +28,7 @@ var CircleFields = circleFields{
 	Title:      "title",
 	ImageURI:   "image_uri",
 	Visibility: "visibility",
+	AccessId:   "access_id",
 	Permission: "permission",
 	State:      "state",
 }
@@ -38,6 +38,7 @@ type circleFields struct {
 	Title      string
 	ImageURI   string
 	Visibility string
+	AccessId   string
 	Permission string
 	State      string
 }
@@ -49,6 +50,7 @@ func (fields circleFields) Mask() []string {
 		fields.Title,
 		fields.ImageURI,
 		fields.Visibility,
+		fields.AccessId,
 		fields.Permission,
 		fields.State,
 	}
