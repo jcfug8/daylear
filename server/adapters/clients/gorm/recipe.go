@@ -30,7 +30,7 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 	}}
 
 	tx := repo.db.WithContext(ctx).
-		Select("recipe.*, recipe_access.permission_level, recipe_access.state").
+		Select("recipe.*, recipe_access.permission_level, recipe_access.state, recipe_access.recipe_access_id").
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(offset))
@@ -122,7 +122,7 @@ func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccoun
 	gm := gmodel.Recipe{}
 
 	tx := repo.db.WithContext(ctx).
-		Select("recipe.*, recipe_access.permission_level, recipe_access.state").
+		Select("recipe.*, recipe_access.permission_level, recipe_access.state, recipe_access.recipe_access_id").
 		Where("recipe.recipe_id = ?", id.RecipeId)
 
 	if authAccount.CircleId != 0 {

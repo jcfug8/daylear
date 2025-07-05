@@ -32,14 +32,10 @@ export type Recipe = {
   //
   // Behaviors: REQUIRED
   visibility: apitypes_VisibilityLevel | undefined;
-  // the permission level the user has to the recipe
+  // the access details for the current user/circle
   //
   // Behaviors: OUTPUT_ONLY
-  permission: apitypes_PermissionLevel | undefined;
-  // the access state of the user to the recipe
-  //
-  // Behaviors: OUTPUT_ONLY
-  state: apitypes_AccessState | undefined;
+  recipeAccess: Recipe_RecipeAccess | undefined;
 };
 
 // the directions to make the recipe
@@ -118,6 +114,22 @@ export type apitypes_VisibilityLevel =
   | "VISIBILITY_LEVEL_PRIVATE"
   // the visibility is hidden
   | "VISIBILITY_LEVEL_HIDDEN";
+// the recipe access details
+export type Recipe_RecipeAccess = {
+  // the name of the recipe access
+  //
+  // Behaviors: OUTPUT_ONLY
+  name: string | undefined;
+  // the permission of the recipe
+  //
+  // Behaviors: OUTPUT_ONLY
+  permissionLevel: apitypes_PermissionLevel | undefined;
+  // the access state of the user to the recipe
+  //
+  // Behaviors: OUTPUT_ONLY
+  state: apitypes_AccessState | undefined;
+};
+
 // the permission levels
 export type apitypes_PermissionLevel =
   // the permission is not specified

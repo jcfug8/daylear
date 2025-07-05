@@ -23,8 +23,8 @@ type recipeAccessFields struct {
 type RecipeAccess struct {
 	RecipeAccessParent
 	RecipeAccessId
-	Level types.PermissionLevel
-	State types.AccessState
+	PermissionLevel types.PermissionLevel
+	State           types.AccessState
 }
 
 type RecipeAccessParent struct {

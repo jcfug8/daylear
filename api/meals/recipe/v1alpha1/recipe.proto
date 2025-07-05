@@ -208,11 +208,8 @@ message Recipe {
   // the visibility of the recipe
   api.types.VisibilityLevel visibility = 7 [(google.api.field_behavior) = REQUIRED];
 
-  // the permission level the user has to the recipe
-  api.types.PermissionLevel permission = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // the access state of the user to the recipe
-  api.types.AccessState state = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // the access details for the current user/circle
+  RecipeAccess recipe_access = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // the directions to make the recipe
   message Direction {
@@ -262,6 +259,18 @@ message Recipe {
     MEASUREMENT_TYPE_LITER = 7;
     // the measurement is in cups
     MEASUREMENT_TYPE_CUP = 8;
+  }
+
+  // the recipe access details
+  message RecipeAccess {
+    // the name of the recipe access
+    string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the permission of the recipe
+    api.types.PermissionLevel permission_level = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the access state of the user to the recipe
+    api.types.AccessState state = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
   }
 }
 

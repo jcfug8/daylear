@@ -13,27 +13,30 @@ import (
 )
 
 type Service struct {
-	log         zerolog.Logger
-	domain      domain.Domain
-	recipeNamer namer.ReflectNamer
-	circleNamer namer.ReflectNamer
+	log               zerolog.Logger
+	domain            domain.Domain
+	recipeNamer       namer.ReflectNamer
+	circleNamer       namer.ReflectNamer
+	recipeAccessNamer namer.ReflectNamer
 }
 
 type NewServiceParams struct {
 	fx.In
 
-	Log         zerolog.Logger
-	Domain      domain.Domain
-	RecipeNamer namer.ReflectNamer `name:"v1alpha1RecipeNamer"`
-	CircleNamer namer.ReflectNamer `name:"v1alpha1CircleNamer"`
+	Log               zerolog.Logger
+	Domain            domain.Domain
+	RecipeNamer       namer.ReflectNamer `name:"v1alpha1RecipeNamer"`
+	CircleNamer       namer.ReflectNamer `name:"v1alpha1CircleNamer"`
+	RecipeAccessNamer namer.ReflectNamer `name:"v1alpha1RecipeAccessNamer"`
 }
 
 func NewService(params NewServiceParams) (*Service, error) {
 	return &Service{
-		log:         params.Log,
-		domain:      params.Domain,
-		recipeNamer: params.RecipeNamer,
-		circleNamer: params.CircleNamer,
+		log:               params.Log,
+		domain:            params.Domain,
+		recipeNamer:       params.RecipeNamer,
+		circleNamer:       params.CircleNamer,
+		recipeAccessNamer: params.RecipeAccessNamer,
 	}, nil
 }
 

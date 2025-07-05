@@ -46,7 +46,7 @@ func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateReci
 	}
 
 	// convert model to proto
-	pbRecipe, err = convert.RecipeToProto(s.recipeNamer, mRecipe)
+	pbRecipe, err = convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
@@ -75,7 +75,7 @@ func (s *RecipeService) DeleteRecipe(ctx context.Context, request *pb.DeleteReci
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, mRecipe)
+	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
@@ -101,7 +101,7 @@ func (s *RecipeService) GetRecipe(ctx context.Context, request *pb.GetRecipeRequ
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, mRecipe)
+	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
@@ -139,7 +139,7 @@ func (s *RecipeService) UpdateRecipe(ctx context.Context, request *pb.UpdateReci
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	recipeProto, err = convert.RecipeToProto(s.recipeNamer, mRecipe)
+	recipeProto, err = convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -168,9 +168,13 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	recipes, err := convert.RecipeListToProto(s.recipeNamer, res)
-	if err != nil {
-		return nil, status.Error(codes.Internal, "unable to prepare response")
+	recipes := make([]*pb.Recipe, len(res))
+	for i, recipe := range res {
+		recipeProto, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, recipe)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "unable to prepare response")
+		}
+		recipes[i] = recipeProto
 	}
 
 	// check field behavior
@@ -238,7 +242,7 @@ func (s *RecipeService) ScrapeRecipe(ctx context.Context, request *pb.ScrapeReci
 	}
 
 	// convert the recipe to a proto
-	recipeProto, err := convert.RecipeToProto(s.recipeNamer, recipe)
+	recipeProto, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, recipe)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}

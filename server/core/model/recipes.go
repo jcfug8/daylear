@@ -19,8 +19,9 @@ type Recipe struct {
 	ImageURI string
 
 	Visibility types.VisibilityLevel
-	Permission types.PermissionLevel
-	State      types.AccessState
+
+	// The access details for the current user/circle
+	RecipeAccess RecipeAccess
 }
 
 type RecipeDirection struct {
@@ -61,6 +62,8 @@ var RecipeFields = recipeFields{
 	ImageURI: "image_uri",
 
 	VisibilityLevel: "visibility_level",
+
+	AccessId:        "access_id",
 	PermissionLevel: "permission_level",
 	State:           "state",
 }
@@ -77,6 +80,8 @@ type recipeFields struct {
 	ImageURI string
 
 	VisibilityLevel string
+
+	AccessId        string
 	PermissionLevel string
 	State           string
 }
@@ -93,6 +98,12 @@ func (fields recipeFields) Mask() []string {
 		fields.IngredientGroups,
 
 		fields.ImageURI,
+
+		fields.VisibilityLevel,
+
+		fields.AccessId,
+		fields.PermissionLevel,
+		fields.State,
 	}
 }
 
@@ -106,6 +117,8 @@ func (fields recipeFields) UpdateMask(mask []string) []string {
 		fields.IngredientGroups,
 
 		fields.ImageURI,
+
+		fields.VisibilityLevel,
 	}
 
 	if len(mask) == 0 {

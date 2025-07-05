@@ -52,7 +52,7 @@ func (s *Service) OCRRecipe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, recipe)
+	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, s.recipeAccessNamer, recipe)
 	if err != nil {
 		s.log.Error().Err(err).Msg("unable to convert recipe to proto")
 		http.Error(w, "Interal Error", http.StatusInternalServerError)

@@ -59,14 +59,12 @@ func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount
 		return model.Recipe{}, err
 	}
 
-	dbRecipe.Permission = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-
 	recipeAccess := model.RecipeAccess{
 		RecipeAccessParent: model.RecipeAccessParent{
 			RecipeId: dbRecipe.Id,
 		},
-		Level: types.PermissionLevel_PERMISSION_LEVEL_ADMIN,
-		State: types.AccessState_ACCESS_STATE_ACCEPTED,
+		PermissionLevel: types.PermissionLevel_PERMISSION_LEVEL_ADMIN,
+		State:           types.AccessState_ACCESS_STATE_ACCEPTED,
 	}
 
 	if authAccount.CircleId != 0 {
@@ -79,10 +77,12 @@ func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount
 		}
 	}
 
-	_, err = tx.CreateRecipeAccess(ctx, recipeAccess)
+	dbRecipeAccess, err := tx.CreateRecipeAccess(ctx, recipeAccess)
 	if err != nil {
 		return model.Recipe{}, err
 	}
+
+	dbRecipe.RecipeAccess = dbRecipeAccess
 
 	err = tx.Commit()
 	if err != nil {
@@ -167,8 +167,8 @@ func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, i
 		return model.Recipe{}, err
 	}
 
-	if authAccount.PermissionLevel < recipe.Permission {
-		recipe.Permission = authAccount.PermissionLevel
+	if authAccount.PermissionLevel < recipe.RecipeAccess.PermissionLevel {
+		recipe.RecipeAccess.PermissionLevel = authAccount.PermissionLevel
 	}
 
 	return recipe, nil
@@ -191,8 +191,8 @@ func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount,
 			return nil, err
 		}
 		for _, recipe := range recipes {
-			if recipe.Permission < authAccount.PermissionLevel {
-				recipe.Permission = authAccount.PermissionLevel
+			if recipe.RecipeAccess.PermissionLevel < authAccount.PermissionLevel {
+				recipe.RecipeAccess.PermissionLevel = authAccount.PermissionLevel
 			}
 		}
 	}

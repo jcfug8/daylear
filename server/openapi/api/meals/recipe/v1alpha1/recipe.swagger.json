@@ -359,14 +359,9 @@
                   "$ref": "#/definitions/typesVisibilityLevel",
                   "title": "the visibility of the recipe"
                 },
-                "permission": {
-                  "$ref": "#/definitions/typesPermissionLevel",
-                  "title": "the permission level the user has to the recipe",
-                  "readOnly": true
-                },
-                "state": {
-                  "$ref": "#/definitions/typesAccessState",
-                  "title": "the access state of the user to the recipe",
+                "recipeAccess": {
+                  "$ref": "#/definitions/RecipeRecipeAccess",
+                  "title": "the access details for the current user/circle",
                   "readOnly": true
                 }
               },
@@ -459,14 +454,9 @@
                   "$ref": "#/definitions/typesVisibilityLevel",
                   "title": "the visibility of the recipe"
                 },
-                "permission": {
-                  "$ref": "#/definitions/typesPermissionLevel",
-                  "title": "the permission level the user has to the recipe",
-                  "readOnly": true
-                },
-                "state": {
-                  "$ref": "#/definitions/typesAccessState",
-                  "title": "the access state of the user to the recipe",
+                "recipeAccess": {
+                  "$ref": "#/definitions/RecipeRecipeAccess",
+                  "title": "the access details for the current user/circle",
                   "readOnly": true
                 }
               },
@@ -576,6 +566,27 @@
       "default": "MEASUREMENT_TYPE_UNSPECIFIED",
       "description": "- MEASUREMENT_TYPE_UNSPECIFIED: the measurement is in cups\n - MEASUREMENT_TYPE_TABLESPOON: the measurement is in tablespoons\n - MEASUREMENT_TYPE_TEASPOON: the measurement is in teaspoons\n - MEASUREMENT_TYPE_OUNCE: the measurement is in ounces\n - MEASUREMENT_TYPE_POUND: the measurement is in pounds\n - MEASUREMENT_TYPE_GRAM: the measurement is in grams\n - MEASUREMENT_TYPE_MILLILITER: the measurement is in milliliters\n - MEASUREMENT_TYPE_LITER: the measurement is in liters\n - MEASUREMENT_TYPE_CUP: the measurement is in cups",
       "title": "the type of measurement"
+    },
+    "RecipeRecipeAccess": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the recipe access",
+          "readOnly": true
+        },
+        "permissionLevel": {
+          "$ref": "#/definitions/typesPermissionLevel",
+          "title": "the permission of the recipe",
+          "readOnly": true
+        },
+        "state": {
+          "$ref": "#/definitions/typesAccessState",
+          "title": "the access state of the user to the recipe",
+          "readOnly": true
+        }
+      },
+      "title": "the recipe access details"
     },
     "RecipeServiceAcceptRecipeBody": {
       "type": "object",
@@ -707,14 +718,9 @@
           "$ref": "#/definitions/typesVisibilityLevel",
           "title": "the visibility of the recipe"
         },
-        "permission": {
-          "$ref": "#/definitions/typesPermissionLevel",
-          "title": "the permission level the user has to the recipe",
-          "readOnly": true
-        },
-        "state": {
-          "$ref": "#/definitions/typesAccessState",
-          "title": "the access state of the user to the recipe",
+        "recipeAccess": {
+          "$ref": "#/definitions/RecipeRecipeAccess",
+          "title": "the access details for the current user/circle",
           "readOnly": true
         }
       },

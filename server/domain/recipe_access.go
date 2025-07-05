@@ -40,7 +40,7 @@ func (d *Domain) CreateRecipeAccess(ctx context.Context, authAccount model.AuthA
 		return model.RecipeAccess{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
 	}
 
-	if authAccount.PermissionLevel < access.Level {
+	if authAccount.PermissionLevel < access.PermissionLevel {
 		return model.RecipeAccess{}, domain.ErrPermissionDenied{Msg: "cannot create access with higher level than the requester's level"}
 	}
 
@@ -218,7 +218,7 @@ func (d *Domain) UpdateRecipeAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// if updating permission level, ensure it doesn't exceed the requester's level
-	if access.Level > authAccount.PermissionLevel {
+	if access.PermissionLevel > authAccount.PermissionLevel {
 		return model.RecipeAccess{}, domain.ErrPermissionDenied{Msg: "cannot update access level to higher than your own level"}
 	}
 

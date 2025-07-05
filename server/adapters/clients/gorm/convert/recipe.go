@@ -17,8 +17,6 @@ func RecipeFromCoreModel(m cmodel.Recipe) (gmodel.Recipe, error) {
 		Description:     m.Description,
 		ImageURI:        m.ImageURI,
 		VisibilityLevel: m.Visibility,
-		PermissionLevel: m.Permission,
-		State:           m.State,
 	}
 
 	recipe.Directions, err = json.Marshal(m.Directions)
@@ -36,6 +34,11 @@ func RecipeFromCoreModel(m cmodel.Recipe) (gmodel.Recipe, error) {
 
 // RecipeToCoreModel converts a gorm model to a core model.
 func RecipeToCoreModel(m gmodel.Recipe) (cmodel.Recipe, error) {
+	permissionLevel := m.PermissionLevel
+	if m.VisibilityLevel == types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC && m.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+		permissionLevel = types.PermissionLevel_PERMISSION_LEVEL_PUBLIC
+	}
+
 	var err error
 	recipe := cmodel.Recipe{
 		Id: cmodel.RecipeId{
@@ -45,12 +48,18 @@ func RecipeToCoreModel(m gmodel.Recipe) (cmodel.Recipe, error) {
 		Description: m.Description,
 		ImageURI:    m.ImageURI,
 		Visibility:  m.VisibilityLevel,
-		Permission:  m.PermissionLevel,
-		State:       m.State,
 	}
 
-	if m.VisibilityLevel == types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC && m.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
-		recipe.Permission = types.PermissionLevel_PERMISSION_LEVEL_PUBLIC
+	// Populate RecipeAccess if permission or state is set (i.e., join succeeded)
+	if m.PermissionLevel != 0 || m.State != 0 {
+		recipe.RecipeAccess = cmodel.RecipeAccess{
+			RecipeAccessParent: cmodel.RecipeAccessParent{
+				RecipeId: cmodel.RecipeId{RecipeId: m.RecipeId},
+			},
+			RecipeAccessId:  cmodel.RecipeAccessId{RecipeAccessId: m.RecipeAccessId},
+			PermissionLevel: permissionLevel,
+			State:           m.State,
+		}
 	}
 
 	if m.Directions != nil {

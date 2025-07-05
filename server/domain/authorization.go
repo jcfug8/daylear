@@ -49,15 +49,15 @@ func (d *Domain) getRecipeAccessLevels(ctx context.Context, authAccount model.Au
 		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
 	}
 
-	if recipe.Visibility == types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED || recipe.Permission == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+	if recipe.Visibility == types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED || recipe.RecipeAccess.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
 		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user does not have access to recipe"}
 	}
 
-	if recipe.Visibility == types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN && recipe.Permission != types.PermissionLevel_PERMISSION_LEVEL_ADMIN {
+	if recipe.Visibility == types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN && recipe.RecipeAccess.PermissionLevel != types.PermissionLevel_PERMISSION_LEVEL_ADMIN {
 		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user does not have access to recipe"}
 	}
 
-	return recipe.Permission, recipe.Visibility, nil
+	return recipe.RecipeAccess.PermissionLevel, recipe.Visibility, nil
 }
 
 func (d *Domain) getRecipeAccessLevelsForCircle(ctx context.Context, authAccount model.AuthAccount, recipeId model.RecipeId) (types.PermissionLevel, types.VisibilityLevel, error) {

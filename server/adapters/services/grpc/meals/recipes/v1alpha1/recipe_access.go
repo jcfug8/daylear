@@ -210,8 +210,8 @@ func (s *RecipeService) UpdateAccess(ctx context.Context, request *pb.UpdateAcce
 
 func (s *RecipeService) ProtoToRecipeAccess(pbAccess *pb.Access) (model.RecipeAccess, error) {
 	modelAccess := model.RecipeAccess{
-		Level: pbAccess.GetLevel(),
-		State: pbAccess.GetState(),
+		PermissionLevel: pbAccess.GetLevel(),
+		State:           pbAccess.GetState(),
 	}
 
 	if pbAccess.GetName() != "" {
@@ -256,7 +256,7 @@ func (s *RecipeService) ProtoToRecipeAccess(pbAccess *pb.Access) (model.RecipeAc
 
 func (s *RecipeService) RecipeAccessToProto(modelAccess model.RecipeAccess) (*pb.Access, error) {
 	pbAccess := &pb.Access{
-		Level: modelAccess.Level,
+		Level: modelAccess.PermissionLevel,
 		State: modelAccess.State,
 	}
 

@@ -161,7 +161,7 @@ message Circle {
 
     // the permission of the circle
     api.types.PermissionLevel permission_level = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
-  
+
     // the access state of the user to the circle
     api.types.AccessState state = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
   }

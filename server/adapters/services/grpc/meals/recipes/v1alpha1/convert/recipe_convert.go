@@ -23,14 +23,12 @@ func ProtoToRecipe(RecipeNamer namer.ReflectNamer, proto *pb.Recipe) (model.Reci
 	recipe.IngredientGroups = ProtosToIngredientGroups(proto.IngredientGroups)
 	recipe.ImageURI = proto.ImageUri
 	recipe.Visibility = proto.Visibility
-	recipe.Permission = proto.Permission
-	recipe.State = proto.State
 
 	return recipe, nil
 }
 
 // RecipeToProto converts a model Recipe to a protobuf Recipe
-func RecipeToProto(RecipeNamer namer.ReflectNamer, recipe model.Recipe) (*pb.Recipe, error) {
+func RecipeToProto(RecipeNamer namer.ReflectNamer, AccessNamer namer.ReflectNamer, recipe model.Recipe) (*pb.Recipe, error) {
 	proto := &pb.Recipe{}
 
 	if recipe.Id.RecipeId != 0 {
@@ -47,19 +45,30 @@ func RecipeToProto(RecipeNamer namer.ReflectNamer, recipe model.Recipe) (*pb.Rec
 	proto.IngredientGroups = IngredientGroupsToProtos(recipe.IngredientGroups)
 	proto.ImageUri = recipe.ImageURI
 	proto.Visibility = recipe.Visibility
-	proto.Permission = recipe.Permission
-	proto.State = recipe.State
+
+	// Handle recipe_access field if present
+	if (recipe.RecipeAccess != model.RecipeAccess{}) {
+		name, err := AccessNamer.Format(recipe.RecipeAccess)
+		if err == nil {
+			proto.RecipeAccess = &pb.Recipe_RecipeAccess{
+				Name:            name,
+				PermissionLevel: recipe.RecipeAccess.PermissionLevel,
+				State:           recipe.RecipeAccess.State,
+			}
+		}
+
+	}
 
 	return proto, nil
 }
 
 // RecipeListToProto converts a slice of model Recipes to a slice of protobuf OmniRecipes
-func RecipeListToProto(RecipeNamer namer.ReflectNamer, recipes []model.Recipe) ([]*pb.Recipe, error) {
+func RecipeListToProto(RecipeNamer namer.ReflectNamer, AccessNamer namer.ReflectNamer, recipes []model.Recipe) ([]*pb.Recipe, error) {
 	protos := make([]*pb.Recipe, len(recipes))
 	for i, recipe := range recipes {
 		proto := &pb.Recipe{}
 		var err error
-		if proto, err = RecipeToProto(RecipeNamer, recipe); err != nil {
+		if proto, err = RecipeToProto(RecipeNamer, AccessNamer, recipe); err != nil {
 			return nil, err
 		}
 		protos[i] = proto
