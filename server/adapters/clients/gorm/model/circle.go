@@ -13,7 +13,9 @@ var CircleMap = masks.NewFieldMap().
 	MapFieldToFields(coremodel.CircleFields.Title,
 		CircleFields.Title).
 	MapFieldToFields(coremodel.CircleFields.Visibility,
-		CircleFields.Visibility)
+		CircleFields.Visibility).
+	MapFieldToFields(coremodel.CircleFields.ImageURI,
+		CircleFields.ImageURI)
 
 // CircleFields defines the circle fields in the GORM model.
 var CircleFields = circleFields{
@@ -42,7 +44,7 @@ func (fields circleFields) Map(m Circle) map[string]any {
 		fields.ImageURI:   m.ImageURI,
 		fields.Visibility: m.VisibilityLevel,
 		fields.Permission: m.PermissionLevel,
-		fields.State:      m.AccessState,
+		fields.State:      m.State,
 	}
 }
 
@@ -65,7 +67,7 @@ type Circle struct {
 	ImageURI        string                `gorm:"column:image_uri"`
 	VisibilityLevel types.VisibilityLevel `gorm:"column:visibility_level;not null;default:1"`
 	PermissionLevel types.PermissionLevel `gorm:"->;-:migration"` // only used for read from a join
-	AccessState     types.AccessState     `gorm:"->;-:migration"` // only used for read from a join
+	State           types.AccessState     `gorm:"->;-:migration"` // only used for read from a join
 }
 
 // TableName sets the table name for the Circle model.

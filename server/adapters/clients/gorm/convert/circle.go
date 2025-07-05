@@ -14,7 +14,7 @@ func CircleFromCoreModel(m cmodel.Circle) (gmodel.Circle, error) {
 		ImageURI:        m.ImageURI,
 		VisibilityLevel: m.VisibilityLevel,
 		PermissionLevel: m.PermissionLevel,
-		AccessState:     m.AccessState,
+		State:           m.AccessState,
 	}, nil
 }
 
@@ -30,6 +30,6 @@ func CircleToCoreModel(g gmodel.Circle) (cmodel.Circle, error) {
 		ImageURI:        g.ImageURI,
 		VisibilityLevel: g.VisibilityLevel,
 		PermissionLevel: g.PermissionLevel,
-		AccessState:     g.AccessState,
+		AccessState:     g.State,
 	}, nil
 }

@@ -6,88 +6,20 @@
       <div class="d-flex justify-space-between align-center mb-4">
         <h2>My Circles</h2>
       </div>
-      <v-list v-if="items.length > 0">
-        <v-list-item
-          v-for="circle in items"
-          :key="circle.name"
-          :title="circle.title"
-          :subtitle="circle.name"
-          :to="{ name: 'circle', params: { circleId: circle.name } }"
-        >
-          <template #prepend>
-            <v-avatar size="48">
-              <v-img v-if="circle.imageUri" :src="circle.imageUri" />
-              <v-icon v-else color="grey-darken-1">mdi-image-outline</v-icon>
-            </v-avatar>
-          </template>
-        </v-list-item>
-      </v-list>
-      <div v-else>No circles found.</div>
+      <CircleGrid :circles="items" :loading="loading" />
     </template>
     <template #shared-accepted="{ items, loading }">
-      <v-list v-if="items.length > 0">
-        <v-list-item
-          v-for="circle in items"
-          :key="circle.name"
-          :title="circle.title"
-          :subtitle="circle.name"
-          :to="{ name: 'circle', params: { circleId: circle.name } }"
-        >
-          <template #prepend>
-            <v-avatar size="48">
-              <v-img v-if="circle.imageUri" :src="circle.imageUri" />
-              <v-icon v-else color="grey-darken-1">mdi-image-outline</v-icon>
-            </v-avatar>
-          </template>
-        </v-list-item>
-      </v-list>
-      <div v-else>No accepted shared circles found.</div>
+      <CircleGrid :circles="items" :loading="loading" />
     </template>
     <template #shared-pending="{ items, loading }">
-      <v-list v-if="items.length > 0">
-        <v-list-item
-          v-for="circle in items"
-          :key="circle.name"
-          :title="circle.title"
-          :subtitle="circle.name"
-          :to="{ name: 'circle', params: { circleId: circle.name } }"
-        >
-          <template #prepend>
-            <v-avatar size="48">
-              <v-img v-if="circle.imageUri" :src="circle.imageUri" />
-              <v-icon v-else color="grey-darken-1">mdi-image-outline</v-icon>
-            </v-avatar>
-          </template>
-          <template #append>
-            <v-btn color="success" @click.stop.prevent="acceptCircleAccess(circle)" :loading="acceptingCircleId === circle.name">
-              Accept
-            </v-btn>
-          </template>
-        </v-list-item>
-      </v-list>
-      <div v-else>No pending shared circles found.</div>
+      <CircleGrid :circles="items" :loading="loading" @accept="acceptCircleAccess" :acceptingCircleId="acceptingCircleId" />
+      <div v-if="!loading && items.length === 0">No pending shared circles found.</div>
     </template>
     <template #explore="{ items, loading }">
       <div class="d-flex justify-space-between align-center mb-4">
         <h2>Explore Public Circles</h2>
       </div>
-      <v-list v-if="items.length > 0">
-        <v-list-item
-          v-for="circle in items"
-          :key="circle.name"
-          :title="circle.title"
-          :subtitle="circle.name"
-          :to="{ name: 'circle', params: { circleId: circle.name } }"
-        >
-          <template #prepend>
-            <v-avatar size="48">
-              <v-img v-if="circle.imageUri" :src="circle.imageUri" />
-              <v-icon v-else color="grey-darken-1">mdi-image-outline</v-icon>
-            </v-avatar>
-          </template>
-        </v-list-item>
-      </v-list>
-      <div v-else>No public circles found.</div>
+      <CircleGrid :circles="items" :loading="loading" />
     </template>
     <template #fab>
       <v-btn
@@ -105,6 +37,7 @@ import { ref } from 'vue'
 import { useCirclesStore } from '@/stores/circles'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import ListTabsPage from '@/components/common/ListTabsPage.vue'
+import CircleGrid from '@/components/CircleGrid.vue'
 import { circleAccessService } from '@/api/api'
 import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
 

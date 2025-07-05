@@ -13,24 +13,7 @@
     </template>
     <template #shared-pending="{ items, loading }">
       <RecipeGrid :recipes="items" :loading="loading" @accept="onAcceptRecipe" />
-      <div v-if="items.length > 0">
-        <v-list>
-          <v-list-item
-            v-for="recipe in items"
-            :key="recipe.name"
-            :title="recipe.title"
-            :subtitle="recipe.name"
-            :to="{ name: 'recipe', params: { recipeId: recipe.name } }"
-          >
-            <template #append>
-              <v-btn color="success" @click.stop.prevent="onAcceptRecipe(recipe)" :loading="acceptingRecipeId === recipe.name">
-                Accept
-              </v-btn>
-            </template>
-          </v-list-item>
-        </v-list>
-      </div>
-      <div v-else>No pending shared recipes found.</div>
+      <div v-if="!loading && items.length === 0">No pending shared recipes found.</div>
     </template>
     <template #explore="{ items, loading }">
       <div class="d-flex justify-space-between align-center mb-4">
