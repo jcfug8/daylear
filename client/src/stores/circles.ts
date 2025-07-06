@@ -46,8 +46,8 @@ export const useCirclesStore = defineStore('circles', () => {
       name: undefined,
       title: '',
       visibility: 'VISIBILITY_LEVEL_PRIVATE' as apitypes_VisibilityLevel,
-      permission: 'PERMISSION_LEVEL_UNSPECIFIED' as apitypes_PermissionLevel,
-      state: 'ACCESS_STATE_UNSPECIFIED' as apitypes_AccessState,
+      imageUri: undefined,
+      circleAccess: undefined,
     }
   }
 

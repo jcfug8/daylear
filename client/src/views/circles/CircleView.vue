@@ -58,15 +58,15 @@
     <v-fab location="bottom right" app color="primary" icon @click="speedDialOpen = !speedDialOpen">
       <v-icon>mdi-dots-vertical</v-icon>
       <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
-        <v-btn key="edit" v-if="hasWritePermission(circle.permission)" icon="mdi-pencil"
+        <v-btn key="edit" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)" icon="mdi-pencil"
         @click="router.push({ name: 'circle-edit', params: { circleId: circle.name } })" color="primary"></v-btn>
 
-        <v-btn key="share" v-if="hasWritePermission(circle.permission)" icon="mdi-share-variant"
+        <v-btn key="share" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)" icon="mdi-share-variant"
           @click="showShareDialog = true" color="primary"></v-btn>
   
         <v-btn key="remove-access" icon="mdi-link-variant-off" @click="showRemoveAccessDialog = true" color="warning"></v-btn>
   
-        <v-btn key="delete" v-if="hasWritePermission(circle.permission)" icon="mdi-delete"
+        <v-btn key="delete" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)" icon="mdi-delete"
           @click="showDeleteDialog = true" color="error"></v-btn>
       </v-speed-dial>
     </v-fab>

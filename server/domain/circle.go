@@ -205,6 +205,8 @@ func (d *Domain) UploadCircleImage(ctx context.Context, authAccount model.AuthAc
 		return "", domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
+	authAccount.CircleId = id.CircleId
+
 	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
 	if err != nil {
 		return "", err

@@ -12,7 +12,7 @@
       <CircleGrid :circles="items" :loading="loading" />
     </template>
     <template #shared-pending="{ items, loading }">
-      <CircleGrid :circles="items" :loading="loading" @accept="acceptCircleAccess" :acceptingCircleId="acceptingCircleId" />
+      <CircleGrid :circles="items" :loading="loading" @accept="acceptCircleAccess" :acceptingCircleId="acceptingCircleId" @decline="onDeclineCircle" />
       <div v-if="!loading && items.length === 0">No pending shared circles found.</div>
     </template>
     <template #explore="{ items, loading }">
@@ -92,13 +92,31 @@ async function acceptCircleAccess(circle: Circle) {
   acceptingCircleId.value = circle.name
   try {
     await circleAccessService.AcceptAccess({ name: circle.circleAccess?.name })
-    // Reload pending circles after accepting
-    const pendingTab = tabs.find(t => t.value === 'shared')?.subTabs?.find(s => s.value === 'pending')
-    if (pendingTab && pendingTab.loader) await pendingTab.loader()
+    // Reload both accepted and pending circles after accepting
+    const sharedTabs = tabs.find(t => t.value === 'shared')?.subTabs
+    const acceptedTab = sharedTabs?.find(s => s.value === 'accepted')
+    const pendingTab = sharedTabs?.find(s => s.value === 'pending')
+    if (acceptedTab?.loader) await acceptedTab.loader()
+    if (pendingTab?.loader) await pendingTab.loader()
   } catch (error) {
     // Optionally show a notification
   } finally {
     acceptingCircleId.value = null
+  }
+}
+
+async function onDeclineCircle(circle: Circle) {
+  if (!circle.circleAccess?.name) return
+  try {
+    await circleAccessService.DeleteAccess({ name: circle.circleAccess.name })
+    // Reload both accepted and pending circles after declining
+    const sharedTabs = tabs.find(t => t.value === 'shared')?.subTabs
+    const acceptedTab = sharedTabs?.find(s => s.value === 'accepted')
+    const pendingTab = sharedTabs?.find(s => s.value === 'pending')
+    if (acceptedTab?.loader) await acceptedTab.loader()
+    if (pendingTab?.loader) await pendingTab.loader()
+  } catch (error) {
+    // Optionally show a notification
   }
 }
 

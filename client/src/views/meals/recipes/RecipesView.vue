@@ -12,7 +12,7 @@
       <RecipeGrid :recipes="items" :loading="loading" />
     </template>
     <template #shared-pending="{ items, loading }">
-      <RecipeGrid :recipes="items" :loading="loading" @accept="onAcceptRecipe" />
+      <RecipeGrid :recipes="items" :loading="loading" @accept="onAcceptRecipe" @decline="onDeclineRecipe" />
       <div v-if="!loading && items.length === 0">No pending shared recipes found.</div>
     </template>
     <template #explore="{ items, loading }">
@@ -97,13 +97,31 @@ async function onAcceptRecipe(recipe: Recipe) {
   acceptingRecipeId.value = recipe.recipeAccess.name
   try {
     await recipesStore.acceptRecipe(recipe.recipeAccess.name)
-    // Reload pending recipes after accepting
-    const pendingTab = tabs.find(t => t.value === 'shared')?.subTabs?.find(s => s.value === 'pending')
-    if (pendingTab && pendingTab.loader) await pendingTab.loader()
+    // Reload both accepted and pending recipes after accepting
+    const sharedTabs = tabs.find(t => t.value === 'shared')?.subTabs
+    const acceptedTab = sharedTabs?.find(s => s.value === 'accepted')
+    const pendingTab = sharedTabs?.find(s => s.value === 'pending')
+    if (acceptedTab?.loader) await acceptedTab.loader()
+    if (pendingTab?.loader) await pendingTab.loader()
   } catch (error) {
     // Optionally show a notification
   } finally {
     acceptingRecipeId.value = null
+  }
+}
+
+async function onDeclineRecipe(recipe: Recipe) {
+  if (!recipe.recipeAccess?.name) return
+  try {
+    await recipesStore.deleteRecipeAccess(recipe.recipeAccess.name)
+    // Reload both accepted and pending recipes after declining
+    const sharedTabs = tabs.find(t => t.value === 'shared')?.subTabs
+    const acceptedTab = sharedTabs?.find(s => s.value === 'accepted')
+    const pendingTab = sharedTabs?.find(s => s.value === 'pending')
+    if (acceptedTab?.loader) await acceptedTab.loader()
+    if (pendingTab?.loader) await pendingTab.loader()
+  } catch (error) {
+    // Optionally show a notification
   }
 }
 

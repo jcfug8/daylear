@@ -55,6 +55,15 @@
         >
           Accept
         </v-btn>
+        <v-btn
+          v-if="recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING'"
+          color="error"
+          class="decline-btn"
+          @click.stop.prevent="$emit('decline', recipe)"
+          block
+        >
+          Decline
+        </v-btn>
       </v-col>
     </v-row>
   </div>
@@ -70,7 +79,7 @@ interface Props {
 }
 
 defineProps<Props>()
-const emit = defineEmits(['accept'])
+const emit = defineEmits(['accept', 'decline'])
 
 function getPermissionColor(permission: string) {
   switch (permission) {

@@ -125,6 +125,15 @@ export const useRecipesStore = defineStore('recipes', () => {
     }
   }
 
+  async function deleteRecipeAccess(accessName: string) {
+    try {
+      await recipeAccessService.DeleteAccess({ name: accessName })
+    } catch (error) {
+      console.error('Failed to decline recipe access:', error)
+      throw error
+    }
+  }
+
   return {
     loadRecipes,
     loadMyRecipes,
@@ -135,6 +144,7 @@ export const useRecipesStore = defineStore('recipes', () => {
     createRecipe,
     updateRecipe,
     acceptRecipe,
+    deleteRecipeAccess,
     recipes,
     recipe,
   }
