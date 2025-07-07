@@ -53,7 +53,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (activeAccount.value && 'username' in activeAccount.value) {
       return "PERMISSION_LEVEL_ADMIN"
     } else if (activeAccount.value) {
-      return activeAccount.value.permission as PermissionLevel ?? "PERMISSION_LEVEL_UNSPECIFIED"
+      return activeAccount.value.circleAccess?.permissionLevel as PermissionLevel ?? "PERMISSION_LEVEL_UNSPECIFIED"
     }
     return "PERMISSION_LEVEL_UNSPECIFIED"
   })

@@ -54,7 +54,7 @@ import { storeToRefs } from 'pinia'
 import { onMounted, ref } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRouter } from 'vue-router'
-import type { User } from '@/genapi/api/users/user/v1alpha1'
+import type { User, apitypes_VisibilityLevel } from '@/genapi/api/users/user/v1alpha1'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -68,6 +68,7 @@ const editedUser = ref<User>({
   username: user.value.username,
   givenName: user.value.givenName,
   familyName: user.value.familyName,
+  visibility: 'VISIBILITY_LEVEL_PRIVATE' as apitypes_VisibilityLevel,
 })
 
 function navigateBack() {
