@@ -14,6 +14,7 @@
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { watch } from 'vue'
+import { API_BASE_URL } from '@/constants/api'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -28,7 +29,7 @@ watch(
 )
 
 const withGooge = () => {
-  window.location.href = 'http://localhost:8080/auth/google'
+  window.location.href = API_BASE_URL + 'auth/google'
 }
 </script>
 

@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-const API_BASE_URL = 'http://localhost:8080/'
+import { API_BASE_URL } from '@/constants/api'
 
 import { ref } from 'vue';
 import SwaggerUI from '../components/common/SwaggerUI.vue';

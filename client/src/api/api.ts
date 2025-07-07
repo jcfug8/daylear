@@ -4,8 +4,7 @@ import { createCircleServiceClient, createCircleAccessServiceClient } from '@/ge
 import { createAuthServiceClient } from './auth'
 import { createFileServiceClient } from './files'
 import { AccountType, useAuthStore } from '@/stores/auth'
-
-const API_BASE_URL = 'http://localhost:8080/'
+import { API_BASE_URL } from '@/constants/api'
 
 // Generic fetch handler for the generated API client
 export const authenticatedFetchHandler = function(contentType: string) {
