@@ -1,0 +1,32 @@
+# DigitalOcean App Platform spec for Daylear (UI + Backend)
+name: daylear
+region: sfo
+services:
+  # Static Web UI
+  - name: daylear-ui
+    environment_slug: static-site
+    image:
+      registry_type: GHCR
+      registry: ghcr.io
+      repository: jcfug8/daylear-client
+      tag: latest
+    http_port: 80
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    routes:
+      - path: /*
+    auto_deploy: true
+  # Go Backend API
+  - name: daylear-api
+    environment_slug: container
+    image:
+      registry_type: GHCR
+      registry: ghcr.io
+      repository: jcfug8/daylear
+      tag: latest
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    routes:
+      - path: /api/*
+    auto_deploy: true 
