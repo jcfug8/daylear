@@ -4,7 +4,7 @@ region: sfo
 services:
   # Static Web UI
   - name: daylear-ui
-    environment_slug: static-site
+    environment_slug: node-js
     image:
       registry_type: GHCR
       registry: ghcr.io
@@ -17,7 +17,7 @@ services:
       - path: /*
   # Go Backend API
   - name: daylear-api
-    environment_slug: container
+    environment_slug: go
     image:
       registry_type: GHCR
       registry: ghcr.io
