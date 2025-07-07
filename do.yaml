@@ -15,7 +15,6 @@ services:
     instance_size_slug: basic-xxs
     routes:
       - path: /*
-    auto_deploy: true
   # Go Backend API
   - name: daylear-api
     environment_slug: container
@@ -29,4 +28,3 @@ services:
     instance_size_slug: basic-xxs
     routes:
       - path: /api/*
-    auto_deploy: true 
