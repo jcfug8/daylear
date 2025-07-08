@@ -176,7 +176,7 @@ message Access {
   Requester requester = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // the name of the receiving user
-  string recipient = 3 [(google.api.field_behavior) = REQUIRED];
+  User recipient = 3 [(google.api.field_behavior) = REQUIRED];
 
   // the permission level of the access
   api.types.PermissionLevel level = 4 [(google.api.field_behavior) = REQUIRED];
@@ -192,6 +192,15 @@ message Access {
       // the name of the circle
       string circle = 2;
     }
+  }
+
+  // user data
+  message User {
+    // the name of the user
+    string name = 1 [(google.api.field_behavior) = REQUIRED];
+
+    // the username of the user
+    string username = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
   }
 }
 

@@ -245,8 +245,8 @@ func (s *CircleService) ProtoToCircleAccess(proto *pb.Access) (model.CircleAcces
 		}
 	}
 
-	if proto.GetRecipient() != "" {
-		_, err := s.userNamer.Parse(proto.GetRecipient(), &circleAccess)
+	if proto.GetRecipient() != nil {
+		_, err := s.userNamer.Parse(proto.GetRecipient().GetName(), &circleAccess)
 		if err != nil {
 			return circleAccess, err
 		}
@@ -285,11 +285,14 @@ func (s *CircleService) CircleAccessToProto(circleAccess model.CircleAccess) (*p
 	}
 
 	if circleAccess.Recipient != 0 {
-		name, err := s.userNamer.Format(circleAccess)
+		userName, err := s.userNamer.Format(circleAccess)
 		if err != nil {
 			return nil, err
 		}
-		proto.Recipient = name
+		proto.Recipient = &pb.Access_User{
+			Name:     userName,
+			Username: circleAccess.RecipientUsername,
+		}
 	}
 
 	if circleAccess.Requester.CircleId != 0 {

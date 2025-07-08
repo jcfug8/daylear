@@ -87,7 +87,12 @@ func (repo *Client) GetRecipeAccess(ctx context.Context, parent model.RecipeAcce
 	db := repo.db.WithContext(ctx)
 
 	var recipeAccess dbModel.RecipeAccess
-	res := db.Where("recipe_id = ? AND recipe_access_id = ?", parent.RecipeId.RecipeId, id.RecipeAccessId).First(&recipeAccess)
+	res := db.Table("recipe_access").
+		Select(`recipe_access.*, u.username as recipient_username, c.title as recipient_circle_title`).
+		Joins(`LEFT JOIN daylear_user u ON recipe_access.recipient_user_id = u.user_id`).
+		Joins(`LEFT JOIN circle c ON recipe_access.recipient_circle_id = c.circle_id`).
+		Where("recipe_access.recipe_id = ? AND recipe_access.recipe_access_id = ?", parent.RecipeId.RecipeId, id.RecipeAccessId).
+		First(&recipeAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			return model.RecipeAccess{}, repository.ErrNotFound{}
@@ -111,8 +116,10 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 	var recipeAccesses []dbModel.RecipeAccess
 	// Start building the query
 	db := repo.db.WithContext(ctx).
-		Select("recipe_access.*, recipe.title").
-		Joins("LEFT JOIN recipe ON recipe_access.recipe_id = recipe.recipe_id").
+		Table("recipe_access").
+		Select(`recipe_access.*, u.username as recipient_username, c.title as recipient_circle_title`).
+		Joins(`LEFT JOIN daylear_user u ON recipe_access.recipient_user_id = u.user_id`).
+		Joins(`LEFT JOIN circle c ON recipe_access.recipient_circle_id = c.circle_id`).
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(pageOffset))

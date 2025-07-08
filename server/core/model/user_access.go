@@ -23,8 +23,9 @@ type userAccessFields struct {
 type UserAccess struct {
 	UserAccessParent
 	UserAccessId
-	Level types.PermissionLevel
-	State types.AccessState
+	Level             types.PermissionLevel
+	State             types.AccessState
+	RecipientUsername string // username of the recipient
 }
 
 type UserAccessParent struct {

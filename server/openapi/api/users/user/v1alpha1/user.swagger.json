@@ -80,7 +80,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1alpha1User"
+              "$ref": "#/definitions/userv1alpha1User"
             }
           },
           "default": {
@@ -121,7 +121,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1alpha1User"
+              "$ref": "#/definitions/userv1alpha1User"
             }
           },
           "default": {
@@ -234,25 +234,7 @@
       "description": "- VISIBILITY_LEVEL_UNSPECIFIED: the visibility is not specified\n - VISIBILITY_LEVEL_PUBLIC: the visibility is public\n - VISIBILITY_LEVEL_RESTRICTED: the visibility is restricted\n - VISIBILITY_LEVEL_PRIVATE: the visibility is private\n - VISIBILITY_LEVEL_HIDDEN: the visibility is hidden",
       "title": "the visibility levels"
     },
-    "v1alpha1ListUsersResponse": {
-      "type": "object",
-      "properties": {
-        "users": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1alpha1User"
-          },
-          "title": "the users"
-        },
-        "nextPageToken": {
-          "type": "string",
-          "title": "the next page token"
-        }
-      },
-      "title": "the response to list users"
-    },
-    "v1alpha1User": {
+    "userv1alpha1User": {
       "type": "object",
       "properties": {
         "name": {
@@ -286,6 +268,24 @@
         "email",
         "visibility"
       ]
+    },
+    "v1alpha1ListUsersResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/userv1alpha1User"
+          },
+          "title": "the users"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "title": "the next page token"
+        }
+      },
+      "title": "the response to list users"
     }
   },
   "securityDefinitions": {

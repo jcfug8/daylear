@@ -188,10 +188,28 @@ message Access {
   message RequesterOrRecipient {
     oneof name {
       // the name of the user
-      string user = 1;
+      User user = 1;
       // the name of the circle
-      string circle = 2;
+      Circle circle = 2;
     }
+  }
+
+  // user data
+  message User {
+    // the name of the user
+    string name = 1 [(google.api.field_behavior) = REQUIRED];
+
+    // the username of the user
+    string username = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+
+  // circle data
+  message Circle {
+    // the name of the circle
+    string name = 1 [(google.api.field_behavior) = REQUIRED];
+
+    // the title of the circle
+    string title = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
   }
 }
 

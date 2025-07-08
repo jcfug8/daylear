@@ -246,30 +246,38 @@ func (s *RecipeService) ProtoToRecipeAccess(pbAccess *pb.Access) (model.RecipeAc
 	switch pbrequester := pbAccess.GetRequester().GetName().(type) {
 	case *pb.Access_RequesterOrRecipient_User:
 		modelAccess.Requester = model.AuthAccount{}
-		_, err := s.userNamer.Parse(pbrequester.User, &modelAccess.Requester)
-		if err != nil {
-			return model.RecipeAccess{}, status.Errorf(codes.InvalidArgument, "invalid requester: %v", err)
+		if pbrequester.User != nil {
+			_, err := s.userNamer.Parse(pbrequester.User.Name, &modelAccess.Requester)
+			if err != nil {
+				return model.RecipeAccess{}, status.Errorf(codes.InvalidArgument, "invalid requester: %v", err)
+			}
 		}
 	case *pb.Access_RequesterOrRecipient_Circle:
 		modelAccess.Requester = model.AuthAccount{}
-		_, err := s.circleNamer.Parse(pbrequester.Circle, &modelAccess.Requester)
-		if err != nil {
-			return model.RecipeAccess{}, status.Errorf(codes.InvalidArgument, "invalid requester: %v", err)
+		if pbrequester.Circle != nil {
+			_, err := s.circleNamer.Parse(pbrequester.Circle.Name, &modelAccess.Requester)
+			if err != nil {
+				return model.RecipeAccess{}, status.Errorf(codes.InvalidArgument, "invalid requester: %v", err)
+			}
 		}
 	}
 
 	switch pbRecipient := pbAccess.GetRecipient().GetName().(type) {
 	case *pb.Access_RequesterOrRecipient_User:
 		modelAccess.Recipient = model.AuthAccount{}
-		_, err := s.userNamer.Parse(pbRecipient.User, &modelAccess.Recipient)
-		if err != nil {
-			return model.RecipeAccess{}, status.Errorf(codes.InvalidArgument, "invalid recipient: %v", err)
+		if pbRecipient.User != nil {
+			_, err := s.userNamer.Parse(pbRecipient.User.Name, &modelAccess.Recipient)
+			if err != nil {
+				return model.RecipeAccess{}, status.Errorf(codes.InvalidArgument, "invalid recipient: %v", err)
+			}
 		}
 	case *pb.Access_RequesterOrRecipient_Circle:
 		modelAccess.Recipient = model.AuthAccount{}
-		_, err := s.circleNamer.Parse(pbRecipient.Circle, &modelAccess.Recipient)
-		if err != nil {
-			return model.RecipeAccess{}, status.Errorf(codes.InvalidArgument, "invalid recipient: %v", err)
+		if pbRecipient.Circle != nil {
+			_, err := s.circleNamer.Parse(pbRecipient.Circle.Name, &modelAccess.Recipient)
+			if err != nil {
+				return model.RecipeAccess{}, status.Errorf(codes.InvalidArgument, "invalid recipient: %v", err)
+			}
 		}
 	}
 
@@ -297,7 +305,9 @@ func (s *RecipeService) RecipeAccessToProto(modelAccess model.RecipeAccess) (*pb
 		}
 		pbAccess.Requester = &pb.Access_RequesterOrRecipient{
 			Name: &pb.Access_RequesterOrRecipient_User{
-				User: userName,
+				User: &pb.Access_User{
+					Name: userName,
+				},
 			},
 		}
 	} else if modelAccess.Requester.CircleId != 0 {
@@ -307,7 +317,9 @@ func (s *RecipeService) RecipeAccessToProto(modelAccess model.RecipeAccess) (*pb
 		}
 		pbAccess.Requester = &pb.Access_RequesterOrRecipient{
 			Name: &pb.Access_RequesterOrRecipient_Circle{
-				Circle: circleName,
+				Circle: &pb.Access_Circle{
+					Name: circleName,
+				},
 			},
 		}
 	}
@@ -319,7 +331,10 @@ func (s *RecipeService) RecipeAccessToProto(modelAccess model.RecipeAccess) (*pb
 		}
 		pbAccess.Recipient = &pb.Access_RequesterOrRecipient{
 			Name: &pb.Access_RequesterOrRecipient_User{
-				User: userName,
+				User: &pb.Access_User{
+					Name:     userName,
+					Username: modelAccess.RecipientUsername,
+				},
 			},
 		}
 	} else if modelAccess.Recipient.CircleId != 0 {
@@ -329,7 +344,10 @@ func (s *RecipeService) RecipeAccessToProto(modelAccess model.RecipeAccess) (*pb
 		}
 		pbAccess.Recipient = &pb.Access_RequesterOrRecipient{
 			Name: &pb.Access_RequesterOrRecipient_Circle{
-				Circle: circleName,
+				Circle: &pb.Access_Circle{
+					Name:  circleName,
+					Title: modelAccess.RecipientCircleTitle,
+				},
 			},
 		}
 	}

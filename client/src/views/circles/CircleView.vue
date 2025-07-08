@@ -367,7 +367,10 @@ async function shareCircle() {
     const access: Access = {
       name: undefined, // Will be set by the server
       requester: undefined, // Will be set by the server
-      recipient: selectedUser.value?.name,
+      recipient: {
+        name: selectedUser.value?.name || '',
+        username: selectedUser.value?.username || ''
+      },
       level: selectedPermission.value,
       state: undefined, // Will be set by the server
     }
@@ -428,10 +431,10 @@ async function fetchCircleRecipients() {
     if (response.accesses) {
       currentShares.value = response.accesses.filter(access => {
         // Filter out the current user's own access to avoid showing it in the shares list
-        const isCurrentUser = access.recipient === authStore.activeAccount?.name
+        const isCurrentUser = access.recipient?.name === authStore.activeAccount?.name
         return !isCurrentUser
       }).map(access => {
-        const recipientName = access.recipient || ''
+        const recipientName = access.recipient && access.recipient.username ? access.recipient.username : ''
         
         return {
           id: access.name || '',
@@ -482,7 +485,7 @@ async function handleRemoveAccess() {
     
     // Find the current user's access
     const userAccess = response.accesses?.find(access => 
-      access.recipient === authStore.activeAccount?.name
+      access.recipient?.name === authStore.activeAccount?.name
     )
     
     if (userAccess?.name) {

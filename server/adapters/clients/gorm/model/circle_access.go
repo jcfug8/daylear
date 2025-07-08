@@ -13,7 +13,6 @@ var CircleAccessFields = circleAccessFields{
 	RecipientUserId:   "circle_access.recipient_user_id",
 	PermissionLevel:   "circle_access.permission_level",
 	State:             "circle_access.state",
-	Title:             "circle_access.title",
 }
 
 type circleAccessFields struct {
@@ -24,7 +23,6 @@ type circleAccessFields struct {
 	RecipientUserId   string
 	PermissionLevel   string
 	State             string
-	Title             string
 }
 
 // Map maps the circleAccess fields to their corresponding model values.
@@ -37,7 +35,6 @@ func (fields circleAccessFields) Map(m CircleAccess) map[string]any {
 		fields.RecipientUserId:   m.RecipientUserId,
 		fields.PermissionLevel:   m.PermissionLevel,
 		fields.State:             m.State,
-		fields.Title:             m.Title,
 	}
 }
 
@@ -51,7 +48,6 @@ func (fields circleAccessFields) Mask() []string {
 		fields.RecipientUserId,
 		fields.PermissionLevel,
 		fields.State,
-		fields.Title,
 	}
 }
 
@@ -64,7 +60,7 @@ type CircleAccess struct {
 	RecipientUserId   int64                 `gorm:"not null;uniqueIndex:idx_circle_id_recipient_user_id,where:recipient_user_id <> 0"`
 	PermissionLevel   types.PermissionLevel `gorm:"not null"`
 	State             types.AccessState     `gorm:"not null"`
-	Title             string                `gorm:"->;-:migration"` // read only from join
+	RecipientUsername string                `gorm:"->;-:migration"` // read only from join
 }
 
 // TableName -

@@ -63,7 +63,7 @@
                   "readOnly": true
                 },
                 "recipient": {
-                  "type": "string",
+                  "$ref": "#/definitions/usersuserv1alpha1AccessUser",
                   "title": "the name of the receiving user"
                 },
                 "level": {
@@ -408,7 +408,7 @@
           "readOnly": true
         },
         "recipient": {
-          "type": "string",
+          "$ref": "#/definitions/usersuserv1alpha1AccessUser",
           "title": "the name of the receiving user"
         },
         "level": {
@@ -425,6 +425,24 @@
       "required": [
         "recipient",
         "level"
+      ]
+    },
+    "usersuserv1alpha1AccessUser": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the user"
+        },
+        "username": {
+          "type": "string",
+          "title": "the username of the user",
+          "readOnly": true
+        }
+      },
+      "title": "user data",
+      "required": [
+        "name"
       ]
     },
     "usersuserv1alpha1ListAccessesResponse": {

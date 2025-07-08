@@ -439,9 +439,33 @@ export type Access = {
 // the requester or recipient of the access
 export type Access_RequesterOrRecipient = {
   // the name of the user
-  user?: string;
+  user?: Access_User;
   // the name of the circle
-  circle?: string;
+  circle?: Access_Circle;
+};
+
+// user data
+export type Access_User = {
+  // the name of the user
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+  // the username of the user
+  //
+  // Behaviors: OUTPUT_ONLY
+  username: string | undefined;
+};
+
+// circle data
+export type Access_Circle = {
+  // the name of the circle
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+  // the title of the circle
+  //
+  // Behaviors: OUTPUT_ONLY
+  title: string | undefined;
 };
 
 // The request to create an access to a recipe

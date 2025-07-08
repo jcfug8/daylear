@@ -240,7 +240,7 @@ func ProtoToUserAccess(userNamer, accessNamer interface{}, pbAccess *pb.Access) 
 	var mUserAccess model.UserAccess
 
 	// Parse recipient from the proto (assuming it's a user name)
-	if pbAccess.GetRecipient() != "" {
+	if pbAccess.GetRecipient().GetName() != "" {
 		var recipientUser model.User
 		// Note: This needs proper implementation based on how recipient is structured
 		// For now, assuming it's a user name that can be parsed

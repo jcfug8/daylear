@@ -74,7 +74,11 @@ func (repo *Client) GetCircleAccess(ctx context.Context, parent model.CircleAcce
 	db := repo.db.WithContext(ctx)
 
 	var circleAccess dbModel.CircleAccess
-	res := db.Where("circle_id = ? AND circle_access_id = ?", parent.CircleId.CircleId, id.CircleAccessId).First(&circleAccess)
+	res := db.Table("circle_access").
+		Select("circle_access.*, daylear_user.username as recipient_username").
+		Joins("LEFT JOIN daylear_user ON circle_access.recipient_user_id = daylear_user.user_id").
+		Where("circle_access.circle_id = ? AND circle_access.circle_access_id = ?", parent.CircleId.CircleId, id.CircleAccessId).
+		First(&circleAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			return model.CircleAccess{}, repository.ErrNotFound{}
@@ -96,7 +100,9 @@ func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.A
 	}
 
 	var circleAccesses []dbModel.CircleAccess
-	db := repo.db.WithContext(ctx).Model(&dbModel.CircleAccess{})
+	db := repo.db.WithContext(ctx).Table("circle_access").
+		Select("circle_access.*, daylear_user.username as recipient_username").
+		Joins("LEFT JOIN daylear_user ON circle_access.recipient_user_id = daylear_user.user_id")
 
 	if conversion.WhereClause != "" {
 		db = db.Where(conversion.WhereClause, conversion.Params...)

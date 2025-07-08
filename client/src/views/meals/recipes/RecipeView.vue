@@ -576,9 +576,9 @@ async function shareRecipe() {
   sharing.value = true
   try {
     // Create the recipient object based on whether we're sharing with user or circle
-    const recipient: Access_RequesterOrRecipient = shareTab.value === 'users' 
-      ? { user: selectedUser.value?.name }
-      : { circle: selectedCircle.value?.name }
+    const recipient: Access_RequesterOrRecipient = shareTab.value === 'users'
+      ? { user: { name: selectedUser.value?.name || '', username: selectedUser.value?.username || '' } }
+      : { circle: { name: selectedCircle.value?.name || '', title: selectedCircle.value?.title || '' } }
 
     const access: Access = {
       name: undefined, // Will be set by the server
@@ -647,14 +647,15 @@ async function fetchRecipeRecipients() {
     if (response.accesses) {
       currentShares.value = response.accesses.filter(access => {
         // Filter out the current user's own access to avoid showing it in the shares list
-        const isCurrentUser = (access.recipient?.user === authStore.activeAccount?.name) ||
-                             (access.recipient?.circle === authStore.activeAccount?.name)
+        const isCurrentUser = (access.recipient?.user && access.recipient.user.name === authStore.activeAccount?.name) ||
+                             (access.recipient?.circle && access.recipient.circle.name === authStore.activeAccount?.name)
         return !isCurrentUser
       }).map(access => {
         // Determine if this is a user or circle access
         const isCircle = !!access.recipient?.circle
-        const recipientName = access.recipient?.user || access.recipient?.circle || ''
-        
+        const recipientName = isCircle
+          ? (access.recipient?.circle && access.recipient.circle.title ? access.recipient.circle.title : '')
+          : (access.recipient?.user && access.recipient.user.username ? access.recipient.user.username : '')
         return {
           id: access.name || '',
           name: recipientName,

@@ -569,22 +569,22 @@ func (x *Access_RequesterOrRecipient) GetName() isAccess_RequesterOrRecipient_Na
 	return nil
 }
 
-func (x *Access_RequesterOrRecipient) GetUser() string {
+func (x *Access_RequesterOrRecipient) GetUser() *Access_User {
 	if x != nil {
 		if x, ok := x.Name.(*Access_RequesterOrRecipient_User); ok {
 			return x.User
 		}
 	}
-	return ""
+	return nil
 }
 
-func (x *Access_RequesterOrRecipient) GetCircle() string {
+func (x *Access_RequesterOrRecipient) GetCircle() *Access_Circle {
 	if x != nil {
 		if x, ok := x.Name.(*Access_RequesterOrRecipient_Circle); ok {
 			return x.Circle
 		}
 	}
-	return ""
+	return nil
 }
 
 type isAccess_RequesterOrRecipient_Name interface {
@@ -593,33 +593,149 @@ type isAccess_RequesterOrRecipient_Name interface {
 
 type Access_RequesterOrRecipient_User struct {
 	// the name of the user
-	User string `protobuf:"bytes,1,opt,name=user,proto3,oneof"`
+	User *Access_User `protobuf:"bytes,1,opt,name=user,proto3,oneof"`
 }
 
 type Access_RequesterOrRecipient_Circle struct {
 	// the name of the circle
-	Circle string `protobuf:"bytes,2,opt,name=circle,proto3,oneof"`
+	Circle *Access_Circle `protobuf:"bytes,2,opt,name=circle,proto3,oneof"`
 }
 
 func (*Access_RequesterOrRecipient_User) isAccess_RequesterOrRecipient_Name() {}
 
 func (*Access_RequesterOrRecipient_Circle) isAccess_RequesterOrRecipient_Name() {}
 
+// user data
+type Access_User struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// the name of the user
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// the username of the user
+	Username      string `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Access_User) Reset() {
+	*x = Access_User{}
+	mi := &file_api_meals_recipe_v1alpha1_recipe_access_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Access_User) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Access_User) ProtoMessage() {}
+
+func (x *Access_User) ProtoReflect() protoreflect.Message {
+	mi := &file_api_meals_recipe_v1alpha1_recipe_access_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Access_User.ProtoReflect.Descriptor instead.
+func (*Access_User) Descriptor() ([]byte, []int) {
+	return file_api_meals_recipe_v1alpha1_recipe_access_proto_rawDescGZIP(), []int{0, 1}
+}
+
+func (x *Access_User) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Access_User) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+// circle data
+type Access_Circle struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// the name of the circle
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// the title of the circle
+	Title         string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Access_Circle) Reset() {
+	*x = Access_Circle{}
+	mi := &file_api_meals_recipe_v1alpha1_recipe_access_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Access_Circle) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Access_Circle) ProtoMessage() {}
+
+func (x *Access_Circle) ProtoReflect() protoreflect.Message {
+	mi := &file_api_meals_recipe_v1alpha1_recipe_access_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Access_Circle.ProtoReflect.Descriptor instead.
+func (*Access_Circle) Descriptor() ([]byte, []int) {
+	return file_api_meals_recipe_v1alpha1_recipe_access_proto_rawDescGZIP(), []int{0, 2}
+}
+
+func (x *Access_Circle) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Access_Circle) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
 var File_api_meals_recipe_v1alpha1_recipe_access_proto protoreflect.FileDescriptor
 
 const file_api_meals_recipe_v1alpha1_recipe_access_proto_rawDesc = "" +
 	"\n" +
-	"-api/meals/recipe/v1alpha1/recipe_access.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xee\x03\n" +
+	"-api/meals/recipe/v1alpha1/recipe_access.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xc1\x05\n" +
 	"\x06Access\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12Y\n" +
 	"\trequester\x18\x02 \x01(\v26.api.meals.recipe.v1alpha1.Access.RequesterOrRecipientB\x03\xe0A\x03R\trequester\x12Y\n" +
 	"\trecipient\x18\x03 \x01(\v26.api.meals.recipe.v1alpha1.Access.RequesterOrRecipientB\x03\xe0A\x02R\trecipient\x125\n" +
 	"\x05level\x18\x04 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x02R\x05level\x121\n" +
-	"\x05state\x18\x05 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state\x1aN\n" +
-	"\x14RequesterOrRecipient\x12\x14\n" +
-	"\x04user\x18\x01 \x01(\tH\x00R\x04user\x12\x18\n" +
-	"\x06circle\x18\x02 \x01(\tH\x00R\x06circleB\x06\n" +
-	"\x04name:[\xeaAX\n" +
+	"\x05state\x18\x05 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state\x1a\xa0\x01\n" +
+	"\x14RequesterOrRecipient\x12<\n" +
+	"\x04user\x18\x01 \x01(\v2&.api.meals.recipe.v1alpha1.Access.UserH\x00R\x04user\x12B\n" +
+	"\x06circle\x18\x02 \x01(\v2(.api.meals.recipe.v1alpha1.Access.CircleH\x00R\x06circleB\x06\n" +
+	"\x04name\x1a@\n" +
+	"\x04User\x12\x17\n" +
+	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name\x12\x1f\n" +
+	"\busername\x18\x02 \x01(\tB\x03\xe0A\x03R\busername\x1a<\n" +
+	"\x06Circle\x12\x17\n" +
+	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name\x12\x19\n" +
+	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x03R\x05title:[\xeaAX\n" +
 	" api.meals.recipe.v1alpha1/Access\x12\"recipes/{recipe}/accesses/{access}*\baccesses2\x06access\"\x97\x01\n" +
 	"\x13CreateAccessRequest\x12@\n" +
 	"\x06parent\x18\x01 \x01(\tB(\xe0A\x02\xfaA\"\n" +
@@ -695,7 +811,7 @@ func file_api_meals_recipe_v1alpha1_recipe_access_proto_rawDescGZIP() []byte {
 	return file_api_meals_recipe_v1alpha1_recipe_access_proto_rawDescData
 }
 
-var file_api_meals_recipe_v1alpha1_recipe_access_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_api_meals_recipe_v1alpha1_recipe_access_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_api_meals_recipe_v1alpha1_recipe_access_proto_goTypes = []any{
 	(*Access)(nil),                      // 0: api.meals.recipe.v1alpha1.Access
 	(*CreateAccessRequest)(nil),         // 1: api.meals.recipe.v1alpha1.CreateAccessRequest
@@ -707,37 +823,41 @@ var file_api_meals_recipe_v1alpha1_recipe_access_proto_goTypes = []any{
 	(*AcceptRecipeAccessRequest)(nil),   // 7: api.meals.recipe.v1alpha1.AcceptRecipeAccessRequest
 	(*AcceptRecipeAccessResponse)(nil),  // 8: api.meals.recipe.v1alpha1.AcceptRecipeAccessResponse
 	(*Access_RequesterOrRecipient)(nil), // 9: api.meals.recipe.v1alpha1.Access.RequesterOrRecipient
-	(types.PermissionLevel)(0),          // 10: api.types.PermissionLevel
-	(types.AccessState)(0),              // 11: api.types.AccessState
-	(*fieldmaskpb.FieldMask)(nil),       // 12: google.protobuf.FieldMask
-	(*emptypb.Empty)(nil),               // 13: google.protobuf.Empty
+	(*Access_User)(nil),                 // 10: api.meals.recipe.v1alpha1.Access.User
+	(*Access_Circle)(nil),               // 11: api.meals.recipe.v1alpha1.Access.Circle
+	(types.PermissionLevel)(0),          // 12: api.types.PermissionLevel
+	(types.AccessState)(0),              // 13: api.types.AccessState
+	(*fieldmaskpb.FieldMask)(nil),       // 14: google.protobuf.FieldMask
+	(*emptypb.Empty)(nil),               // 15: google.protobuf.Empty
 }
 var file_api_meals_recipe_v1alpha1_recipe_access_proto_depIdxs = []int32{
 	9,  // 0: api.meals.recipe.v1alpha1.Access.requester:type_name -> api.meals.recipe.v1alpha1.Access.RequesterOrRecipient
 	9,  // 1: api.meals.recipe.v1alpha1.Access.recipient:type_name -> api.meals.recipe.v1alpha1.Access.RequesterOrRecipient
-	10, // 2: api.meals.recipe.v1alpha1.Access.level:type_name -> api.types.PermissionLevel
-	11, // 3: api.meals.recipe.v1alpha1.Access.state:type_name -> api.types.AccessState
+	12, // 2: api.meals.recipe.v1alpha1.Access.level:type_name -> api.types.PermissionLevel
+	13, // 3: api.meals.recipe.v1alpha1.Access.state:type_name -> api.types.AccessState
 	0,  // 4: api.meals.recipe.v1alpha1.CreateAccessRequest.access:type_name -> api.meals.recipe.v1alpha1.Access
 	0,  // 5: api.meals.recipe.v1alpha1.ListAccessesResponse.accesses:type_name -> api.meals.recipe.v1alpha1.Access
 	0,  // 6: api.meals.recipe.v1alpha1.UpdateAccessRequest.access:type_name -> api.meals.recipe.v1alpha1.Access
-	12, // 7: api.meals.recipe.v1alpha1.UpdateAccessRequest.update_mask:type_name -> google.protobuf.FieldMask
-	1,  // 8: api.meals.recipe.v1alpha1.RecipeAccessService.CreateAccess:input_type -> api.meals.recipe.v1alpha1.CreateAccessRequest
-	2,  // 9: api.meals.recipe.v1alpha1.RecipeAccessService.DeleteAccess:input_type -> api.meals.recipe.v1alpha1.DeleteAccessRequest
-	3,  // 10: api.meals.recipe.v1alpha1.RecipeAccessService.GetAccess:input_type -> api.meals.recipe.v1alpha1.GetAccessRequest
-	4,  // 11: api.meals.recipe.v1alpha1.RecipeAccessService.ListAccesses:input_type -> api.meals.recipe.v1alpha1.ListAccessesRequest
-	6,  // 12: api.meals.recipe.v1alpha1.RecipeAccessService.UpdateAccess:input_type -> api.meals.recipe.v1alpha1.UpdateAccessRequest
-	7,  // 13: api.meals.recipe.v1alpha1.RecipeAccessService.AcceptRecipeAccess:input_type -> api.meals.recipe.v1alpha1.AcceptRecipeAccessRequest
-	0,  // 14: api.meals.recipe.v1alpha1.RecipeAccessService.CreateAccess:output_type -> api.meals.recipe.v1alpha1.Access
-	13, // 15: api.meals.recipe.v1alpha1.RecipeAccessService.DeleteAccess:output_type -> google.protobuf.Empty
-	0,  // 16: api.meals.recipe.v1alpha1.RecipeAccessService.GetAccess:output_type -> api.meals.recipe.v1alpha1.Access
-	5,  // 17: api.meals.recipe.v1alpha1.RecipeAccessService.ListAccesses:output_type -> api.meals.recipe.v1alpha1.ListAccessesResponse
-	0,  // 18: api.meals.recipe.v1alpha1.RecipeAccessService.UpdateAccess:output_type -> api.meals.recipe.v1alpha1.Access
-	8,  // 19: api.meals.recipe.v1alpha1.RecipeAccessService.AcceptRecipeAccess:output_type -> api.meals.recipe.v1alpha1.AcceptRecipeAccessResponse
-	14, // [14:20] is the sub-list for method output_type
-	8,  // [8:14] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	14, // 7: api.meals.recipe.v1alpha1.UpdateAccessRequest.update_mask:type_name -> google.protobuf.FieldMask
+	10, // 8: api.meals.recipe.v1alpha1.Access.RequesterOrRecipient.user:type_name -> api.meals.recipe.v1alpha1.Access.User
+	11, // 9: api.meals.recipe.v1alpha1.Access.RequesterOrRecipient.circle:type_name -> api.meals.recipe.v1alpha1.Access.Circle
+	1,  // 10: api.meals.recipe.v1alpha1.RecipeAccessService.CreateAccess:input_type -> api.meals.recipe.v1alpha1.CreateAccessRequest
+	2,  // 11: api.meals.recipe.v1alpha1.RecipeAccessService.DeleteAccess:input_type -> api.meals.recipe.v1alpha1.DeleteAccessRequest
+	3,  // 12: api.meals.recipe.v1alpha1.RecipeAccessService.GetAccess:input_type -> api.meals.recipe.v1alpha1.GetAccessRequest
+	4,  // 13: api.meals.recipe.v1alpha1.RecipeAccessService.ListAccesses:input_type -> api.meals.recipe.v1alpha1.ListAccessesRequest
+	6,  // 14: api.meals.recipe.v1alpha1.RecipeAccessService.UpdateAccess:input_type -> api.meals.recipe.v1alpha1.UpdateAccessRequest
+	7,  // 15: api.meals.recipe.v1alpha1.RecipeAccessService.AcceptRecipeAccess:input_type -> api.meals.recipe.v1alpha1.AcceptRecipeAccessRequest
+	0,  // 16: api.meals.recipe.v1alpha1.RecipeAccessService.CreateAccess:output_type -> api.meals.recipe.v1alpha1.Access
+	15, // 17: api.meals.recipe.v1alpha1.RecipeAccessService.DeleteAccess:output_type -> google.protobuf.Empty
+	0,  // 18: api.meals.recipe.v1alpha1.RecipeAccessService.GetAccess:output_type -> api.meals.recipe.v1alpha1.Access
+	5,  // 19: api.meals.recipe.v1alpha1.RecipeAccessService.ListAccesses:output_type -> api.meals.recipe.v1alpha1.ListAccessesResponse
+	0,  // 20: api.meals.recipe.v1alpha1.RecipeAccessService.UpdateAccess:output_type -> api.meals.recipe.v1alpha1.Access
+	8,  // 21: api.meals.recipe.v1alpha1.RecipeAccessService.AcceptRecipeAccess:output_type -> api.meals.recipe.v1alpha1.AcceptRecipeAccessResponse
+	16, // [16:22] is the sub-list for method output_type
+	10, // [10:16] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_api_meals_recipe_v1alpha1_recipe_access_proto_init() }
@@ -755,7 +875,7 @@ func file_api_meals_recipe_v1alpha1_recipe_access_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_meals_recipe_v1alpha1_recipe_access_proto_rawDesc), len(file_api_meals_recipe_v1alpha1_recipe_access_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

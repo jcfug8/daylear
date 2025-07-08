@@ -316,7 +316,7 @@ export type Access = {
   // the name of the receiving user
   //
   // Behaviors: REQUIRED
-  recipient: string | undefined;
+  recipient: Access_User | undefined;
   // the permission level of the access
   //
   // Behaviors: REQUIRED
@@ -333,6 +333,18 @@ export type Access_Requester = {
   user?: string;
   // the name of the circle
   circle?: string;
+};
+
+// user data
+export type Access_User = {
+  // the name of the user
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+  // the username of the user
+  //
+  // Behaviors: OUTPUT_ONLY
+  username: string | undefined;
 };
 
 // The request to create an access to a circle

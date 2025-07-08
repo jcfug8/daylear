@@ -14,7 +14,6 @@ var RecipeAccessFields = recipeAccessFields{
 	RecipientCircleId: "recipe_access.recipient_circle_id",
 	PermissionLevel:   "recipe_access.permission_level",
 	State:             "recipe_access.state",
-	Title:             "recipe_access.title",
 }
 
 type recipeAccessFields struct {
@@ -26,7 +25,6 @@ type recipeAccessFields struct {
 	RecipientCircleId string
 	PermissionLevel   string
 	State             string
-	Title             string
 }
 
 // Map maps the recipeAccess fields to their corresponding model values.
@@ -40,7 +38,6 @@ func (fields recipeAccessFields) Map(m RecipeAccess) map[string]any {
 		fields.RecipientCircleId: m.RecipientCircleId,
 		fields.PermissionLevel:   m.PermissionLevel,
 		fields.State:             m.State,
-		fields.Title:             m.Title,
 	}
 }
 
@@ -55,21 +52,21 @@ func (fields recipeAccessFields) Mask() []string {
 		fields.RecipientCircleId,
 		fields.PermissionLevel,
 		fields.State,
-		fields.Title,
 	}
 }
 
 // RecipeAccess -
 type RecipeAccess struct {
-	RecipeAccessId    int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
-	RecipeId          int64                 `gorm:"not null;index;uniqueIndex:idx_recipe_id_recipient_user_id;uniqueIndex:idx_recipe_id_recipient_circle_id;"`
-	requesterUserId   int64                 `gorm:"index"`
-	requesterCircleId int64                 `gorm:"index"`
-	RecipientUserId   int64                 `gorm:"index;uniqueIndex:idx_recipe_id_recipient_user_id,where:recipient_user_id <> null"`
-	RecipientCircleId int64                 `gorm:"index;uniqueIndex:idx_recipe_id_recipient_circle_id,where:recipient_circle_id <> null"`
-	PermissionLevel   types.PermissionLevel `gorm:"not null"`
-	State             types.AccessState     `gorm:"not null"`
-	Title             string                `gorm:"->;-:migration"` // read only from join
+	RecipeAccessId       int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
+	RecipeId             int64                 `gorm:"not null;index;uniqueIndex:idx_recipe_id_recipient_user_id;uniqueIndex:idx_recipe_id_recipient_circle_id;"`
+	requesterUserId      int64                 `gorm:"index"`
+	requesterCircleId    int64                 `gorm:"index"`
+	RecipientUserId      int64                 `gorm:"index;uniqueIndex:idx_recipe_id_recipient_user_id,where:recipient_user_id <> null"`
+	RecipientCircleId    int64                 `gorm:"index;uniqueIndex:idx_recipe_id_recipient_circle_id,where:recipient_circle_id <> null"`
+	PermissionLevel      types.PermissionLevel `gorm:"not null"`
+	State                types.AccessState     `gorm:"not null"`
+	RecipientUsername    string                `gorm:"->;-:migration"` // read only from join
+	RecipientCircleTitle string                `gorm:"->;-:migration"` // read only from join
 }
 
 // TableName -

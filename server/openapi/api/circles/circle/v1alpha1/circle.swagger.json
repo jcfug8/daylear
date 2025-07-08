@@ -78,7 +78,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1alpha1Circle"
+              "$ref": "#/definitions/circlev1alpha1Circle"
             }
           },
           "default": {
@@ -95,7 +95,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1alpha1Circle",
+              "$ref": "#/definitions/circlev1alpha1Circle",
               "required": [
                 "circle"
               ]
@@ -130,7 +130,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1alpha1Circle"
+              "$ref": "#/definitions/circlev1alpha1Circle"
             }
           },
           "default": {
@@ -205,7 +205,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1alpha1Circle"
+              "$ref": "#/definitions/circlev1alpha1Circle"
             }
           },
           "default": {
@@ -244,7 +244,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1alpha1Circle"
+              "$ref": "#/definitions/circlev1alpha1Circle"
             }
           },
           "default": {
@@ -298,6 +298,37 @@
         }
       },
       "title": "the circle access details"
+    },
+    "circlev1alpha1Circle": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the circle"
+        },
+        "title": {
+          "type": "string",
+          "title": "the title of the circle"
+        },
+        "imageUri": {
+          "type": "string",
+          "title": "the image url for the circle"
+        },
+        "visibility": {
+          "$ref": "#/definitions/typesVisibilityLevel",
+          "title": "the visibility of the circle"
+        },
+        "circleAccess": {
+          "$ref": "#/definitions/CircleCircleAccess",
+          "title": "circle access data",
+          "readOnly": true
+        }
+      },
+      "title": "the main user circle",
+      "required": [
+        "title",
+        "visibility"
+      ]
     },
     "protobufAny": {
       "type": "object",
@@ -364,37 +395,6 @@
       "description": "- VISIBILITY_LEVEL_UNSPECIFIED: the visibility is not specified\n - VISIBILITY_LEVEL_PUBLIC: the visibility is public\n - VISIBILITY_LEVEL_RESTRICTED: the visibility is restricted\n - VISIBILITY_LEVEL_PRIVATE: the visibility is private\n - VISIBILITY_LEVEL_HIDDEN: the visibility is hidden",
       "title": "the visibility levels"
     },
-    "v1alpha1Circle": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "title": "the name of the circle"
-        },
-        "title": {
-          "type": "string",
-          "title": "the title of the circle"
-        },
-        "imageUri": {
-          "type": "string",
-          "title": "the image url for the circle"
-        },
-        "visibility": {
-          "$ref": "#/definitions/typesVisibilityLevel",
-          "title": "the visibility of the circle"
-        },
-        "circleAccess": {
-          "$ref": "#/definitions/CircleCircleAccess",
-          "title": "circle access data",
-          "readOnly": true
-        }
-      },
-      "title": "the main user circle",
-      "required": [
-        "title",
-        "visibility"
-      ]
-    },
     "v1alpha1ListCirclesResponse": {
       "type": "object",
       "properties": {
@@ -402,7 +402,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v1alpha1Circle"
+            "$ref": "#/definitions/circlev1alpha1Circle"
           },
           "title": "the circles"
         },

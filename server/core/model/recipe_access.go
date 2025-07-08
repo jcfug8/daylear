@@ -23,8 +23,10 @@ type recipeAccessFields struct {
 type RecipeAccess struct {
 	RecipeAccessParent
 	RecipeAccessId
-	PermissionLevel types.PermissionLevel
-	State           types.AccessState
+	PermissionLevel      types.PermissionLevel
+	State                types.AccessState
+	RecipientUsername    string // username of the recipient (if user)
+	RecipientCircleTitle string // title of the recipient (if circle)
 }
 
 type RecipeAccessParent struct {

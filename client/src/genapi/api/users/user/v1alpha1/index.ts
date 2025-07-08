@@ -220,7 +220,7 @@ export type Access = {
   // the name of the receiving user
   //
   // Behaviors: REQUIRED
-  recipient: string | undefined;
+  recipient: Access_User | undefined;
   // the permission level of the access
   //
   // Behaviors: REQUIRED
@@ -229,6 +229,18 @@ export type Access = {
   //
   // Behaviors: OUTPUT_ONLY
   state: apitypes_AccessState | undefined;
+};
+
+// user data
+export type Access_User = {
+  // the name of the user
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+  // the username of the user
+  //
+  // Behaviors: OUTPUT_ONLY
+  username: string | undefined;
 };
 
 // the permission levels

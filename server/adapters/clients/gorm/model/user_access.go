@@ -12,7 +12,6 @@ var UserAccessFields = userAccessFields{
 	RecipientUserId: "user_access.recipient_user_id",
 	PermissionLevel: "user_access.permission_level",
 	State:           "user_access.state",
-	Title:           "user_access.title",
 }
 
 type userAccessFields struct {
@@ -22,7 +21,6 @@ type userAccessFields struct {
 	RecipientUserId string
 	PermissionLevel string
 	State           string
-	Title           string
 }
 
 // Map maps the userAccess fields to their corresponding model values.
@@ -35,7 +33,6 @@ func (fields userAccessFields) Map(m UserAccess) map[string]any {
 		fields.RecipientUserId: m.RecipientUserId,
 		fields.PermissionLevel: m.PermissionLevel,
 		fields.State:           m.State,
-		fields.Title:           m.Title,
 	}
 }
 
@@ -49,19 +46,18 @@ func (fields userAccessFields) Mask() []string {
 		fields.RecipientUserId,
 		fields.PermissionLevel,
 		fields.State,
-		fields.Title,
 	}
 }
 
 // UserAccess -
 type UserAccess struct {
-	UserAccessId    int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
-	UserId          int64                 `gorm:"not null;index"`
-	RequesterUserId int64                 `gorm:"index"`
-	RecipientUserId int64                 `gorm:"not null;index"`
-	PermissionLevel types.PermissionLevel `gorm:"not null"`
-	State           types.AccessState     `gorm:"not null"`
-	Title           string                `gorm:"->;-:migration"` // read only from join
+	UserAccessId      int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
+	UserId            int64                 `gorm:"not null;index"`
+	RequesterUserId   int64                 `gorm:"index"`
+	RecipientUserId   int64                 `gorm:"not null;index"`
+	PermissionLevel   types.PermissionLevel `gorm:"not null"`
+	State             types.AccessState     `gorm:"not null"`
+	RecipientUsername string                `gorm:"->;-:migration"` // read only from join
 }
 
 // TableName -
