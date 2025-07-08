@@ -197,7 +197,7 @@
               <v-file-input
                 v-model="imageFile"
                 label="Choose Image"
-                accept="image/*"
+                accept="image/jpeg, image/jpg, image/png, image/gif, image/webp, image/bmp, image/svg"
                 class="mt-4"
                 prepend-icon="mdi-camera"
                 @update:model-value="handleFileSelect"

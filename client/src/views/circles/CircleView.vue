@@ -2,6 +2,13 @@
   <v-container v-if="circle">
     <v-container max-width="600" class="pa-1">
       <v-row>
+        <v-col class="pt-5">
+          <div class="text-h4">
+            {{ circle.title }}
+          </div>
+        </v-col>
+      </v-row>
+      <v-row>
         <v-col align-self="auto" cols="12" sm="8">
           <div class="image-container">
             <v-img 
@@ -22,13 +29,6 @@
                 <div class="text-grey-darken-1 mt-2">No image available</div>
               </div>
             </div>
-          </div>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col class="pt-5">
-          <div class="text-h4">
-            {{ circle.title }}
           </div>
         </v-col>
       </v-row>
@@ -54,6 +54,29 @@
       </v-row>
     </v-container>
 
+    <!-- Accept/Decline Buttons for Pending Access -->
+    <v-row v-if="circle.circleAccess?.state === 'ACCESS_STATE_PENDING'">
+      <v-col cols="12">
+        <v-btn
+          color="success"
+          class="mb-2"
+          block
+          :loading="acceptingCircle"
+          @click="acceptCircle"
+        >
+          Accept Circle
+        </v-btn>
+        <v-btn
+          color="error"
+          class="mb-4"
+          block
+          :loading="decliningCircle"
+          @click="declineCircle"
+        >
+          Decline
+        </v-btn>
+      </v-col>
+    </v-row>
     <!-- Speed Dial -->
     <v-fab location="bottom right" app color="primary" icon @click="speedDialOpen = !speedDialOpen">
       <v-icon>mdi-dots-vertical</v-icon>
@@ -527,6 +550,35 @@ async function handleDelete() {
   } finally {
     deleting.value = false
     showDeleteDialog.value = false
+  }
+}
+
+const acceptingCircle = ref(false)
+const decliningCircle = ref(false)
+
+async function acceptCircle() {
+  if (!circle.value?.circleAccess?.name) return
+  acceptingCircle.value = true
+  try {
+    await circleAccessService.AcceptAccess({ name: circle.value.circleAccess.name })
+    await circlesStore.loadCircle(circle.value.name!)
+  } catch (error) {
+    // Optionally show a notification
+  } finally {
+    acceptingCircle.value = false
+  }
+}
+
+async function declineCircle() {
+  if (!circle.value?.circleAccess?.name) return
+  decliningCircle.value = true
+  try {
+    await circleAccessService.DeleteAccess({ name: circle.value.circleAccess.name })
+    router.push({ name: 'circles' })
+  } catch (error) {
+    // Optionally show a notification
+  } finally {
+    decliningCircle.value = false
   }
 }
 </script>

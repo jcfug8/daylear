@@ -125,11 +125,22 @@
     <v-btn
       v-if="recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING'"
       color="success"
-      class="mb-4"
-      @click="acceptRecipe"
+      class="mb-2"
       block
+      :loading="acceptingRecipe"
+      @click="acceptRecipe"
     >
       Accept Recipe
+    </v-btn>
+    <v-btn
+      v-if="recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING'"
+      color="error"
+      class="mb-4"
+      block
+      :loading="decliningRecipe"
+      @click="declineRecipe"
+    >
+      Decline
     </v-btn>
   </v-container>
   <!-- Remove Access Dialog -->
@@ -750,13 +761,32 @@ async function handleDelete() {
   }
 }
 
+const acceptingRecipe = ref(false)
+const decliningRecipe = ref(false)
+
 async function acceptRecipe() {
   if (!recipe.value?.recipeAccess?.name || !authStore.user?.name) return
+  acceptingRecipe.value = true
   try {
     await recipesStore.acceptRecipe(recipe.value.recipeAccess.name)
     recipesStore.loadRecipe(recipe.value?.name ?? '')
   } catch (error) {
     // Optionally show a notification
+  } finally {
+    acceptingRecipe.value = false
+  }
+}
+
+async function declineRecipe() {
+  if (!recipe.value?.recipeAccess?.name) return
+  decliningRecipe.value = true
+  try {
+    await recipesStore.deleteRecipeAccess(recipe.value.recipeAccess.name)
+    router.push({ name: 'recipes' })
+  } catch (error) {
+    // Optionally show a notification
+  } finally {
+    decliningRecipe.value = false
   }
 }
 
