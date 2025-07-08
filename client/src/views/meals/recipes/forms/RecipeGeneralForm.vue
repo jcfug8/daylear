@@ -93,7 +93,7 @@
       <v-col cols="12">
         <div class="mt-4">
           <v-select
-            v-model="recipe.visibility"
+            v-model="visibilityValue"
             :items="visibilityOptions"
             item-title="label"
             item-value="value"
@@ -192,7 +192,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import type { Recipe, apitypes_VisibilityLevel } from '@/genapi/api/meals/recipe/v1alpha1'
 import { recipeService, fileService } from '@/api/api'
 
@@ -224,6 +224,10 @@ async function scrapeRecipe() {
   try {
     const resp = await recipeService.ScrapeRecipe({ uri: scrapeUrl.value })
     if (resp && resp.recipe) {
+      // Preserve current visibility if not set in scraped recipe
+      if (!resp.recipe.visibility) {
+        resp.recipe.visibility = recipe.value.visibility
+      }
       emit('update:modelValue', resp.recipe)
     } else {
       scrapeError.value = 'No recipe found at that URL.'
@@ -288,6 +292,17 @@ const selectedVisibilityColor = computed(() => {
   return selectedVisibility.value?.color || 'primary'
 })
 
+const visibilityValue = computed({
+  get() {
+    const valid = visibilityOptions.some(opt => opt.value === recipe.value.visibility)
+    return valid ? recipe.value.visibility : 'VISIBILITY_LEVEL_HIDDEN'
+  },
+  set(val: apitypes_VisibilityLevel) {
+    recipe.value.visibility = val
+    emit('update:modelValue', recipe.value)
+  }
+})
+
 const showImageDialog = ref(false)
 const imageTab = ref('url')
 const imageUrl = ref('')
@@ -348,6 +363,10 @@ async function ocrRecipe() {
     if (!ocrImageFiles.value) throw new Error('No image selected')
     const resp = await fileService.OCRRecipe({ files: ocrImageFiles.value })
     if (resp && resp.recipe) {
+      // Preserve current visibility if not set in OCR'd recipe
+      if (!resp.recipe.visibility) {
+        resp.recipe.visibility = recipe.value.visibility
+      }
       emit('update:modelValue', resp.recipe)
     } else {
       ocrError.value = 'No recipe found in image.'
@@ -358,6 +377,13 @@ async function ocrRecipe() {
     ocrLoading.value = false
   }
 }
+
+onMounted(() => {
+  if (!recipe.value.visibility) {
+    recipe.value.visibility = 'VISIBILITY_LEVEL_HIDDEN'
+    emit('update:modelValue', recipe.value)
+  }
+})
 </script>
 
 <style scoped>

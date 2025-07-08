@@ -69,7 +69,7 @@ export const useRecipesStore = defineStore('recipes', () => {
       directions: [],
       ingredientGroups: [],
       imageUri: undefined,
-      visibility: 'VISIBILITY_LEVEL_UNSPECIFIED' as apitypes_VisibilityLevel,
+      visibility: 'VISIBILITY_LEVEL_HIDDEN' as apitypes_VisibilityLevel,
       recipeAccess: undefined,
     }
   }
