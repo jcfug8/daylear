@@ -18,7 +18,6 @@
           class="circle-card"
         >
           <v-card-subtitle>
-            {{ circle.name }}
           </v-card-subtitle>
           <v-img
             class="mt-4"

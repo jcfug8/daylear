@@ -30,10 +30,10 @@
         value="circles"
         :to="{ name: 'circles' }"
       ></v-list-item>
-      <v-list-group value="Meals">
+      <!-- <v-list-group value="Meals">
         <template v-slot:activator="{ props }">
           <v-list-item v-bind="props" title="Meals" prepend-icon="mdi-food"></v-list-item>
-        </template>
+        </template> -->
 
         <v-list-item
           prepend-icon="mdi-book-open-page-variant"
@@ -47,7 +47,7 @@
           value="ingredients"
           :to="{ name: 'ingredients' }"
         ></v-list-item> -->
-      </v-list-group>
+      <!-- </v-list-group> -->
     </v-list>
   </v-navigation-drawer>
   <v-app-bar v-if="$route.meta.breadcrumbs && breadcrumbs.length > 0" flat density="compact">
