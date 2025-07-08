@@ -3,7 +3,6 @@ package http
 import (
 	"net/http"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
@@ -59,8 +58,6 @@ func (m *MiddlewareMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Msg("HTTP Request")
 	}))
 
-	c = c.Append(PrefixHandler("/api"))
-
 	c = c.Append(hlog.RemoteAddrHandler("ip"))
 	c = c.Append(hlog.UserAgentHandler("user_agent"))
 	c = c.Append(hlog.RefererHandler("referer"))
@@ -68,21 +65,4 @@ func (m *MiddlewareMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	h := c.Then(m.ServeMux)
 	h.ServeHTTP(w, r)
-}
-
-func PrefixHandler(prefix string) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if strings.HasPrefix(r.URL.Path, prefix) {
-				r.URL.Path = strings.TrimPrefix(r.URL.Path, prefix)
-				if r.URL.Path == "" {
-					r.URL.Path = "/"
-				}
-			} else {
-				http.NotFound(w, r)
-				return
-			}
-			next.ServeHTTP(w, r)
-		})
-	}
 }

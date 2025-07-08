@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"time"
 
 	"github.com/jcfug8/daylear/server/core/model"
@@ -69,11 +70,13 @@ func newService(params NewServiceParams) *service {
 	if ok {
 		apiHost = fmt.Sprintf("%s:%s", apiHost, apiPort)
 	}
+	apiPath, _ := apiDomainConfig["path"].(string)
+	apiPath = path.Join(apiPath, params.CallbackPath)
 
 	apiU := &url.URL{
 		Scheme: apiScheme,
 		Host:   apiHost,
-		Path:   "/api" + params.CallbackPath,
+		Path:   apiPath,
 	}
 
 	params.OAuth2Config.RedirectURL = apiU.String()
