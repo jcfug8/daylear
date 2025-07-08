@@ -271,9 +271,16 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, authAccount model.AuthAc
 		return "", domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, id)
-	if err != nil {
-		return "", err
+	if authAccount.CircleId != 0 {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, id)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevels(ctx, authAccount, id)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
