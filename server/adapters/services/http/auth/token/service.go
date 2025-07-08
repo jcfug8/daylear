@@ -45,7 +45,7 @@ func NewService(domain domain.Domain, configClient config.Client) *Service {
 
 func (s *Service) Register(m *http.ServeMux) error {
 	m.Handle("/auth/token/", http.HandlerFunc(s.GetToken))
-	m.Handle("/auth/check/token/", headers.NewAuthTokenMiddleware(s.domain)(http.HandlerFunc(s.CheckToken)))
+	m.Handle("/auth/check/token", headers.NewAuthTokenMiddleware(s.domain)(http.HandlerFunc(s.CheckToken)))
 	return nil
 }
 

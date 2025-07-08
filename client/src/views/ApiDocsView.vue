@@ -38,31 +38,31 @@ import SwaggerUI from '../components/common/SwaggerUI.vue';
 const specs = [
   {
     name: 'Circle',
-    url: 'openapi/api/circles/circle/v1alpha1/circle.swagger.json',
+    url: 'api/openapi/api/circles/circle/v1alpha1/circle.swagger.json',
   },
   {
     name: 'Public Circle',
-    url: 'openapi/api/circles/circle/v1alpha1/public_circle.swagger.json',
+    url: 'api/openapi/api/circles/circle/v1alpha1/public_circle.swagger.json',
   },
   {
     name: 'Recipe',
-    url: 'openapi/api/meals/recipe/v1alpha1/recipe.swagger.json',
+    url: 'api/openapi/api/meals/recipe/v1alpha1/recipe.swagger.json',
   },
   {
     name: 'Recipe Access',
-    url: 'openapi/api/meals/recipe/v1alpha1/recipe_access.swagger.json',
+    url: 'api/openapi/api/meals/recipe/v1alpha1/recipe_access.swagger.json',
   },
   {
     name: 'Recipe Recipient List',
-    url: 'openapi/api/meals/recipe/v1alpha1/recipe_recipient_list.swagger.json',
+    url: 'api/openapi/api/meals/recipe/v1alpha1/recipe_recipient_list.swagger.json',
   },
   {
     name: 'Permission Level',
-    url: 'openapi/api/types/permission_level.swagger.json',
+    url: 'api/openapi/api/types/permission_level.swagger.json',
   },
   {
     name: 'Public User',
-    url: 'openapi/api/users/user/v1alpha1/public_user.swagger.json',
+    url: 'api/openapi/api/users/user/v1alpha1/public_user.swagger.json',
   },
 ];
 

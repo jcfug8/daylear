@@ -73,7 +73,7 @@ func newService(params NewServiceParams) *service {
 	apiU := &url.URL{
 		Scheme: apiScheme,
 		Host:   apiHost,
-		Path:   params.CallbackPath,
+		Path:   "/api" + params.CallbackPath,
 	}
 
 	params.OAuth2Config.RedirectURL = apiU.String()
