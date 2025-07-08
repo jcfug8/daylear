@@ -61,7 +61,7 @@
         <v-btn key="edit" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)" icon="mdi-pencil"
         @click="router.push({ name: 'circle-edit', params: { circleId: circle.name } })" color="primary"></v-btn>
 
-        <v-btn key="share" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)" icon="mdi-share-variant"
+        <v-btn key="share" v-if="hasWritePermission(circle.circleAccess?.permissionLevel) && circle.visibility !== 'VISIBILITY_LEVEL_HIDDEN'" icon="mdi-share-variant"
           @click="showShareDialog = true" color="primary"></v-btn>
   
         <v-btn key="remove-access" icon="mdi-link-variant-off" @click="showRemoveAccessDialog = true" color="warning"></v-btn>

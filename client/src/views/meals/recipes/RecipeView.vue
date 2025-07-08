@@ -112,7 +112,7 @@
         <v-btn key="edit" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)" icon="mdi-pencil"
         @click="router.push({ name: 'recipeEdit', params: { recipeId: recipe.name } })" color="primary"></v-btn>
 
-        <v-btn key="share" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)" icon="mdi-share-variant"
+        <v-btn key="share" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel) && recipe.visibility !== 'VISIBILITY_LEVEL_HIDDEN'" icon="mdi-share-variant"
           @click="showShareDialog = true" color="primary"></v-btn>
   
         <v-btn key="remove-access" icon="mdi-link-variant-off" @click="showRemoveAccessDialog = true" color="warning"></v-btn>

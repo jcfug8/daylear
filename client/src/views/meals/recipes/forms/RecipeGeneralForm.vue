@@ -1,53 +1,84 @@
 <template>
   <v-container max-width="600" class="pa-1">
-    <!-- Scrape Recipe by URL (only in create mode) -->
-    <template v-if="isCreate">
-      <v-row>
-        <v-col cols="9">
-          <v-text-field
-            v-model="scrapeUrl"
-            label="Import Recipe from URL"
-            placeholder="Paste recipe URL (e.g. https://...)"
-            density="compact"
-            :disabled="scrapeLoading"
-          />
-        </v-col>
-        <v-col cols="3" class="d-flex align-end">
-          <v-btn color="primary" :loading="scrapeLoading" @click="scrapeRecipe" :disabled="!scrapeUrl || scrapeLoading">
-            Scrape
-          </v-btn>
-        </v-col>
-      </v-row>
-      <v-row v-if="scrapeError">
-        <v-col cols="12">
-          <v-alert type="error" density="compact">{{ scrapeError }}</v-alert>
-        </v-col>
-      </v-row>
-      <!-- OCR Recipe from Image -->
-      <v-row class="mt-2">
-        <v-col cols="9">
-          <v-file-input
-            multiple
-            v-model="ocrImageFiles"
-            label="Import Recipe from Image (OCR)"
-            accept="image/jpeg, image/jpg, image/png, image/gif, image/tiff, image/tif, image/webp, image/bmp, image/svg, image/pdf"
-            density="compact"
-            :disabled="ocrLoading"
-            prepend-icon="mdi-camera"
-          />
-        </v-col>
-        <v-col cols="3" class="d-flex align-end">
-          <v-btn color="primary" :loading="ocrLoading" @click="ocrRecipe" :disabled="!ocrImageFiles || ocrLoading">
-            OCR
-          </v-btn>
-        </v-col>
-      </v-row>
-      <v-row v-if="ocrError">
-        <v-col cols="12">
-          <v-alert type="error" density="compact">{{ ocrError }}</v-alert>
-        </v-col>
-      </v-row>
-    </template>
+    <!-- Centered Import Button -->
+    <v-row v-if="isCreate" justify="center">
+      <v-col cols="auto">
+        <v-btn
+          color="primary"
+          class="mb-4"
+          @click="showScrapeOcrDialog = true"
+          prepend-icon="mdi-import"
+        >
+          Import Recipe
+        </v-btn>
+      </v-col>
+    </v-row>
+    <!-- Scrape/OCR Modal with Tabs -->
+    <v-dialog v-model="showScrapeOcrDialog" max-width="600">
+      <v-card>
+        <v-card-title>Import Recipe</v-card-title>
+        <v-card-text>
+          <v-tabs v-model="importTab">
+            <v-tab value="scrape">URL</v-tab>
+            <v-tab value="ocr">Image</v-tab>
+          </v-tabs>
+          <v-window v-model="importTab">
+            <v-window-item value="scrape">
+              <v-row class="mt-2">
+                <v-col cols="9">
+                  <v-text-field
+                    v-model="scrapeUrl"
+                    label="Import Recipe from URL"
+                    placeholder="Paste recipe URL (e.g. https://...)"
+                    density="compact"
+                    :disabled="scrapeLoading"
+                  />
+                </v-col>
+                <v-col cols="3" class="d-flex align-end">
+                  <v-btn color="primary" :loading="scrapeLoading" @click="scrapeRecipe" :disabled="!scrapeUrl || scrapeLoading">
+                    Import
+                  </v-btn>
+                </v-col>
+              </v-row>
+              <v-row v-if="scrapeError">
+                <v-col cols="12">
+                  <v-alert type="error" density="compact">{{ scrapeError }}</v-alert>
+                </v-col>
+              </v-row>
+            </v-window-item>
+            <v-window-item value="ocr">
+              <v-row class="mt-2">
+                <v-col cols="9">
+                  <v-file-input
+                    multiple
+                    v-model="ocrImageFiles"
+                    label="Import Recipe from Image (OCR)"
+                    accept="image/jpeg, image/jpg, image/png, image/gif, image/tiff, image/tif, image/webp, image/bmp, image/svg, image/pdf"
+                    density="compact"
+                    :disabled="ocrLoading"
+                    prepend-icon="mdi-camera"
+                  />
+                </v-col>
+                <v-col cols="3" class="d-flex align-end">
+                  <v-btn color="primary" :loading="ocrLoading" @click="ocrRecipe" :disabled="!ocrImageFiles || ocrLoading">
+                    Import
+                  </v-btn>
+                </v-col>
+              </v-row>
+              <v-row v-if="ocrError">
+                <v-col cols="12">
+                  <v-alert type="error" density="compact">{{ ocrError }}</v-alert>
+                </v-col>
+              </v-row>
+            </v-window-item>
+          </v-window>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="text" @click="showScrapeOcrDialog = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-row>
       <v-col class="pt-5">
         <div class="text-h4">
@@ -198,7 +229,8 @@ import { recipeService, fileService } from '@/api/api'
 
 const props = defineProps<{
   modelValue: Recipe,
-  isCreate?: boolean
+  isCreate?: boolean,
+  showScrapeOcrDialog?: boolean
 }>()
 
 const isCreate = computed(() => props.isCreate ?? false)
@@ -206,7 +238,11 @@ const isCreate = computed(() => props.isCreate ?? false)
 const emit = defineEmits<{
   (e: 'update:modelValue', value: Recipe): void
   (e: 'imageSelected', file: File | null, url: string | null): void
+  (e: 'close-scrape-ocr-dialog'): void
 }>()
+
+const showScrapeOcrDialog = ref(false)
+const importTab = ref('scrape')
 
 const recipe = computed({
   get: () => props.modelValue,
@@ -229,6 +265,7 @@ async function scrapeRecipe() {
         resp.recipe.visibility = recipe.value.visibility
       }
       emit('update:modelValue', resp.recipe)
+      showScrapeOcrDialog.value = false
     } else {
       scrapeError.value = 'No recipe found at that URL.'
     }
@@ -368,6 +405,7 @@ async function ocrRecipe() {
         resp.recipe.visibility = recipe.value.visibility
       }
       emit('update:modelValue', resp.recipe)
+      showScrapeOcrDialog.value = false
     } else {
       ocrError.value = 'No recipe found in image.'
     }
