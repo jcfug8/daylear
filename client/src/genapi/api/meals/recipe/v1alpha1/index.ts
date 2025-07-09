@@ -120,6 +120,18 @@ export type Recipe_Ingredient = {
   //
   // Behaviors: OPTIONAL
   measurementType: Recipe_MeasurementType | undefined;
+  // measurment conjunction
+  //
+  // Behaviors: OPTIONAL
+  measurementConjunction: Recipe_Ingredient_MeasurementConjunction | undefined;
+  // the second quantity of the ingredient
+  //
+  // Behaviors: OPTIONAL
+  secondMeasurementAmount: number | undefined;
+  // the type of measurement for the second quantity
+  //
+  // Behaviors: OPTIONAL
+  secondMeasurementType: Recipe_MeasurementType | undefined;
 };
 
 // the type of measurement
@@ -142,6 +154,14 @@ export type Recipe_MeasurementType =
   | "MEASUREMENT_TYPE_LITER"
   // the measurement is in cups
   | "MEASUREMENT_TYPE_CUP";
+// the conjunction of the measurement
+export type Recipe_Ingredient_MeasurementConjunction =
+  // the measurement conjunction is unspecified
+  | "MEASUREMENT_CONJUNCTION_UNSPECIFIED"
+  // the measurement conjunction is and
+  | "MEASUREMENT_CONJUNCTION_AND"
+  // the measurement conjunction is to
+  | "MEASUREMENT_CONJUNCTION_TO";
 // the visibility levels
 export type apitypes_VisibilityLevel =
   // the visibility is not specified

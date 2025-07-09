@@ -77,6 +77,54 @@
                     @click="removeIngredient(i, j)"
                   ></v-btn>
                 </v-col>
+                <v-col cols="12" sm="12" class="d-flex align-center">
+                  <v-btn
+                    size="small"
+                    variant="text"
+                    color="primary"
+                    @click="toggleSecondMeasurement(i, j)"
+                  >
+                    {{ showSecondMeasurementMap[i]?.[j] ? 'Remove second measurement' : 'Add another measurement' }}
+                  </v-btn>
+                </v-col>
+                <template v-if="showSecondMeasurementMap[i]?.[j]">
+                  <v-col cols="12" sm="3">
+                    <v-select
+                      density="compact"
+                      variant="outlined"
+                      hide-details
+                      v-model="ingredient.measurementConjunction"
+                      :items="MEASUREMENT_CONJUNCTIONS"
+                      item-title="title"
+                      item-value="value"
+                      label="Conjunction"
+                      class="mt-0"
+                    ></v-select>
+                  </v-col>
+                  <v-col cols="4" sm="2">
+                    <v-text-field
+                      density="compact"
+                      variant="outlined"
+                      hide-details
+                      v-model="ingredient.secondMeasurementAmount"
+                      placeholder="Second Amount"
+                      class="mt-0"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="8" sm="4">
+                    <v-select
+                      density="compact"
+                      variant="outlined"
+                      hide-details
+                      v-model="ingredient.secondMeasurementType"
+                      :items="MEASUREMENT_TYPES"
+                      item-title="title"
+                      item-value="value"
+                      placeholder="Second Type"
+                      class="mt-0"
+                    ></v-select>
+                  </v-col>
+                </template>
                 <v-col cols="6" sm="12" class="d-flex justify-end">
                   <v-checkbox
                     density="compact"
@@ -102,7 +150,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, reactive } from 'vue'
 import type {
   Recipe,
   Recipe_IngredientGroup,
@@ -124,6 +172,28 @@ const recipe = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value),
 })
+
+// Track showSecondMeasurement state for each ingredient by group and index
+const showSecondMeasurementMap = reactive<{ [groupIdx: number]: { [ingredientIdx: number]: boolean } }>({})
+
+function toggleSecondMeasurement(groupIdx: number, ingredientIdx: number) {
+  if (!showSecondMeasurementMap[groupIdx]) showSecondMeasurementMap[groupIdx] = {}
+  const current = !!showSecondMeasurementMap[groupIdx][ingredientIdx]
+  showSecondMeasurementMap[groupIdx][ingredientIdx] = !current
+  if (!showSecondMeasurementMap[groupIdx][ingredientIdx]) {
+    const ingredient = recipe.value.ingredientGroups?.[groupIdx]?.ingredients?.[ingredientIdx]
+    if (ingredient) {
+      ingredient.measurementConjunction = undefined
+      ingredient.secondMeasurementAmount = undefined
+      ingredient.secondMeasurementType = undefined
+    }
+  }
+}
+
+const MEASUREMENT_CONJUNCTIONS = [
+  { title: 'and', value: 'MEASUREMENT_CONJUNCTION_AND' },
+  { title: 'to', value: 'MEASUREMENT_CONJUNCTION_TO' },
+]
 
 function addIngredientGroup() {
   if (!recipe.value) return
@@ -151,7 +221,8 @@ function addIngredient(groupIndex: number) {
     measurementAmount: 0,
     measurementType: 'MEASUREMENT_TYPE_UNSPECIFIED',
     optional: false,
-  } as Recipe_Ingredient)
+    showSecondMeasurement: false,
+  } as any)
 }
 
 function removeIngredient(groupIndex: number, ingredientIndex: number) {

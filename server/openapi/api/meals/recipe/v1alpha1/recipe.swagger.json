@@ -534,6 +534,17 @@
     }
   },
   "definitions": {
+    "IngredientMeasurementConjunction": {
+      "type": "string",
+      "enum": [
+        "MEASUREMENT_CONJUNCTION_UNSPECIFIED",
+        "MEASUREMENT_CONJUNCTION_AND",
+        "MEASUREMENT_CONJUNCTION_TO"
+      ],
+      "default": "MEASUREMENT_CONJUNCTION_UNSPECIFIED",
+      "description": "- MEASUREMENT_CONJUNCTION_UNSPECIFIED: the measurement conjunction is unspecified\n - MEASUREMENT_CONJUNCTION_AND: the measurement conjunction is and\n - MEASUREMENT_CONJUNCTION_TO: the measurement conjunction is to",
+      "title": "the conjunction of the measurement"
+    },
     "RecipeDirection": {
       "type": "object",
       "properties": {
@@ -573,6 +584,19 @@
         "measurementType": {
           "$ref": "#/definitions/RecipeMeasurementType",
           "title": "the type of measurement"
+        },
+        "measurementConjunction": {
+          "$ref": "#/definitions/IngredientMeasurementConjunction",
+          "title": "measurment conjunction"
+        },
+        "secondMeasurementAmount": {
+          "type": "number",
+          "format": "double",
+          "title": "the second quantity of the ingredient"
+        },
+        "secondMeasurementType": {
+          "$ref": "#/definitions/RecipeMeasurementType",
+          "title": "the type of measurement for the second quantity"
         }
       },
       "title": "an ingredient in a recipe",

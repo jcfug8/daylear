@@ -105,6 +105,59 @@ func (Recipe_MeasurementType) EnumDescriptor() ([]byte, []int) {
 	return file_api_meals_recipe_v1alpha1_recipe_proto_rawDescGZIP(), []int{0, 0}
 }
 
+// the conjunction of the measurement
+type Recipe_Ingredient_MeasurementConjunction int32
+
+const (
+	// the measurement conjunction is unspecified
+	Recipe_Ingredient_MEASUREMENT_CONJUNCTION_UNSPECIFIED Recipe_Ingredient_MeasurementConjunction = 0
+	// the measurement conjunction is and
+	Recipe_Ingredient_MEASUREMENT_CONJUNCTION_AND Recipe_Ingredient_MeasurementConjunction = 1
+	// the measurement conjunction is to
+	Recipe_Ingredient_MEASUREMENT_CONJUNCTION_TO Recipe_Ingredient_MeasurementConjunction = 2
+)
+
+// Enum value maps for Recipe_Ingredient_MeasurementConjunction.
+var (
+	Recipe_Ingredient_MeasurementConjunction_name = map[int32]string{
+		0: "MEASUREMENT_CONJUNCTION_UNSPECIFIED",
+		1: "MEASUREMENT_CONJUNCTION_AND",
+		2: "MEASUREMENT_CONJUNCTION_TO",
+	}
+	Recipe_Ingredient_MeasurementConjunction_value = map[string]int32{
+		"MEASUREMENT_CONJUNCTION_UNSPECIFIED": 0,
+		"MEASUREMENT_CONJUNCTION_AND":         1,
+		"MEASUREMENT_CONJUNCTION_TO":          2,
+	}
+)
+
+func (x Recipe_Ingredient_MeasurementConjunction) Enum() *Recipe_Ingredient_MeasurementConjunction {
+	p := new(Recipe_Ingredient_MeasurementConjunction)
+	*p = x
+	return p
+}
+
+func (x Recipe_Ingredient_MeasurementConjunction) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Recipe_Ingredient_MeasurementConjunction) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_meals_recipe_v1alpha1_recipe_proto_enumTypes[1].Descriptor()
+}
+
+func (Recipe_Ingredient_MeasurementConjunction) Type() protoreflect.EnumType {
+	return &file_api_meals_recipe_v1alpha1_recipe_proto_enumTypes[1]
+}
+
+func (x Recipe_Ingredient_MeasurementConjunction) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Recipe_Ingredient_MeasurementConjunction.Descriptor instead.
+func (Recipe_Ingredient_MeasurementConjunction) EnumDescriptor() ([]byte, []int) {
+	return file_api_meals_recipe_v1alpha1_recipe_proto_rawDescGZIP(), []int{0, 2, 0}
+}
+
 // the main recipe object
 type Recipe struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -838,8 +891,14 @@ type Recipe_Ingredient struct {
 	MeasurementAmount float64 `protobuf:"fixed64,4,opt,name=measurement_amount,json=measurementAmount,proto3" json:"measurement_amount,omitempty"`
 	// the type of measurement
 	MeasurementType Recipe_MeasurementType `protobuf:"varint,5,opt,name=measurement_type,json=measurementType,proto3,enum=api.meals.recipe.v1alpha1.Recipe_MeasurementType" json:"measurement_type,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// measurment conjunction
+	MeasurementConjunction Recipe_Ingredient_MeasurementConjunction `protobuf:"varint,8,opt,name=measurement_conjunction,json=measurementConjunction,proto3,enum=api.meals.recipe.v1alpha1.Recipe_Ingredient_MeasurementConjunction" json:"measurement_conjunction,omitempty"`
+	// the second quantity of the ingredient
+	SecondMeasurementAmount float64 `protobuf:"fixed64,6,opt,name=second_measurement_amount,json=secondMeasurementAmount,proto3" json:"second_measurement_amount,omitempty"`
+	// the type of measurement for the second quantity
+	SecondMeasurementType Recipe_MeasurementType `protobuf:"varint,7,opt,name=second_measurement_type,json=secondMeasurementType,proto3,enum=api.meals.recipe.v1alpha1.Recipe_MeasurementType" json:"second_measurement_type,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Recipe_Ingredient) Reset() {
@@ -896,6 +955,27 @@ func (x *Recipe_Ingredient) GetMeasurementAmount() float64 {
 func (x *Recipe_Ingredient) GetMeasurementType() Recipe_MeasurementType {
 	if x != nil {
 		return x.MeasurementType
+	}
+	return Recipe_MEASUREMENT_TYPE_UNSPECIFIED
+}
+
+func (x *Recipe_Ingredient) GetMeasurementConjunction() Recipe_Ingredient_MeasurementConjunction {
+	if x != nil {
+		return x.MeasurementConjunction
+	}
+	return Recipe_Ingredient_MEASUREMENT_CONJUNCTION_UNSPECIFIED
+}
+
+func (x *Recipe_Ingredient) GetSecondMeasurementAmount() float64 {
+	if x != nil {
+		return x.SecondMeasurementAmount
+	}
+	return 0
+}
+
+func (x *Recipe_Ingredient) GetSecondMeasurementType() Recipe_MeasurementType {
+	if x != nil {
+		return x.SecondMeasurementType
 	}
 	return Recipe_MEASUREMENT_TYPE_UNSPECIFIED
 }
@@ -968,7 +1048,7 @@ var File_api_meals_recipe_v1alpha1_recipe_proto protoreflect.FileDescriptor
 
 const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\n" +
-	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xa3\x0f\n" +
+	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xdd\x12\n" +
 	"\x06Recipe\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
@@ -1002,13 +1082,20 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\x05steps\x18\x02 \x03(\tB\x03\xe0A\x02R\x05steps\x1a\x81\x01\n" +
 	"\x0fIngredientGroup\x12\x19\n" +
 	"\x05title\x18\x01 \x01(\tB\x03\xe0A\x01R\x05title\x12S\n" +
-	"\vingredients\x18\x02 \x03(\v2,.api.meals.recipe.v1alpha1.Recipe.IngredientB\x03\xe0A\x02R\vingredients\x1a\xdf\x01\n" +
+	"\vingredients\x18\x02 \x03(\v2,.api.meals.recipe.v1alpha1.Recipe.IngredientB\x03\xe0A\x02R\vingredients\x1a\x99\x05\n" +
 	"\n" +
 	"Ingredient\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12\x1f\n" +
 	"\boptional\x18\x03 \x01(\bB\x03\xe0A\x01R\boptional\x122\n" +
 	"\x12measurement_amount\x18\x04 \x01(\x01B\x03\xe0A\x01R\x11measurementAmount\x12a\n" +
-	"\x10measurement_type\x18\x05 \x01(\x0e21.api.meals.recipe.v1alpha1.Recipe.MeasurementTypeB\x03\xe0A\x01R\x0fmeasurementType\x1a\xa6\x01\n" +
+	"\x10measurement_type\x18\x05 \x01(\x0e21.api.meals.recipe.v1alpha1.Recipe.MeasurementTypeB\x03\xe0A\x01R\x0fmeasurementType\x12\x81\x01\n" +
+	"\x17measurement_conjunction\x18\b \x01(\x0e2C.api.meals.recipe.v1alpha1.Recipe.Ingredient.MeasurementConjunctionB\x03\xe0A\x01R\x16measurementConjunction\x12?\n" +
+	"\x19second_measurement_amount\x18\x06 \x01(\x01B\x03\xe0A\x01R\x17secondMeasurementAmount\x12n\n" +
+	"\x17second_measurement_type\x18\a \x01(\x0e21.api.meals.recipe.v1alpha1.Recipe.MeasurementTypeB\x03\xe0A\x01R\x15secondMeasurementType\"\x82\x01\n" +
+	"\x16MeasurementConjunction\x12'\n" +
+	"#MEASUREMENT_CONJUNCTION_UNSPECIFIED\x10\x00\x12\x1f\n" +
+	"\x1bMEASUREMENT_CONJUNCTION_AND\x10\x01\x12\x1e\n" +
+	"\x1aMEASUREMENT_CONJUNCTION_TO\x10\x02\x1a\xa6\x01\n" +
 	"\fRecipeAccess\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x03R\x04name\x12J\n" +
 	"\x10permission_level\x18\x02 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x03R\x0fpermissionLevel\x121\n" +
@@ -1094,66 +1181,69 @@ func file_api_meals_recipe_v1alpha1_recipe_proto_rawDescGZIP() []byte {
 	return file_api_meals_recipe_v1alpha1_recipe_proto_rawDescData
 }
 
-var file_api_meals_recipe_v1alpha1_recipe_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_api_meals_recipe_v1alpha1_recipe_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_api_meals_recipe_v1alpha1_recipe_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_api_meals_recipe_v1alpha1_recipe_proto_goTypes = []any{
-	(Recipe_MeasurementType)(0),    // 0: api.meals.recipe.v1alpha1.Recipe.MeasurementType
-	(*Recipe)(nil),                 // 1: api.meals.recipe.v1alpha1.Recipe
-	(*CreateRecipeRequest)(nil),    // 2: api.meals.recipe.v1alpha1.CreateRecipeRequest
-	(*ListRecipesRequest)(nil),     // 3: api.meals.recipe.v1alpha1.ListRecipesRequest
-	(*ListRecipesResponse)(nil),    // 4: api.meals.recipe.v1alpha1.ListRecipesResponse
-	(*UpdateRecipeRequest)(nil),    // 5: api.meals.recipe.v1alpha1.UpdateRecipeRequest
-	(*DeleteRecipeRequest)(nil),    // 6: api.meals.recipe.v1alpha1.DeleteRecipeRequest
-	(*GetRecipeRequest)(nil),       // 7: api.meals.recipe.v1alpha1.GetRecipeRequest
-	(*ScrapeRecipeRequest)(nil),    // 8: api.meals.recipe.v1alpha1.ScrapeRecipeRequest
-	(*ScrapeRecipeResponse)(nil),   // 9: api.meals.recipe.v1alpha1.ScrapeRecipeResponse
-	(*Recipe_Direction)(nil),       // 10: api.meals.recipe.v1alpha1.Recipe.Direction
-	(*Recipe_IngredientGroup)(nil), // 11: api.meals.recipe.v1alpha1.Recipe.IngredientGroup
-	(*Recipe_Ingredient)(nil),      // 12: api.meals.recipe.v1alpha1.Recipe.Ingredient
-	(*Recipe_RecipeAccess)(nil),    // 13: api.meals.recipe.v1alpha1.Recipe.RecipeAccess
-	(types.VisibilityLevel)(0),     // 14: api.types.VisibilityLevel
-	(*durationpb.Duration)(nil),    // 15: google.protobuf.Duration
-	(*timestamppb.Timestamp)(nil),  // 16: google.protobuf.Timestamp
-	(*fieldmaskpb.FieldMask)(nil),  // 17: google.protobuf.FieldMask
-	(types.PermissionLevel)(0),     // 18: api.types.PermissionLevel
-	(types.AccessState)(0),         // 19: api.types.AccessState
+	(Recipe_MeasurementType)(0),                   // 0: api.meals.recipe.v1alpha1.Recipe.MeasurementType
+	(Recipe_Ingredient_MeasurementConjunction)(0), // 1: api.meals.recipe.v1alpha1.Recipe.Ingredient.MeasurementConjunction
+	(*Recipe)(nil),                                // 2: api.meals.recipe.v1alpha1.Recipe
+	(*CreateRecipeRequest)(nil),                   // 3: api.meals.recipe.v1alpha1.CreateRecipeRequest
+	(*ListRecipesRequest)(nil),                    // 4: api.meals.recipe.v1alpha1.ListRecipesRequest
+	(*ListRecipesResponse)(nil),                   // 5: api.meals.recipe.v1alpha1.ListRecipesResponse
+	(*UpdateRecipeRequest)(nil),                   // 6: api.meals.recipe.v1alpha1.UpdateRecipeRequest
+	(*DeleteRecipeRequest)(nil),                   // 7: api.meals.recipe.v1alpha1.DeleteRecipeRequest
+	(*GetRecipeRequest)(nil),                      // 8: api.meals.recipe.v1alpha1.GetRecipeRequest
+	(*ScrapeRecipeRequest)(nil),                   // 9: api.meals.recipe.v1alpha1.ScrapeRecipeRequest
+	(*ScrapeRecipeResponse)(nil),                  // 10: api.meals.recipe.v1alpha1.ScrapeRecipeResponse
+	(*Recipe_Direction)(nil),                      // 11: api.meals.recipe.v1alpha1.Recipe.Direction
+	(*Recipe_IngredientGroup)(nil),                // 12: api.meals.recipe.v1alpha1.Recipe.IngredientGroup
+	(*Recipe_Ingredient)(nil),                     // 13: api.meals.recipe.v1alpha1.Recipe.Ingredient
+	(*Recipe_RecipeAccess)(nil),                   // 14: api.meals.recipe.v1alpha1.Recipe.RecipeAccess
+	(types.VisibilityLevel)(0),                    // 15: api.types.VisibilityLevel
+	(*durationpb.Duration)(nil),                   // 16: google.protobuf.Duration
+	(*timestamppb.Timestamp)(nil),                 // 17: google.protobuf.Timestamp
+	(*fieldmaskpb.FieldMask)(nil),                 // 18: google.protobuf.FieldMask
+	(types.PermissionLevel)(0),                    // 19: api.types.PermissionLevel
+	(types.AccessState)(0),                        // 20: api.types.AccessState
 }
 var file_api_meals_recipe_v1alpha1_recipe_proto_depIdxs = []int32{
-	10, // 0: api.meals.recipe.v1alpha1.Recipe.directions:type_name -> api.meals.recipe.v1alpha1.Recipe.Direction
-	11, // 1: api.meals.recipe.v1alpha1.Recipe.ingredient_groups:type_name -> api.meals.recipe.v1alpha1.Recipe.IngredientGroup
-	14, // 2: api.meals.recipe.v1alpha1.Recipe.visibility:type_name -> api.types.VisibilityLevel
-	13, // 3: api.meals.recipe.v1alpha1.Recipe.recipe_access:type_name -> api.meals.recipe.v1alpha1.Recipe.RecipeAccess
-	15, // 4: api.meals.recipe.v1alpha1.Recipe.cook_duration:type_name -> google.protobuf.Duration
-	16, // 5: api.meals.recipe.v1alpha1.Recipe.create_time:type_name -> google.protobuf.Timestamp
-	16, // 6: api.meals.recipe.v1alpha1.Recipe.update_time:type_name -> google.protobuf.Timestamp
-	15, // 7: api.meals.recipe.v1alpha1.Recipe.prep_duration:type_name -> google.protobuf.Duration
-	15, // 8: api.meals.recipe.v1alpha1.Recipe.total_duration:type_name -> google.protobuf.Duration
-	1,  // 9: api.meals.recipe.v1alpha1.CreateRecipeRequest.recipe:type_name -> api.meals.recipe.v1alpha1.Recipe
-	1,  // 10: api.meals.recipe.v1alpha1.ListRecipesResponse.recipes:type_name -> api.meals.recipe.v1alpha1.Recipe
-	1,  // 11: api.meals.recipe.v1alpha1.UpdateRecipeRequest.recipe:type_name -> api.meals.recipe.v1alpha1.Recipe
-	17, // 12: api.meals.recipe.v1alpha1.UpdateRecipeRequest.update_mask:type_name -> google.protobuf.FieldMask
-	1,  // 13: api.meals.recipe.v1alpha1.ScrapeRecipeResponse.recipe:type_name -> api.meals.recipe.v1alpha1.Recipe
-	12, // 14: api.meals.recipe.v1alpha1.Recipe.IngredientGroup.ingredients:type_name -> api.meals.recipe.v1alpha1.Recipe.Ingredient
+	11, // 0: api.meals.recipe.v1alpha1.Recipe.directions:type_name -> api.meals.recipe.v1alpha1.Recipe.Direction
+	12, // 1: api.meals.recipe.v1alpha1.Recipe.ingredient_groups:type_name -> api.meals.recipe.v1alpha1.Recipe.IngredientGroup
+	15, // 2: api.meals.recipe.v1alpha1.Recipe.visibility:type_name -> api.types.VisibilityLevel
+	14, // 3: api.meals.recipe.v1alpha1.Recipe.recipe_access:type_name -> api.meals.recipe.v1alpha1.Recipe.RecipeAccess
+	16, // 4: api.meals.recipe.v1alpha1.Recipe.cook_duration:type_name -> google.protobuf.Duration
+	17, // 5: api.meals.recipe.v1alpha1.Recipe.create_time:type_name -> google.protobuf.Timestamp
+	17, // 6: api.meals.recipe.v1alpha1.Recipe.update_time:type_name -> google.protobuf.Timestamp
+	16, // 7: api.meals.recipe.v1alpha1.Recipe.prep_duration:type_name -> google.protobuf.Duration
+	16, // 8: api.meals.recipe.v1alpha1.Recipe.total_duration:type_name -> google.protobuf.Duration
+	2,  // 9: api.meals.recipe.v1alpha1.CreateRecipeRequest.recipe:type_name -> api.meals.recipe.v1alpha1.Recipe
+	2,  // 10: api.meals.recipe.v1alpha1.ListRecipesResponse.recipes:type_name -> api.meals.recipe.v1alpha1.Recipe
+	2,  // 11: api.meals.recipe.v1alpha1.UpdateRecipeRequest.recipe:type_name -> api.meals.recipe.v1alpha1.Recipe
+	18, // 12: api.meals.recipe.v1alpha1.UpdateRecipeRequest.update_mask:type_name -> google.protobuf.FieldMask
+	2,  // 13: api.meals.recipe.v1alpha1.ScrapeRecipeResponse.recipe:type_name -> api.meals.recipe.v1alpha1.Recipe
+	13, // 14: api.meals.recipe.v1alpha1.Recipe.IngredientGroup.ingredients:type_name -> api.meals.recipe.v1alpha1.Recipe.Ingredient
 	0,  // 15: api.meals.recipe.v1alpha1.Recipe.Ingredient.measurement_type:type_name -> api.meals.recipe.v1alpha1.Recipe.MeasurementType
-	18, // 16: api.meals.recipe.v1alpha1.Recipe.RecipeAccess.permission_level:type_name -> api.types.PermissionLevel
-	19, // 17: api.meals.recipe.v1alpha1.Recipe.RecipeAccess.state:type_name -> api.types.AccessState
-	2,  // 18: api.meals.recipe.v1alpha1.RecipeService.CreateRecipe:input_type -> api.meals.recipe.v1alpha1.CreateRecipeRequest
-	3,  // 19: api.meals.recipe.v1alpha1.RecipeService.ListRecipes:input_type -> api.meals.recipe.v1alpha1.ListRecipesRequest
-	5,  // 20: api.meals.recipe.v1alpha1.RecipeService.UpdateRecipe:input_type -> api.meals.recipe.v1alpha1.UpdateRecipeRequest
-	6,  // 21: api.meals.recipe.v1alpha1.RecipeService.DeleteRecipe:input_type -> api.meals.recipe.v1alpha1.DeleteRecipeRequest
-	7,  // 22: api.meals.recipe.v1alpha1.RecipeService.GetRecipe:input_type -> api.meals.recipe.v1alpha1.GetRecipeRequest
-	8,  // 23: api.meals.recipe.v1alpha1.RecipeService.ScrapeRecipe:input_type -> api.meals.recipe.v1alpha1.ScrapeRecipeRequest
-	1,  // 24: api.meals.recipe.v1alpha1.RecipeService.CreateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	4,  // 25: api.meals.recipe.v1alpha1.RecipeService.ListRecipes:output_type -> api.meals.recipe.v1alpha1.ListRecipesResponse
-	1,  // 26: api.meals.recipe.v1alpha1.RecipeService.UpdateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	1,  // 27: api.meals.recipe.v1alpha1.RecipeService.DeleteRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	1,  // 28: api.meals.recipe.v1alpha1.RecipeService.GetRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	9,  // 29: api.meals.recipe.v1alpha1.RecipeService.ScrapeRecipe:output_type -> api.meals.recipe.v1alpha1.ScrapeRecipeResponse
-	24, // [24:30] is the sub-list for method output_type
-	18, // [18:24] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	1,  // 16: api.meals.recipe.v1alpha1.Recipe.Ingredient.measurement_conjunction:type_name -> api.meals.recipe.v1alpha1.Recipe.Ingredient.MeasurementConjunction
+	0,  // 17: api.meals.recipe.v1alpha1.Recipe.Ingredient.second_measurement_type:type_name -> api.meals.recipe.v1alpha1.Recipe.MeasurementType
+	19, // 18: api.meals.recipe.v1alpha1.Recipe.RecipeAccess.permission_level:type_name -> api.types.PermissionLevel
+	20, // 19: api.meals.recipe.v1alpha1.Recipe.RecipeAccess.state:type_name -> api.types.AccessState
+	3,  // 20: api.meals.recipe.v1alpha1.RecipeService.CreateRecipe:input_type -> api.meals.recipe.v1alpha1.CreateRecipeRequest
+	4,  // 21: api.meals.recipe.v1alpha1.RecipeService.ListRecipes:input_type -> api.meals.recipe.v1alpha1.ListRecipesRequest
+	6,  // 22: api.meals.recipe.v1alpha1.RecipeService.UpdateRecipe:input_type -> api.meals.recipe.v1alpha1.UpdateRecipeRequest
+	7,  // 23: api.meals.recipe.v1alpha1.RecipeService.DeleteRecipe:input_type -> api.meals.recipe.v1alpha1.DeleteRecipeRequest
+	8,  // 24: api.meals.recipe.v1alpha1.RecipeService.GetRecipe:input_type -> api.meals.recipe.v1alpha1.GetRecipeRequest
+	9,  // 25: api.meals.recipe.v1alpha1.RecipeService.ScrapeRecipe:input_type -> api.meals.recipe.v1alpha1.ScrapeRecipeRequest
+	2,  // 26: api.meals.recipe.v1alpha1.RecipeService.CreateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	5,  // 27: api.meals.recipe.v1alpha1.RecipeService.ListRecipes:output_type -> api.meals.recipe.v1alpha1.ListRecipesResponse
+	2,  // 28: api.meals.recipe.v1alpha1.RecipeService.UpdateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	2,  // 29: api.meals.recipe.v1alpha1.RecipeService.DeleteRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	2,  // 30: api.meals.recipe.v1alpha1.RecipeService.GetRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	10, // 31: api.meals.recipe.v1alpha1.RecipeService.ScrapeRecipe:output_type -> api.meals.recipe.v1alpha1.ScrapeRecipeResponse
+	26, // [26:32] is the sub-list for method output_type
+	20, // [20:26] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_api_meals_recipe_v1alpha1_recipe_proto_init() }
@@ -1166,7 +1256,7 @@ func file_api_meals_recipe_v1alpha1_recipe_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc), len(file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,

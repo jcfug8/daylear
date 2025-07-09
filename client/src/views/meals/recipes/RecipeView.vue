@@ -119,8 +119,15 @@
               <v-list>
                 <v-list-item slim prepend-icon="mdi-circle-small" v-for="(ingredient, j) in ingredientGroup.ingredients"
                   :key="j">
+                  <strong>
                   <span v-if="ingredient.measurementAmount">{{ isFranctional(ingredient.measurementType) ? toFraction(ingredient.measurementAmount ?? 0) : ingredient.measurementAmount }}</span>
                   {{ measurementTypeLabel(ingredient.measurementType, ingredient.measurementAmount) }}
+                  <template v-if="ingredient.measurementConjunction && ingredient.secondMeasurementAmount && ingredient.secondMeasurementType">
+                    {{ renderConjunction(ingredient.measurementConjunction) }}
+                    <span v-if="ingredient.secondMeasurementAmount">{{ isFranctional(ingredient.secondMeasurementType) ? toFraction(ingredient.secondMeasurementAmount ?? 0) : ingredient.secondMeasurementAmount }}</span>
+                    {{ measurementTypeLabel(ingredient.secondMeasurementType, ingredient.secondMeasurementAmount) }}
+                  </template>
+                  </strong>
                   {{ ingredient.title }} <span v-if="ingredient.optional">(optional)</span>
                 </v-list-item>
               </v-list>
@@ -916,6 +923,17 @@ function formatDate(date: unknown): string {
     return new Date(parsed).toLocaleString();
   }
   return '';
+}
+
+function renderConjunction(conjunction: string | undefined): string {
+  switch (conjunction) {
+    case 'MEASUREMENT_CONJUNCTION_AND':
+      return '+';
+    case 'MEASUREMENT_CONJUNCTION_TO':
+      return '-';
+    default:
+      return '';
+  }
 }
 </script>
 

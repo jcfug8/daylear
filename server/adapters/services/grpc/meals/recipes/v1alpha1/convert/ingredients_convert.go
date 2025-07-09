@@ -12,16 +12,22 @@ func ProtoToRecipeIngredients(proto *pb.Recipe_Ingredient) model.RecipeIngredien
 	ingredient.Optional = proto.Optional
 	ingredient.MeasurementAmount = proto.MeasurementAmount
 	ingredient.MeasurementType = proto.MeasurementType
+	ingredient.MeasurementConjunction = proto.MeasurementConjunction
+	ingredient.SecondMeasurementAmount = proto.SecondMeasurementAmount
+	ingredient.SecondMeasurementType = proto.SecondMeasurementType
 	return ingredient
 }
 
 // RecipeIngredientsToProto converts a domain Ingredients to a proto Ingredients.
 func RecipeIngredientsToProto(ingredient model.RecipeIngredient) *pb.Recipe_Ingredient {
 	return &pb.Recipe_Ingredient{
-		Title:             ingredient.Title,
-		Optional:          ingredient.Optional,
-		MeasurementAmount: ingredient.MeasurementAmount,
-		MeasurementType:   ingredient.MeasurementType,
+		Title:                   ingredient.Title,
+		Optional:                ingredient.Optional,
+		MeasurementAmount:       ingredient.MeasurementAmount,
+		MeasurementType:         ingredient.MeasurementType,
+		MeasurementConjunction:  ingredient.MeasurementConjunction,
+		SecondMeasurementAmount: ingredient.SecondMeasurementAmount,
+		SecondMeasurementType:   ingredient.SecondMeasurementType,
 	}
 }
 

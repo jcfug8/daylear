@@ -48,10 +48,13 @@ type IngredientGroup struct {
 }
 
 type RecipeIngredient struct {
-	Optional          bool
-	MeasurementAmount float64
-	MeasurementType   pb.Recipe_MeasurementType
-	Title             string
+	Optional                bool
+	MeasurementAmount       float64
+	MeasurementType         pb.Recipe_MeasurementType
+	MeasurementConjunction  pb.Recipe_Ingredient_MeasurementConjunction
+	SecondMeasurementAmount float64
+	SecondMeasurementType   pb.Recipe_MeasurementType
+	Title                   string
 }
 
 // RecipeId defines the name for a recipe.

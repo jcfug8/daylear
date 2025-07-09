@@ -248,6 +248,22 @@ message Recipe {
     double measurement_amount = 4 [(google.api.field_behavior) = OPTIONAL];
     // the type of measurement
     MeasurementType measurement_type = 5 [(google.api.field_behavior) = OPTIONAL];
+    // measurment conjunction
+    MeasurementConjunction measurement_conjunction = 8 [(google.api.field_behavior) = OPTIONAL];
+    // the second quantity of the ingredient
+    double second_measurement_amount = 6 [(google.api.field_behavior) = OPTIONAL];
+    // the type of measurement for the second quantity
+    MeasurementType second_measurement_type = 7 [(google.api.field_behavior) = OPTIONAL];
+
+    // the conjunction of the measurement
+    enum MeasurementConjunction {
+      // the measurement conjunction is unspecified
+      MEASUREMENT_CONJUNCTION_UNSPECIFIED = 0;
+      // the measurement conjunction is and
+      MEASUREMENT_CONJUNCTION_AND = 1;
+      // the measurement conjunction is to
+      MEASUREMENT_CONJUNCTION_TO = 2;
+    }
   }
 
   // the type of measurement
