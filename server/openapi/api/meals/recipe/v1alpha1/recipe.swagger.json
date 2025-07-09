@@ -314,6 +314,56 @@
                   "$ref": "#/definitions/RecipeRecipeAccess",
                   "title": "the access details for the current user/circle",
                   "readOnly": true
+                },
+                "citation": {
+                  "type": "string",
+                  "title": "citation or reference to another creative work"
+                },
+                "cookDuration": {
+                  "type": "string",
+                  "title": "the duration it takes to cook the recipe"
+                },
+                "cookingMethod": {
+                  "type": "string",
+                  "description": "the method of cooking, such as Frying, Steaming, etc."
+                },
+                "categories": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "the categories of the recipe (e.g., appetizer, entree, etc.)"
+                },
+                "yieldAmount": {
+                  "type": "string",
+                  "title": "the quantity produced by the recipe (e.g., number of servings)"
+                },
+                "cuisines": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "the cuisines of the recipe (e.g., French, Ethiopian, etc.)"
+                },
+                "createTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "the time the recipe was created (UTC)",
+                  "readOnly": true
+                },
+                "updateTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "the time the recipe was last updated (UTC)",
+                  "readOnly": true
+                },
+                "prepDuration": {
+                  "type": "string",
+                  "title": "the duration it takes to prepare the recipe"
+                },
+                "totalDuration": {
+                  "type": "string",
+                  "title": "the total duration for the recipe"
                 }
               },
               "title": "the recipe to update",
@@ -409,6 +459,56 @@
                   "$ref": "#/definitions/RecipeRecipeAccess",
                   "title": "the access details for the current user/circle",
                   "readOnly": true
+                },
+                "citation": {
+                  "type": "string",
+                  "title": "citation or reference to another creative work"
+                },
+                "cookDuration": {
+                  "type": "string",
+                  "title": "the duration it takes to cook the recipe"
+                },
+                "cookingMethod": {
+                  "type": "string",
+                  "description": "the method of cooking, such as Frying, Steaming, etc."
+                },
+                "categories": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "the categories of the recipe (e.g., appetizer, entree, etc.)"
+                },
+                "yieldAmount": {
+                  "type": "string",
+                  "title": "the quantity produced by the recipe (e.g., number of servings)"
+                },
+                "cuisines": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "the cuisines of the recipe (e.g., French, Ethiopian, etc.)"
+                },
+                "createTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "the time the recipe was created (UTC)",
+                  "readOnly": true
+                },
+                "updateTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "the time the recipe was last updated (UTC)",
+                  "readOnly": true
+                },
+                "prepDuration": {
+                  "type": "string",
+                  "title": "the duration it takes to prepare the recipe"
+                },
+                "totalDuration": {
+                  "type": "string",
+                  "title": "the total duration for the recipe"
                 }
               },
               "title": "the recipe to update",
@@ -665,6 +765,56 @@
           "$ref": "#/definitions/RecipeRecipeAccess",
           "title": "the access details for the current user/circle",
           "readOnly": true
+        },
+        "citation": {
+          "type": "string",
+          "title": "citation or reference to another creative work"
+        },
+        "cookDuration": {
+          "type": "string",
+          "title": "the duration it takes to cook the recipe"
+        },
+        "cookingMethod": {
+          "type": "string",
+          "description": "the method of cooking, such as Frying, Steaming, etc."
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "the categories of the recipe (e.g., appetizer, entree, etc.)"
+        },
+        "yieldAmount": {
+          "type": "string",
+          "title": "the quantity produced by the recipe (e.g., number of servings)"
+        },
+        "cuisines": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "the cuisines of the recipe (e.g., French, Ethiopian, etc.)"
+        },
+        "createTime": {
+          "type": "string",
+          "format": "date-time",
+          "title": "the time the recipe was created (UTC)",
+          "readOnly": true
+        },
+        "updateTime": {
+          "type": "string",
+          "format": "date-time",
+          "title": "the time the recipe was last updated (UTC)",
+          "readOnly": true
+        },
+        "prepDuration": {
+          "type": "string",
+          "title": "the duration it takes to prepare the recipe"
+        },
+        "totalDuration": {
+          "type": "string",
+          "title": "the total duration for the recipe"
         }
       },
       "title": "the main recipe object",

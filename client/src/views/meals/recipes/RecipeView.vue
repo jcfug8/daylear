@@ -49,6 +49,47 @@
             <v-spacer></v-spacer>
           </v-row>
 
+          <!-- New Recipe Fields -->
+          <v-row>
+            <v-col cols="12">
+              <div v-if="recipe.citation">
+                <span v-if="isUrl(recipe.citation)">
+                  <a :href="recipe.citation" target="_blank" rel="noopener">{{ recipe.citation }}</a>
+                </span>
+                <span v-else>
+                  {{ recipe.citation }}
+                </span>
+              </div>
+              <div v-if="recipe.prepDuration">
+                <strong>Prep Time:</strong> {{ parseDuration(recipe.prepDuration ? recipe.prepDuration : "0") }}
+              </div>
+              <div v-if="recipe.cookDuration">
+                <strong>Cook Time:</strong> {{ parseDuration(recipe.cookDuration ? recipe.cookDuration : "0") }}
+              </div>
+              <div v-if="recipe.totalDuration">
+                <strong>Total Time:</strong> {{ parseDuration(recipe.totalDuration ? recipe.totalDuration : "0") }}
+              </div>
+              <div v-if="recipe.cookingMethod">
+                <strong>Cooking Method:</strong> {{ recipe.cookingMethod }}
+              </div>
+              <div v-if="recipe.categories && recipe.categories.length">
+                <strong>Categories:</strong> {{ recipe.categories.join(', ') }}
+              </div>
+              <div v-if="recipe.yieldAmount">
+                <strong>Yield:</strong> {{ recipe.yieldAmount }}
+              </div>
+              <div v-if="recipe.cuisines && recipe.cuisines.length">
+                <strong>Cuisines:</strong> {{ recipe.cuisines.join(', ') }}
+              </div>
+              <!-- <div v-if="createTimeString">
+                <strong>Created:</strong> {{ formatDate(createTimeString) }}
+              </div>
+              <div v-if="updateTimeString">
+                <strong>Updated:</strong> {{ formatDate(updateTimeString) }}
+              </div> -->
+            </v-col>
+          </v-row>
+
           <!-- Visibility Section -->
           <v-row>
             <v-col cols="12">
@@ -378,6 +419,9 @@ const selectedVisibilityIcon = computed(() => {
 const selectedVisibilityColor = computed(() => {
   return selectedVisibility.value?.color || 'primary'
 })
+
+const createTimeString = computed(() => recipe.value?.createTime ? String(recipe.value.createTime) : '')
+const updateTimeString = computed(() => recipe.value?.updateTime ? String(recipe.value.updateTime) : '')
 
 onMounted(async () => {
   // First check URL hash
@@ -847,6 +891,31 @@ function measurementTypeLabel(type: Recipe_MeasurementType | undefined, amount: 
   if (!type || type === 'MEASUREMENT_TYPE_UNSPECIFIED') return ''
   if ((amount ?? 0) <= 1) return singular[type] || ''
   return plural[type] || ''
+}
+
+function isUrl(str: string): boolean {
+  return /^https?:\/\//.test(str);
+}
+function formatDuration(duration: number): string {
+  if (!duration) return '';
+  return String(duration) + 's';
+}
+function parseDuration(duration: string): number {
+  if (!duration) return 0;
+
+  if (duration.endsWith('s')) {
+    return parseInt(duration.slice(0, -1))/60;
+  }
+  return 0;
+}
+function formatDate(date: unknown): string {
+  if (!date) return '';
+  const str = String(date);
+  const parsed = Date.parse(str);
+  if (!isNaN(parsed)) {
+    return new Date(parsed).toLocaleString();
+  }
+  return '';
 }
 </script>
 

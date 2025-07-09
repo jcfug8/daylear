@@ -36,6 +36,46 @@ export type Recipe = {
   //
   // Behaviors: OUTPUT_ONLY
   recipeAccess: Recipe_RecipeAccess | undefined;
+  // citation or reference to another creative work
+  //
+  // Behaviors: OPTIONAL
+  citation: string | undefined;
+  // the duration it takes to cook the recipe
+  //
+  // Behaviors: OPTIONAL
+  cookDuration: wellKnownDuration | undefined;
+  // the method of cooking, such as Frying, Steaming, etc.
+  //
+  // Behaviors: OPTIONAL
+  cookingMethod: string | undefined;
+  // the categories of the recipe (e.g., appetizer, entree, etc.)
+  //
+  // Behaviors: OPTIONAL
+  categories: string[] | undefined;
+  // the quantity produced by the recipe (e.g., number of servings)
+  //
+  // Behaviors: OPTIONAL
+  yieldAmount: string | undefined;
+  // the cuisines of the recipe (e.g., French, Ethiopian, etc.)
+  //
+  // Behaviors: OPTIONAL
+  cuisines: string[] | undefined;
+  // the time the recipe was created (UTC)
+  //
+  // Behaviors: OUTPUT_ONLY
+  createTime: wellKnownTimestamp | undefined;
+  // the time the recipe was last updated (UTC)
+  //
+  // Behaviors: OUTPUT_ONLY
+  updateTime: wellKnownTimestamp | undefined;
+  // the duration it takes to prepare the recipe
+  //
+  // Behaviors: OPTIONAL
+  prepDuration: wellKnownDuration | undefined;
+  // the total duration for the recipe
+  //
+  // Behaviors: OPTIONAL
+  totalDuration: wellKnownDuration | undefined;
 };
 
 // the directions to make the recipe
@@ -150,6 +190,17 @@ export type apitypes_AccessState =
   | "ACCESS_STATE_PENDING"
   // The access is accepted and can be deleted.
   | "ACCESS_STATE_ACCEPTED";
+// Generated output always contains 0, 3, 6, or 9 fractional digits,
+// depending on required precision, followed by the suffix "s".
+// Accepted are any fractional digits (also none) as long as they fit
+// into nano-seconds precision and the suffix "s" is required.
+type wellKnownDuration = string;
+
+// Encoded using RFC 3339, where generated output will always be Z-normalized
+// and uses 0, 3, 6 or 9 fractional digits.
+// Offsets other than "Z" are also accepted.
+type wellKnownTimestamp = string;
+
 // the request to create a recipe
 export type CreateRecipeRequest = {
   // the recipe to create

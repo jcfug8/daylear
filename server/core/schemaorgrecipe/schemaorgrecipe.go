@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
@@ -77,6 +78,51 @@ func ToModelRecipe(schemaRecipe SchemaOrgRecipe) model.Recipe {
 	coreRecipe.Title = AsString(schemaRecipe.Name)
 	coreRecipe.Description = AsString(schemaRecipe.Description)
 	coreRecipe.ImageURI = AsString(schemaRecipe.Image)
+
+	// New fields
+	// Citation: try mainEntityOfPage, url, isBasedOn
+	coreRecipe.Citation = AsString(schemaRecipe.MainEntityOfPage)
+	if coreRecipe.Citation == "" {
+		coreRecipe.Citation = AsString(schemaRecipe.Context) // fallback, or add more sources as needed
+	}
+	// CookDuration: parse ISO 8601 duration from cookTime
+	if cookTimeStr := AsString(schemaRecipe.CookTime); cookTimeStr != "" {
+		if d, err := parseISODuration(cookTimeStr); err == nil {
+			coreRecipe.CookDuration = d
+		}
+	}
+	// PrepDuration: parse ISO 8601 duration from prepTime
+	if prepTimeStr := AsString(schemaRecipe.PrepTime); prepTimeStr != "" {
+		if d, err := parseISODuration(prepTimeStr); err == nil {
+			coreRecipe.PrepDuration = d
+		}
+	}
+	// TotalDuration: parse ISO 8601 duration from totalTime
+	if totalTimeStr := AsString(schemaRecipe.TotalTime); totalTimeStr != "" {
+		if d, err := parseISODuration(totalTimeStr); err == nil {
+			coreRecipe.TotalDuration = d
+		}
+	}
+	// CookingMethod
+	coreRecipe.CookingMethod = AsString(schemaRecipe.CookingMethod)
+	// Categories
+	coreRecipe.Categories = AsStringSlice(schemaRecipe.RecipeCategory)
+	// YieldAmount
+	coreRecipe.YieldAmount = AsString(schemaRecipe.RecipeYield)
+	// Cuisines
+	coreRecipe.Cuisines = AsStringSlice(schemaRecipe.RecipeCuisine)
+	// CreateTime: parse datePublished
+	if dateStr := AsString(schemaRecipe.DatePublished); dateStr != "" {
+		if t, err := parseISOTime(dateStr); err == nil {
+			coreRecipe.CreateTime = t
+		}
+	}
+	// UpdateTime: parse dateModified if present
+	if dateStr := AsString(schemaRecipe.DatePublished); dateStr != "" {
+		if t, err := parseISOTime(dateStr); err == nil {
+			coreRecipe.UpdateTime = t
+		}
+	}
 
 	// Ingredients
 	var ingredientGroup model.IngredientGroup
@@ -258,4 +304,45 @@ func ReplaceUnicodeFractions(s string) string {
 		}
 	}
 	return out
+}
+
+// Helper to parse ISO 8601 duration (e.g., PT30M) to time.Duration
+func parseISODuration(s string) (time.Duration, error) {
+	// This is a simple implementation for PT#H#M#S
+	// For more complex cases, use a library or extend as needed
+	var d time.Duration
+	var numStr string
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch c {
+		case 'P', 'T':
+			// skip
+		case 'H', 'M', 'S':
+			if numStr != "" {
+				num, err := strconv.Atoi(numStr)
+				if err != nil {
+					return 0, err
+				}
+				switch c {
+				case 'H':
+					d += time.Duration(num) * time.Hour
+				case 'M':
+					d += time.Duration(num) * time.Minute
+				case 'S':
+					d += time.Duration(num) * time.Second
+				}
+				numStr = ""
+			}
+		default:
+			if c >= '0' && c <= '9' {
+				numStr += string(c)
+			}
+		}
+	}
+	return d, nil
+}
+
+// Helper to parse ISO 8601 date/time (e.g., 2023-01-01T12:00:00Z)
+func parseISOTime(s string) (time.Time, error) {
+	return time.Parse(time.RFC3339, s)
 }

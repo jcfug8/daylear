@@ -2,6 +2,7 @@ package convert
 
 import (
 	"encoding/json"
+	"time"
 
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
@@ -12,11 +13,19 @@ import (
 func RecipeFromCoreModel(m cmodel.Recipe) (gmodel.Recipe, error) {
 	var err error
 	recipe := gmodel.Recipe{
-		RecipeId:        m.Id.RecipeId,
-		Title:           m.Title,
-		Description:     m.Description,
-		ImageURI:        m.ImageURI,
-		VisibilityLevel: m.Visibility,
+		RecipeId:             m.Id.RecipeId,
+		Title:                m.Title,
+		Description:          m.Description,
+		ImageURI:             m.ImageURI,
+		VisibilityLevel:      m.Visibility,
+		Citation:             m.Citation,
+		PrepDurationSeconds:  int64(m.PrepDuration.Seconds()),
+		CookDurationSeconds:  int64(m.CookDuration.Seconds()),
+		TotalDurationSeconds: int64(m.TotalDuration.Seconds()),
+		CookingMethod:        m.CookingMethod,
+		YieldAmount:          m.YieldAmount,
+		CreateTime:           m.CreateTime,
+		UpdateTime:           m.UpdateTime,
 	}
 
 	recipe.Directions, err = json.Marshal(m.Directions)
@@ -27,6 +36,20 @@ func RecipeFromCoreModel(m cmodel.Recipe) (gmodel.Recipe, error) {
 	recipe.IngredientGroups, err = json.Marshal(m.IngredientGroups)
 	if err != nil {
 		return gmodel.Recipe{}, err
+	}
+
+	// Marshal Categories and Cuisines ([]string) to []byte (jsonb)
+	if m.Categories != nil {
+		recipe.Categories, err = json.Marshal(m.Categories)
+		if err != nil {
+			return gmodel.Recipe{}, err
+		}
+	}
+	if m.Cuisines != nil {
+		recipe.Cuisines, err = json.Marshal(m.Cuisines)
+		if err != nil {
+			return gmodel.Recipe{}, err
+		}
 	}
 
 	return recipe, nil
@@ -44,10 +67,18 @@ func RecipeToCoreModel(m gmodel.Recipe) (cmodel.Recipe, error) {
 		Id: cmodel.RecipeId{
 			RecipeId: m.RecipeId,
 		},
-		Title:       m.Title,
-		Description: m.Description,
-		ImageURI:    m.ImageURI,
-		Visibility:  m.VisibilityLevel,
+		Title:         m.Title,
+		Description:   m.Description,
+		ImageURI:      m.ImageURI,
+		Visibility:    m.VisibilityLevel,
+		Citation:      m.Citation,
+		PrepDuration:  time.Duration(m.PrepDurationSeconds) * time.Second,
+		CookDuration:  time.Duration(m.CookDurationSeconds) * time.Second,
+		TotalDuration: time.Duration(m.TotalDurationSeconds) * time.Second,
+		CookingMethod: m.CookingMethod,
+		YieldAmount:   m.YieldAmount,
+		CreateTime:    m.CreateTime,
+		UpdateTime:    m.UpdateTime,
 	}
 
 	// Populate RecipeAccess if permission or state is set (i.e., join succeeded)
@@ -71,6 +102,20 @@ func RecipeToCoreModel(m gmodel.Recipe) (cmodel.Recipe, error) {
 
 	if m.IngredientGroups != nil {
 		err = json.Unmarshal(m.IngredientGroups, &recipe.IngredientGroups)
+		if err != nil {
+			return cmodel.Recipe{}, err
+		}
+	}
+
+	// Unmarshal Categories and Cuisines ([]byte) to []string
+	if m.Categories != nil {
+		err = json.Unmarshal(m.Categories, &recipe.Categories)
+		if err != nil {
+			return cmodel.Recipe{}, err
+		}
+	}
+	if m.Cuisines != nil {
+		err = json.Unmarshal(m.Cuisines, &recipe.Cuisines)
 		if err != nil {
 			return cmodel.Recipe{}, err
 		}

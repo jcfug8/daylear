@@ -54,6 +54,7 @@ import {
   VChip,
   VAlert,
   VProgressLinear,
+  VCombobox,
 } from 'vuetify/components'
 import 'vuetify/styles' // Import Vuetify styles
 import '@mdi/font/css/materialdesignicons.css' // Import Material Design Icons
@@ -115,6 +116,7 @@ const vuetify = createVuetify({
     VChip,
     VAlert,
     VProgressLinear,
+    VCombobox,
   },
 })
 

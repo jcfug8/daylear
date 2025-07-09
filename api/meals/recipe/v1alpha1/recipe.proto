@@ -9,8 +9,10 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
@@ -189,6 +191,36 @@ message Recipe {
 
   // the access details for the current user/circle
   RecipeAccess recipe_access = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // citation or reference to another creative work
+  string citation = 11 [(google.api.field_behavior) = OPTIONAL];
+
+  // the duration it takes to cook the recipe
+  google.protobuf.Duration cook_duration = 12 [(google.api.field_behavior) = OPTIONAL];
+
+  // the method of cooking, such as Frying, Steaming, etc.
+  string cooking_method = 13 [(google.api.field_behavior) = OPTIONAL];
+
+  // the categories of the recipe (e.g., appetizer, entree, etc.)
+  repeated string categories = 14 [(google.api.field_behavior) = OPTIONAL];
+
+  // the quantity produced by the recipe (e.g., number of servings)
+  string yield_amount = 15 [(google.api.field_behavior) = OPTIONAL];
+
+  // the cuisines of the recipe (e.g., French, Ethiopian, etc.)
+  repeated string cuisines = 16 [(google.api.field_behavior) = OPTIONAL];
+
+  // the time the recipe was created (UTC)
+  google.protobuf.Timestamp create_time = 17 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the time the recipe was last updated (UTC)
+  google.protobuf.Timestamp update_time = 18 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the duration it takes to prepare the recipe
+  google.protobuf.Duration prep_duration = 19 [(google.api.field_behavior) = OPTIONAL];
+
+  // the total duration for the recipe
+  google.protobuf.Duration total_duration = 20 [(google.api.field_behavior) = OPTIONAL];
 
   // the directions to make the recipe
   message Direction {

@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"github.com/jcfug8/daylear/server/core/masks"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
@@ -19,6 +21,17 @@ type Recipe struct {
 	ImageURI string
 
 	Visibility types.VisibilityLevel
+
+	Citation      string
+	PrepDuration  time.Duration
+	CookDuration  time.Duration
+	TotalDuration time.Duration
+	CookingMethod string
+	Categories    []string
+	YieldAmount   string
+	Cuisines      []string
+	CreateTime    time.Time
+	UpdateTime    time.Time
 
 	// The access details for the current user/circle
 	RecipeAccess RecipeAccess
@@ -66,6 +79,17 @@ var RecipeFields = recipeFields{
 	AccessId:        "access_id",
 	PermissionLevel: "permission_level",
 	State:           "state",
+
+	Citation:             "citation",
+	PrepDurationSeconds:  "prep_duration_seconds",
+	CookDurationSeconds:  "cook_duration_seconds",
+	TotalDurationSeconds: "total_duration_seconds",
+	CookingMethod:        "cooking_method",
+	Categories:           "categories",
+	YieldAmount:          "yield_amount",
+	Cuisines:             "cuisines",
+	CreateTime:           "create_time",
+	UpdateTime:           "update_time",
 }
 
 type recipeFields struct {
@@ -84,6 +108,17 @@ type recipeFields struct {
 	AccessId        string
 	PermissionLevel string
 	State           string
+
+	Citation             string
+	CookDurationSeconds  string
+	PrepDurationSeconds  string
+	TotalDurationSeconds string
+	CookingMethod        string
+	Categories           string
+	YieldAmount          string
+	Cuisines             string
+	CreateTime           string
+	UpdateTime           string
 }
 
 // Mask returns a FieldMask for the recipe fields.
@@ -104,6 +139,17 @@ func (fields recipeFields) Mask() []string {
 		fields.AccessId,
 		fields.PermissionLevel,
 		fields.State,
+
+		fields.Citation,
+		fields.CookDurationSeconds,
+		fields.PrepDurationSeconds,
+		fields.TotalDurationSeconds,
+		fields.CookingMethod,
+		fields.Categories,
+		fields.YieldAmount,
+		fields.Cuisines,
+		fields.CreateTime,
+		fields.UpdateTime,
 	}
 }
 
@@ -119,6 +165,15 @@ func (fields recipeFields) UpdateMask(mask []string) []string {
 		fields.ImageURI,
 
 		fields.VisibilityLevel,
+
+		fields.Citation,
+		fields.CookDurationSeconds,
+		fields.PrepDurationSeconds,
+		fields.TotalDurationSeconds,
+		fields.CookingMethod,
+		fields.Categories,
+		fields.YieldAmount,
+		fields.Cuisines,
 	}
 
 	if len(mask) == 0 {

@@ -4,6 +4,8 @@ import (
 	model "github.com/jcfug8/daylear/server/core/model"
 	namer "github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // ProtoToRecipe converts a protobuf Recipe to a model Recipe
@@ -23,6 +25,26 @@ func ProtoToRecipe(RecipeNamer namer.ReflectNamer, proto *pb.Recipe) (model.Reci
 	recipe.IngredientGroups = ProtosToIngredientGroups(proto.IngredientGroups)
 	recipe.ImageURI = proto.ImageUri
 	recipe.Visibility = proto.Visibility
+	recipe.Citation = proto.Citation
+	if proto.CookDuration != nil {
+		recipe.CookDuration = proto.CookDuration.AsDuration()
+	}
+	if proto.PrepDuration != nil {
+		recipe.PrepDuration = proto.PrepDuration.AsDuration()
+	}
+	if proto.TotalDuration != nil {
+		recipe.TotalDuration = proto.TotalDuration.AsDuration()
+	}
+	recipe.CookingMethod = proto.CookingMethod
+	recipe.Categories = proto.Categories
+	recipe.YieldAmount = proto.YieldAmount
+	recipe.Cuisines = proto.Cuisines
+	if proto.CreateTime != nil {
+		recipe.CreateTime = proto.CreateTime.AsTime()
+	}
+	if proto.UpdateTime != nil {
+		recipe.UpdateTime = proto.UpdateTime.AsTime()
+	}
 
 	return recipe, nil
 }
@@ -45,6 +67,16 @@ func RecipeToProto(RecipeNamer namer.ReflectNamer, AccessNamer namer.ReflectName
 	proto.IngredientGroups = IngredientGroupsToProtos(recipe.IngredientGroups)
 	proto.ImageUri = recipe.ImageURI
 	proto.Visibility = recipe.Visibility
+	proto.Citation = recipe.Citation
+	proto.CookDuration = durationpb.New(recipe.CookDuration)
+	proto.PrepDuration = durationpb.New(recipe.PrepDuration)
+	proto.TotalDuration = durationpb.New(recipe.TotalDuration)
+	proto.CookingMethod = recipe.CookingMethod
+	proto.Categories = recipe.Categories
+	proto.YieldAmount = recipe.YieldAmount
+	proto.Cuisines = recipe.Cuisines
+	proto.CreateTime = timestamppb.New(recipe.CreateTime)
+	proto.UpdateTime = timestamppb.New(recipe.UpdateTime)
 
 	// Handle recipe_access field if present
 	if (recipe.RecipeAccess != model.RecipeAccess{}) {

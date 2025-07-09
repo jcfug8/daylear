@@ -47,6 +47,16 @@ func NewRecipeFieldMasker() RecipeFieldMasker {
 	fm.mapFieldMaskPathToDomainMasks("recipe_access.name", model.RecipeFields.AccessId)
 	fm.mapFieldMaskPathToDomainMasks("recipe_access.permission_level", model.RecipeFields.PermissionLevel)
 	fm.mapFieldMaskPathToDomainMasks("recipe_access.state", model.RecipeFields.State)
+	fm.mapFieldMaskPathToDomainMasks("citation", model.RecipeFields.Citation)
+	fm.mapFieldMaskPathToDomainMasks("cook_duration", model.RecipeFields.CookDurationSeconds)
+	fm.mapFieldMaskPathToDomainMasks("prep_duration", model.RecipeFields.PrepDurationSeconds)
+	fm.mapFieldMaskPathToDomainMasks("total_duration", model.RecipeFields.TotalDurationSeconds)
+	fm.mapFieldMaskPathToDomainMasks("cooking_method", model.RecipeFields.CookingMethod)
+	fm.mapFieldMaskPathToDomainMasks("categories", model.RecipeFields.Categories)
+	fm.mapFieldMaskPathToDomainMasks("yield_amount", model.RecipeFields.YieldAmount)
+	fm.mapFieldMaskPathToDomainMasks("cuisines", model.RecipeFields.Cuisines)
+	fm.mapFieldMaskPathToDomainMasks("create_time", model.RecipeFields.CreateTime)
+	fm.mapFieldMaskPathToDomainMasks("update_time", model.RecipeFields.UpdateTime)
 
 	return fm
 }

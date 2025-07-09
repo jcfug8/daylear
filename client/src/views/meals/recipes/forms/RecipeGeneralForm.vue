@@ -98,6 +98,79 @@
       </v-col>
     </v-row>
     <v-row>
+      <v-col cols="12" sm="4">
+        <v-text-field
+          v-model.number="prepDurationMinutes"
+          label="Prep Duration (minutes)"
+          type="number"
+          min="0"
+          density="compact"
+        />
+      </v-col>
+      <v-col cols="12" sm="4">
+        <v-text-field
+          v-model.number="cookDurationMinutes"
+          label="Cook Duration (minutes)"
+          type="number"
+          min="0"
+          density="compact"
+        />
+      </v-col>
+      <v-col cols="12" sm="4">
+        <v-text-field
+          v-model.number="totalDurationMinutes"
+          label="Total Duration (minutes)"
+          type="number"
+          min="0"
+          density="compact"
+        />
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="12" sm="6">
+        <v-text-field
+          v-model="recipe.cookingMethod"
+          label="Cooking Method"
+          placeholder="e.g. Frying, Steaming"
+          density="compact"
+        />
+      </v-col>
+      <v-col cols="12" sm="6">
+        <v-text-field
+          v-model="recipe.yieldAmount"
+          label="Yield Amount"
+          placeholder="e.g. 4 servings, 1 loaf"
+          density="compact"
+        />
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="12" sm="6">
+        <v-combobox
+          v-model="categoriesInput"
+          :items="[]"
+          label="Categories"
+          multiple
+          chips
+          clearable
+          density="compact"
+          placeholder="Add categories"
+        />
+      </v-col>
+      <v-col cols="12" sm="6">
+        <v-combobox
+          v-model="cuisinesInput"
+          :items="[]"
+          label="Cuisines"
+          multiple
+          chips
+          clearable
+          density="compact"
+          placeholder="Add cuisines"
+        />
+      </v-col>
+    </v-row>
+    <v-row>
       <v-spacer></v-spacer>
       <v-col align-self="auto" cols="12" sm="8">
         <div class="image-container">
@@ -223,7 +296,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import type { Recipe, apitypes_VisibilityLevel } from '@/genapi/api/meals/recipe/v1alpha1'
 import { recipeService, fileService } from '@/api/api'
 
@@ -416,12 +489,67 @@ async function ocrRecipe() {
   }
 }
 
+// Cook duration in minutes (convert to/from nanoseconds)
+const prepDurationMinutes = computed({
+  get() {
+    return recipe.value.prepDuration ? parseDuration(recipe.value.prepDuration) : 0
+  },
+  set(val: number) {
+    recipe.value.prepDuration = formatDuration(val)
+  }
+})
+const totalDurationMinutes = computed({
+  get() {
+    return recipe.value.totalDuration ? parseDuration(recipe.value.totalDuration) : 0
+  },
+  set(val: number) {
+    recipe.value.totalDuration = formatDuration(val)
+  }
+})
+const cookDurationMinutes = computed({
+  get() {
+    return recipe.value.cookDuration ? parseDuration(recipe.value.cookDuration) : 0
+  },
+  set(val: number) {
+    recipe.value.cookDuration = formatDuration(val)
+  }
+})
+
+// Categories and cuisines as tag inputs
+const categoriesInput = ref(recipe.value.categories ?? [])
+const cuisinesInput = ref(recipe.value.cuisines ?? [])
+watch(categoriesInput, (val) => {
+  recipe.value.categories = val
+})
+watch(() => recipe.value.categories, (val) => {
+  categoriesInput.value = val ?? []
+})
+watch(cuisinesInput, (val) => {
+  recipe.value.cuisines = val
+})
+watch(() => recipe.value.cuisines, (val) => {
+  cuisinesInput.value = val ?? []
+})
+
 onMounted(() => {
   if (!recipe.value.visibility) {
     recipe.value.visibility = 'VISIBILITY_LEVEL_HIDDEN'
     emit('update:modelValue', recipe.value)
   }
 })
+
+function formatDuration(duration: number): string {
+  if (!duration) return '';
+  return String(duration+60) + 's';
+}
+function parseDuration(duration: string): number {
+  if (!duration) return 0;
+
+  if (duration.endsWith('s')) {
+    return parseInt(duration.slice(0, -1))/60;
+  }
+  return 0;
+}
 </script>
 
 <style scoped>
