@@ -540,7 +540,7 @@ onMounted(() => {
 
 function formatDuration(duration: number): string {
   if (!duration) return '';
-  return String(duration+60) + 's';
+  return String(duration*60) + 's';
 }
 function parseDuration(duration: string): number {
   if (!duration) return 0;
