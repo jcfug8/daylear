@@ -311,7 +311,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Recipe_MeasurementType, apitypes_VisibilityLevel } from '@/genapi/api/meals/recipe/v1alpha1'
+import type { Recipe_MeasurementType, apitypes_VisibilityLevel, Recipe_Ingredient_MeasurementConjunction } from '@/genapi/api/meals/recipe/v1alpha1'
 import type { Access, CreateAccessRequest, ListAccessesRequest, DeleteAccessRequest, Access_RequesterOrRecipient } from '@/genapi/api/meals/recipe/v1alpha1'
 import type { PermissionLevel, AccessState } from '@/genapi/api/types'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
@@ -925,12 +925,14 @@ function formatDate(date: unknown): string {
   return '';
 }
 
-function renderConjunction(conjunction: string | undefined): string {
+function renderConjunction(conjunction: Recipe_Ingredient_MeasurementConjunction | undefined): string {
   switch (conjunction) {
     case 'MEASUREMENT_CONJUNCTION_AND':
       return '+';
     case 'MEASUREMENT_CONJUNCTION_TO':
       return '-';
+    case 'MEASUREMENT_CONJUNCTION_OR':
+      return 'or';
     default:
       return '';
   }

@@ -263,6 +263,8 @@ message Recipe {
       MEASUREMENT_CONJUNCTION_AND = 1;
       // the measurement conjunction is to
       MEASUREMENT_CONJUNCTION_TO = 2;
+      // the measurement conjunction is or
+      MEASUREMENT_CONJUNCTION_OR = 3;
     }
   }
 

@@ -115,6 +115,8 @@ const (
 	Recipe_Ingredient_MEASUREMENT_CONJUNCTION_AND Recipe_Ingredient_MeasurementConjunction = 1
 	// the measurement conjunction is to
 	Recipe_Ingredient_MEASUREMENT_CONJUNCTION_TO Recipe_Ingredient_MeasurementConjunction = 2
+	// the measurement conjunction is or
+	Recipe_Ingredient_MEASUREMENT_CONJUNCTION_OR Recipe_Ingredient_MeasurementConjunction = 3
 )
 
 // Enum value maps for Recipe_Ingredient_MeasurementConjunction.
@@ -123,11 +125,13 @@ var (
 		0: "MEASUREMENT_CONJUNCTION_UNSPECIFIED",
 		1: "MEASUREMENT_CONJUNCTION_AND",
 		2: "MEASUREMENT_CONJUNCTION_TO",
+		3: "MEASUREMENT_CONJUNCTION_OR",
 	}
 	Recipe_Ingredient_MeasurementConjunction_value = map[string]int32{
 		"MEASUREMENT_CONJUNCTION_UNSPECIFIED": 0,
 		"MEASUREMENT_CONJUNCTION_AND":         1,
 		"MEASUREMENT_CONJUNCTION_TO":          2,
+		"MEASUREMENT_CONJUNCTION_OR":          3,
 	}
 )
 
@@ -1048,7 +1052,7 @@ var File_api_meals_recipe_v1alpha1_recipe_proto protoreflect.FileDescriptor
 
 const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\n" +
-	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xdd\x12\n" +
+	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xfd\x12\n" +
 	"\x06Recipe\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
@@ -1082,7 +1086,7 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\x05steps\x18\x02 \x03(\tB\x03\xe0A\x02R\x05steps\x1a\x81\x01\n" +
 	"\x0fIngredientGroup\x12\x19\n" +
 	"\x05title\x18\x01 \x01(\tB\x03\xe0A\x01R\x05title\x12S\n" +
-	"\vingredients\x18\x02 \x03(\v2,.api.meals.recipe.v1alpha1.Recipe.IngredientB\x03\xe0A\x02R\vingredients\x1a\x99\x05\n" +
+	"\vingredients\x18\x02 \x03(\v2,.api.meals.recipe.v1alpha1.Recipe.IngredientB\x03\xe0A\x02R\vingredients\x1a\xb9\x05\n" +
 	"\n" +
 	"Ingredient\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12\x1f\n" +
@@ -1091,11 +1095,12 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\x10measurement_type\x18\x05 \x01(\x0e21.api.meals.recipe.v1alpha1.Recipe.MeasurementTypeB\x03\xe0A\x01R\x0fmeasurementType\x12\x81\x01\n" +
 	"\x17measurement_conjunction\x18\b \x01(\x0e2C.api.meals.recipe.v1alpha1.Recipe.Ingredient.MeasurementConjunctionB\x03\xe0A\x01R\x16measurementConjunction\x12?\n" +
 	"\x19second_measurement_amount\x18\x06 \x01(\x01B\x03\xe0A\x01R\x17secondMeasurementAmount\x12n\n" +
-	"\x17second_measurement_type\x18\a \x01(\x0e21.api.meals.recipe.v1alpha1.Recipe.MeasurementTypeB\x03\xe0A\x01R\x15secondMeasurementType\"\x82\x01\n" +
+	"\x17second_measurement_type\x18\a \x01(\x0e21.api.meals.recipe.v1alpha1.Recipe.MeasurementTypeB\x03\xe0A\x01R\x15secondMeasurementType\"\xa2\x01\n" +
 	"\x16MeasurementConjunction\x12'\n" +
 	"#MEASUREMENT_CONJUNCTION_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bMEASUREMENT_CONJUNCTION_AND\x10\x01\x12\x1e\n" +
-	"\x1aMEASUREMENT_CONJUNCTION_TO\x10\x02\x1a\xa6\x01\n" +
+	"\x1aMEASUREMENT_CONJUNCTION_TO\x10\x02\x12\x1e\n" +
+	"\x1aMEASUREMENT_CONJUNCTION_OR\x10\x03\x1a\xa6\x01\n" +
 	"\fRecipeAccess\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x03R\x04name\x12J\n" +
 	"\x10permission_level\x18\x02 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x03R\x0fpermissionLevel\x121\n" +

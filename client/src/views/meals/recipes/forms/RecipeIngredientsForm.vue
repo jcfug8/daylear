@@ -41,7 +41,9 @@
                     density="compact"
                     variant="outlined"
                     hide-details
-                    v-model="ingredient.measurementAmount"
+                    v-model.number="ingredient.measurementAmount"
+                    type="number"
+                    min="0"
                     placeholder="Amount"
                     class="mt-0"
                   ></v-text-field>
@@ -106,7 +108,9 @@
                       density="compact"
                       variant="outlined"
                       hide-details
-                      v-model="ingredient.secondMeasurementAmount"
+                      v-model.number="ingredient.secondMeasurementAmount"
+                      type="number"
+                      min="0"
                       placeholder="Second Amount"
                       class="mt-0"
                     ></v-text-field>
@@ -191,8 +195,10 @@ function toggleSecondMeasurement(groupIdx: number, ingredientIdx: number) {
 }
 
 const MEASUREMENT_CONJUNCTIONS = [
+  { title: '', value: 'MEASUREMENT_CONJUNCTION_UNSPECIFIED' },
   { title: 'and', value: 'MEASUREMENT_CONJUNCTION_AND' },
   { title: 'to', value: 'MEASUREMENT_CONJUNCTION_TO' },
+  { title: 'or', value: 'MEASUREMENT_CONJUNCTION_OR' },
 ]
 
 function addIngredientGroup() {

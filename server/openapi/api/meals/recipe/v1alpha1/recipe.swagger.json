@@ -539,10 +539,11 @@
       "enum": [
         "MEASUREMENT_CONJUNCTION_UNSPECIFIED",
         "MEASUREMENT_CONJUNCTION_AND",
-        "MEASUREMENT_CONJUNCTION_TO"
+        "MEASUREMENT_CONJUNCTION_TO",
+        "MEASUREMENT_CONJUNCTION_OR"
       ],
       "default": "MEASUREMENT_CONJUNCTION_UNSPECIFIED",
-      "description": "- MEASUREMENT_CONJUNCTION_UNSPECIFIED: the measurement conjunction is unspecified\n - MEASUREMENT_CONJUNCTION_AND: the measurement conjunction is and\n - MEASUREMENT_CONJUNCTION_TO: the measurement conjunction is to",
+      "description": "- MEASUREMENT_CONJUNCTION_UNSPECIFIED: the measurement conjunction is unspecified\n - MEASUREMENT_CONJUNCTION_AND: the measurement conjunction is and\n - MEASUREMENT_CONJUNCTION_TO: the measurement conjunction is to\n - MEASUREMENT_CONJUNCTION_OR: the measurement conjunction is or",
       "title": "the conjunction of the measurement"
     },
     "RecipeDirection": {

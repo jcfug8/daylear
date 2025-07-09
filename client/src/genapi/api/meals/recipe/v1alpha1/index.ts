@@ -161,7 +161,9 @@ export type Recipe_Ingredient_MeasurementConjunction =
   // the measurement conjunction is and
   | "MEASUREMENT_CONJUNCTION_AND"
   // the measurement conjunction is to
-  | "MEASUREMENT_CONJUNCTION_TO";
+  | "MEASUREMENT_CONJUNCTION_TO"
+  // the measurement conjunction is or
+  | "MEASUREMENT_CONJUNCTION_OR";
 // the visibility levels
 export type apitypes_VisibilityLevel =
   // the visibility is not specified
