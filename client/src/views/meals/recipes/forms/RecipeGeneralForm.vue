@@ -81,7 +81,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="grey" variant="text" @click="showScrapeOcrDialog = false">Close</v-btn>
+          <v-btn color="grey" variant="text" @click="handleCloseScrapeOcrDialog">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -328,11 +328,14 @@ const scrapeUrl = ref('')
 const scrapeLoading = ref(false)
 const scrapeError = ref('')
 
+const importAbortController = ref<AbortController | null>(null)
+
 async function scrapeRecipe() {
   scrapeError.value = ''
   scrapeLoading.value = true
+  importAbortController.value = new AbortController()
   try {
-    const resp = await recipeService.ScrapeRecipe({ uri: scrapeUrl.value })
+    const resp = await recipeService.ScrapeRecipe({ uri: scrapeUrl.value }, importAbortController.value.signal)
     if (resp && resp.recipe) {
       // Preserve current visibility if not set in scraped recipe
       if (!resp.recipe.visibility) {
@@ -344,9 +347,14 @@ async function scrapeRecipe() {
       scrapeError.value = 'No recipe found at that URL.'
     }
   } catch (err: any) {
-    scrapeError.value = err?.message || 'Failed to scrape recipe.'
+    if (err?.name === 'AbortError') {
+      scrapeError.value = 'Import cancelled.'
+    } else {
+      scrapeError.value = err?.message || 'Failed to scrape recipe.'
+    }
   } finally {
     scrapeLoading.value = false
+    importAbortController.value = null
   }
 }
 
@@ -470,9 +478,10 @@ const ocrError = ref('')
 async function ocrRecipe() {
   ocrError.value = ''
   ocrLoading.value = true
+  importAbortController.value = new AbortController()
   try {
     if (!ocrImageFiles.value) throw new Error('No image selected')
-    const resp = await fileService.OCRRecipe({ files: ocrImageFiles.value })
+    const resp = await fileService.OCRRecipe({ files: ocrImageFiles.value }, importAbortController.value.signal)
     if (resp && resp.recipe) {
       // Preserve current visibility if not set in OCR'd recipe
       if (!resp.recipe.visibility) {
@@ -484,10 +493,24 @@ async function ocrRecipe() {
       ocrError.value = 'No recipe found in image.'
     }
   } catch (err: any) {
-    ocrError.value = err?.message || 'Failed to OCR recipe.'
+    if (err?.name === 'AbortError') {
+      ocrError.value = 'Import cancelled.'
+    } else {
+      ocrError.value = err?.message || 'Failed to OCR recipe.'
+    }
   } finally {
     ocrLoading.value = false
+    importAbortController.value = null
   }
+}
+
+function handleCloseScrapeOcrDialog() {
+  showScrapeOcrDialog.value = false
+  if (importAbortController.value) {
+    importAbortController.value.abort()
+    importAbortController.value = null
+  }
+  emit('close-scrape-ocr-dialog')
 }
 
 // Timer for import

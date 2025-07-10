@@ -9,7 +9,7 @@ import { API_BASE_URL } from '@/constants/api'
 // Generic fetch handler for the generated API client
 export const authenticatedFetchHandler = function(contentType: string) {
   return async function <T = string | null | FormData>(
-    request: { path: string; method: string; body: T },
+    request: { path: string; method: string; body: T, signal?: AbortSignal },
     _meta?: { service: string; method: string },
   ) {
     const authStore = useAuthStore()
@@ -27,11 +27,15 @@ export const authenticatedFetchHandler = function(contentType: string) {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`
     }
-    const res = await fetch(API_BASE_URL + request.path, {
+    const fetchOptions: any = {
       method: request.method,
       headers,
       body: request.body as any,
-    })
+    }
+    if (request.signal) {
+      fetchOptions.signal = request.signal
+    }
+    const res = await fetch(API_BASE_URL + request.path, fetchOptions)
     if (!res.ok) {
       throw new Error(`API error: ${res.status} ${res.statusText}`)
     }

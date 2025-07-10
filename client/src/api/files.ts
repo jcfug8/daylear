@@ -39,25 +39,23 @@ export type UploadCircleImageRequest = {
 
 // the auth service
 export interface FileService {
-    // upload a recipe image
-    UploadRecipeImage(request: UploadRecipeImageRequest): Promise<UploadRecipeImageResponse>;
-    // upload a circle image
-    UploadCircleImage(request: UploadCircleImageRequest): Promise<UploadCircleImageResponse>;
-    // ocr a recipe image
-    OCRRecipe(request: OCRRecipeRequest): Promise<OCRRecipeResponse>;
+    UploadRecipeImage(request: UploadRecipeImageRequest, signal?: AbortSignal): Promise<UploadRecipeImageResponse>;
+    UploadCircleImage(request: UploadCircleImageRequest, signal?: AbortSignal): Promise<UploadCircleImageResponse>;
+    OCRRecipe(request: OCRRecipeRequest, signal?: AbortSignal): Promise<OCRRecipeResponse>;
   }
   
 type RequestType = {
     path: string;
     method: string;
     body: File | FormData | null;
+    signal?: AbortSignal;
 };
 
 type RequestHandler = (request: RequestType, meta: { service: string, method: string }) => Promise<unknown>;
 
 export function createFileServiceClient(handler: RequestHandler): FileService {
     return {
-      UploadRecipeImage(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      UploadRecipeImage(request, signal) { // eslint-disable-line @typescript-eslint/no-unused-vars
         if (!request.name) {
           throw new Error("missing required field request.name");
         }
@@ -76,12 +74,13 @@ export function createFileServiceClient(handler: RequestHandler): FileService {
           path: uri,
           method: "PUT",
           body,
+          signal,
         }, {
           service: "FileService",
           method: "UploadRecipeImage",
         }) as Promise<UploadRecipeImageResponse>;
       },
-      UploadCircleImage(request) {
+      UploadCircleImage(request, signal) {
         if (!request.name) {
           throw new Error("missing required field request.name");
         }
@@ -100,12 +99,13 @@ export function createFileServiceClient(handler: RequestHandler): FileService {
           path: uri,
           method: "PUT",
           body,
+          signal,
         }, {
           service: "FileService",
           method: "UploadCircleImage",
         }) as Promise<UploadCircleImageResponse>;
       },
-      OCRRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      OCRRecipe(request, signal) { // eslint-disable-line @typescript-eslint/no-unused-vars
         if (!request.files) {
           throw new Error("missing required field request.files");
         }
@@ -123,6 +123,7 @@ export function createFileServiceClient(handler: RequestHandler): FileService {
           path: uri,
           method: "POST",
           body,
+          signal,
         }, {
           service: "FileService",
           method: "OCRRecipe",

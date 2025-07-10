@@ -331,24 +331,19 @@ export type ScrapeRecipeResponse = {
 
 // the recipe service
 export interface RecipeService {
-  // create a recipe
-  CreateRecipe(request: CreateRecipeRequest): Promise<Recipe>;
-  // list recipes
-  ListRecipes(request: ListRecipesRequest): Promise<ListRecipesResponse>;
-  // update a recipe
-  UpdateRecipe(request: UpdateRecipeRequest): Promise<Recipe>;
-  // delete` a recipe
-  DeleteRecipe(request: DeleteRecipeRequest): Promise<Recipe>;
-  // get a recipe
-  GetRecipe(request: GetRecipeRequest): Promise<Recipe>;
-  // scrape and save a recipe from a uri
-  ScrapeRecipe(request: ScrapeRecipeRequest): Promise<ScrapeRecipeResponse>;
+  CreateRecipe(request: CreateRecipeRequest, signal?: AbortSignal): Promise<Recipe>;
+  ListRecipes(request: ListRecipesRequest, signal?: AbortSignal): Promise<ListRecipesResponse>;
+  UpdateRecipe(request: UpdateRecipeRequest, signal?: AbortSignal): Promise<Recipe>;
+  DeleteRecipe(request: DeleteRecipeRequest, signal?: AbortSignal): Promise<Recipe>;
+  GetRecipe(request: GetRecipeRequest, signal?: AbortSignal): Promise<Recipe>;
+  ScrapeRecipe(request: ScrapeRecipeRequest, signal?: AbortSignal): Promise<ScrapeRecipeResponse>;
 }
 
 type RequestType = {
   path: string;
   method: string;
   body: string | null;
+  signal?: AbortSignal;
 };
 
 type RequestHandler = (request: RequestType, meta: { service: string, method: string }) => Promise<unknown>;
@@ -357,7 +352,7 @@ export function createRecipeServiceClient(
   handler: RequestHandler
 ): RecipeService {
   return {
-    CreateRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    CreateRecipe(request, signal) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `meals/v1alpha1/recipes`; // eslint-disable-line quotes
       const body = JSON.stringify(request?.recipe ?? {});
       const queryParams: string[] = [];
@@ -372,12 +367,13 @@ export function createRecipeServiceClient(
         path: uri,
         method: "POST",
         body,
+        signal,
       }, {
         service: "RecipeService",
         method: "CreateRecipe",
       }) as Promise<Recipe>;
     },
-    ListRecipes(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    ListRecipes(request, signal) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `meals/v1alpha1/recipes`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
@@ -398,12 +394,13 @@ export function createRecipeServiceClient(
         path: uri,
         method: "GET",
         body,
+        signal,
       }, {
         service: "RecipeService",
         method: "ListRecipes",
       }) as Promise<ListRecipesResponse>;
     },
-    UpdateRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    UpdateRecipe(request, signal) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.recipe?.name) {
         throw new Error("missing required field request.recipe.name");
       }
@@ -421,12 +418,13 @@ export function createRecipeServiceClient(
         path: uri,
         method: "PATCH",
         body,
+        signal,
       }, {
         service: "RecipeService",
         method: "UpdateRecipe",
       }) as Promise<Recipe>;
     },
-    DeleteRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    DeleteRecipe(request, signal) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.name) {
         throw new Error("missing required field request.name");
       }
@@ -441,12 +439,13 @@ export function createRecipeServiceClient(
         path: uri,
         method: "DELETE",
         body,
+        signal,
       }, {
         service: "RecipeService",
         method: "DeleteRecipe",
       }) as Promise<Recipe>;
     },
-    GetRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    GetRecipe(request, signal) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.name) {
         throw new Error("missing required field request.name");
       }
@@ -461,12 +460,13 @@ export function createRecipeServiceClient(
         path: uri,
         method: "GET",
         body,
+        signal,
       }, {
         service: "RecipeService",
         method: "GetRecipe",
       }) as Promise<Recipe>;
     },
-    ScrapeRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    ScrapeRecipe(request, signal) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `meals/v1alpha1/recipes:scrape`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
@@ -478,6 +478,7 @@ export function createRecipeServiceClient(
         path: uri,
         method: "POST",
         body,
+        signal,
       }, {
         service: "RecipeService",
         method: "ScrapeRecipe",
