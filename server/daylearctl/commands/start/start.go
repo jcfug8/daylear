@@ -10,8 +10,8 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/dialer/dialects/postgres"
 	"github.com/jcfug8/daylear/server/adapters/clients/http/fileretriever"
 	"github.com/jcfug8/daylear/server/adapters/clients/http/recipescraper"
+	"github.com/jcfug8/daylear/server/adapters/clients/imagemagick"
 	tokenClient "github.com/jcfug8/daylear/server/adapters/clients/jwt/token"
-	mimetype "github.com/jcfug8/daylear/server/adapters/clients/mimetype"
 	s3 "github.com/jcfug8/daylear/server/adapters/clients/s3"
 	grpcCirclesV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1"
 	circlesV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1/fieldmasker"
@@ -78,7 +78,7 @@ func start(opts ...fx.Option) error {
 		postgres.Module,
 		tokenClient.Module,
 		s3.Module,
-		mimetype.Module,
+		imagemagick.Module,
 		fileretriever.Module,
 		recipescraper.Module,
 		gemini.Module,

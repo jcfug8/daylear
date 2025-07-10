@@ -284,11 +284,34 @@ func (d *Domain) updateCircleImageURI(ctx context.Context, authAccount model.Aut
 }
 
 func (d *Domain) uploadCircleImage(ctx context.Context, id model.CircleId, imageReader io.Reader) (imageURL string, err error) {
-	file, err := d.fileInspector.Inspect(ctx, imageReader)
+	image, err := d.imageClient.CreateImage(ctx, imageReader)
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
+
+	err = image.Convert(ctx, "jpg")
+	if err != nil {
+		return "", err
+	}
+
+	width, height, err := image.GetDimensions(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	if width > maxImageWidth || height > maxImageHeight {
+		newWidth, newHeight := resizeToFit(width, height, maxImageWidth)
+		err = image.Resize(ctx, newWidth, newHeight)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	file, err := image.GetFile()
+	if err != nil {
+		return "", err
+	}
+	defer image.Remove(ctx)
 
 	imagePath := path.Join(CircleImageRoot, strconv.FormatInt(id.CircleId, 10), uuid.NewV4().String())
 	imagePath = fmt.Sprintf("%s%s", imagePath, file.Extension)

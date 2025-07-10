@@ -22,6 +22,9 @@ FROM alpine:latest
 # Set the Current Working Directory inside the container
 WORKDIR /root/
 
+# Install imagemagick
+RUN apk add --no-cache imagemagick
+
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/bin/daylearctl .
 

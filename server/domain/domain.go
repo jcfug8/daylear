@@ -4,9 +4,9 @@ import (
 	"sync"
 
 	domainPort "github.com/jcfug8/daylear/server/ports/domain"
-	"github.com/jcfug8/daylear/server/ports/fileinspector"
 	"github.com/jcfug8/daylear/server/ports/fileretriever"
 	"github.com/jcfug8/daylear/server/ports/filestorage"
+	"github.com/jcfug8/daylear/server/ports/image"
 	"github.com/jcfug8/daylear/server/ports/recipeocr"
 	"github.com/jcfug8/daylear/server/ports/recipescraper"
 	"github.com/jcfug8/daylear/server/ports/repository"
@@ -18,6 +18,11 @@ import (
 
 var _ domainPort.Domain = &Domain{}
 
+const (
+	maxImageWidth  = 1000
+	maxImageHeight = 1000
+)
+
 // DomainParams defines the dependencies for the domain layer.
 type DomainParams struct {
 	fx.In
@@ -27,7 +32,7 @@ type DomainParams struct {
 
 	TokenClient   token.Client
 	ImageStore    filestorage.Client
-	FileInspector fileinspector.Client
+	ImageClient   image.Client
 	FileRetriever fileretriever.Client
 
 	RecipeScrapers       []recipescraper.HostSpecificClient `group:"recipescrapers"`
@@ -52,7 +57,7 @@ func NewDomain(params DomainParams) domainPort.Domain {
 		tokenClient:   params.TokenClient,
 		tokenStore:    &sync.Map{},
 		fileStore:     params.ImageStore,
-		fileInspector: params.FileInspector,
+		imageClient:   params.ImageClient,
 		fileRetriever: params.FileRetriever,
 
 		recipeScrapers:       recipeScrapers,
@@ -71,7 +76,7 @@ type Domain struct {
 	tokenClient   token.Client
 	tokenStore    *sync.Map
 	fileStore     filestorage.Client
-	fileInspector fileinspector.Client
+	imageClient   image.Client
 	fileRetriever fileretriever.Client
 
 	recipeScrapers       map[string]recipescraper.HostSpecificClient

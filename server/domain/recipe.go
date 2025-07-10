@@ -369,11 +369,18 @@ func (d *Domain) OCRRecipe(ctx context.Context, authAccount model.AuthAccount, i
 	var files []file.File
 
 	for _, imageReader := range imageReaders {
-		file, err := d.fileInspector.Inspect(ctx, imageReader)
+		image, err := d.imageClient.CreateImage(ctx, imageReader)
 		if err != nil {
 			return model.Recipe{}, err
 		}
-		defer file.Close()
+
+		file, err := image.GetFile()
+		if err != nil {
+			return model.Recipe{}, err
+		}
+
+		defer image.Remove(ctx)
+
 		files = append(files, file)
 	}
 
@@ -430,11 +437,34 @@ func (d *Domain) updateRecipeImageURI(ctx context.Context, authAccount model.Aut
 }
 
 func (d *Domain) uploadRecipeImage(ctx context.Context, id model.RecipeId, imageReader io.Reader) (imageURL string, err error) {
-	file, err := d.fileInspector.Inspect(ctx, imageReader)
+	image, err := d.imageClient.CreateImage(ctx, imageReader)
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
+
+	err = image.Convert(ctx, "jpeg")
+	if err != nil {
+		return "", err
+	}
+
+	width, height, err := image.GetDimensions(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	if width > maxImageWidth || height > maxImageHeight {
+		newWidth, newHeight := resizeToFit(width, height, maxImageWidth)
+		err = image.Resize(ctx, newWidth, newHeight)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	file, err := image.GetFile()
+	if err != nil {
+		return "", err
+	}
+	defer image.Remove(ctx)
 
 	imagePath := path.Join(RecipeImageRoot, strconv.FormatInt(id.RecipeId, 10), uuid.NewV4().String())
 	imagePath = fmt.Sprintf("%s%s", imagePath, file.Extension)
@@ -463,4 +493,14 @@ func (d *Domain) removeRecipeImage(ctx context.Context, authAccount model.AuthAc
 	}
 
 	return nil
+}
+
+func resizeToFit(width, height, maxDim int) (newWidth, newHeight int) {
+	scale := float64(maxDim) / float64(width)
+	if height > width {
+		scale = float64(maxDim) / float64(height)
+	}
+	newWidth = int(float64(width) * scale)
+	newHeight = int(float64(height) * scale)
+	return
 }
