@@ -1,5 +1,6 @@
 <template>
   <ListTabsPage
+    ref="tabsPage"
     :tabs="tabs"
   >
     <template #my="{ items, loading }">
@@ -45,6 +46,7 @@ const circlesStore = useCirclesStore()
 const breadcrumbStore = useBreadcrumbStore()
 
 const acceptingCircleId = ref<string | null>(null)
+const tabsPage = ref()
 
 const tabs = [
   {
@@ -52,7 +54,7 @@ const tabs = [
     value: 'my',
     loader: async () => {
       await circlesStore.loadMyCircles()
-      return [...circlesStore.circles]
+      return [...circlesStore.myCircles]
     },
   },
   {
@@ -64,7 +66,7 @@ const tabs = [
         value: 'accepted',
         loader: async () => {
           await circlesStore.loadSharedCircles(200)
-          return [...circlesStore.circles]
+          return [...circlesStore.sharedAcceptedCircles]
         },
       },
       {
@@ -72,7 +74,7 @@ const tabs = [
         value: 'pending',
         loader: async () => {
           await circlesStore.loadSharedCircles(100)
-          return [...circlesStore.circles]
+          return [...circlesStore.sharedPendingCircles]
         },
       },
     ],
@@ -82,7 +84,7 @@ const tabs = [
     value: 'explore',
     loader: async () => {
       await circlesStore.loadPublicCircles()
-      return [...circlesStore.circles]
+      return [...circlesStore.publicCircles]
     },
   },
 ]
@@ -92,12 +94,9 @@ async function acceptCircleAccess(circle: Circle) {
   acceptingCircleId.value = circle.name
   try {
     await circleAccessService.AcceptAccess({ name: circle.circleAccess?.name })
-    // Reload both accepted and pending circles after accepting
-    const sharedTabs = tabs.find(t => t.value === 'shared')?.subTabs
-    const acceptedTab = sharedTabs?.find(s => s.value === 'accepted')
-    const pendingTab = sharedTabs?.find(s => s.value === 'pending')
-    if (acceptedTab?.loader) await acceptedTab.loader()
-    if (pendingTab?.loader) await pendingTab.loader()
+    // Reload both accepted and pending subtabs
+    tabsPage.value?.reloadTab('shared', 'accepted')
+    tabsPage.value?.reloadTab('shared', 'pending')
   } catch (error) {
     // Optionally show a notification
   } finally {
@@ -109,12 +108,8 @@ async function onDeclineCircle(circle: Circle) {
   if (!circle.circleAccess?.name) return
   try {
     await circleAccessService.DeleteAccess({ name: circle.circleAccess.name })
-    // Reload both accepted and pending circles after declining
-    const sharedTabs = tabs.find(t => t.value === 'shared')?.subTabs
-    const acceptedTab = sharedTabs?.find(s => s.value === 'accepted')
-    const pendingTab = sharedTabs?.find(s => s.value === 'pending')
-    if (acceptedTab?.loader) await acceptedTab.loader()
-    if (pendingTab?.loader) await pendingTab.loader()
+    // Reload only the pending subtab
+    tabsPage.value?.reloadTab('shared', 'pending')
   } catch (error) {
     // Optionally show a notification
   }

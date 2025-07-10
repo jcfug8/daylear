@@ -10,7 +10,7 @@ import type {
 import { useAuthStore } from '@/stores/auth'
 
 export const useCirclesStore = defineStore('circles', () => {
-  const circles = ref<Circle[]>([])
+  // const circles = ref<Circle[]>([])
   const circle = ref<Circle | undefined>()
   const myCircles = ref<Circle[]>([])
   const sharedAcceptedCircles = ref<Circle[]>([])
@@ -27,17 +27,17 @@ export const useCirclesStore = defineStore('circles', () => {
     }
   }
 
-  async function loadCircles(filter?: string) {
+  async function loadCircles(filter?: string): Promise<Circle[]> {
     try {
       const result = await circleService.ListCircles({ 
         filter: filter || undefined,
         pageSize: 50,
         pageToken: undefined
       })
-      circles.value = result.circles || []
+      return result.circles || []
     } catch (error) {
       console.error('Failed to load public circles:', error)
-      circles.value = []
+      return []
     }
   }
 
@@ -93,7 +93,8 @@ export const useCirclesStore = defineStore('circles', () => {
 
   // Load my circles (admin permission)
   async function loadMyCircles() {
-    await loadCircles('permission = 300')
+    const circles = await loadCircles('permission = 300')
+    myCircles.value = circles
   }
 
   // Load shared circles (accepted or pending)
@@ -102,21 +103,25 @@ export const useCirclesStore = defineStore('circles', () => {
     if (state) {
       filter += ` AND state = ${state}`
     }
-    await loadCircles(filter)
+    const circles = await loadCircles(filter)
+    if (state === 200) {
+      sharedAcceptedCircles.value = circles
+    } else if (state === 100) {
+      sharedPendingCircles.value = circles
+    }
   }
 
   // Load public circles
   async function loadPublicCircles() {
-    await loadCircles('visibility = 1')
+    const circles = await loadCircles('visibility = 1')
+    publicCircles.value = circles
   }
 
   return {
     loadCircle,
-    loadCircles,
     initEmptyCircle,
     createCircle,
     updateCircle,
-    circles,
     circle,
     myCircles,
     sharedAcceptedCircles,

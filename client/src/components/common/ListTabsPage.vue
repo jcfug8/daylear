@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, defineExpose } from 'vue'
 
 interface TabDef {
   label: string
@@ -99,4 +99,47 @@ watch(subTab, (newSubTabs) => {
     }
   }
 })
+
+// Expose a method to reload the current active tab and subtab
+function reloadActiveTab() {
+  const tab = props.tabs.find(t => t.value === activeTab.value)
+  if (!tab) return
+  if (tab.subTabs) {
+    const subValue = subTab.value[activeTab.value] || tab.subTabs[0].value
+    const sub = tab.subTabs.find(s => s.value === subValue)
+    if (sub && sub.loader) {
+      loading.value[activeTab.value] = loading.value[activeTab.value] || {}
+      loading.value[activeTab.value][subValue] = true
+      sub.loader().then(data => {
+        items.value[activeTab.value] = items.value[activeTab.value] || {}
+        items.value[activeTab.value][subValue] = data
+      }).finally(() => {
+        loading.value[activeTab.value][subValue] = false
+      })
+    }
+  } else {
+    loadTab(activeTab.value)
+  }
+}
+
+function reloadTab(tabValue: string, subTabValue?: string) {
+  const tab = props.tabs.find(t => t.value === tabValue)
+  if (!tab) return
+  if (tab.subTabs && subTabValue) {
+    const sub = tab.subTabs.find(s => s.value === subTabValue)
+    if (sub && sub.loader) {
+      loading.value[tabValue] = loading.value[tabValue] || {}
+      loading.value[tabValue][subTabValue] = true
+      sub.loader().then(data => {
+        items.value[tabValue] = items.value[tabValue] || {}
+        items.value[tabValue][subTabValue] = data
+      }).finally(() => {
+        loading.value[tabValue][subTabValue] = false
+      })
+    }
+  } else {
+    loadTab(tabValue)
+  }
+}
+defineExpose({ reloadActiveTab, reloadTab })
 </script> 

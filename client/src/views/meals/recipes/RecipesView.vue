@@ -1,5 +1,6 @@
 <template>
   <ListTabsPage
+    ref="tabsPage"
     :tabs="tabs"
   >
     <template #my="{ items, loading }">
@@ -46,6 +47,7 @@ const recipesStore = useRecipesStore()
 const breadcrumbStore = useBreadcrumbStore()
 
 const acceptingRecipeId = ref<string | null>(null)
+const tabsPage = ref()
 
 const tabs = [
   {
@@ -54,7 +56,7 @@ const tabs = [
     loader: async () => {
       if (!authStore.user || !authStore.user.name) throw new Error('User not authenticated')
       await recipesStore.loadMyRecipes(authStore.activeAccountName)
-      return [...recipesStore.recipes]
+      return [...recipesStore.myRecipes]
     },
   },
   {
@@ -67,7 +69,7 @@ const tabs = [
         loader: async () => {
           if (!authStore.user || !authStore.user.name) throw new Error('User not authenticated')
           await recipesStore.loadSharedRecipes(authStore.activeAccountName, 200)
-          return [...recipesStore.recipes]
+          return [...recipesStore.sharedAcceptedRecipes]
         },
       },
       {
@@ -76,7 +78,7 @@ const tabs = [
         loader: async () => {
           if (!authStore.user || !authStore.user.name) throw new Error('User not authenticated')
           await recipesStore.loadSharedRecipes(authStore.activeAccountName, 100)
-          return [...recipesStore.recipes]
+          return [...recipesStore.sharedPendingRecipes]
         },
       },
     ],
@@ -87,7 +89,7 @@ const tabs = [
     loader: async () => {
       if (!authStore.user || !authStore.user.name) throw new Error('User not authenticated')
       await recipesStore.loadPublicRecipes(authStore.activeAccountName)
-      return [...recipesStore.recipes]
+      return [...recipesStore.publicRecipes]
     },
   },
 ]
@@ -97,12 +99,9 @@ async function onAcceptRecipe(recipe: Recipe) {
   acceptingRecipeId.value = recipe.recipeAccess.name
   try {
     await recipesStore.acceptRecipe(recipe.recipeAccess.name)
-    // Reload both accepted and pending recipes after accepting
-    const sharedTabs = tabs.find(t => t.value === 'shared')?.subTabs
-    const acceptedTab = sharedTabs?.find(s => s.value === 'accepted')
-    const pendingTab = sharedTabs?.find(s => s.value === 'pending')
-    if (acceptedTab?.loader) await acceptedTab.loader()
-    if (pendingTab?.loader) await pendingTab.loader()
+    // Reload both accepted and pending subtabs
+    tabsPage.value?.reloadTab('shared', 'accepted')
+    tabsPage.value?.reloadTab('shared', 'pending')
   } catch (error) {
     // Optionally show a notification
   } finally {
@@ -114,12 +113,8 @@ async function onDeclineRecipe(recipe: Recipe) {
   if (!recipe.recipeAccess?.name) return
   try {
     await recipesStore.deleteRecipeAccess(recipe.recipeAccess.name)
-    // Reload both accepted and pending recipes after declining
-    const sharedTabs = tabs.find(t => t.value === 'shared')?.subTabs
-    const acceptedTab = sharedTabs?.find(s => s.value === 'accepted')
-    const pendingTab = sharedTabs?.find(s => s.value === 'pending')
-    if (acceptedTab?.loader) await acceptedTab.loader()
-    if (pendingTab?.loader) await pendingTab.loader()
+    // Reload only the pending subtab
+    tabsPage.value?.reloadTab('shared', 'pending')
   } catch (error) {
     // Optionally show a notification
   }
