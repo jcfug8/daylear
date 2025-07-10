@@ -1,6 +1,8 @@
 package fieldmasker
 
 import (
+	"github.com/jcfug8/daylear/server/core/fieldmask"
+	pb "github.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1"
 	"go.uber.org/fx"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
@@ -12,11 +14,22 @@ const (
 	fieldMaskKey = "tcn-field-mask"
 )
 
+var updateCircleAccessFieldMap = map[string][]string{
+	"level": {"permission_level"},
+	"state": {"state"},
+}
+
 // Module -
 var Module = fx.Module(
 	"fieldmasker",
 	fx.Provide(
 		NewCircleFieldMasker,
+		fx.Annotate(
+			func() (fieldmask.FieldMasker, error) {
+				return fieldmask.NewProtoFieldMasker(&pb.Access{}, updateCircleAccessFieldMap)
+			},
+			fx.ResultTags(`name:"v1alpha1CircleAccessFieldMasker"`),
+		),
 	),
 )
 

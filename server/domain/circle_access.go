@@ -163,7 +163,7 @@ func (d *Domain) ListCircleAccesses(ctx context.Context, authAccount model.AuthA
 }
 
 // UpdateCircleAccess updates a circle access
-func (d *Domain) UpdateCircleAccess(ctx context.Context, authAccount model.AuthAccount, access model.CircleAccess) (model.CircleAccess, error) {
+func (d *Domain) UpdateCircleAccess(ctx context.Context, authAccount model.AuthAccount, access model.CircleAccess, updateMask []string) (model.CircleAccess, error) {
 	// verify circle is set
 	if access.CircleAccessParent.CircleId.CircleId == 0 {
 		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "circle id is required"}
@@ -208,7 +208,7 @@ func (d *Domain) UpdateCircleAccess(ctx context.Context, authAccount model.AuthA
 	access.Recipient = dbAccess.Recipient
 
 	// update access
-	updatedAccess, err := d.repo.UpdateCircleAccess(ctx, access)
+	updatedAccess, err := d.repo.UpdateCircleAccess(ctx, access, updateMask)
 	if err != nil {
 		return model.CircleAccess{}, err
 	}
@@ -248,7 +248,7 @@ func (d *Domain) AcceptCircleAccess(ctx context.Context, authAccount model.AuthA
 	access.State = types.AccessState_ACCESS_STATE_ACCEPTED
 
 	// update access using the repository
-	updatedAccess, err := d.repo.UpdateCircleAccess(ctx, access)
+	updatedAccess, err := d.repo.UpdateCircleAccess(ctx, access, []string{model.CircleAccessFields.State})
 	if err != nil {
 		return model.CircleAccess{}, err
 	}

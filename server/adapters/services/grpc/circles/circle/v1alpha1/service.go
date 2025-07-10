@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	fieldMasker "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1/fieldmasker"
+	"github.com/jcfug8/daylear/server/core/fieldmask"
 	"github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
@@ -18,9 +19,10 @@ type NewCircleServiceParams struct {
 	Domain            domain.Domain
 	Log               zerolog.Logger
 	CircleFieldMasker fieldMasker.CircleFieldMasker
-	CircleNamer       namer.ReflectNamer `name:"v1alpha1CircleNamer"`
-	AccessNamer       namer.ReflectNamer `name:"v1alpha1CircleAccessNamer"`
-	UserNamer         namer.ReflectNamer `name:"v1alpha1UserNamer"`
+	AccessFieldMasker fieldmask.FieldMasker `name:"v1alpha1CircleAccessFieldMasker"`
+	CircleNamer       namer.ReflectNamer    `name:"v1alpha1CircleNamer"`
+	AccessNamer       namer.ReflectNamer    `name:"v1alpha1CircleAccessNamer"`
+	UserNamer         namer.ReflectNamer    `name:"v1alpha1UserNamer"`
 }
 
 // NewCircleService creates a new CircleService.
@@ -29,6 +31,7 @@ func NewCircleService(params NewCircleServiceParams) (*CircleService, error) {
 		domain:            params.Domain,
 		log:               params.Log,
 		circleFieldMasker: params.CircleFieldMasker,
+		accessFieldMasker: params.AccessFieldMasker,
 		circleNamer:       params.CircleNamer,
 		accessNamer:       params.AccessNamer,
 		userNamer:         params.UserNamer,
@@ -42,6 +45,7 @@ type CircleService struct {
 	domain            domain.Domain
 	log               zerolog.Logger
 	circleFieldMasker fieldMasker.CircleFieldMasker
+	accessFieldMasker fieldmask.FieldMasker
 	circleNamer       namer.ReflectNamer
 	accessNamer       namer.ReflectNamer
 	userNamer         namer.ReflectNamer

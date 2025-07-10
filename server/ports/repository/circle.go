@@ -19,5 +19,5 @@ type circleClient interface {
 	BulkDeleteCircleAccess(ctx context.Context, parent model.CircleAccessParent) error
 	GetCircleAccess(ctx context.Context, parent model.CircleAccessParent, id model.CircleAccessId) (model.CircleAccess, error)
 	ListCircleAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.CircleAccessParent, pageSize int32, pageOffset int64, filter string) ([]model.CircleAccess, error)
-	UpdateCircleAccess(ctx context.Context, access model.CircleAccess) (model.CircleAccess, error)
+	UpdateCircleAccess(ctx context.Context, access model.CircleAccess, updateMask []string) (model.CircleAccess, error)
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/core/fieldmask"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	model "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
@@ -20,6 +21,18 @@ var CircleAccessMap = map[string]string{
 	model.CircleAccessFields.State:         dbModel.CircleAccessFields.State,
 	model.CircleAccessFields.RecipientUser: dbModel.CircleAccessFields.RecipientUserId,
 }
+
+// UpdateCircleAccessMap maps the updatable core model fields to the database model fields for the CircleAccess model.
+var UpdateCircleAccessMap = map[string][]string{
+	model.CircleAccessFields.Level: []string{
+		dbModel.CircleAccessFields.PermissionLevel,
+	},
+	model.CircleAccessFields.State: []string{
+		dbModel.CircleAccessFields.State,
+	},
+}
+
+var UpdateCircleAccessFieldMasker = fieldmask.NewFieldMasker(UpdateCircleAccessMap)
 
 func (repo *Client) CreateCircleAccess(ctx context.Context, access model.CircleAccess) (model.CircleAccess, error) {
 	db := repo.db.WithContext(ctx)
@@ -133,10 +146,12 @@ func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.A
 	return accesses, nil
 }
 
-func (repo *Client) UpdateCircleAccess(ctx context.Context, access model.CircleAccess) (model.CircleAccess, error) {
+func (repo *Client) UpdateCircleAccess(ctx context.Context, access model.CircleAccess, updateMask []string) (model.CircleAccess, error) {
 	dbAccess := convert.CoreCircleAccessToCircleAccess(access)
 
-	db := repo.db.WithContext(ctx).Select("permission_level", "state").Clauses(clause.Returning{})
+	columns := UpdateCircleAccessFieldMasker.Convert(updateMask)
+
+	db := repo.db.WithContext(ctx).Select(columns).Clauses(clause.Returning{})
 
 	err := db.Where("circle_access_id = ?", access.CircleAccessId.CircleAccessId).Updates(&dbAccess).Error
 	if err != nil {
