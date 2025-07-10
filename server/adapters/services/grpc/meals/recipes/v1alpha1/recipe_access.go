@@ -186,10 +186,10 @@ func (s *RecipeService) UpdateAccess(ctx context.Context, request *pb.UpdateAcce
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
 	}
 
-	// TODO: update mask
+	updateMask := s.accessFieldMasker.Convert(request.GetUpdateMask().GetPaths())
 
 	// update access
-	updatedAccess, err := s.domain.UpdateRecipeAccess(ctx, authAccount, modelAccess)
+	updatedAccess, err := s.domain.UpdateRecipeAccess(ctx, authAccount, modelAccess, updateMask)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

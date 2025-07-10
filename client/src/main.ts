@@ -54,6 +54,7 @@ import {
   VChip,
   VAlert,
   VProgressLinear,
+  VProgressCircular,      
   VCombobox,
 } from 'vuetify/components'
 import 'vuetify/styles' // Import Vuetify styles
@@ -116,6 +117,7 @@ const vuetify = createVuetify({
     VChip,
     VAlert,
     VProgressLinear,
+    VProgressCircular,
     VCombobox,
   },
 })

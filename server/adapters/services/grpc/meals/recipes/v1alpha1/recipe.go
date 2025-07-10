@@ -124,10 +124,7 @@ func (s *RecipeService) UpdateRecipe(ctx context.Context, request *pb.UpdateReci
 	}
 
 	fieldMask := request.GetUpdateMask()
-	updateMask, err := s.recipeFieldMasker.GetWriteMask(fieldMask)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid field mask")
-	}
+	updateMask := s.recipeFieldMasker.Convert(fieldMask.GetPaths())
 
 	mRecipe, err = convert.ProtoToRecipe(s.recipeNamer, recipeProto)
 	if err != nil {

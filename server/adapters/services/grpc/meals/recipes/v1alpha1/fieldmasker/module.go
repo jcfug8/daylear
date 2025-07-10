@@ -1,6 +1,9 @@
 package fieldmasker
 
 import (
+	"github.com/jcfug8/daylear/server/core/fieldmask"
+	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
+
 	"go.uber.org/fx"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
@@ -14,9 +17,20 @@ const (
 
 // Module -
 var Module = fx.Module(
-	"fieldmasker",
+	"recipes_v1alpha1_fieldmasker",
 	fx.Provide(
-		NewRecipeFieldMasker,
+		fx.Annotate(
+			func() (fieldmask.FieldMasker, error) {
+				return fieldmask.NewProtoFieldMasker(&pb.Recipe{}, recipeFieldMap)
+			},
+			fx.ResultTags(`name:"v1alpha1RecipeFieldMasker"`),
+		),
+		fx.Annotate(
+			func() (fieldmask.FieldMasker, error) {
+				return fieldmask.NewProtoFieldMasker(&pb.Access{}, updateRecipeAccessFieldMap)
+			},
+			fx.ResultTags(`name:"v1alpha1RecipeAccessFieldMasker"`),
+		),
 	),
 )
 

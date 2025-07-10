@@ -6,6 +6,7 @@ import (
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/core/fieldmask"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	model "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
@@ -13,6 +14,18 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
+
+// UpdateRecipeAccessMap maps the updatable core model fields to the database model fields for the RecipeAccess model.
+var UpdateRecipeAccessMap = map[string][]string{
+	model.RecipeAccessFields.Level: []string{
+		dbModel.RecipeAccessFields.PermissionLevel,
+	},
+	model.RecipeAccessFields.State: []string{
+		dbModel.RecipeAccessFields.State,
+	},
+}
+
+var UpdateRecipeAccessFieldMasker = fieldmask.NewFieldMasker(UpdateRecipeAccessMap)
 
 // RecipeAccessMap maps the core model fields to the database model fields for the unified RecipeAccess model.
 var RecipeAccessMap = map[string]string{
@@ -165,10 +178,12 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 	return accesses, nil
 }
 
-func (repo *Client) UpdateRecipeAccess(ctx context.Context, access model.RecipeAccess) (model.RecipeAccess, error) {
+func (repo *Client) UpdateRecipeAccess(ctx context.Context, access model.RecipeAccess, updateMask []string) (model.RecipeAccess, error) {
 	dbAccess := convert.CoreRecipeAccessToRecipeAccess(access)
 
-	db := repo.db.WithContext(ctx).Select("state").Clauses(&clause.Returning{})
+	columns := UpdateRecipeAccessFieldMasker.Convert(updateMask)
+
+	db := repo.db.WithContext(ctx).Select(columns).Clauses(&clause.Returning{})
 
 	err := db.Where("recipe_access_id = ?", access.RecipeAccessId.RecipeAccessId).Updates(&dbAccess).Error
 	if err != nil {

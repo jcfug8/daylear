@@ -261,16 +261,51 @@
         <div v-if="currentShares.length > 0">
           <div class="text-subtitle-1 mb-2">Current Shares</div>
           <v-list>
-            <v-list-item v-for="share in currentShares" :key="share.id" :title="share.name" :subtitle="`${share.type} ${share.state === 'ACCESS_STATE_PENDING' ? '(Pending)' : ''}`">
+            <v-list-item v-for="share in currentShares" :key="share.name || ''" :title="share.recipient?.user?.username || share.recipient?.circle?.title" :subtitle="`${share.state === 'ACCESS_STATE_PENDING' ? '(Pending)' : ''}`">
               <template #append>
                 <div class="d-flex align-center gap-2">
-                  <v-chip size="small" :color="hasWritePermission(share.permission) ? 'primary' : 'grey'">
-                    {{ hasWritePermission(share.permission) ? 'Read & Write' : 'Read Only' }}
-                  </v-chip>
+                  <v-menu
+                    v-model="shareMenuOpen[share.name || '']"
+                    :close-on-content-click="false"
+                    location="bottom"
+                    offset-y
+                  >
+                    <template #activator="{ props }">
+                      <v-chip
+                        v-bind="props"
+                        size="small"
+                        :color="hasWritePermission(share.level) ? 'primary' : 'grey'"
+                        class="permission-chip d-flex align-center"
+                        :disabled="sharePermissionLoading[share.name || '']"
+                        style="cursor: pointer; min-width: 120px;"
+                      >
+                        <span>{{ hasWritePermission(share.level) ? 'Read & Write' : 'Read Only' }}</span>
+                        <v-icon end size="18" class="ml-1">mdi-chevron-down</v-icon>
+                        <v-progress-circular
+                          v-if="sharePermissionLoading[share.name || '']"
+                          indeterminate
+                          size="16"
+                          color="primary"
+                          class="ml-1"
+                        />
+                      </v-chip>
+                    </template>
+                    <v-list>
+                      <v-list-item
+                        v-for="option in permissionOptions"
+                        :key="option.value"
+                        :value="option.value"
+                        @click="handleSharePermissionChange(share, option.value); shareMenuOpen[share.name || ''] = false"
+                        :disabled="share.level === option.value"
+                      >
+                        <v-list-item-title>{{ option.title }}</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
                   <v-chip v-if="share.state === 'ACCESS_STATE_PENDING'" size="small" color="warning" variant="outlined">
                     Pending
                   </v-chip>
-                  <v-btn icon="mdi-delete" variant="text" @click="removeShare(share.id)"></v-btn>
+                  <v-btn icon="mdi-delete" variant="text" @click="removeShare(share.name || '')"></v-btn>
                 </div>
               </template>
             </v-list-item>
@@ -482,13 +517,7 @@ const isLoadingUsername = ref(false)
 const isLoadingCircle = ref(false)
 
 // Current shares state
-const currentShares = ref<Array<{ 
-  id: string; 
-  name: string; 
-  type: 'user' | 'circle';
-  permission: PermissionLevel;
-  state: AccessState;
-}>>([])
+const currentShares = ref<Access[]>([])
 
 // Debounce timers
 let usernameDebounceTimer: number | null = null
@@ -676,16 +705,16 @@ async function shareRecipe() {
   }
 }
 
-async function removeShare(shareId: string) {
+async function removeShare(shareName: string) {
   try {
     const request: DeleteAccessRequest = {
-      name: shareId // shareId is actually the access name in the format recipes/{recipe}/accesses/{access}
+      name: shareName // shareName is actually the access name in the format recipes/{recipe}/accesses/{access}
     }
     
     await recipeAccessService.DeleteAccess(request)
     
     // Remove from local state after successful API call
-    currentShares.value = currentShares.value.filter(share => share.id !== shareId)
+    currentShares.value = currentShares.value.filter(share => share.name !== shareName)
   } catch (error) {
     console.error('Error removing share:', error)
     // You might want to show an error notification here
@@ -712,20 +741,13 @@ async function fetchRecipeRecipients() {
         const isCurrentUser = (access.recipient?.user && access.recipient.user.name === authStore.activeAccount?.name) ||
                              (access.recipient?.circle && access.recipient.circle.name === authStore.activeAccount?.name)
         return !isCurrentUser
-      }).map(access => {
-        // Determine if this is a user or circle access
-        const isCircle = !!access.recipient?.circle
-        const recipientName = isCircle
-          ? (access.recipient?.circle && access.recipient.circle.title ? access.recipient.circle.title : '')
-          : (access.recipient?.user && access.recipient.user.username ? access.recipient.user.username : '')
-        return {
-          id: access.name || '',
-          name: recipientName,
-          type: isCircle ? 'circle' as const : 'user' as const,
-          permission: access.level || 'PERMISSION_LEVEL_READ',
-          state: access.state || 'ACCESS_STATE_PENDING'
-        }
-      })
+      }).map(access => ({
+        name: access.name || '',
+        level: access.level || 'PERMISSION_LEVEL_READ',
+        state: access.state || 'ACCESS_STATE_PENDING',
+        recipient: access.recipient,
+        requester: access.requester || undefined,
+      }))
     }
   } catch (error) {
     console.error('Error fetching recipe recipients:', error)
@@ -935,6 +957,34 @@ function renderConjunction(conjunction: Recipe_Ingredient_MeasurementConjunction
       return 'or';
     default:
       return '';
+  }
+}
+
+const sharePermissionLoading = ref<Record<string, boolean>>({})
+const shareMenuOpen = ref<Record<string, boolean>>({})
+
+async function handleSharePermissionChange(share: Access, newLevel: PermissionLevel) {
+  if (share.level === newLevel) return
+  if (!share.name) return
+  sharePermissionLoading.value[share.name] = true
+  try {
+    await recipeAccessService.UpdateAccess({
+      access: {
+        name: share.name,
+        level: newLevel,
+        state: share.state,
+        recipient: share.recipient,
+        requester: share.requester,
+      },
+      updateMask: 'level',
+    })
+    // Update local state
+    share.level = newLevel
+  } catch (error) {
+    // Optionally show a notification
+    console.error('Error updating permission:', error)
+  } finally {
+    sharePermissionLoading.value[share.name] = false
   }
 }
 </script>

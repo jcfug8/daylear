@@ -1,7 +1,7 @@
 package v1alpha1
 
 import (
-	fieldMasker "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/fieldmasker"
+	fieldmask "github.com/jcfug8/daylear/server/core/fieldmask"
 	namer "github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
@@ -16,11 +16,12 @@ type NewRecipeServiceParams struct {
 
 	Domain            domain.Domain
 	Log               zerolog.Logger
-	RecipeFieldMasker fieldMasker.RecipeFieldMasker
-	RecipeNamer       namer.ReflectNamer `name:"v1alpha1RecipeNamer"`
-	AccessNamer       namer.ReflectNamer `name:"v1alpha1RecipeAccessNamer"`
-	UserNamer         namer.ReflectNamer `name:"v1alpha1UserNamer"`
-	CircleNamer       namer.ReflectNamer `name:"v1alpha1CircleNamer"`
+	RecipeFieldMasker fieldmask.FieldMasker `name:"v1alpha1RecipeFieldMasker"`
+	AccessFieldMasker fieldmask.FieldMasker `name:"v1alpha1RecipeAccessFieldMasker"`
+	RecipeNamer       namer.ReflectNamer    `name:"v1alpha1RecipeNamer"`
+	AccessNamer       namer.ReflectNamer    `name:"v1alpha1RecipeAccessNamer"`
+	UserNamer         namer.ReflectNamer    `name:"v1alpha1UserNamer"`
+	CircleNamer       namer.ReflectNamer    `name:"v1alpha1CircleNamer"`
 }
 
 // NewRecipeService creates a new RecipeService.
@@ -29,6 +30,7 @@ func NewRecipeService(params NewRecipeServiceParams) (*RecipeService, error) {
 		domain:            params.Domain,
 		log:               params.Log,
 		recipeFieldMasker: params.RecipeFieldMasker,
+		accessFieldMasker: params.AccessFieldMasker,
 		recipeNamer:       params.RecipeNamer,
 		userNamer:         params.UserNamer,
 		accessNamer:       params.AccessNamer,
@@ -42,7 +44,8 @@ type RecipeService struct {
 	pb.UnimplementedRecipeAccessServiceServer
 	domain            domain.Domain
 	log               zerolog.Logger
-	recipeFieldMasker fieldMasker.RecipeFieldMasker
+	recipeFieldMasker fieldmask.FieldMasker
+	accessFieldMasker fieldmask.FieldMasker
 	recipeNamer       namer.ReflectNamer
 	userNamer         namer.ReflectNamer
 	circleNamer       namer.ReflectNamer

@@ -19,5 +19,5 @@ type recipeClient interface {
 	BulkDeleteRecipeAccess(ctx context.Context, parent model.RecipeAccessParent) error
 	GetRecipeAccess(ctx context.Context, parent model.RecipeAccessParent, id model.RecipeAccessId) (model.RecipeAccess, error)
 	ListRecipeAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeAccessParent, pageSize int32, pageOffset int64, filter string) ([]model.RecipeAccess, error)
-	UpdateRecipeAccess(ctx context.Context, access model.RecipeAccess) (model.RecipeAccess, error)
+	UpdateRecipeAccess(ctx context.Context, access model.RecipeAccess, updateMask []string) (model.RecipeAccess, error)
 }

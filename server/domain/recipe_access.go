@@ -177,7 +177,7 @@ func (d *Domain) ListRecipeAccesses(ctx context.Context, authAccount model.AuthA
 	return d.repo.ListRecipeAccesses(ctx, authAccount, parent, int32(pageSize), int64(pageOffset), filter)
 }
 
-func (d *Domain) UpdateRecipeAccess(ctx context.Context, authAccount model.AuthAccount, access model.RecipeAccess) (model.RecipeAccess, error) {
+func (d *Domain) UpdateRecipeAccess(ctx context.Context, authAccount model.AuthAccount, access model.RecipeAccess, updateMask []string) (model.RecipeAccess, error) {
 	// verify recipe is set
 	if access.RecipeAccessParent.RecipeId.RecipeId == 0 {
 		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "recipe id is required"}
@@ -223,7 +223,7 @@ func (d *Domain) UpdateRecipeAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// update access
-	updatedAccess, err := d.repo.UpdateRecipeAccess(ctx, access)
+	updatedAccess, err := d.repo.UpdateRecipeAccess(ctx, access, updateMask)
 	if err != nil {
 		return model.RecipeAccess{}, err
 	}
@@ -266,7 +266,7 @@ func (d *Domain) AcceptRecipeAccess(ctx context.Context, authAccount model.AuthA
 	access.State = types.AccessState_ACCESS_STATE_ACCEPTED
 
 	// update access using the repository
-	updatedAccess, err := d.repo.UpdateRecipeAccess(ctx, access)
+	updatedAccess, err := d.repo.UpdateRecipeAccess(ctx, access, []string{model.RecipeAccessFields.State})
 	if err != nil {
 		return model.RecipeAccess{}, err
 	}
