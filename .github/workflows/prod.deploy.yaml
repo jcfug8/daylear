@@ -1,37 +1,79 @@
-name: Deploy to DigitalOcean App Platform
+name: Prod Build and Deploy
 
 on:
-  workflow_run:
-    workflows: ["Prod Client Build and Deploy", "Prod Server Build and Deploy"]
-    types:
-      - completed
+  push:
+    tags:
+      - 'v*'
 
 jobs:
-  deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  build_client:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    defaults:
+      run:
+        working-directory: client
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set tag variable
-        run: |
-          echo "TAG=${GITHUB_REF#refs/tags/}" | sed 's/\./_/g' >> $GITHUB_ENV
+      - name: Sanitize GitHub ref for Docker tag
+        id: sanitize
+        run: echo "SANITIZED_REF=${GITHUB_REF#refs/tags/}" | sed 's/\./_/g' >> $GITHUB_ENV
 
-      - name: Check client image exists
-        run: |
-          if ! curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            https://ghcr.io/v2/jcfug8/daylear-client/manifests/${TAG} | grep -q 'schemaVersion'; then
-            echo "Client image for tag ${TAG} not found" && exit 1
-          fi
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check server image exists
-        run: |
-          if ! curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            https://ghcr.io/v2/jcfug8/daylear/manifests/${TAG} | grep -q 'schemaVersion'; then
-            echo "Server image for tag ${TAG} not found" && exit 1
-          fi
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6.5.0
+        with:
+          context: ./client
+          push: true
+          tags: |
+            ghcr.io/jcfug8/daylear-client:latest
+            ghcr.io/jcfug8/daylear-client:${{ env.SANITIZED_REF }}
 
+  build_server:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sanitize GitHub ref for Docker tag
+        id: sanitize
+        run: echo "SANITIZED_REF=${GITHUB_REF#refs/tags/}" | sed 's/\./_/g' >> $GITHUB_ENV
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6.5.0
+        with:
+          context: server
+          push: true
+          tags: |
+            ghcr.io/jcfug8/daylear:latest
+            ghcr.io/jcfug8/daylear:${{ env.SANITIZED_REF }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build_client, build_server]
+    steps:
       - name: Deploy to DigitalOcean App Platform
         uses: digitalocean/app_action/deploy@v2
         with:
