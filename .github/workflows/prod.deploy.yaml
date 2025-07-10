@@ -11,27 +11,6 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set tag variable
-        run: |
-          echo "TAG=${GITHUB_REF#refs/tags/}" | sed 's/\./_/g' >> $GITHUB_ENV
-
-      - name: Check client image exists
-        run: |
-          if ! curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            https://ghcr.io/v2/jcfug8/daylear-client/manifests/${TAG} | grep -q 'schemaVersion'; then
-            echo "Client image for tag ${TAG} not found" && exit 1
-          fi
-
-      - name: Check server image exists
-        run: |
-          if ! curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            https://ghcr.io/v2/jcfug8/daylear/manifests/${TAG} | grep -q 'schemaVersion'; then
-            echo "Server image for tag ${TAG} not found" && exit 1
-          fi
-
       - name: Deploy to DigitalOcean App Platform
         uses: digitalocean/app_action/deploy@v2
         with:
