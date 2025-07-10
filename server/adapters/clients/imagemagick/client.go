@@ -44,7 +44,7 @@ func (c *Client) CreateImage(ctx context.Context, imageReader io.Reader) (image.
 		return nil, err
 	}
 	cmd := exec.CommandContext(ctx, "magick", "identify", "-ping", "-format", "%m", tmp.Name())
-	out, err := cmd.Output()
+	out, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Error().Err(err).Msgf("failed to identify image format: %s: %s", err, string(out))
 		return nil, err
