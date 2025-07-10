@@ -23,7 +23,7 @@ FROM alpine:latest
 WORKDIR /root/
 
 # Install imagemagick
-RUN apk add --no-cache imagemagick
+RUN apk add --no-cache imagemagick imagemagick-full
 
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/bin/daylearctl .
