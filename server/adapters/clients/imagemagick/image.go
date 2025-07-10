@@ -23,8 +23,9 @@ type magickImage struct {
 
 func (m *magickImage) Resize(ctx context.Context, width int, height int) error {
 	cmd := exec.CommandContext(ctx, "magick", m.path, "-resize", fmt.Sprintf("%dx%d>", width, height), m.path)
-	if err := cmd.Run(); err != nil {
-		return err
+	out, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("failed to resize image: %s: %s", err, string(out))
 	}
 	return nil
 }
@@ -59,7 +60,7 @@ func (m *magickImage) GetDimensions(ctx context.Context) (width int, height int,
 	cmd := exec.CommandContext(ctx, "magick", "identify", "-ping", "-format", "%w %h", m.path)
 	out, err := cmd.Output()
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, fmt.Errorf("failed to get dimensions: %s: %s", err, string(out))
 	}
 	parts := strings.Split(string(out), " ")
 	if len(parts) != 2 {
@@ -83,8 +84,9 @@ func (m *magickImage) Convert(ctx context.Context, format string) error {
 
 	outPath := m.path + ".converted." + format
 	cmd := exec.CommandContext(ctx, "magick", m.path, outPath)
-	if err := cmd.Run(); err != nil {
-		return err
+	out, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("failed to convert image: %s: %s", err, string(out))
 	}
 
 	m.Format = "." + format
