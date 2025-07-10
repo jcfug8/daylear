@@ -25,6 +25,7 @@ func NewClient(log zerolog.Logger) (*Client, error) {
 		log.Error().Err(err).Msgf("magick identify is not installed: %s: %s", err, string(out))
 		return nil, fmt.Errorf("magick identify is not installed: %s: %s", err, string(out))
 	}
+	log.Info().Msgf("magick identify is installed: %s", string(out))
 	return &Client{log: log}, nil
 }
 
