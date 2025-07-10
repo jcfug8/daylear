@@ -6,6 +6,7 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/services/grpc"
 	"github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/convert"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
+	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	"google.golang.org/grpc/codes"
@@ -19,8 +20,11 @@ var (
 
 // CreateRecipe -
 func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateRecipeRequest) (response *pb.Recipe, err error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC CreateRecipe called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
@@ -35,84 +39,103 @@ func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateReci
 	pbRecipe.Name = ""
 	mRecipe, err := convert.ProtoToRecipe(s.recipeNamer, pbRecipe)
 	if err != nil {
-		s.log.Warn().Err(err).Msg("unable to convert proto to model")
+		log.Warn().Err(err).Msg("unable to convert proto to model")
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
 	}
 
 	// create recipe
 	mRecipe, err = s.domain.CreateRecipe(ctx, authAccount, mRecipe)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.CreateRecipe failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert model to proto
 	pbRecipe, err = convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
 	// check field behavior
 	grpc.ProcessResponseFieldBehavior(pbRecipe)
-
+	log.Info().Msg("gRPC CreateRecipe success")
 	return pbRecipe, nil
 }
 
 // DeleteRecipe -
 func (s *RecipeService) DeleteRecipe(ctx context.Context, request *pb.DeleteRecipeRequest) (*pb.Recipe, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC DeleteRecipe called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
 	mRecipe := model.Recipe{}
 	_, err = s.recipeNamer.Parse(request.GetName(), &mRecipe)
 	if err != nil {
+		log.Warn().Err(err).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
 	mRecipe, err = s.domain.DeleteRecipe(ctx, authAccount, mRecipe.Id)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.DeleteRecipe failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
+	log.Info().Msg("gRPC DeleteRecipe success")
 	return pbRecipe, nil
 }
 
 // GetRecipe -
 func (s *RecipeService) GetRecipe(ctx context.Context, request *pb.GetRecipeRequest) (*pb.Recipe, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC GetRecipe called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
 	mRecipe := model.Recipe{}
 	_, err = s.recipeNamer.Parse(request.GetName(), &mRecipe)
 	if err != nil {
+		log.Warn().Err(err).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
 	mRecipe, err = s.domain.GetRecipe(ctx, authAccount, mRecipe.Id)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.GetRecipe failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
+	log.Info().Msg("gRPC GetRecipe success")
 	return pbRecipe, nil
 }
 
 // UpdateRecipe -
 func (s *RecipeService) UpdateRecipe(ctx context.Context, request *pb.UpdateRecipeRequest) (*pb.Recipe, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC UpdateRecipe called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
@@ -120,6 +143,7 @@ func (s *RecipeService) UpdateRecipe(ctx context.Context, request *pb.UpdateReci
 	var mRecipe model.Recipe
 	_, err = s.recipeNamer.Parse(recipeProto.GetName(), &mRecipe)
 	if err != nil {
+		log.Warn().Err(err).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", recipeProto.GetName())
 	}
 
@@ -128,26 +152,33 @@ func (s *RecipeService) UpdateRecipe(ctx context.Context, request *pb.UpdateReci
 
 	mRecipe, err = convert.ProtoToRecipe(s.recipeNamer, recipeProto)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to convert proto to model")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	mRecipe, err = s.domain.UpdateRecipe(ctx, authAccount, mRecipe, updateMask)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.UpdateRecipe failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	recipeProto, err = convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	log.Info().Msg("gRPC UpdateRecipe success")
 	return recipeProto, nil
 }
 
 // ListRecipes -
 func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipesRequest) (*pb.ListRecipesResponse, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC ListRecipes called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
@@ -156,12 +187,14 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 		MaxPageSize:     recipeMaxPageSize,
 	})
 	if err != nil {
+		log.Error().Err(err).Msg("failed to setup pagination")
 		return nil, err
 	}
 	request.PageSize = pageSize
 
 	res, err := s.domain.ListRecipes(ctx, authAccount, request.GetPageSize(), pageToken.Offset, request.GetFilter())
 	if err != nil {
+		log.Error().Err(err).Msg("domain.ListRecipes failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -169,6 +202,7 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 	for i, recipe := range res {
 		recipeProto, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, recipe)
 		if err != nil {
+			log.Error().Err(err).Msg("unable to prepare response")
 			return nil, status.Error(codes.Internal, "unable to prepare response")
 		}
 		recipes[i] = recipeProto
@@ -187,34 +221,42 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 		response.NextPageToken = pageToken.Next(request).String()
 	}
 
+	log.Info().Msg("gRPC ListRecipes success")
 	return response, nil
 }
 
 // ScrapeRecipe -
 func (s *RecipeService) ScrapeRecipe(ctx context.Context, request *pb.ScrapeRecipeRequest) (*pb.ScrapeRecipeResponse, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC ScrapeRecipe called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
 	// check field behavior
 	err = grpc.ProcessRequestFieldBehavior(request)
 	if err != nil {
+		log.Error().Err(err).Msg("failed to process request field behavior")
 		return nil, err
 	}
 
 	// scrape the recipe
 	recipe, err := s.domain.ScrapeRecipe(ctx, authAccount, request.GetUri())
 	if err != nil {
+		log.Error().Err(err).Msg("domain.ScrapeRecipe failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert the recipe to a proto
 	recipeProto, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, recipe)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
+	log.Info().Msg("gRPC ScrapeRecipe success")
 	return &pb.ScrapeRecipeResponse{
 		Recipe: recipeProto,
 	}, nil

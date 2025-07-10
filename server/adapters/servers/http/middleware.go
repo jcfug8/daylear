@@ -1,8 +1,11 @@
 package http
 
 import (
+	"context"
+	"math/rand"
 	"net/http"
 	"path"
+	"strconv"
 	"time"
 
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
@@ -61,7 +64,19 @@ func (m *MiddlewareMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c = c.Append(hlog.RemoteAddrHandler("ip"))
 	c = c.Append(hlog.UserAgentHandler("user_agent"))
 	c = c.Append(hlog.RefererHandler("referer"))
-	c = c.Append(hlog.RequestIDHandler("req_id", "Request-Id"))
+	c = c.Append(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			reqID, _ := hlog.IDFromRequest(r)
+			var reqIDStr string
+			if reqID.IsZero() {
+				reqIDStr = strconv.FormatInt(time.Now().UnixNano(), 36) + "-" + strconv.Itoa(rand.Intn(100000))
+			} else {
+				reqIDStr = reqID.String()
+			}
+			ctx := context.WithValue(r.Context(), "req_id", reqIDStr)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	})
 
 	h := c.Then(m.ServeMux)
 	h.ServeHTTP(w, r)

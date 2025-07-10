@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/jcfug8/daylear/server/core/logutil"
 	"go.uber.org/fx"
 )
 
@@ -82,16 +83,18 @@ func NewClient(params NewClientParams) (*Client, error) {
 }
 
 func (c *Client) ensureBucketExists(ctx context.Context) error {
-	c.log.Info().Msgf("Ensuring bucket %s exists", c.bucket)
+	log := logutil.EnrichLoggerWithContext(c.log, ctx)
+	log.Info().Msgf("Ensuring bucket %s exists", c.bucket)
 	_, err := c.s3Client.HeadBucket(ctx, &s3.HeadBucketInput{
 		Bucket: aws.String(c.bucket),
 	})
 	if err != nil {
-		c.log.Info().Msgf("Bucket %s does not exist, creating", c.bucket)
+		log.Info().Msgf("Bucket %s does not exist, creating", c.bucket)
 		_, err := c.s3Client.CreateBucket(ctx, &s3.CreateBucketInput{
 			Bucket: aws.String(c.bucket),
 		})
 		if err != nil {
+			log.Error().Err(err).Msg("failed to create bucket")
 			return fmt.Errorf("failed to create bucket: %w", err)
 		}
 	}
@@ -99,6 +102,7 @@ func (c *Client) ensureBucketExists(ctx context.Context) error {
 }
 
 func (c *Client) UploadPublicFile(ctx context.Context, filePath string, file file.File) (string, error) {
+	log := logutil.EnrichLoggerWithContext(c.log, ctx)
 	_, err := c.s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:        aws.String(c.bucket),
 		Key:           aws.String(filePath),
@@ -107,28 +111,35 @@ func (c *Client) UploadPublicFile(ctx context.Context, filePath string, file fil
 		ContentLength: aws.Int64(file.ContentLength),
 		ACL:           types.ObjectCannedACLPublicRead,
 	})
-
+	if err != nil {
+		log.Error().Err(err).Msg("failed to upload public file")
+	}
 	publicEndpointURL := *c.publicEndpointURL
 	publicEndpointURL.Path = path.Join(c.bucket, filePath)
-
 	return publicEndpointURL.String(), err
 }
 
 func (c *Client) GetFile(ctx context.Context, filePath string) (io.ReadCloser, error) {
+	log := logutil.EnrichLoggerWithContext(c.log, ctx)
 	resp, err := c.s3Client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(c.bucket),
 		Key:    aws.String(filePath),
 	})
 	if err != nil {
+		log.Error().Err(err).Msg("failed to get file")
 		return nil, err
 	}
 	return resp.Body, nil
 }
 
 func (c *Client) DeleteFile(ctx context.Context, path string) error {
+	log := logutil.EnrichLoggerWithContext(c.log, ctx)
 	_, err := c.s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(c.bucket),
 		Key:    aws.String(path),
 	})
+	if err != nil {
+		log.Error().Err(err).Msg("failed to delete file")
+	}
 	return err
 }

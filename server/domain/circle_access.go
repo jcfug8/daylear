@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 
+	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
@@ -10,6 +11,8 @@ import (
 
 // CreateCircleAccess creates a new circle access
 func (d *Domain) CreateCircleAccess(ctx context.Context, authAccount model.AuthAccount, access model.CircleAccess) (model.CircleAccess, error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	log.Info().Msg("Domain CreateCircleAccess called")
 	if access.CircleAccessParent.CircleId.CircleId == 0 {
 		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "circle id is required"}
 	}
@@ -48,11 +51,14 @@ func (d *Domain) CreateCircleAccess(ctx context.Context, authAccount model.AuthA
 		return model.CircleAccess{}, err
 	}
 
+	log.Info().Msg("Domain CreateCircleAccess returning successfully")
 	return access, nil
 }
 
 // DeleteCircleAccess deletes a circle access
 func (d *Domain) DeleteCircleAccess(ctx context.Context, authAccount model.AuthAccount, parent model.CircleAccessParent, id model.CircleAccessId) error {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	log.Info().Msg("Domain DeleteCircleAccess called")
 	// verify circle is set
 	if parent.CircleId.CircleId == 0 {
 		return domain.ErrInvalidArgument{Msg: "circle id is required"}
@@ -92,11 +98,19 @@ func (d *Domain) DeleteCircleAccess(ctx context.Context, authAccount model.AuthA
 		}
 	}
 
-	return d.repo.DeleteCircleAccess(ctx, parent, id)
+	err = d.repo.DeleteCircleAccess(ctx, parent, id)
+	if err != nil {
+		return err
+	}
+
+	log.Info().Msg("Domain DeleteCircleAccess returning successfully")
+	return nil
 }
 
 // GetCircleAccess gets a circle access
 func (d *Domain) GetCircleAccess(ctx context.Context, authAccount model.AuthAccount, parent model.CircleAccessParent, id model.CircleAccessId) (model.CircleAccess, error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	log.Info().Msg("Domain GetCircleAccess called")
 	// verify circle is set
 	if parent.CircleId.CircleId == 0 {
 		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "circle id is required"}
@@ -136,11 +150,14 @@ func (d *Domain) GetCircleAccess(ctx context.Context, authAccount model.AuthAcco
 		}
 	}
 
+	log.Info().Msg("Domain GetCircleAccess returning successfully")
 	return access, nil
 }
 
 // ListCircleAccesses lists circle accesses
 func (d *Domain) ListCircleAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.CircleAccessParent, pageSize int32, pageOffset int64, filter string) ([]model.CircleAccess, error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	log.Info().Msg("Domain ListCircleAccesses called")
 	if authAccount.UserId == 0 {
 		return nil, domain.ErrInvalidArgument{Msg: "requester is required"}
 	}
@@ -159,11 +176,19 @@ func (d *Domain) ListCircleAccesses(ctx context.Context, authAccount model.AuthA
 		}
 	}
 
-	return d.repo.ListCircleAccesses(ctx, authAccount, parent, pageSize, pageOffset, filter)
+	accesses, err := d.repo.ListCircleAccesses(ctx, authAccount, parent, pageSize, pageOffset, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info().Msg("Domain ListCircleAccesses returning successfully")
+	return accesses, nil
 }
 
 // UpdateCircleAccess updates a circle access
 func (d *Domain) UpdateCircleAccess(ctx context.Context, authAccount model.AuthAccount, access model.CircleAccess, updateMask []string) (model.CircleAccess, error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	log.Info().Msg("Domain UpdateCircleAccess called")
 	// verify circle is set
 	if access.CircleAccessParent.CircleId.CircleId == 0 {
 		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "circle id is required"}
@@ -213,11 +238,14 @@ func (d *Domain) UpdateCircleAccess(ctx context.Context, authAccount model.AuthA
 		return model.CircleAccess{}, err
 	}
 
+	log.Info().Msg("Domain UpdateCircleAccess returning successfully")
 	return updatedAccess, nil
 }
 
 // AcceptCircleAccess accepts a pending circle access
 func (d *Domain) AcceptCircleAccess(ctx context.Context, authAccount model.AuthAccount, parent model.CircleAccessParent, id model.CircleAccessId) (model.CircleAccess, error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	log.Info().Msg("Domain AcceptCircleAccess called")
 	// verify circle is set
 	if parent.CircleId.CircleId == 0 {
 		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "circle id is required"}
@@ -253,5 +281,6 @@ func (d *Domain) AcceptCircleAccess(ctx context.Context, authAccount model.AuthA
 		return model.CircleAccess{}, err
 	}
 
+	log.Info().Msg("Domain AcceptCircleAccess returning successfully")
 	return updatedAccess, nil
 }

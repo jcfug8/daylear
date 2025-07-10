@@ -9,7 +9,7 @@ import (
 )
 
 func (d *Domain) CreateToken(ctx context.Context, user model.User) (string, error) {
-	token, err := d.tokenClient.Encode(user)
+	token, err := d.tokenClient.Encode(ctx, user)
 	if err != nil {
 		return "", err
 	}
@@ -32,5 +32,5 @@ func (d *Domain) RetrieveToken(ctx context.Context, key string) (string, error) 
 }
 
 func (d *Domain) ParseToken(ctx context.Context, token string) (model.User, error) {
-	return d.tokenClient.Decode(token)
+	return d.tokenClient.Decode(ctx, token)
 }

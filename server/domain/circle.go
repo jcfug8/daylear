@@ -9,6 +9,7 @@ import (
 
 	// "fmt"
 
+	"github.com/jcfug8/daylear/server/core/logutil"
 	model "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
@@ -21,7 +22,10 @@ const CircleImageRoot = "circles"
 
 // CreateCircle creates a new circle.
 func (d *Domain) CreateCircle(ctx context.Context, authAccount model.AuthAccount, circle model.Circle) (model.Circle, error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	log.Info().Msg("Domain CreateCircle called")
 	if authAccount.UserId == 0 {
+		log.Warn().Msg("parent required: missing user id")
 		return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent required"}
 	}
 
@@ -29,17 +33,20 @@ func (d *Domain) CreateCircle(ctx context.Context, authAccount model.AuthAccount
 
 	tx, err := d.repo.Begin(ctx)
 	if err != nil {
+		log.Error().Err(err).Msg("repo.Begin failed")
 		return model.Circle{}, err
 	}
 	defer tx.Rollback()
 
 	circle.ImageURI, err = d.createCircleImageURI(ctx, circle)
 	if err != nil {
+		log.Error().Err(err).Msg("createCircleImageURI failed")
 		return model.Circle{}, err
 	}
 
 	dbCircle, err := tx.CreateCircle(ctx, circle)
 	if err != nil {
+		log.Error().Err(err).Msg("CreateCircle in repo failed")
 		return model.Circle{}, err
 	}
 
@@ -57,97 +64,124 @@ func (d *Domain) CreateCircle(ctx context.Context, authAccount model.AuthAccount
 
 	dbCircleAccess, err := tx.CreateCircleAccess(ctx, circleAccess)
 	if err != nil {
+		log.Error().Err(err).Msg("CreateCircleAccess in repo failed")
 		return model.Circle{}, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
+		log.Error().Err(err).Msg("tx.Commit failed")
 		return model.Circle{}, err
 	}
 
 	dbCircle.CircleAccess = dbCircleAccess
-
+	log.Info().Msg("Domain CreateCircle returning successfully")
 	return dbCircle, nil
 }
 
 // DeleteCircle deletes a circle.
 func (d *Domain) DeleteCircle(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (circle model.Circle, err error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	log.Info().Msg("Domain DeleteCircle called")
 	if authAccount.UserId == 0 || id.CircleId == 0 {
+		log.Warn().Msg("parent and id required")
 		return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent and id required"}
 	}
 
 	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
 	if err != nil {
+		log.Error().Err(err).Msg("getCircleAccessLevels failed")
 		return model.Circle{}, err
 	}
 
 	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
+		log.Warn().Msg("user does not have write permission")
 		return model.Circle{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 
 	tx, err := d.repo.Begin(ctx)
 	if err != nil {
+		log.Error().Err(err).Msg("repo.Begin failed")
 		return model.Circle{}, err
 	}
 	defer tx.Rollback()
 
 	circle, err = tx.DeleteCircle(ctx, id)
 	if err != nil {
+		log.Error().Err(err).Msg("DeleteCircle in repo failed")
 		return model.Circle{}, err
 	}
 
 	err = tx.BulkDeleteCircleAccess(ctx, model.CircleAccessParent{CircleId: id})
 	if err != nil {
+		log.Error().Err(err).Msg("BulkDeleteCircleAccess in repo failed")
 		return model.Circle{}, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
+		log.Error().Err(err).Msg("tx.Commit failed")
 		return model.Circle{}, err
 	}
 
+	log.Info().Msg("Domain DeleteCircle returning successfully")
 	return circle, nil
 }
 
 // GetCircle gets a circle.
 func (d *Domain) GetCircle(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (circle model.Circle, err error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	log.Info().Msg("Domain GetCircle called")
 	if authAccount.UserId == 0 {
+		log.Warn().Msg("parent required: missing user id")
 		return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent required"}
 	}
 
 	if id.CircleId == 0 {
+		log.Warn().Msg("id required: missing circle id")
 		return model.Circle{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
 	circle, err = d.repo.GetCircle(ctx, authAccount, id)
 	if err != nil {
+		log.Error().Err(err).Msg("GetCircle in repo failed")
 		return model.Circle{}, err
 	}
 
+	log.Info().Msg("Domain GetCircle returning successfully")
 	return circle, nil
 }
 
 // ListCircles lists circles for a parent.
 func (d *Domain) ListCircles(ctx context.Context, authAccount model.AuthAccount, pageSize int32, pageOffset int64, filter string, fieldMask []string) ([]model.Circle, error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	log.Info().Msg("Domain ListCircles called")
 	if authAccount.UserId == 0 {
+		log.Warn().Msg("parent required: missing user id")
 		return nil, domain.ErrInvalidArgument{Msg: "parent required"}
 	}
 
 	circles, err := d.repo.ListCircles(ctx, authAccount, pageSize, pageOffset, filter, fieldMask)
 	if err != nil {
+		log.Error().Err(err).Msg("ListCircles in repo failed")
 		return nil, err
 	}
 
+	log.Info().Msg("Domain ListCircles returning successfully")
 	return circles, nil
 }
 
 // UpdateCircle updates a circle.
 func (d *Domain) UpdateCircle(ctx context.Context, authAccount model.AuthAccount, circle model.Circle, updateMask []string) (dbCircle model.Circle, err error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	log.Info().Msg("Domain UpdateCircle called")
 	if authAccount.UserId == 0 {
+		log.Warn().Msg("parent required: missing user id")
 		return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent required"}
 	}
 
 	if circle.Id.CircleId == 0 {
+		log.Warn().Msg("id required: missing circle id")
 		return model.Circle{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
@@ -155,20 +189,24 @@ func (d *Domain) UpdateCircle(ctx context.Context, authAccount model.AuthAccount
 
 	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
 	if err != nil {
+		log.Error().Err(err).Msg("getCircleAccessLevels failed")
 		return model.Circle{}, err
 	}
 
 	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
+		log.Warn().Msg("user does not have write permission")
 		return model.Circle{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 
 	previousDbCircle, err := d.repo.GetCircle(ctx, authAccount, circle.Id)
 	if err != nil {
+		log.Error().Err(err).Msg("GetCircle in repo failed")
 		return model.Circle{}, err
 	}
 
 	tx, err := d.repo.Begin(ctx)
 	if err != nil {
+		log.Error().Err(err).Msg("repo.Begin failed")
 		return model.Circle{}, err
 	}
 	defer tx.Rollback()
@@ -177,6 +215,7 @@ func (d *Domain) UpdateCircle(ctx context.Context, authAccount model.AuthAccount
 		if updateMaskField == model.CircleFields.ImageURI && circle.ImageURI != previousDbCircle.ImageURI {
 			circle.ImageURI, err = d.updateCircleImageURI(ctx, authAccount, circle)
 			if err != nil {
+				log.Error().Err(err).Msg("updateCircleImageURI failed")
 				return model.Circle{}, err
 			}
 		}
@@ -184,14 +223,17 @@ func (d *Domain) UpdateCircle(ctx context.Context, authAccount model.AuthAccount
 
 	updated, err := d.repo.UpdateCircle(ctx, authAccount, circle, updateMask)
 	if err != nil {
+		log.Error().Err(err).Msg("UpdateCircle in repo failed")
 		return model.Circle{}, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
+		log.Error().Err(err).Msg("tx.Commit failed")
 		return model.Circle{}, err
 	}
 
+	log.Info().Msg("Domain UpdateCircle returning successfully")
 	return updated, nil
 }
 

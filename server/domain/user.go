@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/jcfug8/daylear/server/core/logutil"
 	model "github.com/jcfug8/daylear/server/core/model"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
 )
@@ -63,12 +64,16 @@ func (d *Domain) UpdateUser(ctx context.Context, authAccount model.AuthAccount, 
 
 // GetUser gets a user.
 func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId, fieldMask []string) (model.User, error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+
 	if id.UserId == 0 {
+		log.Warn().Msg("id required")
 		return model.User{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
 	user, err := d.repo.GetUser(ctx, id, fieldMask)
 	if err != nil {
+		log.Error().Err(err).Msg("repo.GetUser failed")
 		return model.User{}, err
 	}
 

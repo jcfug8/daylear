@@ -6,6 +6,7 @@ import (
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/masks"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
@@ -22,6 +23,7 @@ var RecipeMap = map[string]string{
 
 // ListRecipes lists recipes.
 func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAccount, pageSize int32, offset int64, filter string) ([]cmodel.Recipe, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	dbRecipes := []gmodel.Recipe{}
 
 	orders := []clause.OrderByColumn{{
@@ -47,6 +49,7 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 
 	conversion, err := repo.recipeSQLConverter.Convert(filter)
 	if err != nil {
+		log.Error().Err(err).Msg("invalid filter")
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
 	}
 
@@ -56,6 +59,7 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 
 	err = tx.Find(&dbRecipes).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.Find failed")
 		return nil, ConvertGormError(err)
 	}
 
@@ -63,6 +67,7 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 	for i, m := range dbRecipes {
 		res[i], err = convert.RecipeToCoreModel(m)
 		if err != nil {
+			log.Error().Err(err).Msg("unable to read recipe")
 			return nil, fmt.Errorf("unable to read recipe: %v", err)
 		}
 	}
@@ -72,8 +77,10 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 
 // CreateRecipe creates a new recipe.
 func (repo *Client) CreateRecipe(ctx context.Context, m cmodel.Recipe) (cmodel.Recipe, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	gm, err := convert.RecipeFromCoreModel(m)
 	if err != nil {
+		log.Error().Err(err).Msg("invalid recipe model")
 		return cmodel.Recipe{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid recipe: %v", err)}
 	}
 
@@ -86,11 +93,13 @@ func (repo *Client) CreateRecipe(ctx context.Context, m cmodel.Recipe) (cmodel.R
 		Clauses(clause.Returning{}).
 		Create(&gm).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.Create failed")
 		return cmodel.Recipe{}, ConvertGormError(err)
 	}
 
 	m, err = convert.RecipeToCoreModel(gm)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to read recipe")
 		return cmodel.Recipe{}, fmt.Errorf("unable to read recipe: %v", err)
 	}
 
@@ -99,6 +108,7 @@ func (repo *Client) CreateRecipe(ctx context.Context, m cmodel.Recipe) (cmodel.R
 
 // DeleteRecipe deletes a recipe.
 func (repo *Client) DeleteRecipe(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.RecipeId) (cmodel.Recipe, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	gm := gmodel.Recipe{RecipeId: id.RecipeId}
 
 	err := repo.db.WithContext(ctx).
@@ -106,11 +116,13 @@ func (repo *Client) DeleteRecipe(ctx context.Context, authAccount cmodel.AuthAcc
 		Clauses(clause.Returning{}).
 		Delete(&gm).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.Delete failed")
 		return cmodel.Recipe{}, ConvertGormError(err)
 	}
 
 	m, err := convert.RecipeToCoreModel(gm)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to read recipe")
 		return cmodel.Recipe{}, fmt.Errorf("unable to read recipe: %v", err)
 	}
 
@@ -119,6 +131,7 @@ func (repo *Client) DeleteRecipe(ctx context.Context, authAccount cmodel.AuthAcc
 
 // GetRecipe gets a recipe.
 func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.RecipeId) (cmodel.Recipe, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	gm := gmodel.Recipe{}
 
 	tx := repo.db.WithContext(ctx).
@@ -135,11 +148,13 @@ func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccoun
 
 	err := tx.First(&gm).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.First failed")
 		return cmodel.Recipe{}, ConvertGormError(err)
 	}
 
 	m, err := convert.RecipeToCoreModel(gm)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to read recipe")
 		return cmodel.Recipe{}, fmt.Errorf("unable to read recipe: %v", err)
 	}
 
@@ -148,8 +163,10 @@ func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccoun
 
 // UpdateRecipe updates a recipe.
 func (repo *Client) UpdateRecipe(ctx context.Context, authAccount cmodel.AuthAccount, m cmodel.Recipe, fields []string) (cmodel.Recipe, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	gm, err := convert.RecipeFromCoreModel(m)
 	if err != nil {
+		log.Error().Err(err).Msg("invalid recipe model")
 		return cmodel.Recipe{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("error reading recipe: %v", err)}
 	}
 
@@ -160,11 +177,13 @@ func (repo *Client) UpdateRecipe(ctx context.Context, authAccount cmodel.AuthAcc
 		Clauses(&clause.Returning{}).
 		Updates(&gm).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.Updates failed")
 		return cmodel.Recipe{}, ConvertGormError(err)
 	}
 
 	m, err = convert.RecipeToCoreModel(gm)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to read recipe")
 		return cmodel.Recipe{}, fmt.Errorf("unable to read recipe: %v", err)
 	}
 

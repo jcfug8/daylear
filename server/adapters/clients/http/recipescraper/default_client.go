@@ -11,16 +11,19 @@ import (
 
 	"encoding/json"
 
+	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/core/schemaorgrecipe"
 	"github.com/jcfug8/daylear/server/ports/ingredientcleaner"
 	"github.com/jcfug8/daylear/server/ports/recipescraper"
+	"github.com/rs/zerolog"
 )
 
 var _ recipescraper.DefaultClient = &DefaultClient{}
 
 type DefaultClient struct {
 	ingredientCleaner ingredientcleaner.Client
+	log               zerolog.Logger
 }
 
 type DefaultClientParams struct {
@@ -29,25 +32,30 @@ type DefaultClientParams struct {
 	IngredientCleaner ingredientcleaner.Client
 }
 
-func NewDefaultClient(params DefaultClientParams) *DefaultClient {
+func NewDefaultClient(params DefaultClientParams, log zerolog.Logger) *DefaultClient {
 	return &DefaultClient{
 		ingredientCleaner: params.IngredientCleaner,
+		log:               log,
 	}
 }
 
 func (r *DefaultClient) ScrapeRecipe(ctx context.Context, uri string) (model.Recipe, error) {
+	log := logutil.EnrichLoggerWithContext(r.log, ctx)
 	// Fetch the HTML
 	resp, err := http.Get(uri)
 	if err != nil {
+		log.Error().Err(err).Str("uri", uri).Msg("failed to fetch url")
 		return model.Recipe{}, fmt.Errorf("failed to fetch url: %w", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
+		log.Warn().Str("uri", uri).Int("status_code", resp.StatusCode).Msg("non-200 response")
 		return model.Recipe{}, fmt.Errorf("non-200 response: %d", resp.StatusCode)
 	}
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
+		log.Error().Err(err).Str("uri", uri).Msg("failed to parse HTML")
 		return model.Recipe{}, fmt.Errorf("failed to parse HTML: %w", err)
 	}
 
@@ -101,11 +109,13 @@ func (r *DefaultClient) ScrapeRecipe(ctx context.Context, uri string) (model.Rec
 		return true // continue
 	})
 	if !found {
+		log.Warn().Str("uri", uri).Msg("no schema.org recipe found in ld+json")
 		return model.Recipe{}, errors.New("no schema.org recipe found in ld+json")
 	}
 
 	schemaRecipe.RecipeIngredient, err = r.ingredientCleaner.CleanIngredients(ctx, schemaorgrecipe.AsStringSlice(schemaRecipe.RecipeIngredient))
 	if err != nil {
+		log.Error().Err(err).Str("uri", uri).Msg("failed to clean ingredients")
 		return model.Recipe{}, fmt.Errorf("failed to clean ingredients: %w", err)
 	}
 

@@ -8,18 +8,19 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/filtering"
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/masks"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/ports/repository"
 	"gorm.io/gorm/clause"
-	// IRIOMO:CUSTOM_CODE_SLOT_START userCreateImports
-	// IRIOMO:CUSTOM_CODE_SLOT_END
 )
 
 // CreateUser creates a new user.
 func (repo *Client) CreateUser(ctx context.Context, m cmodel.User) (cmodel.User, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	gm, err := convert.UserFromCoreModel(m)
 	if err != nil {
+		log.Error().Err(err).Msg("invalid user model")
 		return cmodel.User{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid user: %v", err)}
 	}
 
@@ -30,11 +31,13 @@ func (repo *Client) CreateUser(ctx context.Context, m cmodel.User) (cmodel.User,
 		Clauses(clause.Returning{}).
 		Create(&gm).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.Create failed")
 		return cmodel.User{}, ConvertGormError(err)
 	}
 
 	m, err = convert.UserToCoreModel(gm)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to read user")
 		return cmodel.User{}, fmt.Errorf("unable to read user: %v", err)
 	}
 
@@ -43,6 +46,8 @@ func (repo *Client) CreateUser(ctx context.Context, m cmodel.User) (cmodel.User,
 
 // GetUser gets a user.
 func (repo *Client) GetUser(ctx context.Context, id cmodel.UserId, fields []string) (cmodel.User, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+
 	gm := gmodel.User{UserId: id.UserId}
 
 	mask := masks.Map(fields, model.UserMap)
@@ -55,11 +60,13 @@ func (repo *Client) GetUser(ctx context.Context, id cmodel.UserId, fields []stri
 		Clauses(clause.Returning{}).
 		First(&gm).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.First failed")
 		return cmodel.User{}, ConvertGormError(err)
 	}
 
 	m, err := convert.UserToCoreModel(gm)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to read user")
 		return cmodel.User{}, fmt.Errorf("unable to read user: %v", err)
 	}
 
@@ -68,6 +75,7 @@ func (repo *Client) GetUser(ctx context.Context, id cmodel.UserId, fields []stri
 
 // ListUsers lists users.
 func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccount, pageSize int32, pageOffset int64, filter string, fields []string) ([]cmodel.User, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	args := make([]any, 0, 1)
 
 	fields = masks.Map(fields, gmodel.UserMap)
@@ -90,6 +98,7 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 
 	filterClause, _ /* info */, err := t.Transpile(filter)
 	if err != nil {
+		log.Error().Err(err).Msg("invalid filter")
 		return nil, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid filter: %v", err)}
 	}
 
@@ -111,6 +120,7 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 	tableAlias := fmt.Sprintf("%s AS u", gmodel.User{}.TableName())
 	err = tx.Table(tableAlias).Find(&mods).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.Find failed")
 		return nil, ConvertGormError(err)
 	}
 
@@ -118,6 +128,7 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 	for i, m := range mods {
 		res[i], err = convert.UserToCoreModel(m)
 		if err != nil {
+			log.Error().Err(err).Msg("unable to read user")
 			return nil, fmt.Errorf("unable to read user: %v", err)
 		}
 	}
@@ -127,8 +138,10 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 
 // UpdateUser updates a user.
 func (repo *Client) UpdateUser(ctx context.Context, m cmodel.User, fields []string) (cmodel.User, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	gm, err := convert.UserFromCoreModel(m)
 	if err != nil {
+		log.Error().Err(err).Msg("invalid user model")
 		return cmodel.User{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid user: %v", err)}
 	}
 
@@ -139,11 +152,13 @@ func (repo *Client) UpdateUser(ctx context.Context, m cmodel.User, fields []stri
 		Clauses(&clause.Returning{}).
 		Updates(&gm).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.Updates failed")
 		return cmodel.User{}, ConvertGormError(err)
 	}
 
 	m, err = convert.UserToCoreModel(gm)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to read user")
 		return cmodel.User{}, fmt.Errorf("unable to read user: %v", err)
 	}
 

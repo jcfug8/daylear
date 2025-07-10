@@ -5,6 +5,7 @@ import (
 
 	"github.com/jcfug8/daylear/server/adapters/services/grpc"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
+	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1"
 	"google.golang.org/grpc/codes"
@@ -18,14 +19,18 @@ var (
 )
 
 func (s *CircleService) CreateAccess(ctx context.Context, request *pb.CreateAccessRequest) (*pb.Access, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC CreateAccess called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
 	// check field behavior
 	err = grpc.ProcessRequestFieldBehavior(request)
 	if err != nil {
+		log.Warn().Err(err).Msg("invalid request data")
 		return nil, err
 	}
 
@@ -34,36 +39,43 @@ func (s *CircleService) CreateAccess(ctx context.Context, request *pb.CreateAcce
 	pbAccess.Name = ""
 	modelAccess, err := s.ProtoToCircleAccess(pbAccess)
 	if err != nil {
+		log.Warn().Err(err).Msg("invalid access proto")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid access: %v", err)
 	}
 
 	// parse parent
 	_, err = s.accessNamer.ParseParent(request.Parent, &modelAccess)
 	if err != nil {
+		log.Warn().Err(err).Str("parent", request.Parent).Msg("invalid parent")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", err)
 	}
 
 	// create access
 	createdAccess, err := s.domain.CreateCircleAccess(ctx, authAccount, modelAccess)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.CreateCircleAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert model to proto
 	pbAccess, err = s.CircleAccessToProto(createdAccess)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
 	// check field behavior
 	grpc.ProcessResponseFieldBehavior(pbAccess)
-
+	log.Info().Msg("gRPC CreateAccess returning successfully")
 	return pbAccess, nil
 }
 
 func (s *CircleService) DeleteAccess(ctx context.Context, request *pb.DeleteAccessRequest) (*emptypb.Empty, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC DeleteAccess called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
@@ -71,21 +83,27 @@ func (s *CircleService) DeleteAccess(ctx context.Context, request *pb.DeleteAcce
 	circleAccess := &model.CircleAccess{}
 	_, err = s.accessNamer.Parse(request.Name, circleAccess)
 	if err != nil {
+		log.Warn().Err(err).Str("name", request.Name).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.Name)
 	}
 
 	// delete access
 	err = s.domain.DeleteCircleAccess(ctx, authAccount, circleAccess.CircleAccessParent, circleAccess.CircleAccessId)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.DeleteCircleAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	log.Info().Msg("gRPC DeleteAccess returning successfully")
 	return &emptypb.Empty{}, nil
 }
 
 func (s *CircleService) GetAccess(ctx context.Context, request *pb.GetAccessRequest) (*pb.Access, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC GetAccess called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
@@ -93,30 +111,36 @@ func (s *CircleService) GetAccess(ctx context.Context, request *pb.GetAccessRequ
 	circleAccess := &model.CircleAccess{}
 	_, err = s.accessNamer.Parse(request.Name, circleAccess)
 	if err != nil {
+		log.Warn().Err(err).Str("name", request.Name).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.Name)
 	}
 
 	// get access
 	access, err := s.domain.GetCircleAccess(ctx, authAccount, circleAccess.CircleAccessParent, circleAccess.CircleAccessId)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.GetCircleAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert model to proto
 	pbAccess, err := s.CircleAccessToProto(access)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
 	// check field behavior
 	grpc.ProcessResponseFieldBehavior(pbAccess)
-
+	log.Info().Msg("gRPC GetAccess returning successfully")
 	return pbAccess, nil
 }
 
 func (s *CircleService) ListAccesses(ctx context.Context, request *pb.ListAccessesRequest) (*pb.ListAccessesResponse, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC ListAccesses called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
@@ -124,6 +148,7 @@ func (s *CircleService) ListAccesses(ctx context.Context, request *pb.ListAccess
 	var circleAccessParent model.CircleAccessParent
 	_, err = s.accessNamer.ParseParent(request.Parent, &circleAccessParent)
 	if err != nil {
+		log.Warn().Err(err).Str("parent", request.Parent).Msg("invalid parent")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.Parent)
 	}
 
@@ -132,6 +157,7 @@ func (s *CircleService) ListAccesses(ctx context.Context, request *pb.ListAccess
 		MaxPageSize:     accessMaxPageSize,
 	})
 	if err != nil {
+		log.Warn().Err(err).Msg("pagination setup failed")
 		return nil, err
 	}
 	request.PageSize = pageSize
@@ -139,6 +165,7 @@ func (s *CircleService) ListAccesses(ctx context.Context, request *pb.ListAccess
 	// list accesses
 	accesses, err := s.domain.ListCircleAccesses(ctx, authAccount, circleAccessParent, request.GetPageSize(), pageToken.Offset, request.GetFilter())
 	if err != nil {
+		log.Error().Err(err).Msg("domain.ListCircleAccesses failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -147,6 +174,7 @@ func (s *CircleService) ListAccesses(ctx context.Context, request *pb.ListAccess
 	for i, access := range accesses {
 		pbAccess, err := s.CircleAccessToProto(access)
 		if err != nil {
+			log.Error().Err(err).Msg("unable to prepare response")
 			return nil, status.Error(codes.Internal, "unable to prepare response")
 		}
 		pbAccesses[i] = pbAccess
@@ -165,12 +193,16 @@ func (s *CircleService) ListAccesses(ctx context.Context, request *pb.ListAccess
 		response.NextPageToken = pageToken.Next(request).String()
 	}
 
+	log.Info().Msg("gRPC ListAccesses returning successfully")
 	return response, nil
 }
 
 func (s *CircleService) UpdateAccess(ctx context.Context, request *pb.UpdateAccessRequest) (*pb.Access, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC UpdateAccess called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
@@ -178,6 +210,7 @@ func (s *CircleService) UpdateAccess(ctx context.Context, request *pb.UpdateAcce
 	pbAccess := request.GetAccess()
 	modelAccess, err := s.ProtoToCircleAccess(pbAccess)
 	if err != nil {
+		log.Warn().Err(err).Msg("invalid request data")
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
 	}
 
@@ -187,24 +220,29 @@ func (s *CircleService) UpdateAccess(ctx context.Context, request *pb.UpdateAcce
 	// update access
 	updatedAccess, err := s.domain.UpdateCircleAccess(ctx, authAccount, modelAccess, updateMask)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.UpdateCircleAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert model to proto
 	pbAccess, err = s.CircleAccessToProto(updatedAccess)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
 	// check field behavior
 	grpc.ProcessResponseFieldBehavior(pbAccess)
-
+	log.Info().Msg("gRPC UpdateAccess returning successfully")
 	return pbAccess, nil
 }
 
 func (s *CircleService) AcceptAccess(ctx context.Context, request *pb.AcceptAccessRequest) (*pb.Access, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC AcceptAccess called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
@@ -212,24 +250,27 @@ func (s *CircleService) AcceptAccess(ctx context.Context, request *pb.AcceptAcce
 	circleAccess := &model.CircleAccess{}
 	_, err = s.accessNamer.Parse(request.Name, circleAccess)
 	if err != nil {
+		log.Warn().Err(err).Str("name", request.Name).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.Name)
 	}
 
 	// accept access
 	acceptedAccess, err := s.domain.AcceptCircleAccess(ctx, authAccount, circleAccess.CircleAccessParent, circleAccess.CircleAccessId)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.AcceptCircleAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert model to proto
 	pbAccess, err := s.CircleAccessToProto(acceptedAccess)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
 	// check field behavior
 	grpc.ProcessResponseFieldBehavior(pbAccess)
-
+	log.Info().Msg("gRPC AcceptAccess returning successfully")
 	return pbAccess, nil
 }
 

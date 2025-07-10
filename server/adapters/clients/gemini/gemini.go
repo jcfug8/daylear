@@ -10,13 +10,13 @@ import (
 	"sync"
 
 	"github.com/jcfug8/daylear/server/core/file"
+	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/core/schemaorgrecipe"
 	"github.com/jcfug8/daylear/server/ports/config"
 	"github.com/jcfug8/daylear/server/ports/ingredientcleaner"
 	"github.com/jcfug8/daylear/server/ports/recipeocr"
 	"github.com/rs/zerolog"
-	uuid "github.com/satori/go.uuid"
 	"go.uber.org/fx"
 	"google.golang.org/api/option"
 
@@ -76,7 +76,7 @@ func NewRecipeGeminiClient(params RecipeGeminiClientParams) (*RecipeGeminiClient
 }
 
 func (c *RecipeGeminiClient) OCRRecipe(ctx context.Context, files []file.File) (recipe model.Recipe, err error) {
-	l := c.logger.With().Str("req_id", uuid.NewV4().String()).Logger()
+	log := logutil.EnrichLoggerWithContext(c.logger, ctx)
 
 	parts := []genai.Part{
 		genai.Text(
@@ -112,19 +112,19 @@ func (c *RecipeGeminiClient) OCRRecipe(ctx context.Context, files []file.File) (
 	modelName := ""
 	for {
 		if tryCount > len(c.modelNames) {
-			l.Error().Msg("failed to get recipe from gemini after trying all models")
+			log.Error().Msg("failed to get recipe from gemini after trying all models")
 			return model.Recipe{}, fmt.Errorf("failed to get recipe from gemini after %d tries", tryCount)
 		}
 		tryCount++
 		modelName = c.getModelName()
-		l.Info().Str("model", modelName).Msg("attempting OCR")
+		log.Info().Str("model", modelName).Msg("attempting OCR")
 		modelHandle := c.client.GenerativeModel(modelName)
 
 		resp, err = modelHandle.GenerateContent(ctx,
 			parts...,
 		)
 		if err != nil {
-			l.Info().Err(err).Str("model", modelName).Msg("failed OCR")
+			log.Info().Err(err).Str("model", modelName).Msg("failed OCR")
 			continue
 		}
 		break
@@ -138,6 +138,7 @@ func (c *RecipeGeminiClient) OCRRecipe(ctx context.Context, files []file.File) (
 		}
 	}
 	if text == "" {
+		log.Error().Msg("no text response from Gemini")
 		return model.Recipe{}, fmt.Errorf("no text response from Gemini")
 	}
 
@@ -149,17 +150,18 @@ func (c *RecipeGeminiClient) OCRRecipe(ctx context.Context, files []file.File) (
 	var schemaRecipe schemaorgrecipe.SchemaOrgRecipe
 	err = json.Unmarshal([]byte(text), &schemaRecipe)
 	if err != nil {
+		log.Error().Err(err).Msg("failed to unmarshal schema.org recipe")
 		return model.Recipe{}, fmt.Errorf("failed to unmarshal schema.org recipe: %w", err)
 	}
 
 	recipe = schemaorgrecipe.ToModelRecipe(schemaRecipe)
-	l.Info().Str("model", modelName).Interface("recipe", recipe).Interface("schemaRecipe", schemaRecipe).Msg("ran OCR")
+	log.Info().Str("model", modelName).Interface("recipe", recipe).Interface("schemaRecipe", schemaRecipe).Msg("ran OCR")
 
 	return recipe, nil
 }
 
 func (c *RecipeGeminiClient) CleanIngredients(ctx context.Context, ingredients []string) (cleanedIngredients []string, err error) {
-	l := c.logger.With().Str("req_id", uuid.NewV4().String()).Logger()
+	log := logutil.EnrichLoggerWithContext(c.logger, ctx)
 
 	parts := []genai.Part{
 		genai.Text(
@@ -181,19 +183,19 @@ func (c *RecipeGeminiClient) CleanIngredients(ctx context.Context, ingredients [
 	modelName := ""
 	for {
 		if tryCount > len(c.modelNames) {
-			l.Error().Msg("failed to get recipe from gemini after trying all models")
+			log.Error().Msg("failed to get recipe from gemini after trying all models")
 			return nil, fmt.Errorf("failed to get recipe from gemini after %d tries", tryCount)
 		}
 		tryCount++
 		modelName = c.getModelName()
-		l.Info().Str("model", modelName).Msg("attempting cleaning ingredients")
+		log.Info().Str("model", modelName).Msg("attempting cleaning ingredients")
 		modelHandle := c.client.GenerativeModel(modelName)
 
 		resp, err = modelHandle.GenerateContent(ctx,
 			parts...,
 		)
 		if err != nil {
-			l.Info().Err(err).Str("model", modelName).Msg("failed cleaning ingredients")
+			log.Info().Err(err).Str("model", modelName).Msg("failed cleaning ingredients")
 			continue
 		}
 		break
@@ -207,13 +209,13 @@ func (c *RecipeGeminiClient) CleanIngredients(ctx context.Context, ingredients [
 		}
 	}
 	if text == "" {
-		l.Warn().Msg("no text response from Gemini")
+		log.Warn().Msg("no text response from Gemini")
 		return nil, fmt.Errorf("no text response from Gemini")
 	}
 
 	cleanedIngredients = strings.Split(text, "\n")
 
-	l.Info().Str("model", modelName).Interface("ingredients", ingredients).Interface("cleanedIngredients", cleanedIngredients).Msg("cleaned ingredients")
+	log.Info().Str("model", modelName).Interface("ingredients", ingredients).Interface("cleanedIngredients", cleanedIngredients).Msg("cleaned ingredients")
 
 	return cleanedIngredients, nil
 }

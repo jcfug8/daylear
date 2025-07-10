@@ -1,14 +1,19 @@
 package token
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/ports/token"
 	"go.uber.org/fx"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/rs/zerolog"
 )
+
+var _ token.Client = (*TokenClient)(nil)
 
 type TokenClient struct {
 	l      zerolog.Logger
@@ -32,10 +37,11 @@ func NewTokenClient(params NewTokenClientParams) TokenClient {
 	}
 }
 
-func (t TokenClient) Encode(user model.User) (string, error) {
+func (t TokenClient) Encode(ctx context.Context, user model.User) (string, error) {
+	log := logutil.EnrichLoggerWithContext(t.l, ctx)
 	var err error
 
-	t.l.Printf("saving user to token: %+v", user)
+	log.Debug().Msgf("saving user to token: %+v", user)
 
 	claims := toJWTClaims(user)
 	claims["iss"] = t.issuer
@@ -44,17 +50,18 @@ func (t TokenClient) Encode(user model.User) (string, error) {
 
 	tokenString, err := token.SignedString([]byte(t.secret))
 	if err != nil {
-		t.l.Printf("unable to sign token: %s", err)
+		log.Error().Err(err).Msg("unable to sign token")
 		return "", fmt.Errorf("unable to sign token")
 	}
 
 	return tokenString, nil
 }
 
-func (t TokenClient) Decode(tn string) (model.User, error) {
+func (t TokenClient) Decode(ctx context.Context, tn string) (model.User, error) {
+	log := logutil.EnrichLoggerWithContext(t.l, ctx)
 	token, err := jwt.Parse(tn, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			t.l.Printf("incorrect signing method")
+			log.Error().Msg("unexpected signing method")
 			return nil, fmt.Errorf("unexpected signing method")
 		}
 
@@ -62,12 +69,13 @@ func (t TokenClient) Decode(tn string) (model.User, error) {
 	})
 
 	if err != nil {
-		t.l.Printf("error parsing token: ", err)
+		log.Error().Err(err).Msg("error parsing token")
 		return model.User{}, err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
+		log.Error().Msg("invalid token claims")
 		return model.User{}, err
 	}
 

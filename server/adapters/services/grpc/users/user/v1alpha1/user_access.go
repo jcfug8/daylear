@@ -10,6 +10,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
+
+	"github.com/jcfug8/daylear/server/core/logutil"
 )
 
 var (
@@ -19,14 +21,18 @@ var (
 
 // CreateAccess -
 func (s *UserService) CreateAccess(ctx context.Context, request *pb.CreateAccessRequest) (*pb.Access, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC CreateAccess called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
 	// check field behavior
 	err = grpc.ProcessRequestFieldBehavior(request)
 	if err != nil {
+		log.Warn().Err(err).Msg("invalid request data")
 		return nil, err
 	}
 
@@ -34,6 +40,7 @@ func (s *UserService) CreateAccess(ctx context.Context, request *pb.CreateAccess
 	var mUserParent model.User
 	_, err = s.userNamer.Parse(request.GetParent(), &mUserParent)
 	if err != nil {
+		log.Warn().Err(err).Str("parent", request.GetParent()).Msg("invalid parent")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
 	}
 
@@ -43,6 +50,7 @@ func (s *UserService) CreateAccess(ctx context.Context, request *pb.CreateAccess
 
 	mUserAccess, err := ProtoToUserAccess(s.userNamer, s.accessNamer, pbAccess)
 	if err != nil {
+		log.Warn().Err(err).Msg("invalid request data")
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
 	}
 	mUserAccess.UserId = mUserParent.Id
@@ -50,75 +58,92 @@ func (s *UserService) CreateAccess(ctx context.Context, request *pb.CreateAccess
 	// create access
 	mUserAccess, err = s.domain.CreateUserAccess(ctx, authAccount, mUserAccess)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.CreateUserAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert model to proto
 	pbAccess, err = UserAccessToProto(s.userNamer, s.accessNamer, mUserAccess)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
 	// check field behavior
 	grpc.ProcessResponseFieldBehavior(pbAccess)
-
+	log.Info().Msg("gRPC CreateAccess returning successfully")
 	return pbAccess, nil
 }
 
 // DeleteAccess -
 func (s *UserService) DeleteAccess(ctx context.Context, request *pb.DeleteAccessRequest) (*emptypb.Empty, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC DeleteAccess called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
 	mUserAccess := model.UserAccess{}
 	_, err = s.accessNamer.Parse(request.GetName(), &mUserAccess)
 	if err != nil {
+		log.Warn().Err(err).Str("name", request.GetName()).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
 	err = s.domain.DeleteUserAccess(ctx, authAccount, mUserAccess.UserAccessParent, mUserAccess.UserAccessId)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.DeleteUserAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	log.Info().Msg("gRPC DeleteAccess returning successfully")
 	return &emptypb.Empty{}, nil
 }
 
 // GetAccess -
 func (s *UserService) GetAccess(ctx context.Context, request *pb.GetAccessRequest) (*pb.Access, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC GetAccess called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
 	mUserAccess := model.UserAccess{}
 	_, err = s.accessNamer.Parse(request.GetName(), &mUserAccess)
 	if err != nil {
+		log.Warn().Err(err).Str("name", request.GetName()).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
 	mUserAccess, err = s.domain.GetUserAccess(ctx, authAccount, mUserAccess.UserAccessParent, mUserAccess.UserAccessId)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.GetUserAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	pbAccess, err := UserAccessToProto(s.userNamer, s.accessNamer, mUserAccess)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
 	// check field behavior
 	grpc.ProcessResponseFieldBehavior(pbAccess)
-
+	log.Info().Msg("gRPC GetAccess returning successfully")
 	return pbAccess, nil
 }
 
 // ListAccesses -
 func (s *UserService) ListAccesses(ctx context.Context, request *pb.ListAccessesRequest) (*pb.ListAccessesResponse, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC ListAccesses called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
@@ -126,6 +151,7 @@ func (s *UserService) ListAccesses(ctx context.Context, request *pb.ListAccesses
 	var mUserParent model.UserAccessParent
 	_, err = s.userNamer.Parse(request.GetParent(), &mUserParent)
 	if err != nil {
+		log.Warn().Err(err).Str("parent", request.GetParent()).Msg("invalid parent")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
 	}
 
@@ -134,12 +160,14 @@ func (s *UserService) ListAccesses(ctx context.Context, request *pb.ListAccesses
 		MaxPageSize:     userAccessMaxPageSize,
 	})
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to setup pagination")
 		return nil, err
 	}
 	request.PageSize = pageSize
 
 	accesses, err := s.domain.ListUserAccesses(ctx, authAccount, mUserParent, request.GetPageSize(), pageToken.Offset, request.GetFilter())
 	if err != nil {
+		log.Error().Err(err).Msg("domain.ListUserAccesses failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -147,6 +175,7 @@ func (s *UserService) ListAccesses(ctx context.Context, request *pb.ListAccesses
 	for _, access := range accesses {
 		accessProto, err := UserAccessToProto(s.userNamer, s.accessNamer, access)
 		if err != nil {
+			log.Error().Err(err).Msg("unable to prepare response")
 			return nil, status.Error(codes.Internal, "unable to prepare response")
 		}
 		// check field behavior
@@ -162,13 +191,17 @@ func (s *UserService) ListAccesses(ctx context.Context, request *pb.ListAccesses
 		response.NextPageToken = pageToken.Next(request).String()
 	}
 
+	log.Info().Msg("gRPC ListAccesses returning successfully")
 	return response, nil
 }
 
 // UpdateAccess -
 func (s *UserService) UpdateAccess(ctx context.Context, request *pb.UpdateAccessRequest) (*pb.Access, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC UpdateAccess called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
@@ -176,6 +209,7 @@ func (s *UserService) UpdateAccess(ctx context.Context, request *pb.UpdateAccess
 	var mUserAccess model.UserAccess
 	_, err = s.accessNamer.Parse(accessProto.GetName(), &mUserAccess)
 	if err != nil {
+		log.Warn().Err(err).Str("name", accessProto.GetName()).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", accessProto.GetName())
 	}
 
@@ -183,51 +217,60 @@ func (s *UserService) UpdateAccess(ctx context.Context, request *pb.UpdateAccess
 
 	mUserAccess, err = ProtoToUserAccess(s.userNamer, s.accessNamer, accessProto)
 	if err != nil {
+		log.Warn().Err(err).Msg("invalid request data")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	mUserAccess, err = s.domain.UpdateUserAccess(ctx, authAccount, mUserAccess)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.UpdateUserAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	accessProto, err = UserAccessToProto(s.userNamer, s.accessNamer, mUserAccess)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// check field behavior
 	grpc.ProcessResponseFieldBehavior(accessProto)
-
+	log.Info().Msg("gRPC UpdateAccess returning successfully")
 	return accessProto, nil
 }
 
 // AcceptAccess -
 func (s *UserService) AcceptAccess(ctx context.Context, request *pb.AcceptAccessRequest) (*pb.Access, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC AcceptAccess called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
 	mUserAccess := model.UserAccess{}
 	_, err = s.accessNamer.Parse(request.GetName(), &mUserAccess)
 	if err != nil {
+		log.Warn().Err(err).Str("name", request.GetName()).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
 	mUserAccess, err = s.domain.AcceptUserAccess(ctx, authAccount, mUserAccess.UserAccessParent, mUserAccess.UserAccessId)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.AcceptUserAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	pbAccess, err := UserAccessToProto(s.userNamer, s.accessNamer, mUserAccess)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
 	// check field behavior
 	grpc.ProcessResponseFieldBehavior(pbAccess)
-
+	log.Info().Msg("gRPC AcceptAccess returning successfully")
 	return pbAccess, nil
 }
 

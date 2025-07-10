@@ -7,6 +7,7 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	"github.com/jcfug8/daylear/server/core/fieldmask"
+	"github.com/jcfug8/daylear/server/core/logutil"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	model "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
@@ -36,10 +37,12 @@ var RecipeAccessMap = map[string]string{
 }
 
 func (repo *Client) CreateRecipeAccess(ctx context.Context, access model.RecipeAccess) (model.RecipeAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	db := repo.db.WithContext(ctx)
 
 	// Validate that exactly one recipient type is set
 	if (access.RecipeAccessParent.Recipient.UserId != 0) == (access.RecipeAccessParent.Recipient.CircleId != 0) {
+		log.Error().Msg("exactly one recipient (user or circle) is required")
 		return model.RecipeAccess{}, repository.ErrInvalidArgument{Msg: "exactly one recipient (user or circle) is required"}
 	}
 
@@ -47,8 +50,10 @@ func (repo *Client) CreateRecipeAccess(ctx context.Context, access model.RecipeA
 	res := db.Create(&recipeAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrDuplicatedKey) {
+			log.Error().Err(res.Error).Msg("duplicate key error")
 			return model.RecipeAccess{}, repository.ErrNewAlreadyExists{}
 		}
+		log.Error().Err(res.Error).Msg("db.Create failed")
 		return model.RecipeAccess{}, res.Error
 	}
 
@@ -57,11 +62,14 @@ func (repo *Client) CreateRecipeAccess(ctx context.Context, access model.RecipeA
 }
 
 func (repo *Client) DeleteRecipeAccess(ctx context.Context, parent model.RecipeAccessParent, id model.RecipeAccessId) error {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	if parent.RecipeId.RecipeId == 0 {
+		log.Error().Msg("recipe id is required")
 		return repository.ErrInvalidArgument{Msg: "recipe id is required"}
 	}
 
 	if id.RecipeAccessId == 0 {
+		log.Error().Msg("recipe access id is required")
 		return repository.ErrInvalidArgument{Msg: "recipe access id is required"}
 	}
 
@@ -69,9 +77,11 @@ func (repo *Client) DeleteRecipeAccess(ctx context.Context, parent model.RecipeA
 
 	res := db.Where("recipe_id = ? AND recipe_access_id = ?", parent.RecipeId.RecipeId, id.RecipeAccessId).Delete(&dbModel.RecipeAccess{})
 	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("db.Delete failed")
 		return ConvertGormError(res.Error)
 	}
 	if res.RowsAffected == 0 {
+		log.Warn().Msg("no rows affected (not found)")
 		return repository.ErrNotFound{}
 	}
 
@@ -79,7 +89,9 @@ func (repo *Client) DeleteRecipeAccess(ctx context.Context, parent model.RecipeA
 }
 
 func (repo *Client) BulkDeleteRecipeAccess(ctx context.Context, parent model.RecipeAccessParent) error {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	if parent.RecipeId.RecipeId == 0 {
+		log.Error().Msg("recipe id is required")
 		return repository.ErrInvalidArgument{Msg: "recipe id is required"}
 	}
 
@@ -87,9 +99,11 @@ func (repo *Client) BulkDeleteRecipeAccess(ctx context.Context, parent model.Rec
 
 	res := db.Where("recipe_id = ?", parent.RecipeId.RecipeId).Delete(&dbModel.RecipeAccess{})
 	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("db.Delete failed")
 		return ConvertGormError(res.Error)
 	}
 	if res.RowsAffected == 0 {
+		log.Warn().Msg("no rows affected (not found)")
 		return repository.ErrNotFound{}
 	}
 
@@ -97,6 +111,7 @@ func (repo *Client) BulkDeleteRecipeAccess(ctx context.Context, parent model.Rec
 }
 
 func (repo *Client) GetRecipeAccess(ctx context.Context, parent model.RecipeAccessParent, id model.RecipeAccessId) (model.RecipeAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	db := repo.db.WithContext(ctx)
 
 	var recipeAccess dbModel.RecipeAccess
@@ -108,8 +123,10 @@ func (repo *Client) GetRecipeAccess(ctx context.Context, parent model.RecipeAcce
 		First(&recipeAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Warn().Err(res.Error).Msg("record not found")
 			return model.RecipeAccess{}, repository.ErrNotFound{}
 		}
+		log.Error().Err(res.Error).Msg("db.First failed")
 		return model.RecipeAccess{}, res.Error
 	}
 
@@ -117,6 +134,7 @@ func (repo *Client) GetRecipeAccess(ctx context.Context, parent model.RecipeAcce
 }
 
 func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent model.RecipeAccessParent, pageSize int32, pageOffset int64, filterStr string) ([]model.RecipeAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	if authAccount.UserId == 0 && authAccount.CircleId == 0 {
 		return nil, repository.ErrInvalidArgument{Msg: "user id or circle id is required"}
 	}
@@ -156,6 +174,7 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 
 	conversion, err := repo.recipeAccessSQLConverter.Convert(filterStr)
 	if err != nil {
+		log.Error().Err(err).Msg("invalid filter")
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
 	}
 
@@ -167,6 +186,7 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 		Offset(int(pageOffset)).
 		Find(&recipeAccesses).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.Find failed")
 		return nil, ConvertGormError(err)
 	}
 
@@ -179,6 +199,7 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 }
 
 func (repo *Client) UpdateRecipeAccess(ctx context.Context, access model.RecipeAccess, updateMask []string) (model.RecipeAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	dbAccess := convert.CoreRecipeAccessToRecipeAccess(access)
 
 	columns := UpdateRecipeAccessFieldMasker.Convert(updateMask)
@@ -187,6 +208,7 @@ func (repo *Client) UpdateRecipeAccess(ctx context.Context, access model.RecipeA
 
 	err := db.Where("recipe_access_id = ?", access.RecipeAccessId.RecipeAccessId).Updates(&dbAccess).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.Updates failed")
 		return model.RecipeAccess{}, ConvertGormError(err)
 	}
 

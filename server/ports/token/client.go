@@ -1,8 +1,12 @@
 package token
 
-import "github.com/jcfug8/daylear/server/core/model"
+import (
+	"context"
+
+	"github.com/jcfug8/daylear/server/core/model"
+)
 
 type Client interface {
-	Encode(model.User) (string, error)
-	Decode(string) (model.User, error)
+	Encode(ctx context.Context, user model.User) (string, error)
+	Decode(ctx context.Context, tn string) (model.User, error)
 }

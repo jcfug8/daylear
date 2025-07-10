@@ -7,6 +7,7 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/masks"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
@@ -24,8 +25,11 @@ var CircleMap = map[string]string{
 
 // CreateCircle creates a new circle.
 func (repo *Client) CreateCircle(ctx context.Context, m cmodel.Circle) (cmodel.Circle, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	log.Info().Msg("GORM CreateCircle called")
 	gm, err := convert.CircleFromCoreModel(m)
 	if err != nil {
+		log.Error().Err(err).Msg("convert.CircleFromCoreModel failed")
 		return cmodel.Circle{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid circle: %v", err)}
 	}
 
@@ -38,37 +42,45 @@ func (repo *Client) CreateCircle(ctx context.Context, m cmodel.Circle) (cmodel.C
 		Clauses(clause.Returning{}).
 		Create(&gm).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.Create failed")
 		return cmodel.Circle{}, ConvertGormError(err)
 	}
 
 	m, err = convert.CircleToCoreModel(gm)
 	if err != nil {
+		log.Error().Err(err).Msg("convert.CircleToCoreModel failed")
 		return cmodel.Circle{}, fmt.Errorf("unable to read circle: %v", err)
 	}
-
+	log.Info().Msg("GORM CreateCircle returning successfully")
 	return m, nil
 }
 
 // DeleteCircle deletes a circle.
 func (repo *Client) DeleteCircle(ctx context.Context, id cmodel.CircleId) (cmodel.Circle, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	log.Info().Msg("GORM DeleteCircle called")
 	gm := gmodel.Circle{CircleId: id.CircleId}
 	err := repo.db.WithContext(ctx).
 		Clauses(clause.Returning{}).
 		Delete(&gm).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.Delete failed")
 		return cmodel.Circle{}, ConvertGormError(err)
 	}
 
 	m, err := convert.CircleToCoreModel(gm)
 	if err != nil {
+		log.Error().Err(err).Msg("convert.CircleToCoreModel failed")
 		return cmodel.Circle{}, fmt.Errorf("unable to read circle: %v", err)
 	}
-
+	log.Info().Msg("GORM DeleteCircle returning successfully")
 	return m, nil
 }
 
 // GetCircle gets a circle.
 func (repo *Client) GetCircle(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.CircleId) (cmodel.Circle, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	log.Info().Msg("GORM GetCircle called")
 	gm := gmodel.Circle{}
 
 	tx := repo.db.WithContext(ctx).
@@ -78,21 +90,26 @@ func (repo *Client) GetCircle(ctx context.Context, authAccount cmodel.AuthAccoun
 
 	err := tx.First(&gm).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.First failed")
 		return cmodel.Circle{}, ConvertGormError(err)
 	}
 
 	m, err := convert.CircleToCoreModel(gm)
 	if err != nil {
+		log.Error().Err(err).Msg("convert.CircleToCoreModel failed")
 		return cmodel.Circle{}, fmt.Errorf("unable to read circle: %v", err)
 	}
-
+	log.Info().Msg("GORM GetCircle returning successfully")
 	return m, nil
 }
 
 // UpdateCircle updates a circle.
 func (repo *Client) UpdateCircle(ctx context.Context, authAccount cmodel.AuthAccount, m cmodel.Circle, fields []string) (cmodel.Circle, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	log.Info().Msg("GORM UpdateCircle called")
 	gm, err := convert.CircleFromCoreModel(m)
 	if err != nil {
+		log.Error().Err(err).Msg("convert.CircleFromCoreModel failed")
 		return cmodel.Circle{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid circle: %v", err)}
 	}
 
@@ -103,19 +120,23 @@ func (repo *Client) UpdateCircle(ctx context.Context, authAccount cmodel.AuthAcc
 		Clauses(clause.Returning{}).
 		Updates(&gm).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.Updates failed")
 		return cmodel.Circle{}, ConvertGormError(err)
 	}
 
 	m, err = convert.CircleToCoreModel(gm)
 	if err != nil {
+		log.Error().Err(err).Msg("convert.CircleToCoreModel failed")
 		return cmodel.Circle{}, fmt.Errorf("unable to read circle: %v", err)
 	}
-
+	log.Info().Msg("GORM UpdateCircle returning successfully")
 	return m, nil
 }
 
 // ListCircles lists circles.
 func (repo *Client) ListCircles(ctx context.Context, authAccount cmodel.AuthAccount, pageSize int32, offset int64, filter string, fields []string) ([]cmodel.Circle, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	log.Info().Msg("GORM ListCircles called")
 	dbCircles := []gmodel.Circle{}
 
 	orders := []clause.OrderByColumn{{
@@ -133,6 +154,7 @@ func (repo *Client) ListCircles(ctx context.Context, authAccount cmodel.AuthAcco
 
 	conversion, err := repo.circleSQLConverter.Convert(filter)
 	if err != nil {
+		log.Error().Err(err).Msg("circleSQLConverter.Convert failed")
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
 	}
 
@@ -142,6 +164,7 @@ func (repo *Client) ListCircles(ctx context.Context, authAccount cmodel.AuthAcco
 
 	err = tx.Find(&dbCircles).Error
 	if err != nil {
+		log.Error().Err(err).Msg("db.Find failed")
 		return nil, ConvertGormError(err)
 	}
 
@@ -149,9 +172,10 @@ func (repo *Client) ListCircles(ctx context.Context, authAccount cmodel.AuthAcco
 	for i, m := range dbCircles {
 		res[i], err = convert.CircleToCoreModel(m)
 		if err != nil {
+			log.Error().Err(err).Msg("convert.CircleToCoreModel failed")
 			return nil, fmt.Errorf("unable to read circle: %v", err)
 		}
 	}
-
+	log.Info().Msg("GORM ListCircles returning successfully")
 	return res, nil
 }

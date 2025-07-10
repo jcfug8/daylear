@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/jcfug8/daylear/server/core/file"
+	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/ports/fileretriever"
 	"github.com/rs/zerolog"
 
@@ -23,18 +23,21 @@ type NewClientParams struct {
 	fx.In
 }
 
-func NewClient(params NewClientParams) (*Client, error) {
-	return &Client{}, nil
+func NewClient(log zerolog.Logger) *Client {
+	return &Client{log: log}
 }
 
 func (c *Client) GetFileContents(ctx context.Context, location string) (io.ReadCloser, error) {
+	log := logutil.EnrichLoggerWithContext(c.log, ctx)
 	resp, err := http.Get(location)
 	if err != nil {
-		return file.File{}, err
+		log.Error().Err(err).Str("location", location).Msg("failed to fetch file")
+		return nil, err
 	}
 
 	if resp.ContentLength > maxDownloadSize {
-		return file.File{}, fileretriever.ErrInvalidArgument{
+		log.Warn().Str("location", location).Int64("content_length", resp.ContentLength).Msg("file too large")
+		return nil, fileretriever.ErrInvalidArgument{
 			Msg: fmt.Sprintf("the file at %s was too large", location),
 		}
 	}

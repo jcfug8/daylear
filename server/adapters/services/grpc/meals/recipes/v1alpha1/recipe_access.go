@@ -5,6 +5,7 @@ import (
 
 	"github.com/jcfug8/daylear/server/adapters/services/grpc"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
+	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/model"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	"google.golang.org/grpc/codes"
@@ -18,14 +19,18 @@ var (
 )
 
 func (s *RecipeService) CreateAccess(ctx context.Context, request *pb.CreateAccessRequest) (*pb.Access, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC CreateAccess called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
 	// check field behavior
 	err = grpc.ProcessRequestFieldBehavior(request)
 	if err != nil {
+		log.Warn().Err(err).Msg("invalid access proto")
 		return nil, err
 	}
 
@@ -34,36 +39,43 @@ func (s *RecipeService) CreateAccess(ctx context.Context, request *pb.CreateAcce
 	pbAccess.Name = ""
 	modelAccess, err := s.ProtoToRecipeAccess(pbAccess)
 	if err != nil {
+		log.Warn().Err(err).Msg("invalid access proto")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid access: %v", err)
 	}
 
 	// parse parent
 	_, err = s.accessNamer.ParseParent(request.Parent, &modelAccess)
 	if err != nil {
+		log.Warn().Err(err).Msg("invalid parent")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", err)
 	}
 
 	// create access
 	createdAccess, err := s.domain.CreateRecipeAccess(ctx, authAccount, modelAccess)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.CreateRecipeAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert model to proto
 	pbAccess, err = s.RecipeAccessToProto(createdAccess)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
 	// check field behavior
 	grpc.ProcessResponseFieldBehavior(pbAccess)
-
+	log.Info().Msg("gRPC CreateAccess success")
 	return pbAccess, nil
 }
 
 func (s *RecipeService) DeleteAccess(ctx context.Context, request *pb.DeleteAccessRequest) (*emptypb.Empty, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC DeleteAccess called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
@@ -71,21 +83,27 @@ func (s *RecipeService) DeleteAccess(ctx context.Context, request *pb.DeleteAcce
 	recipeAccess := &model.RecipeAccess{}
 	_, err = s.accessNamer.Parse(request.Name, recipeAccess)
 	if err != nil {
+		log.Warn().Err(err).Str("name", request.Name).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.Name)
 	}
 
 	// delete access
 	err = s.domain.DeleteRecipeAccess(ctx, authAccount, recipeAccess.RecipeAccessParent, recipeAccess.RecipeAccessId)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.DeleteRecipeAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	log.Info().Msg("gRPC DeleteAccess returning successfully")
 	return &emptypb.Empty{}, nil
 }
 
 func (s *RecipeService) GetAccess(ctx context.Context, request *pb.GetAccessRequest) (*pb.Access, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC GetAccess called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
@@ -93,30 +111,36 @@ func (s *RecipeService) GetAccess(ctx context.Context, request *pb.GetAccessRequ
 	var recipeAccess model.RecipeAccess
 	_, err = s.accessNamer.Parse(request.Name, &recipeAccess)
 	if err != nil {
+		log.Warn().Err(err).Str("name", request.Name).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.Name)
 	}
 
 	// get access
 	access, err := s.domain.GetRecipeAccess(ctx, authAccount, recipeAccess.RecipeAccessParent, recipeAccess.RecipeAccessId)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.GetRecipeAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert model to proto
 	pbAccess, err := s.RecipeAccessToProto(access)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
 	// check field behavior
 	grpc.ProcessResponseFieldBehavior(pbAccess)
-
+	log.Info().Msg("gRPC GetAccess returning successfully")
 	return pbAccess, nil
 }
 
 func (s *RecipeService) ListAccesses(ctx context.Context, request *pb.ListAccessesRequest) (*pb.ListAccessesResponse, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC ListAccesses called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
@@ -124,6 +148,7 @@ func (s *RecipeService) ListAccesses(ctx context.Context, request *pb.ListAccess
 	var recipeAccessParent model.RecipeAccessParent
 	_, err = s.accessNamer.ParseParent(request.Parent, &recipeAccessParent)
 	if err != nil {
+		log.Warn().Err(err).Str("parent", request.Parent).Msg("invalid parent")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.Parent)
 	}
 
@@ -132,6 +157,7 @@ func (s *RecipeService) ListAccesses(ctx context.Context, request *pb.ListAccess
 		MaxPageSize:     accessMaxPageSize,
 	})
 	if err != nil {
+		log.Warn().Err(err).Msg("pagination setup failed")
 		return nil, err
 	}
 	request.PageSize = pageSize
@@ -139,6 +165,7 @@ func (s *RecipeService) ListAccesses(ctx context.Context, request *pb.ListAccess
 	// list accesses
 	accesses, err := s.domain.ListRecipeAccesses(ctx, authAccount, recipeAccessParent, request.GetPageSize(), pageToken.Offset, request.GetFilter())
 	if err != nil {
+		log.Error().Err(err).Msg("domain.ListRecipeAccesses failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -147,6 +174,7 @@ func (s *RecipeService) ListAccesses(ctx context.Context, request *pb.ListAccess
 	for i, access := range accesses {
 		pbAccess, err := s.RecipeAccessToProto(access)
 		if err != nil {
+			log.Error().Err(err).Msg("unable to prepare response")
 			return nil, status.Error(codes.Internal, "unable to prepare response")
 		}
 		pbAccesses[i] = pbAccess
@@ -165,24 +193,30 @@ func (s *RecipeService) ListAccesses(ctx context.Context, request *pb.ListAccess
 		response.NextPageToken = pageToken.Next(request).String()
 	}
 
+	log.Info().Msg("gRPC ListAccesses returning successfully")
 	return response, nil
 }
 
 func (s *RecipeService) UpdateAccess(ctx context.Context, request *pb.UpdateAccessRequest) (*pb.Access, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC UpdateAccess called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
 	// check field behavior
 	err = grpc.ProcessRequestFieldBehavior(request)
 	if err != nil {
+		log.Warn().Err(err).Msg("invalid request data")
 		return nil, err
 	}
 
 	// convert proto to model
 	modelAccess, err := s.ProtoToRecipeAccess(request.Access)
 	if err != nil {
+		log.Warn().Err(err).Msg("invalid request data")
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
 	}
 
@@ -191,25 +225,30 @@ func (s *RecipeService) UpdateAccess(ctx context.Context, request *pb.UpdateAcce
 	// update access
 	updatedAccess, err := s.domain.UpdateRecipeAccess(ctx, authAccount, modelAccess, updateMask)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.UpdateRecipeAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert model to proto
 	pbAccess, err := s.RecipeAccessToProto(updatedAccess)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
 	}
 
 	// check field behavior
 	grpc.ProcessResponseFieldBehavior(pbAccess)
-
+	log.Info().Msg("gRPC UpdateAccess returning successfully")
 	return pbAccess, nil
 }
 
 // AcceptRecipeAccess -
 func (s *RecipeService) AcceptRecipeAccess(ctx context.Context, request *pb.AcceptRecipeAccessRequest) (*pb.AcceptRecipeAccessResponse, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC AcceptRecipeAccess called")
 	authAccount, err := headers.ParseAuthData(ctx)
 	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
 		return nil, err
 	}
 
@@ -217,14 +256,17 @@ func (s *RecipeService) AcceptRecipeAccess(ctx context.Context, request *pb.Acce
 	var access model.RecipeAccess
 	_, err = s.accessNamer.Parse(request.GetName(), &access)
 	if err != nil {
+		log.Warn().Err(err).Str("name", request.GetName()).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
 	_, err = s.domain.AcceptRecipeAccess(ctx, authAccount, access.RecipeAccessParent, access.RecipeAccessId)
 	if err != nil {
+		log.Error().Err(err).Msg("domain.AcceptRecipeAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	log.Info().Msg("gRPC AcceptRecipeAccess returning successfully")
 	return &pb.AcceptRecipeAccessResponse{}, nil
 }
 
