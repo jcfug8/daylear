@@ -7,46 +7,32 @@ import (
 	"net/http"
 
 	"github.com/PuerkitoBio/goquery"
+	"go.uber.org/fx"
 
 	"encoding/json"
 
 	"github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/core/schemaorgrecipe"
+	"github.com/jcfug8/daylear/server/ports/ingredientcleaner"
 	"github.com/jcfug8/daylear/server/ports/recipescraper"
 )
 
 var _ recipescraper.DefaultClient = &DefaultClient{}
 
-type DefaultClient struct{}
-
-func NewDefaultClient() *DefaultClient {
-	return &DefaultClient{}
+type DefaultClient struct {
+	ingredientCleaner ingredientcleaner.Client
 }
 
-// Add this helper to convert unicode fractions to decimals
-var unicodeFractions = map[rune]float64{
-	'¼': 0.25,
-	'½': 0.5,
-	'¾': 0.75,
-	'⅓': 1.0 / 3.0,
-	'⅔': 2.0 / 3.0,
-	'⅛': 0.125,
-	'⅜': 0.375,
-	'⅝': 0.625,
-	'⅞': 0.875,
+type DefaultClientParams struct {
+	fx.In
+
+	IngredientCleaner ingredientcleaner.Client
 }
 
-func replaceUnicodeFractions(s string) string {
-	out := ""
-	for _, r := range s {
-		if v, ok := unicodeFractions[r]; ok {
-			// Add as decimal string
-			out += fmt.Sprintf("%g", v)
-		} else {
-			out += string(r)
-		}
+func NewDefaultClient(params DefaultClientParams) *DefaultClient {
+	return &DefaultClient{
+		ingredientCleaner: params.IngredientCleaner,
 	}
-	return out
 }
 
 func (r *DefaultClient) ScrapeRecipe(ctx context.Context, uri string) (model.Recipe, error) {
@@ -116,6 +102,11 @@ func (r *DefaultClient) ScrapeRecipe(ctx context.Context, uri string) (model.Rec
 	})
 	if !found {
 		return model.Recipe{}, errors.New("no schema.org recipe found in ld+json")
+	}
+
+	schemaRecipe.RecipeIngredient, err = r.ingredientCleaner.CleanIngredients(ctx, schemaorgrecipe.AsStringSlice(schemaRecipe.RecipeIngredient))
+	if err != nil {
+		return model.Recipe{}, fmt.Errorf("failed to clean ingredients: %w", err)
 	}
 
 	return schemaorgrecipe.ToModelRecipe(schemaRecipe), nil

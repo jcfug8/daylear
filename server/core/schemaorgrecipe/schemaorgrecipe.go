@@ -72,163 +72,111 @@ func AsStringSlice(v interface{}) []string {
 	return out
 }
 
-// ToModelRecipe converts a SchemaOrgRecipe to a model.Recipe
-func ToModelRecipe(schemaRecipe SchemaOrgRecipe) model.Recipe {
-	var coreRecipe model.Recipe
-	coreRecipe.Title = AsString(schemaRecipe.Name)
-	coreRecipe.Description = AsString(schemaRecipe.Description)
-	coreRecipe.ImageURI = AsString(schemaRecipe.Image)
-
-	// New fields
-	// Citation: try mainEntityOfPage, url, isBasedOn
-	coreRecipe.Citation = AsString(schemaRecipe.MainEntityOfPage)
-	if coreRecipe.Citation == "" {
-		coreRecipe.Citation = AsString(schemaRecipe.Context) // fallback, or add more sources as needed
-	}
-	// CookDuration: parse ISO 8601 duration from cookTime
-	if cookTimeStr := AsString(schemaRecipe.CookTime); cookTimeStr != "" {
-		if d, err := parseISODuration(cookTimeStr); err == nil {
-			coreRecipe.CookDuration = d
-		}
-	}
-	// PrepDuration: parse ISO 8601 duration from prepTime
-	if prepTimeStr := AsString(schemaRecipe.PrepTime); prepTimeStr != "" {
-		if d, err := parseISODuration(prepTimeStr); err == nil {
-			coreRecipe.PrepDuration = d
-		}
-	}
-	// TotalDuration: parse ISO 8601 duration from totalTime
-	if totalTimeStr := AsString(schemaRecipe.TotalTime); totalTimeStr != "" {
-		if d, err := parseISODuration(totalTimeStr); err == nil {
-			coreRecipe.TotalDuration = d
-		}
-	}
-	// CookingMethod
-	coreRecipe.CookingMethod = AsString(schemaRecipe.CookingMethod)
-	// Categories
-	coreRecipe.Categories = AsStringSlice(schemaRecipe.RecipeCategory)
-	// YieldAmount
-	coreRecipe.YieldAmount = AsString(schemaRecipe.RecipeYield)
-	// Cuisines
-	coreRecipe.Cuisines = AsStringSlice(schemaRecipe.RecipeCuisine)
-	// CreateTime: parse datePublished
-	if dateStr := AsString(schemaRecipe.DatePublished); dateStr != "" {
-		if t, err := parseISOTime(dateStr); err == nil {
-			coreRecipe.CreateTime = t
-		}
-	}
-	// UpdateTime: parse dateModified if present
-	if dateStr := AsString(schemaRecipe.DatePublished); dateStr != "" {
-		if t, err := parseISOTime(dateStr); err == nil {
-			coreRecipe.UpdateTime = t
-		}
-	}
-
-	// Ingredients
-	var ingredientGroup model.IngredientGroup
-	var ingredients = AsStringSlice(schemaRecipe.RecipeIngredient)
-	for _, ing := range ingredients {
-		amount, unit, name := ParseIngredient(ing)
-		measurementType := MapUnitToMeasurementType(unit)
-		if measurementType == pb.Recipe_MEASUREMENT_TYPE_UNSPECIFIED {
-			name = unit + " " + name
-		}
-		ingredientGroup.RecipeIngredients = append(ingredientGroup.RecipeIngredients, model.RecipeIngredient{
-			Optional:          false,
-			MeasurementAmount: amount,
-			MeasurementType:   measurementType,
-			Title:             name,
-		})
-	}
-	coreRecipe.IngredientGroups = []model.IngredientGroup{ingredientGroup}
-
-	// Directions
-	var directions []model.RecipeDirection
-	var parseInstructions func(interface{}, string)
-	parseInstructions = func(instr interface{}, sectionTitle string) {
-		var steps []string
-		switch v := instr.(type) {
-		case string:
-			if v != "" {
-				steps = append(steps, v)
-			}
-		case []interface{}:
-			for _, step := range v {
-				switch st := step.(type) {
-				case string:
-					if st != "" {
-						steps = append(steps, st)
-					}
-				case map[string]interface{}:
-					typeVal, _ := st["@type"].(string)
-					if typeVal == "HowToSection" {
-						name, _ := st["name"].(string)
-						parseInstructions(st["itemListElement"], name)
-					} else if typeVal == "HowToStep" {
-						if txt, ok := st["text"].(string); ok && txt != "" {
-							steps = append(steps, txt)
-						}
-					}
-				}
-			}
-		}
-		if len(steps) > 0 {
-			directions = append(directions, model.RecipeDirection{Title: sectionTitle, Steps: steps})
-		}
-	}
-	parseInstructions(schemaRecipe.RecipeInstructions, "")
-	if len(directions) > 0 {
-		coreRecipe.Directions = directions
-	}
-	coreRecipe.Visibility = 300
-	return coreRecipe
-}
-
-// ParseIngredient parses an ingredient string into amount, unit, and name
-func ParseIngredient(text string) (float64, string, string) {
+// ParseIngredient parses an ingredient string into two measurements (amount/unit), a conjunction, and a name
+func ParseIngredient(text string) (amount1 float64, unit1 string, conj string, amount2 float64, unit2 string, name string) {
 	text = ReplaceUnicodeFractions(text)
 	parts := strings.Fields(text)
 	if len(parts) == 0 {
-		return 0, "", text
+		return 0, "", "", 0, "", text
 	}
-	amount := 0.0
+
+	// Find conjunction index ("and", "or", "to")
+	conjIdx := -1
+	conjWord := ""
+	for i, p := range parts {
+		lp := strings.ToLower(p)
+		if lp == "and" || lp == "+" || lp == "or" || lp == "to" || lp == "-" {
+			conjIdx = i
+			conjWord = lp
+			break
+		} else if i > 5 {
+			break
+		}
+	}
+
+	if conjIdx > 0 {
+		amount1Idx := 0
+		unit1Idx := 1
+		amount2Idx := 3
+		unit2Idx := 4
+
+		// make sure to include stuff like "1 1/2"
+		extraIdx := amount1Idx
+		for i := extraIdx; i < len(parts); i++ {
+			if i == conjIdx {
+				unit1Idx = 3
+				amount2Idx = 2
+				unit2Idx = 3
+				break
+			}
+			tempAmount, err := ParseAmount(strings.Join(parts[amount1Idx:i+1], " "))
+			if err != nil {
+				break
+			}
+			extraIdx = i
+			amount1 = tempAmount
+		}
+		// push the unit1Idx, amount2Idx, and unit2Idx to the right
+		unit1Idx += extraIdx - amount1Idx
+		amount2Idx += extraIdx - amount1Idx
+		unit2Idx += extraIdx - amount1Idx
+
+		// make sure to include stuff like "1 1/2"
+		extraIdx = amount2Idx
+		for i := extraIdx; i < len(parts); i++ {
+			tempAmount, err := ParseAmount(strings.Join(parts[amount2Idx:i+1], " "))
+			if err != nil {
+				break
+			}
+			extraIdx = i
+			amount2 = tempAmount
+		}
+
+		if unit2Idx == unit1Idx {
+			unit1Idx += extraIdx - amount2Idx
+		}
+		unit2Idx += extraIdx - amount2Idx
+
+		unit1 = parts[unit1Idx]
+		unit2 = parts[unit2Idx]
+		name = strings.Join(parts[unit2Idx+1:], " ")
+
+		if unit1 == unit2 && (conjWord == "and" || conjWord == "+") {
+			return amount1 + amount2, unit1, "", 0, "", name
+		}
+		return amount1, unit1, conjWord, amount2, unit2, name
+	}
+
+	// Fallback: single measurement
+	amountIdx := 0
 	unitIdx := 1
-	if len(parts) >= 2 {
-		if frac, err := ParseFraction(parts[1]); err == nil {
-			if whole, err := strconv.Atoi(parts[0]); err == nil {
-				amount = float64(whole) + frac
-				unitIdx = 2
-			}
-		}
-		if len(parts) >= 3 && strings.ToLower(parts[1]) == "and" {
-			if frac, err := ParseFraction(parts[2]); err == nil {
-				if whole, err := strconv.Atoi(parts[0]); err == nil {
-					amount = float64(whole) + frac
-					unitIdx = 3
-				}
-			}
-		}
-	}
-	if amount == 0.0 {
-		var err error
-		amount, err = ParseAmount(parts[0])
+	extraIdx := 0
+	for i := extraIdx; i < len(parts); i++ {
+		tempAmount, err := ParseAmount(strings.Join(parts[amountIdx:i+1], " "))
 		if err != nil {
-			return 0, "", text
+			break
 		}
-		unitIdx = 1
+		extraIdx = i
+		amount1 = tempAmount
 	}
-	if len(parts) <= unitIdx {
-		return amount, "", ""
+
+	unitIdx += extraIdx - amountIdx
+
+	if len(parts) > unitIdx {
+		unit1 = parts[unitIdx]
+		name = strings.Join(parts[unitIdx+1:], " ")
+	} else {
+		unit1 = ""
+		name = strings.Join(parts[unitIdx:], " ")
 	}
-	unit := parts[unitIdx]
-	name := strings.Join(parts[unitIdx+1:], " ")
-	return amount, unit, name
+	return amount1, unit1, "", 0, "", name
 }
 
 // ParseAmount parses a string like "1", "1/2", "1-1/2", "1 1/2", or "1 and 1/2" into a float64
 func ParseAmount(s string) (float64, error) {
-	if strings.Contains(s, "-") {
-		parts := strings.Split(s, "-")
+	s = strings.ReplaceAll(s, "-", " ")
+	if strings.Contains(s, " ") {
+		parts := strings.Split(s, " ")
 		if len(parts) == 2 {
 			whole, err1 := strconv.Atoi(parts[0])
 			frac, err2 := ParseFraction(parts[1])
@@ -279,6 +227,20 @@ func MapUnitToMeasurementType(unit string) pb.Recipe_MeasurementType {
 	default:
 		fmt.Println("unknown unit: ", unit)
 		return pb.Recipe_MEASUREMENT_TYPE_UNSPECIFIED
+	}
+}
+
+// Helper to map conjunction string to proto enum
+func MapConjunctionToProto(conj string) pb.Recipe_Ingredient_MeasurementConjunction {
+	switch conj {
+	case "and", "+":
+		return pb.Recipe_Ingredient_MEASUREMENT_CONJUNCTION_AND
+	case "or":
+		return pb.Recipe_Ingredient_MEASUREMENT_CONJUNCTION_OR
+	case "to", "-":
+		return pb.Recipe_Ingredient_MEASUREMENT_CONJUNCTION_TO
+	default:
+		return pb.Recipe_Ingredient_MEASUREMENT_CONJUNCTION_UNSPECIFIED
 	}
 }
 
@@ -345,4 +307,121 @@ func parseISODuration(s string) (time.Duration, error) {
 // Helper to parse ISO 8601 date/time (e.g., 2023-01-01T12:00:00Z)
 func parseISOTime(s string) (time.Time, error) {
 	return time.Parse(time.RFC3339, s)
+}
+
+// ToModelRecipe converts a SchemaOrgRecipe to a model.Recipe
+func ToModelRecipe(schemaRecipe SchemaOrgRecipe) model.Recipe {
+	var coreRecipe model.Recipe
+	coreRecipe.Title = AsString(schemaRecipe.Name)
+	coreRecipe.Description = AsString(schemaRecipe.Description)
+	coreRecipe.ImageURI = AsString(schemaRecipe.Image)
+
+	// New fields
+	// Citation: try mainEntityOfPage, url, isBasedOn
+	coreRecipe.Citation = AsString(schemaRecipe.MainEntityOfPage)
+	if coreRecipe.Citation == "" {
+		coreRecipe.Citation = AsString(schemaRecipe.Context) // fallback, or add more sources as needed
+	}
+	// CookDuration: parse ISO 8601 duration from cookTime
+	if cookTimeStr := AsString(schemaRecipe.CookTime); cookTimeStr != "" {
+		if d, err := parseISODuration(cookTimeStr); err == nil {
+			coreRecipe.CookDuration = d
+		}
+	}
+	// PrepDuration: parse ISO 8601 duration from prepTime
+	if prepTimeStr := AsString(schemaRecipe.PrepTime); prepTimeStr != "" {
+		if d, err := parseISODuration(prepTimeStr); err == nil {
+			coreRecipe.PrepDuration = d
+		}
+	}
+	// TotalDuration: parse ISO 8601 duration from totalTime
+	if totalTimeStr := AsString(schemaRecipe.TotalTime); totalTimeStr != "" {
+		if d, err := parseISODuration(totalTimeStr); err == nil {
+			coreRecipe.TotalDuration = d
+		}
+	}
+	// CookingMethod
+	coreRecipe.CookingMethod = AsString(schemaRecipe.CookingMethod)
+	// Categories
+	coreRecipe.Categories = AsStringSlice(schemaRecipe.RecipeCategory)
+	// YieldAmount
+	coreRecipe.YieldAmount = AsString(schemaRecipe.RecipeYield)
+	// Cuisines
+	coreRecipe.Cuisines = AsStringSlice(schemaRecipe.RecipeCuisine)
+	// CreateTime: parse datePublished
+	if dateStr := AsString(schemaRecipe.DatePublished); dateStr != "" {
+		if t, err := parseISOTime(dateStr); err == nil {
+			coreRecipe.CreateTime = t
+		}
+	}
+	// UpdateTime: parse dateModified if present
+	if dateStr := AsString(schemaRecipe.DatePublished); dateStr != "" {
+		if t, err := parseISOTime(dateStr); err == nil {
+			coreRecipe.UpdateTime = t
+		}
+	}
+
+	// Ingredients
+	var ingredientGroup model.IngredientGroup
+	var ingredients = AsStringSlice(schemaRecipe.RecipeIngredient)
+	for _, ing := range ingredients {
+		amount1, unit1, conj, amount2, unit2, name := ParseIngredient(ing)
+		measurementType1 := MapUnitToMeasurementType(unit1)
+		measurementType2 := MapUnitToMeasurementType(unit2)
+		if measurementType1 == pb.Recipe_MEASUREMENT_TYPE_UNSPECIFIED {
+			name = unit1 + " " + name
+			name = strings.TrimSpace(name)
+		}
+		ingredientGroup.RecipeIngredients = append(ingredientGroup.RecipeIngredients, model.RecipeIngredient{
+			Optional:                false,
+			MeasurementAmount:       amount1,
+			MeasurementType:         measurementType1,
+			MeasurementConjunction:  MapConjunctionToProto(conj),
+			SecondMeasurementAmount: amount2,
+			SecondMeasurementType:   measurementType2,
+			Title:                   name,
+		})
+	}
+	coreRecipe.IngredientGroups = []model.IngredientGroup{ingredientGroup}
+
+	// Directions
+	var directions []model.RecipeDirection
+	var parseInstructions func(interface{}, string)
+	parseInstructions = func(instr interface{}, sectionTitle string) {
+		var steps []string
+		switch v := instr.(type) {
+		case string:
+			if v != "" {
+				steps = append(steps, v)
+			}
+		case []interface{}:
+			for _, step := range v {
+				switch st := step.(type) {
+				case string:
+					if st != "" {
+						steps = append(steps, st)
+					}
+				case map[string]interface{}:
+					typeVal, _ := st["@type"].(string)
+					if typeVal == "HowToSection" {
+						name, _ := st["name"].(string)
+						parseInstructions(st["itemListElement"], name)
+					} else if typeVal == "HowToStep" {
+						if txt, ok := st["text"].(string); ok && txt != "" {
+							steps = append(steps, txt)
+						}
+					}
+				}
+			}
+		}
+		if len(steps) > 0 {
+			directions = append(directions, model.RecipeDirection{Title: sectionTitle, Steps: steps})
+		}
+	}
+	parseInstructions(schemaRecipe.RecipeInstructions, "")
+	if len(directions) > 0 {
+		coreRecipe.Directions = directions
+	}
+	coreRecipe.Visibility = 300
+	return coreRecipe
 }

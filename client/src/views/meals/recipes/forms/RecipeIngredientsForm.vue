@@ -154,7 +154,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
+import { computed, reactive, onMounted, watch } from 'vue'
 import type {
   Recipe,
   Recipe_IngredientGroup,
@@ -163,6 +163,10 @@ import type {
 import { MEASUREMENT_TYPES } from '@/constants/measurements'
 import MoveButtons from '@/components/common/MoveButtons.vue'
 import { moveArrayItem, moveNestedArrayItem } from '@/utils/array'
+
+onMounted(() => {
+  initializeShowSecondMeasurementMap()
+})
 
 const props = defineProps<{
   modelValue: Recipe
@@ -176,9 +180,25 @@ const recipe = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value),
 })
+ 
+watch(recipe, () => {
+  initializeShowSecondMeasurementMap()
+})
 
 // Track showSecondMeasurement state for each ingredient by group and index
 const showSecondMeasurementMap = reactive<{ [groupIdx: number]: { [ingredientIdx: number]: boolean } }>({})
+function initializeShowSecondMeasurementMap() {
+  recipe.value.ingredientGroups?.forEach((group, groupIdx) => {
+    if (!showSecondMeasurementMap[groupIdx]) showSecondMeasurementMap[groupIdx] = {}
+    group.ingredients?.forEach((ingredient, ingredientIdx) => {
+      const hasSecond =
+        ingredient.measurementConjunction !== 'MEASUREMENT_CONJUNCTION_UNSPECIFIED' ||
+        (ingredient.secondMeasurementAmount !== undefined && ingredient.secondMeasurementAmount !== 0) ||
+        ingredient.secondMeasurementType !== 'MEASUREMENT_TYPE_UNSPECIFIED'
+      showSecondMeasurementMap[groupIdx][ingredientIdx] = hasSecond
+    })
+  })
+}
 
 function toggleSecondMeasurement(groupIdx: number, ingredientIdx: number) {
   if (!showSecondMeasurementMap[groupIdx]) showSecondMeasurementMap[groupIdx] = {}

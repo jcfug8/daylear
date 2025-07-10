@@ -1,6 +1,7 @@
 package gemini
 
 import (
+	"github.com/jcfug8/daylear/server/ports/ingredientcleaner"
 	"github.com/jcfug8/daylear/server/ports/recipeocr"
 	"go.uber.org/fx"
 )
@@ -9,8 +10,9 @@ var Module = fx.Module(
 	"gemini",
 	fx.Provide(
 		fx.Annotate(
-			NewRecipeOCRClient,
+			NewRecipeGeminiClient,
 			fx.As(new(recipeocr.Client)),
+			fx.As(new(ingredientcleaner.Client)),
 		),
 	),
 )

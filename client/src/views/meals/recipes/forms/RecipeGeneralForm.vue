@@ -17,7 +17,13 @@
     <v-dialog v-model="showScrapeOcrDialog" max-width="600">
       <v-card>
         <v-card-title>Import Recipe</v-card-title>
+        <v-card-subtitle>
+          Importing uses AI and may take longer than a minute to complete.
+        </v-card-subtitle>
         <v-card-text>
+          <v-alert v-if="scrapeLoading || ocrLoading" type="info" density="compact" class="mb-2">
+            Import in progress: {{ formatImportTimer() }} elapsed
+          </v-alert>
           <v-tabs v-model="importTab">
             <v-tab value="scrape">URL</v-tab>
             <v-tab value="ocr">Image</v-tab>
@@ -317,11 +323,6 @@ const emit = defineEmits<{
 const showScrapeOcrDialog = ref(false)
 const importTab = ref('scrape')
 
-const recipe = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value),
-})
-
 // Scrape logic
 const scrapeUrl = ref('')
 const scrapeLoading = ref(false)
@@ -489,6 +490,62 @@ async function ocrRecipe() {
   }
 }
 
+// Timer for import
+const importTimer = ref(0)
+let timerInterval: number | null = null
+
+function startImportTimer() {
+  if (timerInterval !== null) return
+  importTimer.value = 0
+  timerInterval = window.setInterval(() => {
+    importTimer.value++
+  }, 1000)
+}
+function stopImportTimer() {
+  if (timerInterval !== null) {
+    clearInterval(timerInterval)
+    timerInterval = null
+  }
+}
+function resetImportTimer() {
+  importTimer.value = 0
+}
+function formatImportTimer() {
+  const min = Math.floor(importTimer.value / 60)
+  const sec = importTimer.value % 60
+  return `${min}:${sec.toString().padStart(2, '0')}`
+}
+
+watch([scrapeLoading, ocrLoading], ([scrape, ocr]) => {
+  if (scrape || ocr) {
+    startImportTimer()
+  } else {
+    stopImportTimer()
+    resetImportTimer()
+  }
+})
+
+const recipe = computed({
+  get: () => props.modelValue,
+  set: (value) => emit('update:modelValue', value),
+})
+
+// Categories and cuisines as tag inputs
+const categoriesInput = ref(recipe.value.categories ?? [])
+const cuisinesInput = ref(recipe.value.cuisines ?? [])
+watch(categoriesInput, (val) => {
+  recipe.value.categories = val
+})
+watch(() => recipe.value.categories, (val) => {
+  categoriesInput.value = val ?? []
+})
+watch(cuisinesInput, (val) => {
+  recipe.value.cuisines = val
+})
+watch(() => recipe.value.cuisines, (val) => {
+  cuisinesInput.value = val ?? []
+})
+
 // Cook duration in minutes (convert to/from nanoseconds)
 const prepDurationMinutes = computed({
   get() {
@@ -513,22 +570,6 @@ const cookDurationMinutes = computed({
   set(val: number) {
     recipe.value.cookDuration = formatDuration(val)
   }
-})
-
-// Categories and cuisines as tag inputs
-const categoriesInput = ref(recipe.value.categories ?? [])
-const cuisinesInput = ref(recipe.value.cuisines ?? [])
-watch(categoriesInput, (val) => {
-  recipe.value.categories = val
-})
-watch(() => recipe.value.categories, (val) => {
-  categoriesInput.value = val ?? []
-})
-watch(cuisinesInput, (val) => {
-  recipe.value.cuisines = val
-})
-watch(() => recipe.value.cuisines, (val) => {
-  cuisinesInput.value = val ?? []
 })
 
 onMounted(() => {
