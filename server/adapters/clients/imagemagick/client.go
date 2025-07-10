@@ -2,6 +2,7 @@ package imagemagick
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -16,8 +17,15 @@ type Client struct {
 	log zerolog.Logger
 }
 
-func NewClient(log zerolog.Logger) *Client {
-	return &Client{log: log}
+func NewClient(log zerolog.Logger) (*Client, error) {
+	// call magick identify to check if it is installed
+	cmd := exec.Command("magick", "identify", "--version")
+	out, err := cmd.Output()
+	if err != nil {
+		log.Error().Err(err).Msgf("magick identify is not installed: %s: %s", err, string(out))
+		return nil, fmt.Errorf("magick identify is not installed: %s: %s", err, string(out))
+	}
+	return &Client{log: log}, nil
 }
 
 func (c *Client) CreateImage(ctx context.Context, imageReader io.Reader) (image.Image, error) {
