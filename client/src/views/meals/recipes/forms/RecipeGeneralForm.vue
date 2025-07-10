@@ -18,7 +18,7 @@
       <v-card>
         <v-card-title>Import Recipe</v-card-title>
         <v-card-subtitle>
-          Importing uses AI and may take longer than a minute to complete.
+          Importing uses AI and may take up to a minute to complete and often makes mistakes. After the import is finished, you may want to edit the recipe to make it more accurate.
         </v-card-subtitle>
         <v-card-text>
           <v-alert v-if="scrapeLoading || ocrLoading" type="info" density="compact" class="mb-2">

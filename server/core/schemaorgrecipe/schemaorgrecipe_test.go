@@ -31,6 +31,8 @@ func TestParseIngredient(t *testing.T) {
 		{"1 1/2 cups + 1/4 cup sugar", 1.5, "cups", "+", 0.25, "cup", "sugar"},
 		{"1 1/2 cups - 2 1/4 cups sugar", 1.5, "cups", "-", 2.25, "cups", "sugar"},
 		{"1 1/2 - 2 1/4 cups sugar", 1.5, "cups", "-", 2.25, "cups", "sugar"},
+		{"Salt to taste", 0, "", "", 0, "", "Salt to taste"},
+		{"Salt and pepper to taste", 0, "", "", 0, "", "Salt and pepper to taste"},
 	}
 
 	for _, tt := range tests {

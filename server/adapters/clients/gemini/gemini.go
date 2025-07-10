@@ -161,14 +161,9 @@ func (c *RecipeGeminiClient) OCRRecipe(ctx context.Context, files []file.File) (
 func (c *RecipeGeminiClient) CleanIngredients(ctx context.Context, ingredients []string) (cleanedIngredients []string, err error) {
 	l := c.logger.With().Str("req_id", uuid.NewV4().String()).Logger()
 
-	jsonIngredients, err := json.Marshal(ingredients)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal ingredients: %w", err)
-	}
-
 	parts := []genai.Part{
 		genai.Text(
-			`Please clean up this JSON list of recipe ingredients (strings) and return the cleaned JSON list. Only output the JSON. The output must be a json list of strings. Do not include any other text or comments.
+			`Please clean up this newline separated list of recipe ingredients and return the cleaned newline separated list of ingredients. The output must be a newline separated list of ingredients. Do not include any other text or comments.
 		When cleaning the list of recipe ingredients:
 		  - Use the full name of the unit, not the abbreviation. i.e. "1 cup" not "1 c" or "1 tablespoon" not "1 tbsp".
 		  - a basic format of an ingredient should be '{amount} {unit} {ingredient}'.
@@ -178,7 +173,7 @@ func (c *RecipeGeminiClient) CleanIngredients(ctx context.Context, ingredients [
 		  - If the ingredient has two measurements that should be combined or added together and are using two different units, then the output ingredient should be formatted like "1 cup and 1 tablespoon sugar". The input may be formatted like, but not limited to, "1 cup + 1 tablespoon sugar" or "1 cup and 1 tablespoon sugar".
 		  - If the ingredient has two measurements but only one should be used, e.i one is volume and the other is weight, then the output ingredient should be formatted like. "1 cup or 100 grams sugar". The input may be formatted like, but not limited to, "1 cup or 100 grams sugar" or "1 cup (100 grams) sugar" or "1 cup sugar - 100 grams".`,
 		),
-		genai.Text(string(jsonIngredients)),
+		genai.Text(strings.Join(ingredients, "\n")),
 	}
 
 	var resp *genai.GenerateContentResponse
@@ -216,16 +211,7 @@ func (c *RecipeGeminiClient) CleanIngredients(ctx context.Context, ingredients [
 		return nil, fmt.Errorf("no text response from Gemini")
 	}
 
-	text = strings.TrimSpace(text)
-	text = strings.TrimPrefix(text, "```json")
-	text = strings.TrimSuffix(text, "```")
-	text = strings.TrimSpace(text)
-
-	err = json.Unmarshal([]byte(text), &cleanedIngredients)
-	if err != nil {
-		l.Error().Err(err).Str("text", text).Msgf("failed to unmarshal cleaned ingredients: %s", err)
-		return nil, fmt.Errorf("failed to unmarshal cleaned ingredients: %w", err)
-	}
+	cleanedIngredients = strings.Split(text, "\n")
 
 	l.Info().Str("model", modelName).Interface("ingredients", ingredients).Interface("cleanedIngredients", cleanedIngredients).Msg("cleaned ingredients")
 

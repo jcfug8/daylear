@@ -94,6 +94,8 @@ func ParseIngredient(text string) (amount1 float64, unit1 string, conj string, a
 		}
 	}
 
+	amountFound := false
+
 	if conjIdx > 0 {
 		amount1Idx := 0
 		unit1Idx := 1
@@ -113,6 +115,7 @@ func ParseIngredient(text string) (amount1 float64, unit1 string, conj string, a
 			if err != nil {
 				break
 			}
+			amountFound = true
 			extraIdx = i
 			amount1 = tempAmount
 		}
@@ -128,8 +131,13 @@ func ParseIngredient(text string) (amount1 float64, unit1 string, conj string, a
 			if err != nil {
 				break
 			}
+			amountFound = true
 			extraIdx = i
 			amount2 = tempAmount
+		}
+
+		if !amountFound {
+			return 0, "", "", 0, "", text
 		}
 
 		if unit2Idx == unit1Idx {
@@ -156,8 +164,13 @@ func ParseIngredient(text string) (amount1 float64, unit1 string, conj string, a
 		if err != nil {
 			break
 		}
+		amountFound = true
 		extraIdx = i
 		amount1 = tempAmount
+	}
+
+	if !amountFound {
+		return 0, "", "", 0, "", text
 	}
 
 	unitIdx += extraIdx - amountIdx
