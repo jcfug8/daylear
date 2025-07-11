@@ -33,7 +33,13 @@
                   :src="recipe.imageUri" 
                   cover
                   height="300"
-                ></v-img>
+                >
+                  <template #placeholder>
+                    <v-row class="fill-height ma-0" align="center" justify="center">
+                      <v-progress-circular indeterminate color="grey lighten-5"></v-progress-circular>
+                    </v-row>
+                  </template>
+                </v-img>
                 <div 
                   v-else 
                   class="mt-1 d-flex align-center justify-center"
@@ -44,6 +50,19 @@
                     <div class="text-grey-darken-1 mt-2">No image available</div>
                   </div>
                 </div>
+                <v-btn
+                  v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)"
+                  class="generate-image-btn"
+                  icon
+                  color="primary"
+                  @click="openGenerateImageModal"
+                  style="position: absolute; top: 8px; right: 8px; z-index: 2;"
+                  :loading="generatingImage"
+                  :disabled="generatingImage"
+                  title="Generate Image"
+                >
+                  <v-icon>mdi-image-auto-adjust</v-icon>
+                </v-btn>
               </div>
             </v-col>
             <v-spacer></v-spacer>
@@ -343,6 +362,24 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <!-- Add modal for generated image -->
+  <v-dialog v-model="showGeneratedImageModal" max-width="600">
+    <v-card>
+      <v-card-title class="text-h5">Generated Recipe Image</v-card-title>
+      <v-card-text>
+        <div v-if="generatedImageUrl">
+          <img :src="generatedImageUrl" style="max-width: 100%; max-height: 400px; display: block; margin: 0 auto;" />
+        </div>
+        <v-alert v-if="generateImageError" type="error" class="mt-2">{{ generateImageError }}</v-alert>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="grey" variant="text" @click="closeGenerateImageModal">Cancel</v-btn>
+        <v-btn color="primary" :loading="updatingImage" :disabled="!generatedImageBlob || updatingImage" @click="updateRecipeImage">Use This Image</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -355,7 +392,7 @@ import { useRecipeFormStore } from '@/stores/recipeForm'
 import { storeToRefs } from 'pinia'
 import { onMounted, onBeforeUnmount, watch, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import {   recipeService, userService, circleService, recipeAccessService } from '@/api/api'
+import {   recipeService, userService, circleService, recipeAccessService, fileService } from '@/api/api'
 import type { User, ListUsersRequest } from '@/genapi/api/users/user/v1alpha1'
 import type { Circle, ListCirclesRequest } from '@/genapi/api/circles/circle/v1alpha1'
 import { useAuthStore } from '@/stores/auth'
@@ -987,10 +1024,69 @@ async function handleSharePermissionChange(share: Access, newLevel: PermissionLe
     sharePermissionLoading.value[share.name] = false
   }
 }
+
+const showGeneratedImageModal = ref(false)
+const generatingImage = ref(false)
+const generatedImageBlob = ref<Blob|null>(null)
+const generatedImageUrl = ref<string|null>(null)
+const generateImageError = ref<string|null>(null)
+const updatingImage = ref(false)
+
+function openGenerateImageModal() {
+  generateImageError.value = null
+  generatedImageBlob.value = null
+  generatedImageUrl.value = null
+  showGeneratedImageModal.value = true
+  generateRecipeImage()
+}
+
+function closeGenerateImageModal() {
+  showGeneratedImageModal.value = false
+  if (generatedImageUrl.value) {
+    URL.revokeObjectURL(generatedImageUrl.value)
+    generatedImageUrl.value = null
+  }
+}
+
+async function generateRecipeImage() {
+  if (!recipe.value?.name) return
+  generatingImage.value = true
+  generateImageError.value = null
+  try {
+    const blob = await fileService.GenerateRecipeImage({ name: recipe.value.name })
+    generatedImageBlob.value = blob
+    if (generatedImageUrl.value) {
+      URL.revokeObjectURL(generatedImageUrl.value)
+    }
+    generatedImageUrl.value = URL.createObjectURL(blob)
+  } catch (error) {
+    generateImageError.value = error instanceof Error ? error.message : String(error)
+  } finally {
+    generatingImage.value = false
+  }
+}
+
+async function updateRecipeImage() {
+  if (!recipe.value?.name || !generatedImageBlob.value) return
+  updatingImage.value = true
+  try {
+    await fileService.UploadRecipeImage({ name: recipe.value.name, file: new File([generatedImageBlob.value], 'generated-image.png', { type: generatedImageBlob.value.type || 'image/png' }) })
+    // Reload the recipe to show the new image
+    await recipesStore.loadRecipe(recipe.value.name)
+    closeGenerateImageModal()
+  } catch (error) {
+    generateImageError.value = error instanceof Error ? error.message : String(error)
+  } finally {
+    updatingImage.value = false
+  }
+}
 </script>
 
 <style scoped>
 .image-container {
   position: relative;
+}
+.generate-image-btn {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 </style>

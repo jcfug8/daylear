@@ -37,11 +37,20 @@ export type UploadCircleImageRequest = {
     file: File | undefined;
 };
 
+// the request to generate a recipe image
+export type GenerateRecipeImageRequest = {
+    name: string | undefined;
+};
+
+// the response to generate a recipe image
+export type GenerateRecipeImageResponse = Blob;
+
 // the auth service
 export interface FileService {
     UploadRecipeImage(request: UploadRecipeImageRequest, signal?: AbortSignal): Promise<UploadRecipeImageResponse>;
     UploadCircleImage(request: UploadCircleImageRequest, signal?: AbortSignal): Promise<UploadCircleImageResponse>;
     OCRRecipe(request: OCRRecipeRequest, signal?: AbortSignal): Promise<OCRRecipeResponse>;
+    GenerateRecipeImage(request: GenerateRecipeImageRequest, signal?: AbortSignal): Promise<GenerateRecipeImageResponse>;
   }
   
 type RequestType = {
@@ -49,6 +58,7 @@ type RequestType = {
     method: string;
     body: File | FormData | null;
     signal?: AbortSignal;
+    responseType?: string;
 };
 
 type RequestHandler = (request: RequestType, meta: { service: string, method: string }) => Promise<unknown>;
@@ -128,6 +138,22 @@ export function createFileServiceClient(handler: RequestHandler): FileService {
           service: "FileService",
           method: "OCRRecipe",
         }) as Promise<OCRRecipeResponse>;
-      }
+      },
+      async GenerateRecipeImage(request, signal) {
+        if (!request.name) {
+          throw new Error("missing required field request.name");
+        }
+        const path = `files/meals/v1alpha1/${request.name}/image:generate`;
+        return handler({
+          path: path,
+          method: "GET",
+          body: null,
+          responseType: "blob",
+          signal,
+        }, {
+          service: "FileService",
+          method: "GenerateRecipeImage",
+        }) as Promise<Blob>;
+      },
   }
 }

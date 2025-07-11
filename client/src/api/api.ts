@@ -9,7 +9,7 @@ import { API_BASE_URL } from '@/constants/api'
 // Generic fetch handler for the generated API client
 export const authenticatedFetchHandler = function(contentType: string) {
   return async function <T = string | null | FormData>(
-    request: { path: string; method: string; body: T, signal?: AbortSignal },
+    request: { path: string; method: string; body: T, signal?: AbortSignal, responseType?: string },
     _meta?: { service: string; method: string },
   ) {
     const authStore = useAuthStore()
@@ -40,6 +40,9 @@ export const authenticatedFetchHandler = function(contentType: string) {
       throw new Error(`API error: ${res.status} ${res.statusText}`)
     }
     if (res.status === 204) return undefined
+    if (request.responseType === "blob") {
+      return await res.blob()
+    }
     return await res.json()
   }
 }
