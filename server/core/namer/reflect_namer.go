@@ -11,11 +11,11 @@ type ReflectNamer interface {
 	//
 	// Returns an error if the resource cannot be formatted due to missing/invalid fields
 	// or if the pattern index is invalid.
-	Format(in interface{}, options ...formatReflectNamerOption) (string, error)
+	Format(in interface{}, options ...FormatReflectNamerOption) (string, error)
 
 	// MustFormat is like Format but panics if an error occurs.
 	// Use when you expect formatting to always succeed.
-	MustFormat(in interface{}, options ...formatReflectNamerOption) string
+	MustFormat(in interface{}, options ...FormatReflectNamerOption) string
 
 	// FormatParent returns the formatted parent resource name string using the specified AIP pattern.
 	// The pattern is selected by the provided options (e.g., AsPatternIndex).
@@ -24,11 +24,11 @@ type ReflectNamer interface {
 	//
 	// Returns an error if the resource cannot be formatted due to missing/invalid fields
 	// or if the pattern index is invalid.
-	FormatParent(in interface{}, options ...formatReflectNamerOption) (string, error)
+	FormatParent(in interface{}, options ...FormatReflectNamerOption) (string, error)
 
 	// MustFormatParent is like FormatParent but panics if an error occurs.
 	// Use when you expect formatting to always succeed.
-	MustFormatParent(in interface{}, options ...formatReflectNamerOption) string
+	MustFormatParent(in interface{}, options ...FormatReflectNamerOption) string
 
 	// Parse parses a resource name string into the struct pointed to by 'in'.
 	// Returns the index of the pattern used for parsing, or an error if parsing fails.

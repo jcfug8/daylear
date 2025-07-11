@@ -10,7 +10,7 @@ import (
 
 // MustFormat calls Format and panics if an error occurs.
 // It is a convenience method for callers who expect the resource to always be valid for formatting.
-func (n *defaultReflectNamer) MustFormat(in interface{}, options ...formatReflectNamerOption) string {
+func (n *defaultReflectNamer) MustFormat(in interface{}, options ...FormatReflectNamerOption) string {
 	formatted, err := n.Format(in, options...)
 	if err != nil {
 		panic(err)
@@ -22,7 +22,7 @@ func (n *defaultReflectNamer) MustFormat(in interface{}, options ...formatReflec
 // By default, it uses the pattern at index 0. If patternIndex is -1, it tries all patterns
 // and returns the first one that matches. Returns an error if no pattern matches or if
 // required fields are missing/invalid.
-func (n *defaultReflectNamer) Format(in interface{}, options ...formatReflectNamerOption) (string, error) {
+func (n *defaultReflectNamer) Format(in interface{}, options ...FormatReflectNamerOption) (string, error) {
 	if in == nil {
 		return "", ErrInvalidField{msg: "input is nil"}
 	}

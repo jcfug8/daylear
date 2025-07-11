@@ -21,6 +21,82 @@
     "application/json"
   ],
   "paths": {
+    "/meals/v1alpha1/{access.name_1}": {
+      "patch": {
+        "summary": "Update a recipe access",
+        "description": "Updates the permission level or recipient for a recipe access.",
+        "operationId": "RecipeAccessService_UpdateAccess2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/mealsrecipev1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "access.name_1",
+            "description": "The name of the access",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/recipes/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "access",
+            "description": "access",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "requester": {
+                  "$ref": "#/definitions/AccessRequesterOrRecipient",
+                  "title": "the name of the requester",
+                  "readOnly": true
+                },
+                "recipient": {
+                  "$ref": "#/definitions/AccessRequesterOrRecipient",
+                  "title": "the name of the recipient"
+                },
+                "level": {
+                  "$ref": "#/definitions/typesPermissionLevel",
+                  "title": "the permission level of the access"
+                },
+                "state": {
+                  "$ref": "#/definitions/typesAccessState",
+                  "title": "the status of the access",
+                  "readOnly": true
+                }
+              },
+              "title": "access",
+              "required": [
+                "recipient",
+                "level",
+                "access"
+              ]
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeAccessService"
+        ]
+      }
+    },
     "/meals/v1alpha1/{access.name}": {
       "patch": {
         "summary": "Update a recipe access",
@@ -82,6 +158,136 @@
                 "level",
                 "access"
               ]
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeAccessService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name_1}": {
+      "get": {
+        "summary": "Get a recipe access",
+        "description": "Retrieves details about a specific recipe access.",
+        "operationId": "RecipeAccessService_GetAccess2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/mealsrecipev1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/recipes/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeAccessService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a recipe access",
+        "description": "Removes a user's or circle's access to a recipe.",
+        "operationId": "RecipeAccessService_DeleteAccess2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/recipes/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeAccessService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name_1}:accept": {
+      "post": {
+        "summary": "Accept a recipe access",
+        "description": "Accepts a pending recipe access, changing its state from PENDING to ACCEPTED.",
+        "operationId": "RecipeAccessService_AcceptRecipeAccess2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1AcceptRecipeAccessResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/recipes/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecipeAccessServiceAcceptRecipeAccessBody"
             }
           },
           {
@@ -200,6 +406,7 @@
         "parameters": [
           {
             "name": "name",
+            "description": "name",
             "in": "path",
             "required": true,
             "type": "string",
@@ -211,6 +418,120 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/RecipeAccessServiceAcceptRecipeAccessBody"
+            }
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeAccessService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{parent_1}/accesses": {
+      "get": {
+        "summary": "List recipe accesses",
+        "description": "Lists all users and circles with access to a recipe. If no recipe is provided, the response will only return the accesses for the current user (or circle if the circle header is provided).",
+        "operationId": "RecipeAccessService_ListAccesses2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/mealsrecipev1alpha1ListAccessesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent_1",
+            "description": "parent",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/recipes/[^/]+"
+          },
+          {
+            "name": "filter",
+            "description": "The filter to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "description": "The page size to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "The page token to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecipeAccessService"
+        ]
+      },
+      "post": {
+        "summary": "Grant a user or circle access to a recipe",
+        "description": "Grants a user or circle a specific permission level to a recipe.",
+        "operationId": "RecipeAccessService_CreateAccess2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/mealsrecipev1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent_1",
+            "description": "parent",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/recipes/[^/]+"
+          },
+          {
+            "name": "access",
+            "description": "The access to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/mealsrecipev1alpha1Access",
+              "required": [
+                "access"
+              ]
             }
           },
           {

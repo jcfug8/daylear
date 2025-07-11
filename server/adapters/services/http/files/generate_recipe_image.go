@@ -30,7 +30,7 @@ func (s *Service) GenerateRecipeImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, err := s.domain.GenerateRecipeImage(r.Context(), authAccount, mRecipe.Id)
+	file, err := s.domain.GenerateRecipeImage(r.Context(), authAccount, mRecipe.Parent, mRecipe.Id)
 	if err != nil {
 		http.Error(w, "Failed to generate recipe image", http.StatusInternalServerError)
 		return

@@ -233,6 +233,10 @@ export type CreateRecipeRequest = {
   //
   // Behaviors: REQUIRED
   recipeId: string | undefined;
+  // the parent of the recipe
+  //
+  // Behaviors: OPTIONAL
+  parent: string | undefined;
 };
 
 // the request to list recipes
@@ -249,6 +253,10 @@ export type ListRecipesRequest = {
   //
   // Behaviors: OPTIONAL
   filter: string | undefined;
+  // the parent of the recipes
+  //
+  // Behaviors: OPTIONAL
+  parent: string | undefined;
 };
 
 // the response to list recipes
@@ -331,19 +339,24 @@ export type ScrapeRecipeResponse = {
 
 // the recipe service
 export interface RecipeService {
-  CreateRecipe(request: CreateRecipeRequest, signal?: AbortSignal): Promise<Recipe>;
-  ListRecipes(request: ListRecipesRequest, signal?: AbortSignal): Promise<ListRecipesResponse>;
-  UpdateRecipe(request: UpdateRecipeRequest, signal?: AbortSignal): Promise<Recipe>;
-  DeleteRecipe(request: DeleteRecipeRequest, signal?: AbortSignal): Promise<Recipe>;
-  GetRecipe(request: GetRecipeRequest, signal?: AbortSignal): Promise<Recipe>;
-  ScrapeRecipe(request: ScrapeRecipeRequest, signal?: AbortSignal): Promise<ScrapeRecipeResponse>;
+  // create a recipe
+  CreateRecipe(request: CreateRecipeRequest): Promise<Recipe>;
+  // list recipes
+  ListRecipes(request: ListRecipesRequest): Promise<ListRecipesResponse>;
+  // update a recipe
+  UpdateRecipe(request: UpdateRecipeRequest): Promise<Recipe>;
+  // delete` a recipe
+  DeleteRecipe(request: DeleteRecipeRequest): Promise<Recipe>;
+  // get a recipe
+  GetRecipe(request: GetRecipeRequest): Promise<Recipe>;
+  // scrape and save a recipe from a uri
+  ScrapeRecipe(request: ScrapeRecipeRequest): Promise<ScrapeRecipeResponse>;
 }
 
 type RequestType = {
   path: string;
   method: string;
   body: string | null;
-  signal?: AbortSignal;
 };
 
 type RequestHandler = (request: RequestType, meta: { service: string, method: string }) => Promise<unknown>;
@@ -352,12 +365,15 @@ export function createRecipeServiceClient(
   handler: RequestHandler
 ): RecipeService {
   return {
-    CreateRecipe(request, signal) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    CreateRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `meals/v1alpha1/recipes`; // eslint-disable-line quotes
       const body = JSON.stringify(request?.recipe ?? {});
       const queryParams: string[] = [];
       if (request.recipeId) {
         queryParams.push(`recipeId=${encodeURIComponent(request.recipeId.toString())}`)
+      }
+      if (request.parent) {
+        queryParams.push(`parent=${encodeURIComponent(request.parent.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
@@ -367,13 +383,12 @@ export function createRecipeServiceClient(
         path: uri,
         method: "POST",
         body,
-        signal,
       }, {
         service: "RecipeService",
         method: "CreateRecipe",
       }) as Promise<Recipe>;
     },
-    ListRecipes(request, signal) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    ListRecipes(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       const path = `meals/v1alpha1/recipes`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
@@ -386,6 +401,9 @@ export function createRecipeServiceClient(
       if (request.filter) {
         queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
       }
+      if (request.parent) {
+        queryParams.push(`parent=${encodeURIComponent(request.parent.toString())}`)
+      }
       let uri = path;
       if (queryParams.length > 0) {
         uri += `?${queryParams.join("&")}`
@@ -394,13 +412,12 @@ export function createRecipeServiceClient(
         path: uri,
         method: "GET",
         body,
-        signal,
       }, {
         service: "RecipeService",
         method: "ListRecipes",
       }) as Promise<ListRecipesResponse>;
     },
-    UpdateRecipe(request, signal) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    UpdateRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.recipe?.name) {
         throw new Error("missing required field request.recipe.name");
       }
@@ -418,13 +435,12 @@ export function createRecipeServiceClient(
         path: uri,
         method: "PATCH",
         body,
-        signal,
       }, {
         service: "RecipeService",
         method: "UpdateRecipe",
       }) as Promise<Recipe>;
     },
-    DeleteRecipe(request, signal) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    DeleteRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.name) {
         throw new Error("missing required field request.name");
       }
@@ -439,13 +455,12 @@ export function createRecipeServiceClient(
         path: uri,
         method: "DELETE",
         body,
-        signal,
       }, {
         service: "RecipeService",
         method: "DeleteRecipe",
       }) as Promise<Recipe>;
     },
-    GetRecipe(request, signal) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    GetRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.name) {
         throw new Error("missing required field request.name");
       }
@@ -460,14 +475,13 @@ export function createRecipeServiceClient(
         path: uri,
         method: "GET",
         body,
-        signal,
       }, {
         service: "RecipeService",
         method: "GetRecipe",
       }) as Promise<Recipe>;
     },
-    ScrapeRecipe(request, signal) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      const path = `meals/v1alpha1/recipes:scrape`; // eslint-disable-line quotes
+    ScrapeRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      const path = `meals/v1alpha1/recipes:scrapeRecipe`; // eslint-disable-line quotes
       const body = JSON.stringify(request);
       const queryParams: string[] = [];
       let uri = path;
@@ -478,7 +492,6 @@ export function createRecipeServiceClient(
         path: uri,
         method: "POST",
         body,
-        signal,
       }, {
         service: "RecipeService",
         method: "ScrapeRecipe",
@@ -612,6 +625,7 @@ export type UpdateAccessRequest = {
 
 // The request to accept a recipe access
 export type AcceptRecipeAccessRequest = {
+  // name
   //
   // Behaviors: REQUIRED
   name: string | undefined;

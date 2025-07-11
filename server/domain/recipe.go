@@ -35,6 +35,15 @@ func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount
 		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "user id required"}
 	}
 
+	if recipe.Parent.CircleId != 0 && authAccount.CircleId != 0 && recipe.Parent.CircleId != authAccount.CircleId {
+		log.Warn().Msg("both circle ids set but do not match")
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
+	}
+
+	if recipe.Parent.CircleId != 0 {
+		authAccount.CircleId = recipe.Parent.CircleId
+	}
+
 	recipe.Id.RecipeId = 0
 
 	if authAccount.CircleId != 0 {
@@ -100,11 +109,13 @@ func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount
 		return model.Recipe{}, err
 	}
 
+	dbRecipe.Parent = recipe.Parent
+
 	return dbRecipe, nil
 }
 
 // DeleteRecipe deletes a recipe.
-func (d *Domain) DeleteRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (recipe model.Recipe, err error) {
+func (d *Domain) DeleteRecipe(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, id model.RecipeId) (recipe model.Recipe, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	if authAccount.UserId == 0 {
 		log.Warn().Msg("parent required")
@@ -114,6 +125,15 @@ func (d *Domain) DeleteRecipe(ctx context.Context, authAccount model.AuthAccount
 	if id.RecipeId == 0 {
 		log.Warn().Msg("id required")
 		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
+	}
+
+	if parent.CircleId != 0 && authAccount.CircleId != 0 && parent.CircleId != authAccount.CircleId {
+		log.Warn().Msg("both circle ids set but do not match")
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
+	}
+
+	if parent.CircleId != 0 {
+		authAccount.CircleId = parent.CircleId
 	}
 
 	if authAccount.CircleId != 0 {
@@ -165,11 +185,13 @@ func (d *Domain) DeleteRecipe(ctx context.Context, authAccount model.AuthAccount
 		return model.Recipe{}, err
 	}
 
+	recipe.Parent = parent
+
 	return recipe, nil
 }
 
 // GetRecipe gets a recipe.
-func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (recipe model.Recipe, err error) {
+func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, id model.RecipeId) (recipe model.Recipe, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	if authAccount.UserId == 0 {
 		log.Warn().Msg("parent required")
@@ -179,6 +201,15 @@ func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, i
 	if id.RecipeId == 0 {
 		log.Warn().Msg("id required")
 		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
+	}
+
+	if parent.CircleId != 0 && authAccount.CircleId != 0 && parent.CircleId != authAccount.CircleId {
+		log.Warn().Msg("both circle ids set but do not match")
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
+	}
+
+	if parent.CircleId != 0 {
+		authAccount.CircleId = parent.CircleId
 	}
 
 	if authAccount.CircleId != 0 {
@@ -195,7 +226,7 @@ func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, i
 		}
 	}
 
-	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_PUBLIC {
+	if authAccount.VisibilityLevel != types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC && authAccount.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
 		log.Warn().Msg("user does not have access")
 		return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
 	}
@@ -206,6 +237,7 @@ func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, i
 		return model.Recipe{}, err
 	}
 
+	recipe.Parent = parent
 	if authAccount.PermissionLevel < recipe.RecipeAccess.PermissionLevel {
 		recipe.RecipeAccess.PermissionLevel = authAccount.PermissionLevel
 	}
@@ -214,11 +246,20 @@ func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, i
 }
 
 // ListRecipes lists recipes.
-func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount, pageSize int32, pageOffset int64, filter string) (recipes []model.Recipe, err error) {
+func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, pageSize int32, pageOffset int64, filter string) (recipes []model.Recipe, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	if authAccount.UserId == 0 {
 		log.Warn().Msg("user_id required")
 		return nil, domain.ErrInvalidArgument{Msg: "user_id required"}
+	}
+
+	if parent.CircleId != 0 && authAccount.CircleId != 0 && parent.CircleId != authAccount.CircleId {
+		log.Warn().Msg("both circle ids set but do not match")
+		return nil, domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
+	}
+
+	if parent.CircleId != 0 {
+		authAccount.CircleId = parent.CircleId
 	}
 
 	recipes, err = d.repo.ListRecipes(ctx, authAccount, pageSize, pageOffset, filter)
@@ -233,9 +274,10 @@ func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount,
 			log.Error().Err(err).Msg("getCircleAccessLevels failed")
 			return nil, err
 		}
-		for _, recipe := range recipes {
-			if recipe.RecipeAccess.PermissionLevel < authAccount.PermissionLevel {
-				recipe.RecipeAccess.PermissionLevel = authAccount.PermissionLevel
+		for i, recipe := range recipes {
+			recipes[i].Parent = parent
+			if recipe.RecipeAccess.PermissionLevel > authAccount.PermissionLevel {
+				recipes[i].RecipeAccess.PermissionLevel = authAccount.PermissionLevel
 			}
 		}
 	}
@@ -255,6 +297,15 @@ func (d *Domain) UpdateRecipe(ctx context.Context, authAccount model.AuthAccount
 	if recipe.Id.RecipeId == 0 {
 		log.Warn().Msg("id required")
 		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
+	}
+
+	if recipe.Parent.CircleId != 0 && authAccount.CircleId != 0 && recipe.Parent.CircleId != authAccount.CircleId {
+		log.Warn().Msg("both circle ids set but do not match")
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
+	}
+
+	if recipe.Parent.CircleId != 0 {
+		authAccount.CircleId = recipe.Parent.CircleId
 	}
 
 	if authAccount.CircleId != 0 {
@@ -310,13 +361,15 @@ func (d *Domain) UpdateRecipe(ctx context.Context, authAccount model.AuthAccount
 		return model.Recipe{}, err
 	}
 
+	dbRecipe.Parent = recipe.Parent
+
 	return dbRecipe, nil
 }
 
 // Recipe Image Methods
 
 // UploadRecipeImage uploads a recipe image.
-func (d *Domain) UploadRecipeImage(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId, imageReader io.Reader) (imageURI string, err error) {
+func (d *Domain) UploadRecipeImage(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, id model.RecipeId, imageReader io.Reader) (imageURI string, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	if authAccount.UserId == 0 {
 		log.Warn().Msg("parent required")
@@ -326,6 +379,15 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, authAccount model.AuthAc
 	if id.RecipeId == 0 {
 		log.Warn().Msg("id required")
 		return "", domain.ErrInvalidArgument{Msg: "id required"}
+	}
+
+	if parent.CircleId != 0 && authAccount.CircleId != 0 && parent.CircleId != authAccount.CircleId {
+		log.Warn().Msg("both circle ids set but do not match")
+		return "", domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
+	}
+
+	if parent.CircleId != 0 {
+		authAccount.CircleId = parent.CircleId
 	}
 
 	if authAccount.CircleId != 0 {
@@ -455,11 +517,20 @@ func (d *Domain) OCRRecipe(ctx context.Context, authAccount model.AuthAccount, i
 	return recipe, nil
 }
 
-func (d *Domain) GenerateRecipeImage(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (file.File, error) {
+func (d *Domain) GenerateRecipeImage(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, id model.RecipeId) (file.File, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	if authAccount.UserId == 0 {
 		log.Warn().Msg("user id required")
 		return file.File{}, domain.ErrInvalidArgument{Msg: "user id required"}
+	}
+
+	if parent.CircleId != 0 && authAccount.CircleId != 0 && parent.CircleId != authAccount.CircleId {
+		log.Warn().Msg("both circle ids set but do not match")
+		return file.File{}, domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
+	}
+
+	if parent.CircleId != 0 {
+		authAccount.CircleId = parent.CircleId
 	}
 
 	var err error
@@ -525,7 +596,7 @@ func (d *Domain) createRecipeImageURI(ctx context.Context, recipe model.Recipe) 
 func (d *Domain) updateRecipeImageURI(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe) (string, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	if recipe.ImageURI == "" {
-		err := d.removeRecipeImage(ctx, authAccount, recipe.Id)
+		err := d.removeRecipeImage(ctx, authAccount, recipe.Parent, recipe.Id)
 		if err != nil {
 			log.Error().Err(err).Msg("removeRecipeImage failed")
 			return "", err
@@ -597,9 +668,9 @@ func (d *Domain) uploadRecipeImage(ctx context.Context, id model.RecipeId, image
 	return iamgeURI, nil
 }
 
-func (d *Domain) removeRecipeImage(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (err error) {
+func (d *Domain) removeRecipeImage(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, id model.RecipeId) (err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
-	recipe, err := d.GetRecipe(ctx, authAccount, id)
+	recipe, err := d.GetRecipe(ctx, authAccount, parent, id)
 	if err != nil {
 		log.Error().Err(err).Msg("GetRecipe failed")
 		return err

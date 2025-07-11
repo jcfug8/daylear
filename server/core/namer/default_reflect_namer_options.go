@@ -31,11 +31,11 @@ type formatReflectNamerConfig struct {
 	patternIndex int // The index of the pattern to use for formatting
 }
 
-// formatReflectNamerOption defines a function that modifies formatReflectNamerConfig.
-type formatReflectNamerOption func(config formatReflectNamerConfig) formatReflectNamerConfig
+// FormatReflectNamerOption defines a function that modifies formatReflectNamerConfig.
+type FormatReflectNamerOption func(config formatReflectNamerConfig) formatReflectNamerConfig
 
 // AsPatternIndex sets the pattern index to use when formatting a resource name.
-func AsPatternIndex(patternIndex int) formatReflectNamerOption {
+func AsPatternIndex(patternIndex int) FormatReflectNamerOption {
 	return func(config formatReflectNamerConfig) formatReflectNamerConfig {
 		config.patternIndex = patternIndex
 		return config

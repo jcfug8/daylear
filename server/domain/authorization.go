@@ -25,7 +25,7 @@ func (d *Domain) getCircleAccessLevels(ctx context.Context, authAccount model.Au
 		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
 	}
 
-	if circle.VisibilityLevel == types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED || circle.CircleAccess.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+	if circle.VisibilityLevel == types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED && circle.CircleAccess.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
 		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user does not have access to circle"}
 	}
 
@@ -49,7 +49,7 @@ func (d *Domain) getRecipeAccessLevels(ctx context.Context, authAccount model.Au
 		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
 	}
 
-	if recipe.Visibility == types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED || recipe.RecipeAccess.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+	if recipe.Visibility == types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED && recipe.RecipeAccess.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
 		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user does not have access to recipe"}
 	}
 
@@ -76,7 +76,7 @@ func (d *Domain) getRecipeAccessLevelsForCircle(ctx context.Context, authAccount
 
 func determineRecipeAccessLevels(circleVisibilityLevel types.VisibilityLevel, circlePermissionLevel types.PermissionLevel, recipeVisibilityLevel types.VisibilityLevel, recipePermissionLevel types.PermissionLevel) (types.PermissionLevel, types.VisibilityLevel, error) {
 	// If either access level is unspecified, no access
-	if circlePermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED ||
+	if circlePermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED &&
 		recipePermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
 		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user does not have access to recipe: access not set"}
 	}

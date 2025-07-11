@@ -9,13 +9,14 @@ import (
 )
 
 // ProtoToRecipe converts a protobuf Recipe to a model Recipe
-func ProtoToRecipe(RecipeNamer namer.ReflectNamer, proto *pb.Recipe) (model.Recipe, error) {
+func ProtoToRecipe(RecipeNamer namer.ReflectNamer, proto *pb.Recipe) (int, model.Recipe, error) {
 	recipe := model.Recipe{}
+	var nameIndex int
 	var err error
 	if proto.Name != "" {
-		_, err = RecipeNamer.Parse(proto.Name, &recipe)
+		nameIndex, err = RecipeNamer.Parse(proto.Name, &recipe)
 		if err != nil {
-			return recipe, err
+			return nameIndex, recipe, err
 		}
 	}
 
@@ -46,15 +47,15 @@ func ProtoToRecipe(RecipeNamer namer.ReflectNamer, proto *pb.Recipe) (model.Reci
 		recipe.UpdateTime = proto.UpdateTime.AsTime()
 	}
 
-	return recipe, nil
+	return nameIndex, recipe, nil
 }
 
 // RecipeToProto converts a model Recipe to a protobuf Recipe
-func RecipeToProto(RecipeNamer namer.ReflectNamer, AccessNamer namer.ReflectNamer, recipe model.Recipe) (*pb.Recipe, error) {
+func RecipeToProto(RecipeNamer namer.ReflectNamer, AccessNamer namer.ReflectNamer, recipe model.Recipe, options ...namer.FormatReflectNamerOption) (*pb.Recipe, error) {
 	proto := &pb.Recipe{}
 
 	if recipe.Id.RecipeId != 0 {
-		name, err := RecipeNamer.Format(recipe)
+		name, err := RecipeNamer.Format(recipe, options...)
 		if err != nil {
 			return proto, err
 		}
@@ -113,7 +114,7 @@ func ProtosToRecipe(RecipeNamer namer.ReflectNamer, protos []*pb.Recipe) ([]mode
 	res := make([]model.Recipe, len(protos))
 	for i, proto := range protos {
 		var err error
-		res[i], err = ProtoToRecipe(RecipeNamer, proto)
+		_, res[i], err = ProtoToRecipe(RecipeNamer, proto)
 		if err != nil {
 			return nil, err
 		}

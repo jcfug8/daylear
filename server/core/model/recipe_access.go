@@ -30,6 +30,7 @@ type RecipeAccess struct {
 }
 
 type RecipeAccessParent struct {
+	CircleId int64 `aip_pattern:"key=circle"`
 	RecipeId
 	Requester AuthAccount
 	Recipient AuthAccount

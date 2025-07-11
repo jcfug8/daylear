@@ -8,7 +8,7 @@ import (
 
 // MustFormatParent calls FormatParent and panics if an error occurs.
 // It is a convenience method for callers who expect the parent resource to always be valid for formatting.
-func (n *defaultReflectNamer) MustFormatParent(in interface{}, options ...formatReflectNamerOption) string {
+func (n *defaultReflectNamer) MustFormatParent(in interface{}, options ...FormatReflectNamerOption) string {
 	formatted, err := n.FormatParent(in, options...)
 	if err != nil {
 		panic(err)
@@ -20,7 +20,7 @@ func (n *defaultReflectNamer) MustFormatParent(in interface{}, options ...format
 // By default, it uses the parent pattern at index 0. If patternIndex is -1, it tries all parent patterns
 // and returns the first one that matches. Returns an error if no parent pattern matches or if
 // required parent fields are missing/invalid.
-func (n *defaultReflectNamer) FormatParent(in interface{}, options ...formatReflectNamerOption) (string, error) {
+func (n *defaultReflectNamer) FormatParent(in interface{}, options ...FormatReflectNamerOption) (string, error) {
 	if in == nil {
 		return "", ErrInvalidField{msg: "input is nil"}
 	}

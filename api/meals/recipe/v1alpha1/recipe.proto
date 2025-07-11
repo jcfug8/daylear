@@ -39,10 +39,14 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 service RecipeService {
   // create a recipe
   rpc CreateRecipe(CreateRecipeRequest) returns (Recipe) {
-    option (google.api.method_signature) = "recipe,recipe_id";
+    option (google.api.method_signature) = "parent,recipe,recipe_id";
     option (google.api.http) = {
       post: "/meals/v1alpha1/recipes"
       body: "recipe"
+      additional_bindings: {
+        post: "/meals/v1alpha1/{parent=circles/*}/recipes"
+        body: "recipe"
+      }
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Create a recipe"
@@ -60,8 +64,11 @@ service RecipeService {
 
   // list recipes
   rpc ListRecipes(ListRecipesRequest) returns (ListRecipesResponse) {
-    option (google.api.method_signature) = "page_size,page_token,filter";
-    option (google.api.http) = {get: "/meals/v1alpha1/recipes"};
+    option (google.api.method_signature) = "parent";
+    option (google.api.http) = {
+      get: "/meals/v1alpha1/recipes"
+      additional_bindings: {get: "/meals/v1alpha1/{parent=circles/*}/recipes"}
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "List recipes"
       description: "Retrieves a paginated list of recipes. Supports filtering and pagination."
@@ -104,7 +111,10 @@ service RecipeService {
   // delete` a recipe
   rpc DeleteRecipe(DeleteRecipeRequest) returns (Recipe) {
     option (google.api.method_signature) = "name";
-    option (google.api.http) = {delete: "/meals/v1alpha1/{name=recipes/*}"};
+    option (google.api.http) = {
+      delete: "/meals/v1alpha1/{name=recipes/*}"
+      additional_bindings: {delete: "/meals/v1alpha1/{name=circles/*/recipes/*}"}
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Delete a recipe"
       description: "Deletes a recipe by resource name."
@@ -122,7 +132,10 @@ service RecipeService {
   // get a recipe
   rpc GetRecipe(GetRecipeRequest) returns (Recipe) {
     option (google.api.method_signature) = "name";
-    option (google.api.http) = {get: "/meals/v1alpha1/{name=recipes/*}"};
+    option (google.api.http) = {
+      get: "/meals/v1alpha1/{name=recipes/*}"
+      additional_bindings: {get: "/meals/v1alpha1/{name=circles/*/recipes/*}"}
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Get a recipe"
       description: "Retrieves a single recipe by resource name."
@@ -141,7 +154,7 @@ service RecipeService {
   rpc ScrapeRecipe(ScrapeRecipeRequest) returns (ScrapeRecipeResponse) {
     option (google.api.method_signature) = "uri";
     option (google.api.http) = {
-      post: "/meals/v1alpha1/recipes:scrape"
+      post: "/meals/v1alpha1/recipes:scrapeRecipe"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -164,6 +177,7 @@ message Recipe {
   option (google.api.resource) = {
     type: "api.meals.recipe.v1alpha1/Recipe"
     pattern: "recipes/{recipe}"
+    pattern: "circles/{circle}/recipes/{recipe}"
     plural: "recipes"
     singular: "recipe"
   };
@@ -310,6 +324,12 @@ message CreateRecipeRequest {
 
   // the id of the recipe
   string recipe_id = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // the parent of the recipe
+  string parent = 3 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference).type = "api.meals.circle.v1alpha1/Circle"
+  ];
 }
 
 // the request to list recipes
@@ -320,6 +340,11 @@ message ListRecipesRequest {
   string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
   // used to specify the filter
   string filter = 3 [(google.api.field_behavior) = OPTIONAL];
+  // the parent of the recipes
+  string parent = 4 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference).type = "api.meals.circle.v1alpha1/Circle"
+  ];
 }
 
 // the response to list recipes

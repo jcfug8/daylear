@@ -14,3 +14,10 @@
     - 'api/types/*'
   disabled_rules:
     - 'core::0215::versioned-packages'
+- included_paths:
+    - 'api/meals/recipe/v1alpha1/recipe.proto'
+  disabled_rules:
+   - 'core::0132::http-uri-parent'
+   - 'core::0133::http-uri-parent'
+   - 'core::0133::request-parent-behavior'
+   - 'core::0132::request-parent-behavior'

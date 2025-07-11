@@ -367,7 +367,9 @@ type CreateRecipeRequest struct {
 	// the recipe to create
 	Recipe *Recipe `protobuf:"bytes,1,opt,name=recipe,proto3" json:"recipe,omitempty"`
 	// the id of the recipe
-	RecipeId      string `protobuf:"bytes,2,opt,name=recipe_id,json=recipeId,proto3" json:"recipe_id,omitempty"`
+	RecipeId string `protobuf:"bytes,2,opt,name=recipe_id,json=recipeId,proto3" json:"recipe_id,omitempty"`
+	// the parent of the recipe
+	Parent        string `protobuf:"bytes,3,opt,name=parent,proto3" json:"parent,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -416,6 +418,13 @@ func (x *CreateRecipeRequest) GetRecipeId() string {
 	return ""
 }
 
+func (x *CreateRecipeRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
 // the request to list recipes
 type ListRecipesRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -424,7 +433,9 @@ type ListRecipesRequest struct {
 	// used to specify the page token
 	PageToken string `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
 	// used to specify the filter
-	Filter        string `protobuf:"bytes,3,opt,name=filter,proto3" json:"filter,omitempty"`
+	Filter string `protobuf:"bytes,3,opt,name=filter,proto3" json:"filter,omitempty"`
+	// the parent of the recipes
+	Parent        string `protobuf:"bytes,4,opt,name=parent,proto3" json:"parent,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -476,6 +487,13 @@ func (x *ListRecipesRequest) GetPageToken() string {
 func (x *ListRecipesRequest) GetFilter() string {
 	if x != nil {
 		return x.Filter
+	}
+	return ""
+}
+
+func (x *ListRecipesRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
 	}
 	return ""
 }
@@ -1052,7 +1070,7 @@ var File_api_meals_recipe_v1alpha1_recipe_proto protoreflect.FileDescriptor
 
 const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\n" +
-	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xfd\x12\n" +
+	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xa0\x13\n" +
 	"\x06Recipe\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
@@ -1114,16 +1132,20 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\x15MEASUREMENT_TYPE_GRAM\x10\x05\x12\x1f\n" +
 	"\x1bMEASUREMENT_TYPE_MILLILITER\x10\x06\x12\x1a\n" +
 	"\x16MEASUREMENT_TYPE_LITER\x10\a\x12\x18\n" +
-	"\x14MEASUREMENT_TYPE_CUP\x10\b:H\xeaAE\n" +
-	" api.meals.recipe.v1alpha1/Recipe\x12\x10recipes/{recipe}*\arecipes2\x06recipe\"w\n" +
+	"\x14MEASUREMENT_TYPE_CUP\x10\b:k\xeaAh\n" +
+	" api.meals.recipe.v1alpha1/Recipe\x12\x10recipes/{recipe}\x12!circles/{circle}/recipes/{recipe}*\arecipes2\x06recipe\"\xb9\x01\n" +
 	"\x13CreateRecipeRequest\x12>\n" +
 	"\x06recipe\x18\x01 \x01(\v2!.api.meals.recipe.v1alpha1.RecipeB\x03\xe0A\x02R\x06recipe\x12 \n" +
-	"\trecipe_id\x18\x02 \x01(\tB\x03\xe0A\x02R\brecipeId\"w\n" +
+	"\trecipe_id\x18\x02 \x01(\tB\x03\xe0A\x02R\brecipeId\x12@\n" +
+	"\x06parent\x18\x03 \x01(\tB(\xe0A\x01\xfaA\"\n" +
+	" api.meals.circle.v1alpha1/CircleR\x06parent\"\xb9\x01\n" +
 	"\x12ListRecipesRequest\x12 \n" +
 	"\tpage_size\x18\x01 \x01(\x05B\x03\xe0A\x01R\bpageSize\x12\"\n" +
 	"\n" +
 	"page_token\x18\x02 \x01(\tB\x03\xe0A\x01R\tpageToken\x12\x1b\n" +
-	"\x06filter\x18\x03 \x01(\tB\x03\xe0A\x01R\x06filter\"z\n" +
+	"\x06filter\x18\x03 \x01(\tB\x03\xe0A\x01R\x06filter\x12@\n" +
+	"\x06parent\x18\x04 \x01(\tB(\xe0A\x01\xfaA\"\n" +
+	" api.meals.circle.v1alpha1/CircleR\x06parent\"z\n" +
 	"\x13ListRecipesResponse\x12;\n" +
 	"\arecipes\x18\x01 \x03(\v2!.api.meals.recipe.v1alpha1.RecipeR\arecipes\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x97\x01\n" +
@@ -1140,32 +1162,32 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\x13ScrapeRecipeRequest\x12\x15\n" +
 	"\x03uri\x18\x01 \x01(\tB\x03\xe0A\x02R\x03uri\"Q\n" +
 	"\x14ScrapeRecipeResponse\x129\n" +
-	"\x06recipe\x18\x01 \x01(\v2!.api.meals.recipe.v1alpha1.RecipeR\x06recipe2\xe8\x0e\n" +
-	"\rRecipeService\x12\xad\x02\n" +
-	"\fCreateRecipe\x12..api.meals.recipe.v1alpha1.CreateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\xc9\x01\x92A\x8b\x01\n" +
+	"\x06recipe\x18\x01 \x01(\v2!.api.meals.recipe.v1alpha1.RecipeR\x06recipe2\xa0\x10\n" +
+	"\rRecipeService\x12\xea\x02\n" +
+	"\fCreateRecipe\x12..api.meals.recipe.v1alpha1.CreateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x86\x02\x92A\x8b\x01\n" +
 	"\rRecipeService\x12\x0fCreate a recipe\x1a/Creates a new recipe with the provided details.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x10recipe,recipe_id\x82\xd3\xe4\x93\x02!:\x06recipe\"\x17/meals/v1alpha1/recipes\x12\xd2\x02\n" +
-	"\vListRecipes\x12-.api.meals.recipe.v1alpha1.ListRecipesRequest\x1a..api.meals.recipe.v1alpha1.ListRecipesResponse\"\xe3\x01\x92A\xa2\x01\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x17parent,recipe,recipe_id\x82\xd3\xe4\x93\x02W:\x06recipeZ4:\x06recipe\"*/meals/v1alpha1/{parent=circles/*}/recipes\"\x17/meals/v1alpha1/recipes\x12\xeb\x02\n" +
+	"\vListRecipes\x12-.api.meals.recipe.v1alpha1.ListRecipesRequest\x1a..api.meals.recipe.v1alpha1.ListRecipesResponse\"\xfc\x01\x92A\xa2\x01\n" +
 	"\rRecipeService\x12\fList recipes\x1aIRetrieves a paginated list of recipes. Supports filtering and pagination.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x1bpage_size,page_token,filter\x82\xd3\xe4\x93\x02\x19\x12\x17/meals/v1alpha1/recipes\x12\xf7\x02\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x06parent\x82\xd3\xe4\x93\x02GZ,\x12*/meals/v1alpha1/{parent=circles/*}/recipes\x12\x17/meals/v1alpha1/recipes\x12\xf7\x02\n" +
 	"\fUpdateRecipe\x12..api.meals.recipe.v1alpha1.UpdateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x93\x02\x92A\x86\x01\n" +
 	"\rRecipeService\x12\x0fUpdate a recipe\x1a*Updates the details of an existing recipe.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x12recipe,update_mask\x82\xd3\xe4\x93\x02n:\x06recipeZ;:\x06recipe21/meals/v1alpha1/{recipe.name=circles/*/recipes/*}2'/meals/v1alpha1/{recipe.name=recipes/*}\x12\x94\x02\n" +
-	"\fDeleteRecipe\x12..api.meals.recipe.v1alpha1.DeleteRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\xb0\x01\x92A~\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x12recipe,update_mask\x82\xd3\xe4\x93\x02n:\x06recipeZ;:\x06recipe21/meals/v1alpha1/{recipe.name=circles/*/recipes/*}2'/meals/v1alpha1/{recipe.name=recipes/*}\x12\xc2\x02\n" +
+	"\fDeleteRecipe\x12..api.meals.recipe.v1alpha1.DeleteRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\xde\x01\x92A~\n" +
 	"\rRecipeService\x12\x0fDelete a recipe\x1a\"Deletes a recipe by resource name.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02\"* /meals/v1alpha1/{name=recipes/*}\x12\x95\x02\n" +
-	"\tGetRecipe\x12+.api.meals.recipe.v1alpha1.GetRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\xb7\x01\x92A\x84\x01\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02PZ,**/meals/v1alpha1/{name=circles/*/recipes/*}* /meals/v1alpha1/{name=recipes/*}\x12\xc3\x02\n" +
+	"\tGetRecipe\x12+.api.meals.recipe.v1alpha1.GetRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\xe5\x01\x92A\x84\x01\n" +
 	"\rRecipeService\x12\fGet a recipe\x1a+Retrieves a single recipe by resource name.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02\"\x12 /meals/v1alpha1/{name=recipes/*}\x12\xa8\x02\n" +
-	"\fScrapeRecipe\x12..api.meals.recipe.v1alpha1.ScrapeRecipeRequest\x1a/.api.meals.recipe.v1alpha1.ScrapeRecipeResponse\"\xb6\x01\x92A\x83\x01\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02PZ,\x12*/meals/v1alpha1/{name=circles/*/recipes/*}\x12 /meals/v1alpha1/{name=recipes/*}\x12\xae\x02\n" +
+	"\fScrapeRecipe\x12..api.meals.recipe.v1alpha1.ScrapeRecipeRequest\x1a/.api.meals.recipe.v1alpha1.ScrapeRecipeResponse\"\xbc\x01\x92A\x83\x01\n" +
 	"\rRecipeService\x12\x1aScrape a recipe from a uri\x1a\x1cScrapes a recipe from a uri.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x03uri\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/meals/v1alpha1/recipes:scrapeB\xe0\x02\x92AXZD\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x03uri\x82\xd3\xe4\x93\x02):\x01*\"$/meals/v1alpha1/recipes:scrapeRecipeB\xe0\x02\x92AXZD\n" +
 	"B\n" +
 	"\n" +
 	"BearerAuth\x124\b\x02\x12\x1fBearer token for authentication\x1a\rAuthorization \x02b\x10\n" +

@@ -48,6 +48,10 @@ service RecipeAccessService {
     option (google.api.http) = {
       post: "/meals/v1alpha1/{parent=recipes/*}/accesses"
       body: "access"
+      additional_bindings: {
+        post: "/meals/v1alpha1/{parent=circles/*/recipes/*}/accesses"
+        body: "access"
+      }
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Grant a user or circle access to a recipe"
@@ -66,7 +70,10 @@ service RecipeAccessService {
   // Delete an access to a recipe
   rpc DeleteAccess(DeleteAccessRequest) returns (google.protobuf.Empty) {
     option (google.api.method_signature) = "name";
-    option (google.api.http) = {delete: "/meals/v1alpha1/{name=recipes/*/accesses/*}"};
+    option (google.api.http) = {
+      delete: "/meals/v1alpha1/{name=recipes/*/accesses/*}"
+      additional_bindings: {delete: "/meals/v1alpha1/{name=circles/*/recipes/*/accesses/*}"}
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Delete a recipe access"
       description: "Removes a user's or circle's access to a recipe."
@@ -84,7 +91,10 @@ service RecipeAccessService {
   // Get an access to a recipe
   rpc GetAccess(GetAccessRequest) returns (Access) {
     option (google.api.method_signature) = "name";
-    option (google.api.http) = {get: "/meals/v1alpha1/{name=recipes/*/accesses/*}"};
+    option (google.api.http) = {
+      get: "/meals/v1alpha1/{name=recipes/*/accesses/*}"
+      additional_bindings: {get: "/meals/v1alpha1/{name=circles/*/recipes/*/accesses/*}"}
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Get a recipe access"
       description: "Retrieves details about a specific recipe access."
@@ -102,7 +112,10 @@ service RecipeAccessService {
   // List accesses to a recipe
   rpc ListAccesses(ListAccessesRequest) returns (ListAccessesResponse) {
     option (google.api.method_signature) = "parent";
-    option (google.api.http) = {get: "/meals/v1alpha1/{parent=recipes/*}/accesses"};
+    option (google.api.http) = {
+      get: "/meals/v1alpha1/{parent=recipes/*}/accesses"
+      additional_bindings: {get: "/meals/v1alpha1/{parent=circles/*/recipes/*}/accesses"}
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "List recipe accesses"
       description: "Lists all users and circles with access to a recipe. If no recipe is provided, the response will only return the accesses for the current user (or circle if the circle header is provided)."
@@ -123,6 +136,10 @@ service RecipeAccessService {
     option (google.api.http) = {
       patch: "/meals/v1alpha1/{access.name=recipes/*/accesses/*}"
       body: "access"
+      additional_bindings: {
+        patch: "/meals/v1alpha1/{access.name=circles/*/recipes/*/accesses/*}"
+        body: "access"
+      }
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Update a recipe access"
@@ -144,6 +161,10 @@ service RecipeAccessService {
     option (google.api.http) = {
       post: "/meals/v1alpha1/{name=recipes/*/accesses/*}:accept"
       body: "*"
+      additional_bindings: {
+        post: "/meals/v1alpha1/{name=circles/*/recipes/*/accesses/*}:accept"
+        body: "*"
+      }
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Accept a recipe access"
@@ -165,6 +186,7 @@ message Access {
   option (google.api.resource) = {
     type: "api.meals.recipe.v1alpha1/Access"
     pattern: "recipes/{recipe}/accesses/{access}"
+    pattern: "circles/{circle}/recipes/{recipe}/accesses/{access}"
     plural: "accesses"
     singular: "access"
   };
@@ -281,6 +303,7 @@ message UpdateAccessRequest {
 
 // The request to accept a recipe access
 message AcceptRecipeAccessRequest {
+  // name
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference).type = "api.meals.recipe.v1alpha1/Access"

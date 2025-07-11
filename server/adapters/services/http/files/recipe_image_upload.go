@@ -56,7 +56,7 @@ func (s *Service) UploadRecipeImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	imageURI, err := s.domain.UploadRecipeImage(r.Context(), authAccount, mRecipe.Id, body)
+	imageURI, err := s.domain.UploadRecipeImage(r.Context(), authAccount, mRecipe.Parent, mRecipe.Id, body)
 	if err != nil {
 		s.log.Error().Err(err).Msg("unable to upload recipe image")
 		http.Error(w, "Interal Error", http.StatusInternalServerError)

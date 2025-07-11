@@ -94,7 +94,7 @@ func (d *Domain) DeleteCircle(ctx context.Context, authAccount model.AuthAccount
 		return model.Circle{}, err
 	}
 
-	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
+	if authAccount.PermissionLevel <= types.PermissionLevel_PERMISSION_LEVEL_WRITE {
 		log.Warn().Msg("user does not have write permission")
 		return model.Circle{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
@@ -140,6 +140,17 @@ func (d *Domain) GetCircle(ctx context.Context, authAccount model.AuthAccount, i
 	if id.CircleId == 0 {
 		log.Warn().Msg("id required: missing circle id")
 		return model.Circle{}, domain.ErrInvalidArgument{Msg: "id required"}
+	}
+
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
+	if err != nil {
+		log.Error().Err(err).Msg("getCircleAccessLevels failed")
+		return model.Circle{}, err
+	}
+
+	if authAccount.VisibilityLevel != types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC && authAccount.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+		log.Warn().Msg("user does not have write permission")
+		return model.Circle{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 
 	circle, err = d.repo.GetCircle(ctx, authAccount, id)

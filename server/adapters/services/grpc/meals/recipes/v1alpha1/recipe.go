@@ -8,6 +8,7 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/model"
+	namer "github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -38,7 +39,7 @@ func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateReci
 	// convert proto to model
 	pbRecipe := request.GetRecipe()
 	pbRecipe.Name = ""
-	mRecipe, err := convert.ProtoToRecipe(s.recipeNamer, pbRecipe)
+	nameIndex, mRecipe, err := convert.ProtoToRecipe(s.recipeNamer, pbRecipe)
 	if err != nil {
 		log.Warn().Err(err).Msg("unable to convert proto to model")
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
@@ -52,7 +53,7 @@ func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateReci
 	}
 
 	// convert model to proto
-	pbRecipe, err = convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
+	pbRecipe, err = convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe, namer.AsPatternIndex(nameIndex))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -75,19 +76,19 @@ func (s *RecipeService) DeleteRecipe(ctx context.Context, request *pb.DeleteReci
 	}
 
 	mRecipe := model.Recipe{}
-	_, err = s.recipeNamer.Parse(request.GetName(), &mRecipe)
+	nameIndex, err := s.recipeNamer.Parse(request.GetName(), &mRecipe)
 	if err != nil {
 		log.Warn().Err(err).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	mRecipe, err = s.domain.DeleteRecipe(ctx, authAccount, mRecipe.Id)
+	mRecipe, err = s.domain.DeleteRecipe(ctx, authAccount, mRecipe.Parent, mRecipe.Id)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.DeleteRecipe failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
+	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe, namer.AsPatternIndex(nameIndex))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -108,19 +109,19 @@ func (s *RecipeService) GetRecipe(ctx context.Context, request *pb.GetRecipeRequ
 	}
 
 	mRecipe := model.Recipe{}
-	_, err = s.recipeNamer.Parse(request.GetName(), &mRecipe)
+	nameIndex, err := s.recipeNamer.Parse(request.GetName(), &mRecipe)
 	if err != nil {
 		log.Warn().Err(err).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	mRecipe, err = s.domain.GetRecipe(ctx, authAccount, mRecipe.Id)
+	mRecipe, err = s.domain.GetRecipe(ctx, authAccount, mRecipe.Parent, mRecipe.Id)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.GetRecipe failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
+	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe, namer.AsPatternIndex(nameIndex))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -140,18 +141,11 @@ func (s *RecipeService) UpdateRecipe(ctx context.Context, request *pb.UpdateReci
 		return nil, err
 	}
 
-	recipeProto := request.GetRecipe()
-	var mRecipe model.Recipe
-	_, err = s.recipeNamer.Parse(recipeProto.GetName(), &mRecipe)
-	if err != nil {
-		log.Warn().Err(err).Msg("invalid name")
-		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", recipeProto.GetName())
-	}
-
 	fieldMask := request.GetUpdateMask()
 	updateMask := s.recipeFieldMasker.Convert(fieldMask.GetPaths())
 
-	mRecipe, err = convert.ProtoToRecipe(s.recipeNamer, recipeProto)
+	recipeProto := request.GetRecipe()
+	nameIndex, mRecipe, err := convert.ProtoToRecipe(s.recipeNamer, recipeProto)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to convert proto to model")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -163,7 +157,7 @@ func (s *RecipeService) UpdateRecipe(ctx context.Context, request *pb.UpdateReci
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	recipeProto, err = convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
+	recipeProto, err = convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe, namer.AsPatternIndex(nameIndex))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -183,6 +177,13 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 		return nil, err
 	}
 
+	mRecipeParent := model.RecipeParent{}
+	nameIndex, err := s.recipeNamer.ParseParent(request.GetParent(), &mRecipeParent)
+	if err != nil {
+		log.Warn().Err(err).Msg("invalid parent")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
+	}
+
 	pageToken, pageSize, err := grpc.SetupPagination(request, grpc.PaginationConfig{
 		DefaultPageSize: recipeDefaultPageSize,
 		MaxPageSize:     recipeMaxPageSize,
@@ -193,7 +194,7 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 	}
 	request.PageSize = pageSize
 
-	res, err := s.domain.ListRecipes(ctx, authAccount, request.GetPageSize(), pageToken.Offset, request.GetFilter())
+	res, err := s.domain.ListRecipes(ctx, authAccount, mRecipeParent, request.GetPageSize(), pageToken.Offset, request.GetFilter())
 	if err != nil {
 		log.Error().Err(err).Msg("domain.ListRecipes failed")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -201,7 +202,7 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 
 	recipes := make([]*pb.Recipe, len(res))
 	for i, recipe := range res {
-		recipeProto, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, recipe)
+		recipeProto, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, recipe, namer.AsPatternIndex(nameIndex))
 		if err != nil {
 			log.Error().Err(err).Msg("unable to prepare response")
 			return nil, status.Error(codes.Internal, "unable to prepare response")

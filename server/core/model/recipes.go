@@ -10,7 +10,8 @@ import (
 
 // Recipe defines the model for a recipe.
 type Recipe struct {
-	Id RecipeId
+	Id     RecipeId
+	Parent RecipeParent
 
 	Title       string
 	Description string
@@ -60,6 +61,11 @@ type RecipeIngredient struct {
 // RecipeId defines the name for a recipe.
 type RecipeId struct {
 	RecipeId int64 `aip_pattern:"key=recipe"`
+}
+
+// RecipeParent defines the name for a recipe parent.
+type RecipeParent struct {
+	CircleId int64 `aip_pattern:"key=circle"`
 }
 
 // ----------------------------------------------------------------------------
