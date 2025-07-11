@@ -176,16 +176,16 @@
     <v-fab location="bottom right" app color="primary"  icon @click="speedDialOpen = !speedDialOpen">
       <v-icon>mdi-dots-vertical</v-icon>
       <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
-        <v-btn key="edit" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)" icon="mdi-pencil"
-        @click="router.push({ name: 'recipeEdit', params: { recipeId: recipe.name } })" color="primary"></v-btn>
+        <v-btn key="edit" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)"
+        @click="router.push({ name: 'recipeEdit', params: { recipeId: recipe.name } })" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
 
-        <v-btn key="share" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel) && recipe.visibility !== 'VISIBILITY_LEVEL_HIDDEN'" icon="mdi-share-variant"
-          @click="showShareDialog = true" color="primary"></v-btn>
+        <v-btn key="share" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel) && recipe.visibility !== 'VISIBILITY_LEVEL_HIDDEN'"
+          @click="showShareDialog = true" color="primary"><v-icon>mdi-share-variant</v-icon>Share</v-btn>
   
-        <v-btn key="remove-access" icon="mdi-link-variant-off" @click="showRemoveAccessDialog = true" color="warning"></v-btn>
+        <v-btn key="remove-access" v-if="!hasAdminPermission(recipe.recipeAccess?.permissionLevel)" @click="showRemoveAccessDialog = true" color="warning"><v-icon>mdi-link-variant-off</v-icon>Remove Access</v-btn>
   
-        <v-btn key="delete" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)" icon="mdi-delete"
-          @click="showDeleteDialog = true" color="error"></v-btn>
+        <v-btn key="delete" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)"
+          @click="showDeleteDialog = true" color="error"><v-icon>mdi-delete</v-icon>Delete</v-btn>
       </v-speed-dial>
     </v-fab>
 
@@ -396,7 +396,7 @@ import {   recipeService, userService, circleService, recipeAccessService, fileS
 import type { User, ListUsersRequest } from '@/genapi/api/users/user/v1alpha1'
 import type { Circle, ListCirclesRequest } from '@/genapi/api/circles/circle/v1alpha1'
 import { useAuthStore } from '@/stores/auth'
-import { hasWritePermission } from '@/utils/permissions'
+import { hasWritePermission, hasAdminPermission } from '@/utils/permissions'
 
 const route = useRoute()
 const router = useRouter()
