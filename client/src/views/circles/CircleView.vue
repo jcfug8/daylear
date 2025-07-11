@@ -1,227 +1,231 @@
 <template>
   <v-container v-if="circle">
-    <v-container max-width="600" class="pa-1">
-      <v-row>
-        <v-col class="pt-5">
-          <div class="text-h4">
-            {{ circle.title }}
-          </div>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col align-self="auto" cols="12" sm="8">
-          <div class="image-container">
-            <v-img 
-              v-if="circle.imageUri" 
-              class="mt-1" 
-              style="background-color: lightgray" 
-              :src="circle.imageUri" 
-              cover
-              height="300"
-            ></v-img>
-            <div 
-              v-else 
-              class="mt-1 d-flex align-center justify-center"
-              style="background-color: lightgray; height: 300px; border-radius: 4px;"
-            >
-              <div class="text-center">
-                <v-icon size="64" color="grey-darken-1">mdi-image-outline</v-icon>
-                <div class="text-grey-darken-1 mt-2">No image available</div>
+    <ListTabsPage
+      :tabs="tabs"
+      ref="tabsPage"
+    >
+      <template #general>
+        <v-container max-width="600" class="pa-1">
+          <v-row>
+            <v-col class="pt-5">
+              <div class="text-h4">
+                {{ circle.title }}
               </div>
-            </div>
-          </div>
-        </v-col>
-      </v-row>
-
-      <!-- Visibility Section -->
-      <v-row>
-        <v-col cols="12">
-          <div class="mt-4">
-            <div v-if="selectedVisibilityDescription" class="mt-2">
-              <v-alert
-                :icon="selectedVisibilityIcon"
-                density="compact"
-                variant="tonal"
-                :color="selectedVisibilityColor"
-              >
-                <div class="text-body-2">
-                  <strong>{{ selectedVisibilityLabel }}:</strong> {{ selectedVisibilityDescription }}
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col align-self="auto" cols="12" sm="8">
+              <div class="image-container">
+                <v-img 
+                  v-if="circle.imageUri" 
+                  class="mt-1" 
+                  style="background-color: lightgray" 
+                  :src="circle.imageUri" 
+                  cover
+                  height="300"
+                ></v-img>
+                <div 
+                  v-else 
+                  class="mt-1 d-flex align-center justify-center"
+                  style="background-color: lightgray; height: 300px; border-radius: 4px;"
+                >
+                  <div class="text-center">
+                    <v-icon size="64" color="grey-darken-1">mdi-image-outline</v-icon>
+                    <div class="text-grey-darken-1 mt-2">No image available</div>
+                  </div>
                 </div>
-              </v-alert>
-            </div>
-          </div>
-        </v-col>
-      </v-row>
-    </v-container>
+              </div>
+            </v-col>
+          </v-row>
+          <!-- Visibility Section -->
+          <v-row>
+            <v-col cols="12">
+              <div class="mt-4">
+                <div v-if="selectedVisibilityDescription" class="mt-2">
+                  <v-alert
+                    :icon="selectedVisibilityIcon"
+                    density="compact"
+                    variant="tonal"
+                    :color="selectedVisibilityColor"
+                  >
+                    <div class="text-body-2">
+                      <strong>{{ selectedVisibilityLabel }}:</strong> {{ selectedVisibilityDescription }}
+                    </div>
+                  </v-alert>
+                </div>
+              </div>
+            </v-col>
+          </v-row>
+          <!-- Accept/Decline Buttons for Pending Access -->
+          <v-row v-if="circle.circleAccess?.state === 'ACCESS_STATE_PENDING'">
+            <v-col cols="12">
+              <v-btn
+                color="success"
+                class="mb-2"
+                block
+                :loading="acceptingCircle"
+                @click="acceptCircle"
+              >
+                Accept Circle
+              </v-btn>
+              <v-btn
+                color="error"
+                class="mb-4"
+                block
+                :loading="decliningCircle"
+                @click="declineCircle"
+              >
+                Decline
+              </v-btn>
+            </v-col>
+          </v-row>
+        </v-container>
+      </template>
+      <template #recipes-circleRecipes="{ items, loading }">
+        <RecipeGrid :recipes="items" :loading="loading" />
+      </template>
+      <template #recipes-sharedRecipes="{ items, loading }">
+        <RecipeGrid :recipes="items" :loading="loading" />
+      </template>
+    </ListTabsPage>
 
-    <!-- Accept/Decline Buttons for Pending Access -->
-    <v-row v-if="circle.circleAccess?.state === 'ACCESS_STATE_PENDING'">
-      <v-col cols="12">
-        <v-btn
-          color="success"
-          class="mb-2"
-          block
-          :loading="acceptingCircle"
-          @click="acceptCircle"
-        >
-          Accept Circle
-        </v-btn>
-        <v-btn
-          color="error"
-          class="mb-4"
-          block
-          :loading="decliningCircle"
-          @click="declineCircle"
-        >
-          Decline
-        </v-btn>
-      </v-col>
-    </v-row>
-    <!-- Speed Dial -->
+    <!-- Speed Dial and Dialogs remain outside the tabbed area -->
     <v-fab location="bottom right" app color="primary" icon @click="speedDialOpen = !speedDialOpen">
       <v-icon>mdi-dots-vertical</v-icon>
       <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
         <v-btn key="edit" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
         @click="router.push({ name: 'circle-edit', params: { circleId: circle.name } })" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
-
         <v-btn key="share" v-if="hasWritePermission(circle.circleAccess?.permissionLevel) && circle.visibility !== 'VISIBILITY_LEVEL_HIDDEN'"
           @click="showShareDialog = true" color="primary"><v-icon>mdi-share-variant</v-icon>Share</v-btn>
-  
         <v-btn key="remove-access" v-if="!hasAdminPermission(circle.circleAccess?.permissionLevel)" @click="showRemoveAccessDialog = true" color="warning"><v-icon>mdi-link-variant-off</v-icon>Remove Access</v-btn>
-  
         <v-btn key="delete" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
           @click="showDeleteDialog = true" color="error"><v-icon>mdi-delete</v-icon>Delete</v-btn>
       </v-speed-dial>
     </v-fab>
-  </v-container>
-
-  <!-- Remove Access Dialog -->
-  <v-dialog v-model="showRemoveAccessDialog" max-width="500">
-    <v-card>
-      <v-card-title class="text-h5">
-        Remove Access
-      </v-card-title>
-      <v-card-text>
-        Are you sure you want to remove your access to this circle? You will no longer be able to view it.
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="grey" variant="text" @click="showRemoveAccessDialog = false">
-          Cancel
-        </v-btn>
-        <v-btn color="error" @click="handleRemoveAccess" :loading="removingAccess">
+    <!-- Remove Access Dialog -->
+    <v-dialog v-model="showRemoveAccessDialog" max-width="500">
+      <v-card>
+        <v-card-title class="text-h5">
           Remove Access
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <!-- Share Dialog -->
-  <v-dialog v-model="showShareDialog" max-width="500">
-    <v-card>
-      <v-card-title class="text-h5">
-        Share Circle
-      </v-card-title>
-      <v-card-text>
-        <v-text-field v-model="usernameInput" label="Enter Username" :rules="[validateUsername]"
-          :prepend-inner-icon="getUsernameIcon" :color="getUsernameColor" :loading="isLoadingUsername"
-          @update:model-value="handleUsernameInput"></v-text-field>
-        <v-select
-          v-model="selectedPermission"
-          :items="permissionOptions"
-          label="Permission Level"
-          class="mt-2"
-        ></v-select>
-        <v-btn block color="primary" @click="shareCircle" :loading="sharing" :disabled="!isValidUsername" class="mt-2">
-          Share with User
-        </v-btn>
-
-        <v-divider class="my-4"></v-divider>
-
-        <div v-if="currentShares.length > 0">
-          <div class="text-subtitle-1 mb-2">Current Shares</div>
-          <v-list>
-            <v-list-item v-for="share in currentShares" :key="share.name || ''" :title="share.recipient?.username" :subtitle="`${share.state === 'ACCESS_STATE_PENDING' ? '(Pending)' : ''}`">
-              <template #append>
-                <div class="d-flex align-center gap-2">
-                  <v-menu
-                    v-model="shareMenuOpen[share.name || '']"
-                    :close-on-content-click="false"
-                    location="bottom"
-                    offset-y
-                  >
-                    <template #activator="{ props }">
-                      <v-chip
-                        v-bind="props"
-                        size="small"
-                        :color="hasWritePermission(share.level) ? 'primary' : 'grey'"
-                        class="permission-chip d-flex align-center"
-                        :disabled="sharePermissionLoading[share.name || '']"
-                        style="cursor: pointer; min-width: 120px;"
-                      >
-                        <span>{{ hasWritePermission(share.level) ? 'Read & Write' : 'Read Only' }}</span>
-                        <v-icon end size="18" class="ml-1">mdi-chevron-down</v-icon>
-                        <v-progress-circular
-                          v-if="sharePermissionLoading[share.name || '']"
-                          indeterminate
-                          size="16"
-                          color="primary"
-                          class="ml-1"
-                        />
-                      </v-chip>
-                    </template>
-                    <v-list>
-                      <v-list-item
-                        v-for="option in permissionOptions"
-                        :key="option.value"
-                        :value="option.value"
-                        @click="handleSharePermissionChange(share, option.value); shareMenuOpen[share.name || ''] = false"
-                        :disabled="share.level === option.value"
-                      >
-                        <v-list-item-title>{{ option.title }}</v-list-item-title>
-                      </v-list-item>
-                    </v-list>
-                  </v-menu>
-                  <v-chip v-if="share.state === 'ACCESS_STATE_PENDING'" size="small" color="warning" variant="outlined">
-                    Pending
-                  </v-chip>
-                  <v-btn icon="mdi-delete" variant="text" @click="removeShare(share.name || '')"></v-btn>
-                </div>
-              </template>
-            </v-list-item>
-          </v-list>
-        </div>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="grey" variant="text" @click="showShareDialog = false">
-          Close
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <!-- Delete Dialog -->
-  <v-dialog v-model="showDeleteDialog" max-width="500">
-    <v-card>
-      <v-card-title class="text-h5">
-        Delete Circle
-      </v-card-title>
-      <v-card-text>
-        Are you sure you want to delete this circle? This action will also delete the circle for any users that
-        can view it.
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="grey" variant="text" @click="showDeleteDialog = false">
-          Cancel
-        </v-btn>
-        <v-btn color="error" @click="handleDelete" :loading="deleting">
-          Delete
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+        </v-card-title>
+        <v-card-text>
+          Are you sure you want to remove your access to this circle? You will no longer be able to view it.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="text" @click="showRemoveAccessDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn color="error" @click="handleRemoveAccess" :loading="removingAccess">
+            Remove Access
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Share Dialog -->
+    <v-dialog v-model="showShareDialog" max-width="500">
+      <v-card>
+        <v-card-title class="text-h5">
+          Share Circle
+        </v-card-title>
+        <v-card-text>
+          <v-text-field v-model="usernameInput" label="Enter Username" :rules="[validateUsername]"
+            :prepend-inner-icon="getUsernameIcon" :color="getUsernameColor" :loading="isLoadingUsername"
+            @update:model-value="handleUsernameInput"></v-text-field>
+          <v-select
+            v-model="selectedPermission"
+            :items="permissionOptions"
+            label="Permission Level"
+            class="mt-2"
+          ></v-select>
+          <v-btn block color="primary" @click="shareCircle" :loading="sharing" :disabled="!isValidUsername" class="mt-2">
+            Share with User
+          </v-btn>
+          <v-divider class="my-4"></v-divider>
+          <div v-if="currentShares.length > 0">
+            <div class="text-subtitle-1 mb-2">Current Shares</div>
+            <v-list>
+              <v-list-item v-for="share in currentShares" :key="share.name || ''" :title="share.recipient?.username" :subtitle="`${share.state === 'ACCESS_STATE_PENDING' ? '(Pending)' : ''}`">
+                <template #append>
+                  <div class="d-flex align-center gap-2">
+                    <v-menu
+                      v-model="shareMenuOpen[share.name || '']"
+                      :close-on-content-click="false"
+                      location="bottom"
+                      offset-y
+                    >
+                      <template #activator="{ props }">
+                        <v-chip
+                          v-bind="props"
+                          size="small"
+                          :color="hasWritePermission(share.level) ? 'primary' : 'grey'"
+                          class="permission-chip d-flex align-center"
+                          :disabled="sharePermissionLoading[share.name || '']"
+                          style="cursor: pointer; min-width: 120px;"
+                        >
+                          <span>{{ hasWritePermission(share.level) ? 'Read & Write' : 'Read Only' }}</span>
+                          <v-icon end size="18" class="ml-1">mdi-chevron-down</v-icon>
+                          <v-progress-circular
+                            v-if="sharePermissionLoading[share.name || '']"
+                            indeterminate
+                            size="16"
+                            color="primary"
+                            class="ml-1"
+                          />
+                        </v-chip>
+                      </template>
+                      <v-list>
+                        <v-list-item
+                          v-for="option in permissionOptions"
+                          :key="option.value"
+                          :value="option.value"
+                          @click="handleSharePermissionChange(share, option.value); shareMenuOpen[share.name || ''] = false"
+                          :disabled="share.level === option.value"
+                        >
+                          <v-list-item-title>{{ option.title }}</v-list-item-title>
+                        </v-list-item>
+                      </v-list>
+                    </v-menu>
+                    <v-chip v-if="share.state === 'ACCESS_STATE_PENDING'" size="small" color="warning" variant="outlined">
+                      Pending
+                    </v-chip>
+                    <v-btn icon="mdi-delete" variant="text" @click="removeShare(share.name || '')"></v-btn>
+                  </div>
+                </template>
+              </v-list-item>
+            </v-list>
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="text" @click="showShareDialog = false">
+            Close
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Delete Dialog -->
+    <v-dialog v-model="showDeleteDialog" max-width="500">
+      <v-card>
+        <v-card-title class="text-h5">
+          Delete Circle
+        </v-card-title>
+        <v-card-text>
+          Are you sure you want to delete this circle? This action will also delete the circle for any users that
+          can view it.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="text" @click="showDeleteDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn color="error" @click="handleDelete" :loading="deleting">
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -237,6 +241,9 @@ import { circleService, userService, circleAccessService } from '@/api/api'
 import type { User, ListUsersRequest } from '@/genapi/api/users/user/v1alpha1'
 import { useAuthStore } from '@/stores/auth'
 import { hasAdminPermission, hasWritePermission } from '@/utils/permissions'
+import ListTabsPage from '@/components/common/ListTabsPage.vue'
+import RecipeGrid from '@/components/RecipeGrid.vue'
+import { useRecipesStore } from '@/stores/recipes'
 
 const route = useRoute()
 const router = useRouter()
@@ -245,6 +252,42 @@ const authStore = useAuthStore()
 const circlesStore = useCirclesStore()
 const { circle } = storeToRefs(circlesStore)
 const breadcrumbStore = useBreadcrumbStore()
+const tabsPage = ref()
+
+const recipesStore = useRecipesStore()
+
+const tabs = [
+  {
+    label: 'General',
+    value: 'general',
+  },
+  {
+    label: 'Recipes',
+    value: 'recipes',
+    subTabs: [
+      {
+        label: 'Circle Recipes',
+        value: 'circleRecipes',
+        loader: async () => {
+          if (!circle.value?.name) return []
+          // Admin recipes for this circle
+          await recipesStore.loadMyRecipes(circle.value.name)
+          return [...recipesStore.myRecipes]
+        },
+      },
+      {
+        label: 'Shared Recipes',
+        value: 'sharedRecipes',
+        loader: async () => {
+          if (!circle.value?.name) return []
+          // Non-admin, non-pending recipes for this circle
+          await recipesStore.loadSharedRecipes(circle.value.name, 200)
+          return [...recipesStore.sharedAcceptedRecipes]
+        },
+      },
+    ],
+  },
+]
 
 // Visibility options with descriptions and icons
 const visibilityOptions = [

@@ -142,6 +142,8 @@ func (d *Domain) GetCircle(ctx context.Context, authAccount model.AuthAccount, i
 		return model.Circle{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
+	authAccount.CircleId = id.CircleId
+
 	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
 	if err != nil {
 		log.Error().Err(err).Msg("getCircleAccessLevels failed")
