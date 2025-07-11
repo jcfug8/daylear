@@ -53,15 +53,15 @@
                 <v-btn
                   v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)"
                   class="generate-image-btn"
-                  icon
                   color="primary"
                   @click="openGenerateImageModal"
-                  style="position: absolute; top: 8px; right: 8px; z-index: 2;"
+                  style="position: absolute; bottom: 8px; right: 8px; z-index: 2;"
                   :loading="generatingImage"
                   :disabled="generatingImage"
                   title="Generate Image"
                 >
                   <v-icon>mdi-image-auto-adjust</v-icon>
+                  Generate Image
                 </v-btn>
               </div>
             </v-col>
