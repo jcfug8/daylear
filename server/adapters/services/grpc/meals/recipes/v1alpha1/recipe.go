@@ -31,6 +31,7 @@ func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateReci
 	// check field behavior
 	err = grpc.ProcessRequestFieldBehavior(request)
 	if err != nil {
+		log.Error().Err(err).Msg("failed to process request field behavior")
 		return nil, err
 	}
 

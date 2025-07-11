@@ -19,9 +19,7 @@ import (
 	"github.com/jcfug8/daylear/server/ports/recipeocr"
 	"github.com/rs/zerolog"
 	"go.uber.org/fx"
-	"google.golang.org/api/option"
-
-	genai "github.com/google/generative-ai-go/genai"
+	"google.golang.org/genai"
 )
 
 var _ recipeocr.Client = &RecipeGeminiClient{}
@@ -53,7 +51,9 @@ func NewRecipeGeminiClient(params RecipeGeminiClientParams) (*RecipeGeminiClient
 		return nil, fmt.Errorf("missing gemini api key")
 	}
 
-	client, err := genai.NewClient(context.Background(), option.WithAPIKey(apiKey))
+	client, err := genai.NewClient(context.Background(), &genai.ClientConfig{
+		APIKey: apiKey,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Gemini client: %w", err)
 	}
@@ -88,8 +88,8 @@ func NewRecipeGeminiClient(params RecipeGeminiClientParams) (*RecipeGeminiClient
 func (c *RecipeGeminiClient) OCRRecipe(ctx context.Context, files []file.File) (recipe model.Recipe, err error) {
 	log := logutil.EnrichLoggerWithContext(c.logger, ctx)
 
-	parts := []genai.Part{
-		genai.Text(
+	parts := []*genai.Part{
+		genai.NewPartFromText(
 			`Please convert the recipe on the image(s) to the schema.org/Recipe format as JSON. Only output the JSON. Do not include any other text or comments. If no recipe is found, return an empty JSON object and do not make up a recipe. 
 		When formatting a recipe:
 		  - The images may be out of order so please first figure out the order of the images, then parse the recipe from the images in the correct order.
@@ -111,11 +111,10 @@ func (c *RecipeGeminiClient) OCRRecipe(ctx context.Context, files []file.File) (
 		if err != nil {
 			return model.Recipe{}, fmt.Errorf("failed to read image: %w", err)
 		}
-		parts = append(parts, genai.Blob{
-			MIMEType: file.ContentType,
-			Data:     imgBytes,
-		})
+		parts = append(parts, genai.NewPartFromBytes(imgBytes, file.ContentType))
 	}
+
+	content := genai.NewContentFromParts(parts, genai.RoleUser)
 
 	var resp *genai.GenerateContentResponse
 	tryCount := 0
@@ -128,11 +127,7 @@ func (c *RecipeGeminiClient) OCRRecipe(ctx context.Context, files []file.File) (
 		tryCount++
 		modelName = c.getModelName()
 		log.Info().Str("model", modelName).Msg("attempting OCR")
-		modelHandle := c.client.GenerativeModel(modelName)
-
-		resp, err = modelHandle.GenerateContent(ctx,
-			parts...,
-		)
+		resp, err = c.client.Models.GenerateContent(ctx, modelName, []*genai.Content{content}, nil)
 		if err != nil {
 			log.Info().Err(err).Str("model", modelName).Msg("failed OCR")
 			continue
@@ -142,10 +137,7 @@ func (c *RecipeGeminiClient) OCRRecipe(ctx context.Context, files []file.File) (
 
 	var text string
 	for _, part := range resp.Candidates[0].Content.Parts {
-		switch p := part.(type) {
-		case genai.Text:
-			text = string(p)
-		}
+		text = string(part.Text)
 	}
 	if text == "" {
 		log.Error().Msg("no text response from Gemini")
@@ -173,8 +165,8 @@ func (c *RecipeGeminiClient) OCRRecipe(ctx context.Context, files []file.File) (
 func (c *RecipeGeminiClient) CleanIngredients(ctx context.Context, ingredients []string) (cleanedIngredients []string, err error) {
 	log := logutil.EnrichLoggerWithContext(c.logger, ctx)
 
-	parts := []genai.Part{
-		genai.Text(
+	parts := []*genai.Part{
+		genai.NewPartFromText(
 			`Please clean up this newline separated list of recipe ingredients and return the cleaned newline separated list of ingredients. The output must be a newline separated list of ingredients. Do not include any other text or comments.
 		When cleaning the list of recipe ingredients:
 		  - Use the full name of the unit, not the abbreviation. i.e. "1 cup" not "1 c" or "1 tablespoon" not "1 tbsp".
@@ -185,8 +177,10 @@ func (c *RecipeGeminiClient) CleanIngredients(ctx context.Context, ingredients [
 		  - If the ingredient has two measurements that should be combined or added together and are using two different units, then the output ingredient should be formatted like "1 cup and 1 tablespoon sugar". The input may be formatted like, but not limited to, "1 cup + 1 tablespoon sugar" or "1 cup and 1 tablespoon sugar".
 		  - If the ingredient has two measurements but only one should be used, e.i one is volume and the other is weight, then the output ingredient should be formatted like. "1 cup or 100 grams sugar". The input may be formatted like, but not limited to, "1 cup or 100 grams sugar" or "1 cup (100 grams) sugar" or "1 cup sugar - 100 grams".`,
 		),
-		genai.Text(strings.Join(ingredients, "\n")),
+		genai.NewPartFromText(strings.Join(ingredients, "\n")),
 	}
+
+	content := genai.NewContentFromParts(parts, genai.RoleUser)
 
 	var resp *genai.GenerateContentResponse
 	tryCount := 0
@@ -199,11 +193,7 @@ func (c *RecipeGeminiClient) CleanIngredients(ctx context.Context, ingredients [
 		tryCount++
 		modelName = c.getModelName()
 		log.Info().Str("model", modelName).Msg("attempting cleaning ingredients")
-		modelHandle := c.client.GenerativeModel(modelName)
-
-		resp, err = modelHandle.GenerateContent(ctx,
-			parts...,
-		)
+		resp, err = c.client.Models.GenerateContent(ctx, modelName, []*genai.Content{content}, nil)
 		if err != nil {
 			log.Info().Err(err).Str("model", modelName).Msg("failed cleaning ingredients")
 			continue
@@ -213,10 +203,7 @@ func (c *RecipeGeminiClient) CleanIngredients(ctx context.Context, ingredients [
 
 	var text string
 	for _, part := range resp.Candidates[0].Content.Parts {
-		switch p := part.(type) {
-		case genai.Text:
-			text = string(p)
-		}
+		text = string(part.Text)
 	}
 	if text == "" {
 		log.Warn().Msg("no text response from Gemini")
@@ -239,15 +226,24 @@ func (c *RecipeGeminiClient) GenerateRecipeImage(ctx context.Context, recipe mod
 		return file.File{}, fmt.Errorf("failed to marshal schema.org recipe: %w", err)
 	}
 
-	parts := []genai.Part{
-		genai.Text(
-			fmt.Sprintf(`Please generate an image of this schema.org/Recipe json formated recipe. The image should look like it would be the main image for this recipe's web page. Please pay attention to the ingredients. Please generate only single image of the recipe that is no larger that 1000px in height or width.
-				Here is the recipe:
+	parts := []*genai.Part{
+		genai.NewPartFromText(
+			fmt.Sprintf(`Please generate a high-quality, realistic image of the finished dish described by the following schema.org/Recipe JSON. The image should look like a professional food photograph suitable for use as the main image on a recipe website. 
+
+- The dish should be fully prepared and attractively presented, with attention to the key ingredients and typical serving style.
+- Use natural lighting and a clean, appetizing background.
+- Do not include any text, watermarks, or extraneous objects in the image.
+- Focus on making the food look delicious and visually appealing.
+- Pay attention to the ingredients and the recipe steps to ensure the image is accurate and realistic.
+
+Here is the recipe:
 				%s`,
 				string(schemaRecipeJson),
 			),
 		),
 	}
+
+	content := genai.NewContentFromParts(parts, genai.RoleUser)
 
 	var resp *genai.GenerateContentResponse
 	modelName := ""
@@ -259,11 +255,9 @@ func (c *RecipeGeminiClient) GenerateRecipeImage(ctx context.Context, recipe mod
 		tryCount++
 		modelName = c.getImageModelName()
 		log.Info().Str("model", modelName).Msg("attempting to generate recipe image")
-		modelHandle := c.client.GenerativeModel(modelName)
-
-		modelHandle.GenerationConfig.ResponseMIMEType = "image/jpeg"
-
-		resp, err = modelHandle.GenerateContent(ctx, parts...)
+		resp, err = c.client.Models.GenerateContent(ctx, modelName, []*genai.Content{content}, &genai.GenerateContentConfig{
+			ResponseModalities: []string{"TEXT", "IMAGE"},
+		})
 		if err != nil {
 			log.Info().Err(err).Str("model", modelName).Msg("failed to generate recipe image")
 			continue
@@ -273,17 +267,23 @@ func (c *RecipeGeminiClient) GenerateRecipeImage(ctx context.Context, recipe mod
 
 	var reader io.ReadSeekCloser
 	var length int64
-	for _, part := range resp.Candidates[0].Content.Parts {
-		switch p := part.(type) {
-		case genai.Blob:
-			length = int64(len(p.Data))
-			reader = file.NewReadSeekCloser(p.Data)
+	var contentType string
+	var extension string
+	for _, candidate := range resp.Candidates {
+		for _, part := range candidate.Content.Parts {
+			if part.InlineData != nil {
+				length = int64(len(part.InlineData.Data))
+				reader = file.NewReadSeekCloser(part.InlineData.Data)
+				contentType = part.InlineData.MIMEType
+				extension = "." + strings.TrimPrefix(contentType, "image/")
+				break
+			}
 		}
 	}
 
 	return file.File{
-		Extension:      ".jpeg",
-		ContentType:    "image/jpeg",
+		Extension:      extension,
+		ContentType:    contentType,
 		ReadSeekCloser: reader,
 		ContentLength:  int64(length),
 	}, nil
