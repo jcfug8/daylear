@@ -455,6 +455,49 @@ func (d *Domain) OCRRecipe(ctx context.Context, authAccount model.AuthAccount, i
 	return recipe, nil
 }
 
+func (d *Domain) GenerateRecipeImage(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (file.File, error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	if authAccount.UserId == 0 {
+		log.Warn().Msg("user id required")
+		return file.File{}, domain.ErrInvalidArgument{Msg: "user id required"}
+	}
+
+	var err error
+
+	if authAccount.CircleId != 0 {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, id)
+		if err != nil {
+			log.Error().Err(err).Msg("getRecipeAccessLevelsForCircle failed")
+			return file.File{}, err
+		}
+	} else {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevels(ctx, authAccount, id)
+		if err != nil {
+			log.Error().Err(err).Msg("getRecipeAccessLevels failed")
+			return file.File{}, err
+		}
+	}
+
+	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
+		log.Warn().Msg("user does not have access")
+		return file.File{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
+	}
+
+	recipe, err := d.repo.GetRecipe(ctx, authAccount, id)
+	if err != nil {
+		log.Error().Err(err).Msg("repo.GetRecipe failed")
+		return file.File{}, err
+	}
+
+	f, err := d.imageGenerator.GenerateRecipeImage(ctx, recipe)
+	if err != nil {
+		log.Error().Err(err).Msg("imageGenerator.GenerateRecipeImage failed")
+		return file.File{}, err
+	}
+
+	return f, nil
+}
+
 // Helper methods
 
 func (d *Domain) createRecipeImageURI(ctx context.Context, recipe model.Recipe) (string, error) {

@@ -14,6 +14,7 @@ import (
 	"github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/core/schemaorgrecipe"
 	"github.com/jcfug8/daylear/server/ports/config"
+	"github.com/jcfug8/daylear/server/ports/imagegenerator"
 	"github.com/jcfug8/daylear/server/ports/ingredientcleaner"
 	"github.com/jcfug8/daylear/server/ports/recipeocr"
 	"github.com/rs/zerolog"
@@ -25,13 +26,17 @@ import (
 
 var _ recipeocr.Client = &RecipeGeminiClient{}
 var _ ingredientcleaner.Client = &RecipeGeminiClient{}
+var _ imagegenerator.Client = &RecipeGeminiClient{}
 
 type RecipeGeminiClient struct {
-	logger            zerolog.Logger
-	client            *genai.Client
-	modelNamesLock    sync.Mutex
-	modelNames        []string
-	currentModelIndex int
+	logger                 zerolog.Logger
+	client                 *genai.Client
+	modelNamesLock         sync.Mutex
+	modelNames             []string
+	imageModelNames        []string
+	imageModelNamesLock    sync.Mutex
+	currentModelIndex      int
+	currentImageModelIndex int
 }
 
 type RecipeGeminiClientParams struct {
@@ -62,6 +67,10 @@ func NewRecipeGeminiClient(params RecipeGeminiClientParams) (*RecipeGeminiClient
 		"gemini-2.5-pro",
 	}
 
+	imageModelNames := []string{
+		"gemini-2.0-flash-preview-image-generation",
+	}
+
 	// randomize the model names
 	rand.Shuffle(len(modelNames), func(i, j int) {
 		modelNames[i], modelNames[j] = modelNames[j], modelNames[i]
@@ -71,6 +80,7 @@ func NewRecipeGeminiClient(params RecipeGeminiClientParams) (*RecipeGeminiClient
 		logger:            params.Logger,
 		client:            client,
 		modelNames:        modelNames,
+		imageModelNames:   imageModelNames,
 		currentModelIndex: 0,
 	}, nil
 }
@@ -111,7 +121,7 @@ func (c *RecipeGeminiClient) OCRRecipe(ctx context.Context, files []file.File) (
 	tryCount := 0
 	modelName := ""
 	for {
-		if tryCount > len(c.modelNames) {
+		if tryCount >= len(c.modelNames) {
 			log.Error().Msg("failed to get recipe from gemini after trying all models")
 			return model.Recipe{}, fmt.Errorf("failed to get recipe from gemini after %d tries", tryCount)
 		}
@@ -182,7 +192,7 @@ func (c *RecipeGeminiClient) CleanIngredients(ctx context.Context, ingredients [
 	tryCount := 0
 	modelName := ""
 	for {
-		if tryCount > len(c.modelNames) {
+		if tryCount >= len(c.modelNames) {
 			log.Error().Msg("failed to get recipe from gemini after trying all models")
 			return nil, fmt.Errorf("failed to get recipe from gemini after %d tries", tryCount)
 		}
@@ -218,6 +228,74 @@ func (c *RecipeGeminiClient) CleanIngredients(ctx context.Context, ingredients [
 	log.Info().Str("model", modelName).Interface("ingredients", ingredients).Interface("cleanedIngredients", cleanedIngredients).Msg("cleaned ingredients")
 
 	return cleanedIngredients, nil
+}
+
+func (c *RecipeGeminiClient) GenerateRecipeImage(ctx context.Context, recipe model.Recipe) (file.File, error) {
+	log := logutil.EnrichLoggerWithContext(c.logger, ctx)
+
+	schemaRecipe := schemaorgrecipe.ToSchemaOrgRecipe(recipe)
+	schemaRecipeJson, err := json.Marshal(schemaRecipe)
+	if err != nil {
+		return file.File{}, fmt.Errorf("failed to marshal schema.org recipe: %w", err)
+	}
+
+	parts := []genai.Part{
+		genai.Text(
+			fmt.Sprintf(`Please generate an image of this schema.org/Recipe json formated recipe. The image should look like it would be the main image for this recipe's web page. Please pay attention to the ingredients. Please generate only single image of the recipe that is no larger that 1000px in height or width.
+				Here is the recipe:
+				%s`,
+				string(schemaRecipeJson),
+			),
+		),
+	}
+
+	var resp *genai.GenerateContentResponse
+	modelName := ""
+	tryCount := 0
+	for {
+		if tryCount >= len(c.imageModelNames) {
+			return file.File{}, fmt.Errorf("failed to generate recipe image after %d tries", tryCount)
+		}
+		tryCount++
+		modelName = c.getImageModelName()
+		log.Info().Str("model", modelName).Msg("attempting to generate recipe image")
+		modelHandle := c.client.GenerativeModel(modelName)
+
+		modelHandle.GenerationConfig.ResponseMIMEType = "image/jpeg"
+
+		resp, err = modelHandle.GenerateContent(ctx, parts...)
+		if err != nil {
+			log.Info().Err(err).Str("model", modelName).Msg("failed to generate recipe image")
+			continue
+		}
+		break
+	}
+
+	var reader io.ReadSeekCloser
+	var length int64
+	for _, part := range resp.Candidates[0].Content.Parts {
+		switch p := part.(type) {
+		case genai.Blob:
+			length = int64(len(p.Data))
+			reader = file.NewReadSeekCloser(p.Data)
+		}
+	}
+
+	return file.File{
+		Extension:      ".jpeg",
+		ContentType:    "image/jpeg",
+		ReadSeekCloser: reader,
+		ContentLength:  int64(length),
+	}, nil
+}
+
+func (c *RecipeGeminiClient) getImageModelName() string {
+	c.imageModelNamesLock.Lock()
+	defer c.imageModelNamesLock.Unlock()
+
+	modelName := c.imageModelNames[c.currentImageModelIndex]
+	c.currentImageModelIndex = (c.currentImageModelIndex + 1) % len(c.imageModelNames)
+	return modelName
 }
 
 func (c *RecipeGeminiClient) getModelName() string {

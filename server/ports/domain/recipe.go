@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/jcfug8/daylear/server/core/file"
 	model "github.com/jcfug8/daylear/server/core/model"
 )
 
@@ -18,6 +19,7 @@ type recipeDomain interface {
 	OCRRecipe(ctx context.Context, authAccount model.AuthAccount, imageReaders []io.Reader) (model.Recipe, error)
 
 	UploadRecipeImage(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId, imageReader io.Reader) (imageURI string, err error)
+	GenerateRecipeImage(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (file.File, error)
 
 	CreateRecipeAccess(ctx context.Context, authAccount model.AuthAccount, access model.RecipeAccess) (model.RecipeAccess, error)
 	DeleteRecipeAccess(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeAccessParent, id model.RecipeAccessId) error

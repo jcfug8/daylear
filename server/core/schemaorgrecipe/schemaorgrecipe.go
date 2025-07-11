@@ -438,3 +438,110 @@ func ToModelRecipe(schemaRecipe SchemaOrgRecipe) model.Recipe {
 	coreRecipe.Visibility = 300
 	return coreRecipe
 }
+
+// durationToISO8601 converts a time.Duration to an ISO 8601 duration string (e.g., PT1H30M)
+func durationToISO8601(d time.Duration) string {
+	totalSeconds := int(d.Seconds())
+	hours := totalSeconds / 3600
+	minutes := (totalSeconds % 3600) / 60
+	seconds := totalSeconds % 60
+	result := "PT"
+	if hours > 0 {
+		result += strconv.Itoa(hours) + "H"
+	}
+	if minutes > 0 {
+		result += strconv.Itoa(minutes) + "M"
+	}
+	if seconds > 0 || result == "PT" {
+		result += strconv.Itoa(seconds) + "S"
+	}
+	return result
+}
+
+// timeToRFC3339 converts a time.Time to an RFC3339 string, or empty if zero
+func timeToRFC3339(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.UTC().Format(time.RFC3339)
+}
+
+// ingredientToString converts a RecipeIngredient to a string for schema.org
+func ingredientToString(ing model.RecipeIngredient) string {
+	// Try to reconstruct the original string as best as possible
+	var parts []string
+	if ing.MeasurementAmount > 0 {
+		parts = append(parts, strings.TrimRight(strings.TrimRight(strconv.FormatFloat(ing.MeasurementAmount, 'f', -1, 64), "0"), "."))
+	}
+	if ing.MeasurementType != pb.Recipe_MEASUREMENT_TYPE_UNSPECIFIED {
+		parts = append(parts, pb.Recipe_MeasurementType_name[int32(ing.MeasurementType)])
+	}
+	if ing.MeasurementConjunction != pb.Recipe_Ingredient_MEASUREMENT_CONJUNCTION_UNSPECIFIED && ing.SecondMeasurementAmount > 0 {
+		conj := ""
+		switch ing.MeasurementConjunction {
+		case pb.Recipe_Ingredient_MEASUREMENT_CONJUNCTION_AND:
+			conj = "and"
+		case pb.Recipe_Ingredient_MEASUREMENT_CONJUNCTION_OR:
+			conj = "or"
+		case pb.Recipe_Ingredient_MEASUREMENT_CONJUNCTION_TO:
+			conj = "to"
+		}
+		if conj != "" {
+			parts = append(parts, conj)
+		}
+		parts = append(parts, strings.TrimRight(strings.TrimRight(strconv.FormatFloat(ing.SecondMeasurementAmount, 'f', -1, 64), "0"), "."))
+		if ing.SecondMeasurementType != pb.Recipe_MEASUREMENT_TYPE_UNSPECIFIED {
+			parts = append(parts, pb.Recipe_MeasurementType_name[int32(ing.SecondMeasurementType)])
+		}
+	}
+	if ing.Title != "" {
+		parts = append(parts, ing.Title)
+	}
+	return strings.Join(parts, " ")
+}
+
+// directionsToSchemaOrg converts []model.RecipeDirection to schema.org format
+func directionsToSchemaOrg(directions []model.RecipeDirection) interface{} {
+	if len(directions) == 1 && directions[0].Title == "" {
+		// Single section, no title: return steps as []string
+		return directions[0].Steps
+	}
+	var out []map[string]interface{}
+	for _, dir := range directions {
+		section := map[string]interface{}{
+			"@type":           "HowToSection",
+			"name":            dir.Title,
+			"itemListElement": dir.Steps,
+		}
+		out = append(out, section)
+	}
+	return out
+}
+
+// ToSchemaOrgRecipe converts a model.Recipe to a SchemaOrgRecipe
+func ToSchemaOrgRecipe(r model.Recipe) SchemaOrgRecipe {
+	ingredients := []string{}
+	for _, group := range r.IngredientGroups {
+		for _, ing := range group.RecipeIngredients {
+			ingredients = append(ingredients, ingredientToString(ing))
+		}
+	}
+	return SchemaOrgRecipe{
+		Context:            "https://schema.org/",
+		Type:               "Recipe",
+		Name:               r.Title,
+		Description:        r.Description,
+		Image:              r.ImageURI,
+		RecipeIngredient:   ingredients,
+		RecipeInstructions: directionsToSchemaOrg(r.Directions),
+		RecipeYield:        r.YieldAmount,
+		DatePublished:      timeToRFC3339(r.CreateTime),
+		PrepTime:           durationToISO8601(r.PrepDuration),
+		CookTime:           durationToISO8601(r.CookDuration),
+		TotalTime:          durationToISO8601(r.TotalDuration),
+		RecipeCategory:     r.Categories,
+		RecipeCuisine:      r.Cuisines,
+		CookingMethod:      r.CookingMethod,
+		MainEntityOfPage:   r.Citation,
+	}
+}
