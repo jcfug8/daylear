@@ -62,7 +62,7 @@
           <v-img
             class="mt-1"
             style="background-color: lightgray"
-            :src="previewImage || circle.imageUri"
+            :src="imageCleared ? '' : (previewImage || circle.imageUri)"
             cover
             height="300"
           ></v-img>
@@ -71,6 +71,24 @@
             color="primary"
             class="image-upload-btn"
             @click="showImageDialog = true"
+          ></v-btn>
+          <v-btn
+            v-if="!imageCleared && (previewImage || circle.imageUri)"
+            icon="mdi-close"
+            color="error"
+            class="image-x-btn"
+            style="position: absolute; top: 8px; right: 56px; z-index: 2;"
+            @click="clearImage"
+            title="Remove Image"
+          ></v-btn>
+          <v-btn
+            v-if="imageCleared"
+            icon="mdi-arrow-u-left-top"
+            color="info"
+            class="image-undo-btn"
+            style="position: absolute; top: 8px; right: 56px; z-index: 2;"
+            @click="undoClearImage"
+            title="Undo Remove Image"
           ></v-btn>
         </div>
       </v-col>
@@ -148,7 +166,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { Circle, apitypes_VisibilityLevel } from '@/genapi/api/circles/circle/v1alpha1'
 
 const props = defineProps<{
@@ -225,6 +243,8 @@ const imageTab = ref('url')
 const imageUrl = ref('')
 const imageFile = ref<File | null>(null)
 const previewImage = ref<string | null>(null)
+const imageCleared = ref(false)
+const originalImageUri = ref<string | null>(null)
 
 function updatePreview() {
   if (imageUrl.value) {
@@ -258,14 +278,43 @@ function handleImageSubmit() {
     if (imageUrl.value) {
       circle.value.imageUri = imageUrl.value
       emit('imageSelected', null, imageUrl.value)
+      imageCleared.value = false
     }
   } else if (imageFile.value) {
     emit('imageSelected', imageFile.value, null)
+    imageCleared.value = false
   }
   showImageDialog.value = false
   imageUrl.value = ''
   imageFile.value = null
 }
+
+function clearImage() {
+  if (!imageCleared.value) {
+    originalImageUri.value = previewImage.value || circle.value.imageUri || null
+    imageCleared.value = true
+    previewImage.value = null
+    circle.value.imageUri = ''
+    emit('update:modelValue', circle.value)
+  }
+}
+
+function undoClearImage() {
+  if (imageCleared.value && originalImageUri.value) {
+    circle.value.imageUri = originalImageUri.value
+    previewImage.value = originalImageUri.value
+    imageCleared.value = false
+    emit('update:modelValue', circle.value)
+  }
+}
+
+// Reset clear state if a new image is selected
+watch([previewImage, () => circle.value.imageUri], (vals) => {
+  const [newPreview, newUri] = vals
+  if ((newPreview || newUri) && imageCleared.value) {
+    imageCleared.value = false
+  }
+})
 
 function handleSave() {
   emit('save')
@@ -288,5 +337,12 @@ const handleRule = (v: string) => {
   position: absolute;
   bottom: 16px;
   right: 16px;
+}
+
+.image-x-btn, .image-undo-btn {
+  position: absolute;
+  top: 8px;
+  right: 56px;
+  z-index: 2;
 }
 </style> 

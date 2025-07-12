@@ -757,7 +757,9 @@ async function shareWithUser({ userName, permission }: { userName: string, permi
       recipient: {
         user: {
           name: userName,
-          username: undefined
+          username: undefined,
+          givenName: undefined,
+          familyName: undefined,
         }
       },
       level: permission,
@@ -792,6 +794,7 @@ async function shareWithCircle({ circleName, permission }: { circleName: string,
         circle: { 
           name: circleName, 
           title: undefined, 
+          handle: undefined,
         }
       },
       level: permission,

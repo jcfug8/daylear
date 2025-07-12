@@ -183,7 +183,7 @@
           <v-img
             class="mt-1"
             style="background-color: lightgray"
-            :src="previewImage || recipe.imageUri"
+            :src="imageCleared ? '' : (previewImage || recipe.imageUri)"
             cover
             height="300"
           ></v-img>
@@ -192,6 +192,22 @@
             color="primary"
             class="image-upload-btn"
             @click="showImageDialog = true"
+          ></v-btn>
+          <v-btn
+            v-if="!imageCleared && (previewImage || recipe.imageUri)"
+            icon="mdi-close"
+            color="warning"
+            class="image-x-btn"
+            @click="clearImage"
+            title="Remove Image"
+          ></v-btn>
+          <v-btn
+            v-if="imageCleared"
+            icon="mdi-arrow-u-left-top"
+            color="info"
+            class="image-undo-btn"
+            @click="undoClearImage"
+            title="Undo Remove Image"
           ></v-btn>
         </div>
       </v-col>
@@ -335,7 +351,7 @@ async function scrapeRecipe() {
   scrapeLoading.value = true
   importAbortController.value = new AbortController()
   try {
-    const resp = await recipeService.ScrapeRecipe({ uri: scrapeUrl.value }, importAbortController.value.signal)
+    const resp = await recipeService.ScrapeRecipe({ uri: scrapeUrl.value }, /* importAbortController.value.signal */)
     if (resp && resp.recipe) {
       // Preserve current visibility if not set in scraped recipe
       if (!resp.recipe.visibility) {
@@ -427,6 +443,8 @@ const imageTab = ref('url')
 const imageUrl = ref('')
 const imageFile = ref<File | null>(null)
 const previewImage = ref<string | null>(null)
+const imageCleared = ref(false)
+const originalImageUri = ref<string | null>(null)
 
 function updatePreview() {
   if (imageUrl.value) {
@@ -460,9 +478,11 @@ function handleImageSubmit() {
     if (imageUrl.value) {
       recipe.value.imageUri = imageUrl.value
       emit('imageSelected', null, imageUrl.value)
+      imageCleared.value = false
     }
   } else if (imageFile.value) {
     emit('imageSelected', imageFile.value, null)
+    imageCleared.value = false
   }
   
   showImageDialog.value = false
@@ -553,6 +573,37 @@ const recipe = computed({
   set: (value) => emit('update:modelValue', value),
 })
 
+// *** Clear Image ***
+
+
+function clearImage() {
+  if (!imageCleared.value) {
+    originalImageUri.value = previewImage.value || recipe.value.imageUri || null
+    imageCleared.value = true
+    previewImage.value = null
+    recipe.value.imageUri = ''
+    emit('update:modelValue', recipe.value)
+  }
+}
+
+function undoClearImage() {
+  if (imageCleared.value && originalImageUri.value) {
+    recipe.value.imageUri = originalImageUri.value
+    previewImage.value = originalImageUri.value
+    imageCleared.value = false
+    emit('update:modelValue', recipe.value)
+  }
+}
+
+// Reset clear state if a new image is selected
+watch([previewImage, () => recipe.value.imageUri], (vals) => {
+  const [newPreview, newUri] = vals
+  if ((newPreview || newUri) && imageCleared.value) {
+    imageCleared.value = false
+  }
+})
+
+
 // Categories and cuisines as tag inputs
 const categoriesInput = ref(recipe.value.categories ?? [])
 const cuisinesInput = ref(recipe.value.cuisines ?? [])
@@ -624,6 +675,11 @@ function parseDuration(duration: string): number {
 .image-upload-btn {
   position: absolute;
   bottom: 16px;
+  right: 16px;
+}
+.image-x-btn, .image-undo-btn {
+  position: absolute;
+  top: 16px;
   right: 16px;
 }
 </style>

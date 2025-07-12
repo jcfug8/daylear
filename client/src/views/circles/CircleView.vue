@@ -493,7 +493,9 @@ async function shareWithUser({ userName, permission }: { userName: string, permi
     const access: Access = {
       recipient: {
         name: userName,
-        username: undefined
+        username: undefined,
+        givenName: undefined,
+        familyName: undefined,
       },
       level: permission,
       name: undefined, // Will be set by the server
