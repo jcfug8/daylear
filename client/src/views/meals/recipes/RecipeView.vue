@@ -51,7 +51,7 @@
                   </div>
                 </div>
                 <v-btn
-                  v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)"
+                  v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel) && !recipe.imageUri"
                   class="generate-image-btn"
                   color="primary"
                   @click="openGenerateImageModal"
@@ -79,13 +79,13 @@
                   {{ recipe.citation }}
                 </span>
               </div>
-              <div v-if="recipe.prepDuration">
+              <div v-if="recipe.prepDuration && recipe.prepDuration !== '0s'">
                 <strong>Prep Time:</strong> {{ parseDuration(recipe.prepDuration ? recipe.prepDuration : "0") }}
               </div>
-              <div v-if="recipe.cookDuration">
+              <div v-if="recipe.cookDuration && recipe.cookDuration !== '0s'">
                 <strong>Cook Time:</strong> {{ parseDuration(recipe.cookDuration ? recipe.cookDuration : "0") }}
               </div>
-              <div v-if="recipe.totalDuration">
+              <div v-if="recipe.totalDuration && recipe.totalDuration !== '0s'">
                 <strong>Total Time:</strong> {{ parseDuration(recipe.totalDuration ? recipe.totalDuration : "0") }}
               </div>
               <div v-if="recipe.cookingMethod">
