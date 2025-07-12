@@ -131,7 +131,7 @@
       :sharing="sharing"
       :sharePermissionLoading="updatingPermission"
       :hasWritePermission="hasWritePermission"
-      @share-user="shareCircle"
+      @share-user="shareWithUser"
       @remove-share="unshareCircle"
       @permission-change="updatePermission"
     />
@@ -481,7 +481,7 @@ async function unshareCircle(accessName: string) {
   }
 }
 
-async function shareCircle({ userName, permission }: { userName: string, permission: PermissionLevel }) {
+async function shareWithUser({ userName, permission }: { userName: string, permission: PermissionLevel }) {
   if (!userName) return
   if (!circle.value?.name) return
 
