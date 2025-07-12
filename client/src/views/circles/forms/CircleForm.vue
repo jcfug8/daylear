@@ -75,9 +75,8 @@
           <v-btn
             v-if="!imageCleared && (previewImage || circle.imageUri)"
             icon="mdi-close"
-            color="error"
+            color="warning"
             class="image-x-btn"
-            style="position: absolute; top: 8px; right: 56px; z-index: 2;"
             @click="clearImage"
             title="Remove Image"
           ></v-btn>
@@ -86,7 +85,6 @@
             icon="mdi-arrow-u-left-top"
             color="info"
             class="image-undo-btn"
-            style="position: absolute; top: 8px; right: 56px; z-index: 2;"
             @click="undoClearImage"
             title="Undo Remove Image"
           ></v-btn>
@@ -341,8 +339,7 @@ const handleRule = (v: string) => {
 
 .image-x-btn, .image-undo-btn {
   position: absolute;
-  top: 8px;
-  right: 56px;
-  z-index: 2;
+  top: 16px;
+  right: 16px;
 }
 </style> 
