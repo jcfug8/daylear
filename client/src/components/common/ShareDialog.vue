@@ -229,7 +229,6 @@ function handleCircleInput(value: string) {
   }, 300)
 }
 
-
 async function checkCircle(circleName: string) {
   if (!circleName) {
     isValidCircle.value = false
@@ -271,7 +270,6 @@ let isValidUsername = ref(false)
 let isLoadingUsername = ref(false)
 
 let usernameDebounceTimer: number | null = null
-
 
 onBeforeUnmount(() => {
   if (usernameDebounceTimer) {

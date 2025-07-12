@@ -240,8 +240,8 @@
     :sharing="sharing"
     :sharePermissionLoading="updatingPermission"
     :hasWritePermission="hasWritePermission"
-    @share-user="onShareUser"
-    @share-circle="onShareCircle"
+    @share-user="shareWithUser"
+    @share-circle="shareWithCircle"
     @remove-share="unshareCircle"
     @permission-change="updatePermission"
   />
@@ -290,7 +290,7 @@
 
 <script setup lang="ts">
 import type { Recipe_MeasurementType, apitypes_VisibilityLevel, Recipe_Ingredient_MeasurementConjunction } from '@/genapi/api/meals/recipe/v1alpha1'
-import type { Access, CreateAccessRequest, ListAccessesRequest, DeleteAccessRequest, Access_RequesterOrRecipient } from '@/genapi/api/meals/recipe/v1alpha1'
+import type { Access, CreateAccessRequest, ListAccessesRequest, DeleteAccessRequest } from '@/genapi/api/meals/recipe/v1alpha1'
 import type { PermissionLevel } from '@/genapi/api/types'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRecipesStore } from '@/stores/recipes'
@@ -298,29 +298,63 @@ import { useRecipeFormStore } from '@/stores/recipeForm'
 import { storeToRefs } from 'pinia'
 import { onMounted, onBeforeUnmount, watch, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import {   recipeService, userService, circleService, recipeAccessService, fileService } from '@/api/api'
-import type { User, ListUsersRequest } from '@/genapi/api/users/user/v1alpha1'
-import type { Circle, ListCirclesRequest } from '@/genapi/api/circles/circle/v1alpha1'
+import { recipeService, recipeAccessService, fileService } from '@/api/api'
 import { useAuthStore } from '@/stores/auth'
 import { hasWritePermission, hasAdminPermission } from '@/utils/permissions'
 import ShareDialog from '@/components/common/ShareDialog.vue'
 
-const route = useRoute()
-const router = useRouter()
 const authStore = useAuthStore()
-
+const breadcrumbStore = useBreadcrumbStore()
 const recipesStore = useRecipesStore()
 const recipeFormStore = useRecipeFormStore()
-const { recipe } = storeToRefs(recipesStore)
-const { activeTab } = storeToRefs(recipeFormStore)
+const route = useRoute()
+const router = useRouter()
 
-// Use the store's activeTab as our local tab
+const { recipe } = storeToRefs(recipesStore)
+const speedDialOpen = ref(false)
+
+// *** Breadcrumbs ***
+
+onMounted(async () => {
+  // First check URL hash
+  const currentHash = route.hash
+  if (currentHash in hashToTab) {
+    tab.value = hashToTab[currentHash]
+  }
+
+  // Load the recipe based on the route parameter
+  const recipeId = route.params.recipeId as string
+  await recipesStore.loadRecipe(recipeId)
+
+  breadcrumbStore.setBreadcrumbs([
+    { title: 'Recipes', to: { name: 'recipes' } },
+    {
+      title: recipe.value?.title || '',
+      to: { name: 'recipe', params: { recipeId: recipe.value?.name } },
+    },
+  ])
+})
+
+// *** Tabs ***
+
+const { activeTab } = storeToRefs(recipeFormStore)
+onBeforeUnmount(() => {
+  if (router.currentRoute.value.name !== 'recipeEdit') {
+    recipeFormStore.setActiveTab('general')
+  }
+})
+
 const tab = computed({
   get: () => activeTab.value,
   set: (value) => recipeFormStore.setActiveTab(value),
 })
 
-const breadcrumbStore = useBreadcrumbStore()
+watch(tab, (newTab) => {
+  const newHash = tabToHash[newTab]
+  if (newHash && route.hash !== newHash) {
+    router.replace({ hash: newHash }) // Update the URL hash without reloading the page
+  }
+})
 
 // Map hash values to tab values
 const hashToTab: Record<string, string> = {
@@ -335,6 +369,30 @@ const tabToHash: Record<string, string> = {
   ingredients: '#ingredients',
   directions: '#directions',
 }
+
+
+// *** Visibility ***
+
+const selectedVisibility = computed(() => {
+  return visibilityOptions.find(option => option.value === recipe.value?.visibility)
+})
+
+const selectedVisibilityDescription = computed(() => {
+  return selectedVisibility.value?.description || ''
+})
+
+const selectedVisibilityLabel = computed(() => {
+  return selectedVisibility.value?.label || ''
+})
+
+const selectedVisibilityIcon = computed(() => {
+  return selectedVisibility.value?.icon || 'mdi-help-circle'
+})
+
+const selectedVisibilityColor = computed(() => {
+  return selectedVisibility.value?.color || 'primary'
+})
+
 
 // Visibility options with descriptions and icons
 const visibilityOptions = [
@@ -368,78 +426,7 @@ const visibilityOptions = [
   }
 ]
 
-// Computed properties for the selected visibility
-const selectedVisibility = computed(() => {
-  return visibilityOptions.find(option => option.value === recipe.value?.visibility)
-})
-
-const selectedVisibilityDescription = computed(() => {
-  return selectedVisibility.value?.description || ''
-})
-
-const selectedVisibilityLabel = computed(() => {
-  return selectedVisibility.value?.label || ''
-})
-
-const selectedVisibilityIcon = computed(() => {
-  return selectedVisibility.value?.icon || 'mdi-help-circle'
-})
-
-const selectedVisibilityColor = computed(() => {
-  return selectedVisibility.value?.color || 'primary'
-})
-
-onMounted(async () => {
-  // First check URL hash
-  const currentHash = route.hash
-  if (currentHash in hashToTab) {
-    tab.value = hashToTab[currentHash]
-  }
-
-  // Load the recipe based on the route parameter
-  const recipeId = route.params.recipeId as string
-  await recipesStore.loadRecipe(recipeId)
-
-  breadcrumbStore.setBreadcrumbs([
-    { title: 'Recipes', to: { name: 'recipes' } },
-    {
-      title: recipe.value?.title || '',
-      to: { name: 'recipe', params: { recipeId: recipe.value?.name } },
-    },
-  ])
-})
-
-// Reset tab state when leaving the view
-onBeforeUnmount(() => {
-  // Only reset if we're not going to the edit view
-  if (router.currentRoute.value.name !== 'recipeEdit') {
-    recipeFormStore.setActiveTab('general')
-  }
-})
-
-// Watch for tab changes and update the URL hash
-watch(tab, (newTab) => {
-  const newHash = tabToHash[newTab]
-  if (newHash && route.hash !== newHash) {
-    router.replace({ hash: newHash }) // Update the URL hash without reloading the page
-  }
-})
-
-// Add these new refs and constants
-const selectedPermission = ref<PermissionLevel>('PERMISSION_LEVEL_READ')
-
-// Fetch recipients when recipe is loaded or when share dialog is opened
-watch(recipe, (newRecipe) => {
-  if (newRecipe && hasWritePermission(newRecipe.recipeAccess?.permissionLevel)) {
-    fetchRecipeRecipients()
-  }
-}, { immediate: true })
-
-
-
 // *** Remove Access ***
-
-// Remove access dialog state
 const showRemoveAccessDialog = ref(false)
 const removingAccess = ref(false)
 
@@ -481,9 +468,6 @@ async function handleRemoveAccess() {
     showRemoveAccessDialog.value = false
   }
 }
-
-// Speed dial state
-const speedDialOpen = ref(false)
 
 // *** Delete Recipe ***
 
@@ -554,21 +538,30 @@ function renderConjunction(conjunction: Recipe_Ingredient_MeasurementConjunction
   }
 }
 
-// Map MeasurmentType to string
-const measurementTypeToString: Record<Recipe_MeasurementType, string> = {
-  MEASUREMENT_TYPE_UNSPECIFIED: '',
-  MEASUREMENT_TYPE_CUP: 'cups',
-  MEASUREMENT_TYPE_TABLESPOON: 'tablespoons',
-  MEASUREMENT_TYPE_TEASPOON: 'teaspoons',
-  MEASUREMENT_TYPE_OUNCE: 'ounces',
-  MEASUREMENT_TYPE_POUND: 'pounds',
-  MEASUREMENT_TYPE_GRAM: 'grams',
-  MEASUREMENT_TYPE_MILLILITER: 'milliliters',
-  MEASUREMENT_TYPE_LITER: 'liters',
-}
-
-function convertMeasurementTypeToString(type: Recipe_MeasurementType | undefined): string {
-  return type ? measurementTypeToString[type] || '' : ''
+function measurementTypeLabel(type: Recipe_MeasurementType | undefined, amount: number | undefined): string {
+  const singular: Record<string, string> = {
+    MEASUREMENT_TYPE_CUP: 'cup',
+    MEASUREMENT_TYPE_TABLESPOON: 'tablespoon',
+    MEASUREMENT_TYPE_TEASPOON: 'teaspoon',
+    MEASUREMENT_TYPE_OUNCE: 'ounce',
+    MEASUREMENT_TYPE_POUND: 'pound',
+    MEASUREMENT_TYPE_GRAM: 'gram',
+    MEASUREMENT_TYPE_MILLILITER: 'milliliter',
+    MEASUREMENT_TYPE_LITER: 'liter',
+  }
+  const plural: Record<string, string> = {
+    MEASUREMENT_TYPE_CUP: 'cups',
+    MEASUREMENT_TYPE_TABLESPOON: 'tablespoons',
+    MEASUREMENT_TYPE_TEASPOON: 'teaspoons',
+    MEASUREMENT_TYPE_OUNCE: 'ounces',
+    MEASUREMENT_TYPE_POUND: 'pounds',
+    MEASUREMENT_TYPE_GRAM: 'grams',
+    MEASUREMENT_TYPE_MILLILITER: 'milliliters',
+    MEASUREMENT_TYPE_LITER: 'liters',
+  }
+  if (!type || type === 'MEASUREMENT_TYPE_UNSPECIFIED') return ''
+  if ((amount ?? 0) <= 1) return singular[type] || ''
+  return plural[type] || ''
 }
 
 function isFranctional(type: Recipe_MeasurementType | undefined): boolean {
@@ -604,91 +597,8 @@ function toFraction(amount: number): string {
   return result
 }
 
-function measurementTypeLabel(type: Recipe_MeasurementType | undefined, amount: number | undefined): string {
-  const singular: Record<string, string> = {
-    MEASUREMENT_TYPE_CUP: 'cup',
-    MEASUREMENT_TYPE_TABLESPOON: 'tablespoon',
-    MEASUREMENT_TYPE_TEASPOON: 'teaspoon',
-    MEASUREMENT_TYPE_OUNCE: 'ounce',
-    MEASUREMENT_TYPE_POUND: 'pound',
-    MEASUREMENT_TYPE_GRAM: 'gram',
-    MEASUREMENT_TYPE_MILLILITER: 'milliliter',
-    MEASUREMENT_TYPE_LITER: 'liter',
-  }
-  const plural: Record<string, string> = {
-    MEASUREMENT_TYPE_CUP: 'cups',
-    MEASUREMENT_TYPE_TABLESPOON: 'tablespoons',
-    MEASUREMENT_TYPE_TEASPOON: 'teaspoons',
-    MEASUREMENT_TYPE_OUNCE: 'ounces',
-    MEASUREMENT_TYPE_POUND: 'pounds',
-    MEASUREMENT_TYPE_GRAM: 'grams',
-    MEASUREMENT_TYPE_MILLILITER: 'milliliters',
-    MEASUREMENT_TYPE_LITER: 'liters',
-  }
-  if (!type || type === 'MEASUREMENT_TYPE_UNSPECIFIED') return ''
-  if ((amount ?? 0) <= 1) return singular[type] || ''
-  return plural[type] || ''
-}
-
-function isUrl(str: string): boolean {
-  return /^https?:\/\//.test(str);
-}
-
-// *** Durations ***
-
-function formatDuration(duration: number): string {
-  if (!duration) return '';
-  return String(duration) + 's';
-}
-function parseDuration(duration: string): number {
-  if (!duration) return 0;
-
-  if (duration.endsWith('s')) {
-    return parseInt(duration.slice(0, -1))/60;
-  }
-  return 0;
-}
-function formatDate(date: unknown): string {
-  if (!date) return '';
-  const str = String(date);
-  const parsed = Date.parse(str);
-  if (!isNaN(parsed)) {
-    return new Date(parsed).toLocaleString();
-  }
-  return '';
-}
-
-
-const shareMenuOpen = ref<Record<string, boolean>>({})
-
-// *** Update Image Modal ***
-
-const updatingImage = ref(false)
-
-function closeGenerateImageModal() {
-  showGeneratedImageModal.value = false
-  if (generatedImageUrl.value) {
-    URL.revokeObjectURL(generatedImageUrl.value)
-    generatedImageUrl.value = null
-  }
-}
-
-async function updateRecipeImage() {
-  if (!recipe.value?.name || !generatedImageBlob.value) return
-  updatingImage.value = true
-  try {
-    await fileService.UploadRecipeImage({ name: recipe.value.name, file: new File([generatedImageBlob.value], 'generated-image.png', { type: generatedImageBlob.value.type || 'image/png' }) })
-    // Reload the recipe to show the new image
-    await recipesStore.loadRecipe(recipe.value.name)
-    closeGenerateImageModal()
-  } catch (error) {
-    generateImageError.value = error instanceof Error ? error.message : String(error)
-  } finally {
-    updatingImage.value = false
-  }
-}
-
 // *** Generate Image ***
+
 const showGeneratedImageModal = ref(false)
 const generatingImage = ref(false)
 const generatedImageBlob = ref<Blob|null>(null)
@@ -721,18 +631,40 @@ async function generateRecipeImage() {
   }
 }
 
+// *** Update Image Modal ***
+
+const updatingImage = ref(false)
+
+function closeGenerateImageModal() {
+  showGeneratedImageModal.value = false
+  if (generatedImageUrl.value) {
+    URL.revokeObjectURL(generatedImageUrl.value)
+    generatedImageUrl.value = null
+  }
+}
+
+async function updateRecipeImage() {
+  if (!recipe.value?.name || !generatedImageBlob.value) return
+  updatingImage.value = true
+  try {
+    await fileService.UploadRecipeImage({ name: recipe.value.name, file: new File([generatedImageBlob.value], 'generated-image.png', { type: generatedImageBlob.value.type || 'image/png' }) })
+    // Reload the recipe to show the new image
+    await recipesStore.loadRecipe(recipe.value.name)
+    closeGenerateImageModal()
+  } catch (error) {
+    generateImageError.value = error instanceof Error ? error.message : String(error)
+  } finally {
+    updatingImage.value = false
+  }
+}
 
 // *** Recipe Sharing ***
 
-
 const showShareDialog = ref(false)
 const currentShares = ref<Access[]>([])
-const shareTab = ref('users')
-const updatingPermission = ref<Record<string, boolean>>({})
-const selectedUser = ref<User | null>(null)
-const selectedCircle = ref<Circle | null>(null)
 const sharing = ref(false)
-
+const updatingPermission = ref<Record<string, boolean>>({})
+const unsharing = ref<Record<string, boolean>>({})
 
 
 // Fetch recipients when share dialog is opened
@@ -784,38 +716,53 @@ async function updatePermission({ share, newLevel }: { share: Access, newLevel: 
       access: {
         name: share.name,
         level: newLevel,
-        state: share.state,
-        recipient: share.recipient,
-        requester: share.requester,
+        state: undefined,
+        recipient: undefined,
+        requester: undefined,
       },
       updateMask: 'level',
     })
     // Update local state
     share.level = newLevel
   } catch (error) {
-    // Optionally show a notification
     console.error('Error updating permission:', error)
   } finally {
     updatingPermission.value[share.name] = false
   }
 }
 
-async function shareRecipe() {
-  if (!selectedUser.value && !selectedCircle.value) return
+async function unshareCircle(accessName: string) {
+  unsharing.value[accessName] = true
+  try {
+    const request: DeleteAccessRequest = {
+      name: accessName
+    }
+    
+    await recipeAccessService.DeleteAccess(request)
+    await fetchRecipeRecipients()
+  } catch (error) {
+    console.error('Error removing share:', error)
+  } finally {
+    unsharing.value[accessName] = false
+  }
+}
+
+async function shareWithUser({ userName, permission }: { userName: string, permission: PermissionLevel }) {
+  if (!userName) return
   if (!recipe.value?.name) return
 
   sharing.value = true
   try {
-    // Create the recipient object based on whether we're sharing with user or circle
-    const recipient: Access_RequesterOrRecipient = shareTab.value === 'users'
-      ? { user: { name: selectedUser.value?.name || '', username: selectedUser.value?.username || '' } }
-      : { circle: { name: selectedCircle.value?.name || '', title: selectedCircle.value?.title || '' } }
-
     const access: Access = {
+      recipient: {
+        user: {
+          name: userName,
+          username: undefined
+        }
+      },
+      level: permission,
       name: undefined, // Will be set by the server
       requester: undefined, // Will be set by the server
-      recipient,
-      level: selectedPermission.value,
       state: undefined, // Will be set by the server
     }
 
@@ -825,18 +772,7 @@ async function shareRecipe() {
     }
 
     await recipeAccessService.CreateAccess(request)
-    
-    // Refresh the recipients list
     await fetchRecipeRecipients()
-    
-    // Reset selections and inputs after sharing
-    selectedUser.value = null
-    selectedCircle.value = null
-    usernameInput.value = ''
-    circleInput.value = ''
-    isValidUsername.value = false
-    isValidCircle.value = false
-    selectedPermission.value = 'PERMISSION_LEVEL_READ' // Reset to default
   } catch (error) {
     console.error('Error sharing recipe:', error)
     // You might want to show an error notification here
@@ -845,41 +781,55 @@ async function shareRecipe() {
   }
 }
 
-async function unshareCircle(accessName: string) {
+async function shareWithCircle({ circleName, permission }: { circleName: string, permission: PermissionLevel }) {
+  if (!circleName) return
+  if (!recipe.value?.name) return
+
+  sharing.value = true
   try {
-    const request: DeleteAccessRequest = {
-      name: accessName // shareName is actually the access name in the format recipes/{recipe}/accesses/{access}
+    const access: Access = {
+      recipient: {
+        circle: { 
+          name: circleName, 
+          title: undefined, 
+        }
+      },
+      level: permission,
+      name: undefined, // Will be set by the server
+      requester: undefined, // Will be set by the server
+      state: undefined, // Will be set by the server
     }
-    
-    await recipeAccessService.DeleteAccess(request)
-    
-    // Remove from local state after successful API call
-    currentShares.value = currentShares.value.filter(share => share.name !== accessName)
+
+    const request: CreateAccessRequest = {
+      parent: recipe.value.name,
+      access
+    }
+
+    await recipeAccessService.CreateAccess(request)
+    await fetchRecipeRecipients()
   } catch (error) {
-    console.error('Error removing share:', error)
+    console.error('Error sharing recipe:', error)
     // You might want to show an error notification here
+  } finally {
+    sharing.value = false
   }
 }
 
-// ** Share User **
+// *** Utility Functions ***
 
-function onShareUser({ username, permission }: { username: string, permission: string }) {
-  usernameInput.value = username
-  selectedPermission.value = permission as PermissionLevel
-  checkUsername(username).then(() => {
-    if (isValidUsername.value) shareRecipe()
-  })
+function isUrl(str: string): boolean {
+  return /^https?:\/\//.test(str);
 }
 
-// ** Share Circle **
+function parseDuration(duration: string): number {
+  if (!duration) return 0;
 
-function onShareCircle({ circle, permission }: { circle: string, permission: string }) {
-  circleInput.value = circle
-  selectedPermission.value = permission as PermissionLevel
-  checkCircle(circle).then(() => {
-    if (isValidCircle.value) shareRecipe()
-  })
+  if (duration.endsWith('s')) {
+    return parseInt(duration.slice(0, -1))/60;
+  }
+  return 0;
 }
+
 </script>
 
 <style scoped>

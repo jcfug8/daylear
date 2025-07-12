@@ -187,7 +187,6 @@ const speedDialOpen = ref(false)
 
 // *** Breadcrumbs ***
 
-
 async function loadAndSetBreadcrumbs(circleId: string | string[]) {
   await circlesStore.loadCircle(circleId as string)
   breadcrumbStore.setBreadcrumbs([
@@ -404,7 +403,7 @@ const unsharing = ref<Record<string, boolean>>({})
 
 // Fetch recipients when share dialog is opened
 watch(showShareDialog, (isOpen) => {
-  if (isOpen && circle.value) {
+  if (isOpen && circle.value && hasWritePermission(circle.value.circleAccess?.permissionLevel)) {
     fetchCircleRecipients()
   }
 })
@@ -482,16 +481,16 @@ async function unshareCircle(accessName: string) {
   }
 }
 
-async function shareCircle({ username, permission }: { username: string, permission: PermissionLevel }) {
-  if (!username) return
+async function shareCircle({ userName, permission }: { userName: string, permission: PermissionLevel }) {
+  if (!userName) return
   if (!circle.value?.name) return
 
   sharing.value = true
   try {
     const access: Access = {
       recipient: {
-        name: username,
-        username: username
+        name: userName,
+        username: undefined
       },
       level: permission,
       name: undefined, // Will be set by the server
