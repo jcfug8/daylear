@@ -724,21 +724,16 @@ async function generateRecipeImage() {
 
 // *** Recipe Sharing ***
 
-const updatingPermission = ref<Record<string, boolean>>({})
 
 const showShareDialog = ref(false)
+const currentShares = ref<Access[]>([])
 const shareTab = ref('users')
-const usernameInput = ref('')
-const circleInput = ref('')
+const updatingPermission = ref<Record<string, boolean>>({})
 const selectedUser = ref<User | null>(null)
 const selectedCircle = ref<Circle | null>(null)
 const sharing = ref(false)
 
-const isValidUsername = ref(false)
-const isValidCircle = ref(false)
 
-// Current shares state
-const currentShares = ref<Access[]>([])
 
 // Fetch recipients when share dialog is opened
 watch(showShareDialog, (isOpen) => {
