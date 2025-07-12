@@ -80,7 +80,7 @@ export const useRecipesStore = defineStore('recipes', () => {
       directions: undefined,
       ingredientGroups: undefined,
       imageUri: undefined,
-      visibility: 'VISIBILITY_LEVEL_HIDDEN' as apitypes_VisibilityLevel,
+      visibility: 'VISIBILITY_LEVEL_PUBLIC' as apitypes_VisibilityLevel,
       recipeAccess: undefined,
       citation: undefined,
       cookDuration: undefined,
@@ -106,6 +106,7 @@ export const useRecipesStore = defineStore('recipes', () => {
     console.log('Parent path:', parent)
     try {
       const created = await recipeService.CreateRecipe({
+        parent,
         recipe: recipe.value,
         recipeId: crypto.randomUUID(),
       })

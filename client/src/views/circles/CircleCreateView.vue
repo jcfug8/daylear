@@ -62,8 +62,9 @@ onMounted(() => {
   circlesStore.circle = {
     name: '',
     title: '',
+    handle: '',
     imageUri: '',
-    visibility: 'VISIBILITY_LEVEL_PRIVATE' as apitypes_VisibilityLevel,
+    visibility: 'VISIBILITY_LEVEL_PUBLIC' as apitypes_VisibilityLevel,
     circleAccess: undefined,
   }
   breadcrumbStore.setBreadcrumbs([

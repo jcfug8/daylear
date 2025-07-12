@@ -149,7 +149,7 @@ type Recipe struct {
 	Directions       []byte `gorm:"type:jsonb"`
 	ImageURI         string
 	IngredientGroups []byte                `gorm:"type:jsonb"`
-	VisibilityLevel  types.VisibilityLevel `gorm:"not null;default:300"`
+	VisibilityLevel  types.VisibilityLevel `gorm:"not null;default:1"`
 
 	// New fields
 	Citation             string    `gorm:"type:varchar(512)"`

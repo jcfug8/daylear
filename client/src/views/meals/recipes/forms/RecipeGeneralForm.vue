@@ -430,7 +430,7 @@ const selectedVisibilityColor = computed(() => {
 const visibilityValue = computed({
   get() {
     const valid = visibilityOptions.some(opt => opt.value === recipe.value.visibility)
-    return valid ? recipe.value.visibility : 'VISIBILITY_LEVEL_HIDDEN'
+    return valid ? recipe.value.visibility : 'VISIBILITY_LEVEL_PUBLIC'
   },
   set(val: apitypes_VisibilityLevel) {
     recipe.value.visibility = val
@@ -648,7 +648,7 @@ const cookDurationMinutes = computed({
 
 onMounted(() => {
   if (!recipe.value.visibility) {
-    recipe.value.visibility = 'VISIBILITY_LEVEL_HIDDEN'
+    recipe.value.visibility = 'VISIBILITY_LEVEL_PUBLIC'
     emit('update:modelValue', recipe.value)
   }
 })
