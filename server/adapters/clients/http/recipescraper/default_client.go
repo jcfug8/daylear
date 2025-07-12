@@ -41,8 +41,16 @@ func NewDefaultClient(params DefaultClientParams, log zerolog.Logger) *DefaultCl
 
 func (r *DefaultClient) ScrapeRecipe(ctx context.Context, uri string) (model.Recipe, error) {
 	log := logutil.EnrichLoggerWithContext(r.log, ctx)
-	// Fetch the HTML
-	resp, err := http.Get(uri)
+	// Fetch the HTML with a browser-like User-Agent
+	request, err := http.NewRequestWithContext(ctx, "GET", uri, nil)
+	if err != nil {
+		log.Error().Err(err).Str("uri", uri).Msg("failed to create request")
+		return model.Recipe{}, fmt.Errorf("failed to create request: %w", err)
+	}
+	// Set a common browser User-Agent
+	request.Header.Set("User-Agent", "Daylear/1.0")
+
+	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
 		log.Error().Err(err).Str("uri", uri).Msg("failed to fetch url")
 		return model.Recipe{}, fmt.Errorf("failed to fetch url: %w", err)

@@ -232,113 +232,19 @@
   </v-dialog>
 
   <!-- Share Dialog -->
-  <v-dialog v-model="showShareDialog" max-width="500">
-    <v-card>
-      <v-card-title class="text-h5">
-        Share Recipe
-      </v-card-title>
-      <v-card-text>
-        <v-tabs v-model="shareTab" class="mb-4">
-          <v-tab value="users">Share with User</v-tab>
-          <v-tab value="circles">Share with Circle</v-tab>
-        </v-tabs>
-
-        <v-window v-model="shareTab">
-          <v-window-item value="users">
-            <v-text-field v-model="usernameInput" label="Enter Username" :rules="[validateUsername]"
-              :prepend-inner-icon="getUsernameIcon" :color="getUsernameColor" :loading="isLoadingUsername"
-              @update:model-value="handleUsernameInput"></v-text-field>
-            <v-select
-              v-model="selectedPermission"
-              :items="permissionOptions"
-              label="Permission Level"
-              class="mt-2"
-            ></v-select>
-            <v-btn block color="primary" @click="shareRecipe" :loading="sharing" :disabled="!isValidUsername" class="mt-2">
-              Share with User
-            </v-btn>
-          </v-window-item>
-
-          <v-window-item value="circles">
-            <v-text-field v-model="circleInput" label="Enter Circle Name" :rules="[validateCircle]"
-              :prepend-inner-icon="getCircleIcon" :color="getCircleColor" :loading="isLoadingCircle"
-              @update:model-value="handleCircleInput"></v-text-field>
-            <v-select
-              v-model="selectedPermission"
-              :items="permissionOptions"
-              label="Permission Level"
-              class="mt-2"
-            ></v-select>
-            <v-btn block color="primary" @click="shareRecipe" :loading="sharing" :disabled="!isValidCircle" class="mt-2">
-              Share with Circle
-            </v-btn>
-          </v-window-item>
-        </v-window>
-
-        <v-divider class="my-4"></v-divider>
-
-        <div v-if="currentShares.length > 0">
-          <div class="text-subtitle-1 mb-2">Current Shares</div>
-          <v-list>
-            <v-list-item v-for="share in currentShares" :key="share.name || ''" :title="share.recipient?.user?.username || share.recipient?.circle?.title" :subtitle="`${share.state === 'ACCESS_STATE_PENDING' ? '(Pending)' : ''}`">
-              <template #append>
-                <div class="d-flex align-center gap-2">
-                  <v-menu
-                    v-model="shareMenuOpen[share.name || '']"
-                    :close-on-content-click="false"
-                    location="bottom"
-                    offset-y
-                  >
-                    <template #activator="{ props }">
-                      <v-chip
-                        v-bind="props"
-                        size="small"
-                        :color="hasWritePermission(share.level) ? 'primary' : 'grey'"
-                        class="permission-chip d-flex align-center"
-                        :disabled="sharePermissionLoading[share.name || '']"
-                        style="cursor: pointer; min-width: 120px;"
-                      >
-                        <span>{{ hasWritePermission(share.level) ? 'Read & Write' : 'Read Only' }}</span>
-                        <v-icon end size="18" class="ml-1">mdi-chevron-down</v-icon>
-                        <v-progress-circular
-                          v-if="sharePermissionLoading[share.name || '']"
-                          indeterminate
-                          size="16"
-                          color="primary"
-                          class="ml-1"
-                        />
-                      </v-chip>
-                    </template>
-                    <v-list>
-                      <v-list-item
-                        v-for="option in permissionOptions"
-                        :key="option.value"
-                        :value="option.value"
-                        @click="handleSharePermissionChange(share, option.value); shareMenuOpen[share.name || ''] = false"
-                        :disabled="share.level === option.value"
-                      >
-                        <v-list-item-title>{{ option.title }}</v-list-item-title>
-                      </v-list-item>
-                    </v-list>
-                  </v-menu>
-                  <v-chip v-if="share.state === 'ACCESS_STATE_PENDING'" size="small" color="warning" variant="outlined">
-                    Pending
-                  </v-chip>
-                  <v-btn icon="mdi-delete" variant="text" @click="removeShare(share.name || '')"></v-btn>
-                </div>
-              </template>
-            </v-list-item>
-          </v-list>
-        </div>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="grey" variant="text" @click="showShareDialog = false">
-          Close
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <ShareDialog
+    v-model="showShareDialog"
+    title="Share Recipe"
+    :allowCircleShare="true"
+    :currentShares="currentShares"
+    :sharing="sharing"
+    :sharePermissionLoading="updatingPermission"
+    :hasWritePermission="hasWritePermission"
+    @share-user="onShareUser"
+    @share-circle="onShareCircle"
+    @remove-share="unshareCircle"
+    @permission-change="updatePermission"
+  />
 
   <!-- Delete Dialog -->
   <v-dialog v-model="showDeleteDialog" max-width="500">
@@ -385,7 +291,7 @@
 <script setup lang="ts">
 import type { Recipe_MeasurementType, apitypes_VisibilityLevel, Recipe_Ingredient_MeasurementConjunction } from '@/genapi/api/meals/recipe/v1alpha1'
 import type { Access, CreateAccessRequest, ListAccessesRequest, DeleteAccessRequest, Access_RequesterOrRecipient } from '@/genapi/api/meals/recipe/v1alpha1'
-import type { PermissionLevel, AccessState } from '@/genapi/api/types'
+import type { PermissionLevel } from '@/genapi/api/types'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRecipesStore } from '@/stores/recipes'
 import { useRecipeFormStore } from '@/stores/recipeForm'
@@ -397,6 +303,7 @@ import type { User, ListUsersRequest } from '@/genapi/api/users/user/v1alpha1'
 import type { Circle, ListCirclesRequest } from '@/genapi/api/circles/circle/v1alpha1'
 import { useAuthStore } from '@/stores/auth'
 import { hasWritePermission, hasAdminPermission } from '@/utils/permissions'
+import ShareDialog from '@/components/common/ShareDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -427,23 +334,6 @@ const tabToHash: Record<string, string> = {
   general: '#general',
   ingredients: '#ingredients',
   directions: '#directions',
-}
-
-// Map MeasurmentType to string
-const measurementTypeToString: Record<Recipe_MeasurementType, string> = {
-  MEASUREMENT_TYPE_UNSPECIFIED: '',
-  MEASUREMENT_TYPE_CUP: 'cups',
-  MEASUREMENT_TYPE_TABLESPOON: 'tablespoons',
-  MEASUREMENT_TYPE_TEASPOON: 'teaspoons',
-  MEASUREMENT_TYPE_OUNCE: 'ounces',
-  MEASUREMENT_TYPE_POUND: 'pounds',
-  MEASUREMENT_TYPE_GRAM: 'grams',
-  MEASUREMENT_TYPE_MILLILITER: 'milliliters',
-  MEASUREMENT_TYPE_LITER: 'liters',
-}
-
-function convertMeasurementTypeToString(type: Recipe_MeasurementType | undefined): string {
-  return type ? measurementTypeToString[type] || '' : ''
 }
 
 // Visibility options with descriptions and icons
@@ -499,9 +389,6 @@ const selectedVisibilityColor = computed(() => {
   return selectedVisibility.value?.color || 'primary'
 })
 
-const createTimeString = computed(() => recipe.value?.createTime ? String(recipe.value.createTime) : '')
-const updateTimeString = computed(() => recipe.value?.updateTime ? String(recipe.value.updateTime) : '')
-
 onMounted(async () => {
   // First check URL hash
   const currentHash = route.hash
@@ -538,258 +425,8 @@ watch(tab, (newTab) => {
   }
 })
 
-// Share dialog state
-const showShareDialog = ref(false)
-const shareTab = ref('users')
-const usernameInput = ref('')
-const circleInput = ref('')
-const selectedUser = ref<User | null>(null)
-const selectedCircle = ref<Circle | null>(null)
-const sharing = ref(false)
-
-// Validation states
-const isValidUsername = ref(false)
-const isValidCircle = ref(false)
-const isLoadingUsername = ref(false)
-const isLoadingCircle = ref(false)
-
-// Current shares state
-const currentShares = ref<Access[]>([])
-
-// Debounce timers
-let usernameDebounceTimer: number | null = null
-let circleDebounceTimer: number | null = null
-
-// Computed properties for icons and colors
-const getUsernameIcon = computed(() => {
-  if (isLoadingUsername.value) return 'mdi-loading'
-  if (!usernameInput.value) return undefined
-  return isValidUsername.value ? 'mdi-check-circle' : 'mdi-close-circle'
-})
-
-const getCircleIcon = computed(() => {
-  if (isLoadingCircle.value) return 'mdi-loading'
-  if (!circleInput.value) return undefined
-  return isValidCircle.value ? 'mdi-check-circle' : 'mdi-close-circle'
-})
-
-const getUsernameColor = computed(() => {
-  if (isLoadingUsername.value) return undefined
-  if (!usernameInput.value) return undefined
-  return isValidUsername.value ? 'success' : 'error'
-})
-
-const getCircleColor = computed(() => {
-  if (isLoadingCircle.value) return undefined
-  if (!circleInput.value) return undefined
-  return isValidCircle.value ? 'success' : 'error'
-})
-
-// Debounced API calls
-async function checkUsername(username: string) {
-  if (!username) {
-    isValidUsername.value = false
-    selectedUser.value = null
-    return
-  }
-
-  isLoadingUsername.value = true
-  try {
-    const request: ListUsersRequest = {
-      filter: `username = "${username}"`,
-      pageSize: 1,
-      pageToken: undefined
-    }
-    const response = await userService.ListUsers(request)
-
-    if (response.users?.length === 1 && response.users[0].name !== authStore.activeAccount?.name) {
-      selectedUser.value = response.users[0]
-      isValidUsername.value = true
-    } else {
-      selectedUser.value = null
-      isValidUsername.value = false
-    }
-  } catch (error) {
-    console.error('Error checking username:', error)
-    selectedUser.value = null
-    isValidUsername.value = false
-  } finally {
-    isLoadingUsername.value = false
-  }
-}
-
-async function checkCircle(circleName: string) {
-  if (!circleName) {
-    isValidCircle.value = false
-    selectedCircle.value = null
-    return
-  }
-
-  isLoadingCircle.value = true
-  try {
-    const request: ListCirclesRequest = {
-      filter: `title = "${circleName}"`,
-      pageSize: 1,
-      pageToken: undefined
-    }
-    const response = await circleService.ListCircles(request)
-
-    if (response.circles?.length === 1 && response.circles[0].name !== authStore.activeAccount?.name) {
-      selectedCircle.value = response.circles[0]
-      isValidCircle.value = true
-    } else {
-      selectedCircle.value = null
-      isValidCircle.value = false
-    }
-  } catch (error) {
-    console.error('Error checking circle:', error)
-    selectedCircle.value = null
-    isValidCircle.value = false
-  } finally {
-    isLoadingCircle.value = false
-  }
-}
-
-function handleUsernameInput(value: string) {
-  if (usernameDebounceTimer) {
-    clearTimeout(usernameDebounceTimer)
-  }
-  usernameDebounceTimer = window.setTimeout(() => {
-    checkUsername(value)
-  }, 300)
-}
-
-function handleCircleInput(value: string) {
-  if (circleDebounceTimer) {
-    clearTimeout(circleDebounceTimer)
-  }
-  circleDebounceTimer = window.setTimeout(() => {
-    checkCircle(value)
-  }, 300)
-}
-
-// Clean up timers when component is unmounted
-onBeforeUnmount(() => {
-  if (usernameDebounceTimer) {
-    clearTimeout(usernameDebounceTimer)
-  }
-  if (circleDebounceTimer) {
-    clearTimeout(circleDebounceTimer)
-  }
-})
-
-function validateUsername(value: string): boolean | string {
-  if (!value) return true
-  return true // Validation is now handled by the API call
-}
-
-function validateCircle(value: string): boolean | string {
-  if (!value) return true
-  return true // Validation is now handled by the API call
-}
-
 // Add these new refs and constants
 const selectedPermission = ref<PermissionLevel>('PERMISSION_LEVEL_READ')
-
-const permissionOptions = [
-  { title: 'Read Only', value: 'PERMISSION_LEVEL_READ' as PermissionLevel },
-  { title: 'Read & Write', value: 'PERMISSION_LEVEL_WRITE' as PermissionLevel },
-]
-
-// Update the shareRecipe function
-async function shareRecipe() {
-  if (!selectedUser.value && !selectedCircle.value) return
-  if (!recipe.value?.name) return
-
-  sharing.value = true
-  try {
-    // Create the recipient object based on whether we're sharing with user or circle
-    const recipient: Access_RequesterOrRecipient = shareTab.value === 'users'
-      ? { user: { name: selectedUser.value?.name || '', username: selectedUser.value?.username || '' } }
-      : { circle: { name: selectedCircle.value?.name || '', title: selectedCircle.value?.title || '' } }
-
-    const access: Access = {
-      name: undefined, // Will be set by the server
-      requester: undefined, // Will be set by the server
-      recipient,
-      level: selectedPermission.value,
-      state: undefined, // Will be set by the server
-    }
-
-    const request: CreateAccessRequest = {
-      parent: recipe.value.name,
-      access
-    }
-
-    await recipeAccessService.CreateAccess(request)
-    
-    // Refresh the recipients list
-    await fetchRecipeRecipients()
-    
-    // Reset selections and inputs after sharing
-    selectedUser.value = null
-    selectedCircle.value = null
-    usernameInput.value = ''
-    circleInput.value = ''
-    isValidUsername.value = false
-    isValidCircle.value = false
-    selectedPermission.value = 'PERMISSION_LEVEL_READ' // Reset to default
-  } catch (error) {
-    console.error('Error sharing recipe:', error)
-    // You might want to show an error notification here
-  } finally {
-    sharing.value = false
-  }
-}
-
-async function removeShare(shareName: string) {
-  try {
-    const request: DeleteAccessRequest = {
-      name: shareName // shareName is actually the access name in the format recipes/{recipe}/accesses/{access}
-    }
-    
-    await recipeAccessService.DeleteAccess(request)
-    
-    // Remove from local state after successful API call
-    currentShares.value = currentShares.value.filter(share => share.name !== shareName)
-  } catch (error) {
-    console.error('Error removing share:', error)
-    // You might want to show an error notification here
-  }
-}
-
-// Function to fetch recipe recipients
-async function fetchRecipeRecipients() {
-  if (!recipe.value?.name) return
-
-  try {
-    const request: ListAccessesRequest = {
-      parent: recipe.value.name,
-      filter: undefined,
-      pageSize: undefined,
-      pageToken: undefined
-    }
-
-    const response = await recipeAccessService.ListAccesses(request)
-
-    if (response.accesses) {
-      currentShares.value = response.accesses.filter(access => {
-        // Filter out the current user's own access to avoid showing it in the shares list
-        const isCurrentUser = (access.recipient?.user && access.recipient.user.name === authStore.activeAccount?.name) ||
-                             (access.recipient?.circle && access.recipient.circle.name === authStore.activeAccount?.name)
-        return !isCurrentUser
-      }).map(access => ({
-        name: access.name || '',
-        level: access.level || 'PERMISSION_LEVEL_READ',
-        state: access.state || 'ACCESS_STATE_PENDING',
-        recipient: access.recipient,
-        requester: access.requester || undefined,
-      }))
-    }
-  } catch (error) {
-    console.error('Error fetching recipe recipients:', error)
-  }
-}
 
 // Fetch recipients when recipe is loaded or when share dialog is opened
 watch(recipe, (newRecipe) => {
@@ -798,12 +435,9 @@ watch(recipe, (newRecipe) => {
   }
 }, { immediate: true })
 
-// Fetch recipients when share dialog is opened
-watch(showShareDialog, (isOpen) => {
-  if (isOpen && recipe.value && hasWritePermission(recipe.value.recipeAccess?.permissionLevel)) {
-    fetchRecipeRecipients()
-  }
-})
+
+
+// *** Remove Access ***
 
 // Remove access dialog state
 const showRemoveAccessDialog = ref(false)
@@ -850,6 +484,9 @@ async function handleRemoveAccess() {
 
 // Speed dial state
 const speedDialOpen = ref(false)
+
+// *** Delete Recipe ***
+
 const showDeleteDialog = ref(false)
 const deleting = ref(false)
 
@@ -870,6 +507,8 @@ async function handleDelete() {
     showDeleteDialog.value = false
   }
 }
+
+// *** Accept/Decline Recipe ***
 
 const acceptingRecipe = ref(false)
 const decliningRecipe = ref(false)
@@ -898,6 +537,38 @@ async function declineRecipe() {
   } finally {
     decliningRecipe.value = false
   }
+}
+
+// *** Measurements and Ingredients ***
+
+function renderConjunction(conjunction: Recipe_Ingredient_MeasurementConjunction | undefined): string {
+  switch (conjunction) {
+    case 'MEASUREMENT_CONJUNCTION_AND':
+      return '+';
+    case 'MEASUREMENT_CONJUNCTION_TO':
+      return '-';
+    case 'MEASUREMENT_CONJUNCTION_OR':
+      return 'or';
+    default:
+      return '';
+  }
+}
+
+// Map MeasurmentType to string
+const measurementTypeToString: Record<Recipe_MeasurementType, string> = {
+  MEASUREMENT_TYPE_UNSPECIFIED: '',
+  MEASUREMENT_TYPE_CUP: 'cups',
+  MEASUREMENT_TYPE_TABLESPOON: 'tablespoons',
+  MEASUREMENT_TYPE_TEASPOON: 'teaspoons',
+  MEASUREMENT_TYPE_OUNCE: 'ounces',
+  MEASUREMENT_TYPE_POUND: 'pounds',
+  MEASUREMENT_TYPE_GRAM: 'grams',
+  MEASUREMENT_TYPE_MILLILITER: 'milliliters',
+  MEASUREMENT_TYPE_LITER: 'liters',
+}
+
+function convertMeasurementTypeToString(type: Recipe_MeasurementType | undefined): string {
+  return type ? measurementTypeToString[type] || '' : ''
 }
 
 function isFranctional(type: Recipe_MeasurementType | undefined): boolean {
@@ -962,6 +633,9 @@ function measurementTypeLabel(type: Recipe_MeasurementType | undefined, amount: 
 function isUrl(str: string): boolean {
   return /^https?:\/\//.test(str);
 }
+
+// *** Durations ***
+
 function formatDuration(duration: number): string {
   if (!duration) return '';
   return String(duration) + 's';
@@ -984,61 +658,12 @@ function formatDate(date: unknown): string {
   return '';
 }
 
-function renderConjunction(conjunction: Recipe_Ingredient_MeasurementConjunction | undefined): string {
-  switch (conjunction) {
-    case 'MEASUREMENT_CONJUNCTION_AND':
-      return '+';
-    case 'MEASUREMENT_CONJUNCTION_TO':
-      return '-';
-    case 'MEASUREMENT_CONJUNCTION_OR':
-      return 'or';
-    default:
-      return '';
-  }
-}
 
-const sharePermissionLoading = ref<Record<string, boolean>>({})
 const shareMenuOpen = ref<Record<string, boolean>>({})
 
-async function handleSharePermissionChange(share: Access, newLevel: PermissionLevel) {
-  if (share.level === newLevel) return
-  if (!share.name) return
-  sharePermissionLoading.value[share.name] = true
-  try {
-    await recipeAccessService.UpdateAccess({
-      access: {
-        name: share.name,
-        level: newLevel,
-        state: share.state,
-        recipient: share.recipient,
-        requester: share.requester,
-      },
-      updateMask: 'level',
-    })
-    // Update local state
-    share.level = newLevel
-  } catch (error) {
-    // Optionally show a notification
-    console.error('Error updating permission:', error)
-  } finally {
-    sharePermissionLoading.value[share.name] = false
-  }
-}
+// *** Update Image Modal ***
 
-const showGeneratedImageModal = ref(false)
-const generatingImage = ref(false)
-const generatedImageBlob = ref<Blob|null>(null)
-const generatedImageUrl = ref<string|null>(null)
-const generateImageError = ref<string|null>(null)
 const updatingImage = ref(false)
-
-function openGenerateImageModal() {
-  generateImageError.value = null
-  generatedImageBlob.value = null
-  generatedImageUrl.value = null
-  showGeneratedImageModal.value = true
-  generateRecipeImage()
-}
 
 function closeGenerateImageModal() {
   showGeneratedImageModal.value = false
@@ -1046,6 +671,36 @@ function closeGenerateImageModal() {
     URL.revokeObjectURL(generatedImageUrl.value)
     generatedImageUrl.value = null
   }
+}
+
+async function updateRecipeImage() {
+  if (!recipe.value?.name || !generatedImageBlob.value) return
+  updatingImage.value = true
+  try {
+    await fileService.UploadRecipeImage({ name: recipe.value.name, file: new File([generatedImageBlob.value], 'generated-image.png', { type: generatedImageBlob.value.type || 'image/png' }) })
+    // Reload the recipe to show the new image
+    await recipesStore.loadRecipe(recipe.value.name)
+    closeGenerateImageModal()
+  } catch (error) {
+    generateImageError.value = error instanceof Error ? error.message : String(error)
+  } finally {
+    updatingImage.value = false
+  }
+}
+
+// *** Generate Image ***
+const showGeneratedImageModal = ref(false)
+const generatingImage = ref(false)
+const generatedImageBlob = ref<Blob|null>(null)
+const generatedImageUrl = ref<string|null>(null)
+const generateImageError = ref<string|null>(null)
+
+function openGenerateImageModal() {
+  generateImageError.value = null
+  generatedImageBlob.value = null
+  generatedImageUrl.value = null
+  showGeneratedImageModal.value = true
+  generateRecipeImage()
 }
 
 async function generateRecipeImage() {
@@ -1066,19 +721,169 @@ async function generateRecipeImage() {
   }
 }
 
-async function updateRecipeImage() {
-  if (!recipe.value?.name || !generatedImageBlob.value) return
-  updatingImage.value = true
-  try {
-    await fileService.UploadRecipeImage({ name: recipe.value.name, file: new File([generatedImageBlob.value], 'generated-image.png', { type: generatedImageBlob.value.type || 'image/png' }) })
-    // Reload the recipe to show the new image
-    await recipesStore.loadRecipe(recipe.value.name)
-    closeGenerateImageModal()
-  } catch (error) {
-    generateImageError.value = error instanceof Error ? error.message : String(error)
-  } finally {
-    updatingImage.value = false
+
+// *** Recipe Sharing ***
+
+const updatingPermission = ref<Record<string, boolean>>({})
+
+const showShareDialog = ref(false)
+const shareTab = ref('users')
+const usernameInput = ref('')
+const circleInput = ref('')
+const selectedUser = ref<User | null>(null)
+const selectedCircle = ref<Circle | null>(null)
+const sharing = ref(false)
+
+const isValidUsername = ref(false)
+const isValidCircle = ref(false)
+
+// Current shares state
+const currentShares = ref<Access[]>([])
+
+// Fetch recipients when share dialog is opened
+watch(showShareDialog, (isOpen) => {
+  if (isOpen && recipe.value && hasWritePermission(recipe.value.recipeAccess?.permissionLevel)) {
+    fetchRecipeRecipients()
   }
+})
+
+// Function to fetch recipe recipients
+async function fetchRecipeRecipients() {
+  if (!recipe.value?.name) return
+
+  try {
+    const request: ListAccessesRequest = {
+      parent: recipe.value.name,
+      filter: undefined,
+      pageSize: undefined,
+      pageToken: undefined
+    }
+
+    const response = await recipeAccessService.ListAccesses(request)
+
+    if (response.accesses) {
+      currentShares.value = response.accesses.filter(access => {
+        // Filter out the current user's own access to avoid showing it in the shares list
+        const isCurrentUser = (access.recipient?.user && access.recipient.user.name === authStore.activeAccount?.name) ||
+                             (access.recipient?.circle && access.recipient.circle.name === authStore.activeAccount?.name)
+        return !isCurrentUser
+      }).map(access => ({
+        name: access.name || '',
+        level: access.level || 'PERMISSION_LEVEL_READ',
+        state: access.state || 'ACCESS_STATE_PENDING',
+        recipient: access.recipient,
+        requester: access.requester || undefined,
+      }))
+    }
+  } catch (error) {
+    console.error('Error fetching recipe recipients:', error)
+  }
+}
+
+async function updatePermission({ share, newLevel }: { share: Access, newLevel: PermissionLevel }) {
+  if (share.level === newLevel) return
+  if (!share.name) return
+  updatingPermission.value[share.name] = true
+  try {
+    await recipeAccessService.UpdateAccess({
+      access: {
+        name: share.name,
+        level: newLevel,
+        state: share.state,
+        recipient: share.recipient,
+        requester: share.requester,
+      },
+      updateMask: 'level',
+    })
+    // Update local state
+    share.level = newLevel
+  } catch (error) {
+    // Optionally show a notification
+    console.error('Error updating permission:', error)
+  } finally {
+    updatingPermission.value[share.name] = false
+  }
+}
+
+async function shareRecipe() {
+  if (!selectedUser.value && !selectedCircle.value) return
+  if (!recipe.value?.name) return
+
+  sharing.value = true
+  try {
+    // Create the recipient object based on whether we're sharing with user or circle
+    const recipient: Access_RequesterOrRecipient = shareTab.value === 'users'
+      ? { user: { name: selectedUser.value?.name || '', username: selectedUser.value?.username || '' } }
+      : { circle: { name: selectedCircle.value?.name || '', title: selectedCircle.value?.title || '' } }
+
+    const access: Access = {
+      name: undefined, // Will be set by the server
+      requester: undefined, // Will be set by the server
+      recipient,
+      level: selectedPermission.value,
+      state: undefined, // Will be set by the server
+    }
+
+    const request: CreateAccessRequest = {
+      parent: recipe.value.name,
+      access
+    }
+
+    await recipeAccessService.CreateAccess(request)
+    
+    // Refresh the recipients list
+    await fetchRecipeRecipients()
+    
+    // Reset selections and inputs after sharing
+    selectedUser.value = null
+    selectedCircle.value = null
+    usernameInput.value = ''
+    circleInput.value = ''
+    isValidUsername.value = false
+    isValidCircle.value = false
+    selectedPermission.value = 'PERMISSION_LEVEL_READ' // Reset to default
+  } catch (error) {
+    console.error('Error sharing recipe:', error)
+    // You might want to show an error notification here
+  } finally {
+    sharing.value = false
+  }
+}
+
+async function unshareCircle(accessName: string) {
+  try {
+    const request: DeleteAccessRequest = {
+      name: accessName // shareName is actually the access name in the format recipes/{recipe}/accesses/{access}
+    }
+    
+    await recipeAccessService.DeleteAccess(request)
+    
+    // Remove from local state after successful API call
+    currentShares.value = currentShares.value.filter(share => share.name !== accessName)
+  } catch (error) {
+    console.error('Error removing share:', error)
+    // You might want to show an error notification here
+  }
+}
+
+// ** Share User **
+
+function onShareUser({ username, permission }: { username: string, permission: string }) {
+  usernameInput.value = username
+  selectedPermission.value = permission as PermissionLevel
+  checkUsername(username).then(() => {
+    if (isValidUsername.value) shareRecipe()
+  })
+}
+
+// ** Share Circle **
+
+function onShareCircle({ circle, permission }: { circle: string, permission: string }) {
+  circleInput.value = circle
+  selectedPermission.value = permission as PermissionLevel
+  checkCircle(circle).then(() => {
+    if (isValidCircle.value) shareRecipe()
+  })
 }
 </script>
 
