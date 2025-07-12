@@ -274,15 +274,27 @@
     <v-card>
       <v-card-title class="text-h5">Generated Recipe Image</v-card-title>
       <v-card-text>
-        <div v-if="generatedImageUrl">
+        <div v-if="generatingImage" class="d-flex justify-center my-4">
+          <v-progress-circular indeterminate color="primary" size="48" />
+        </div>
+        <div v-else-if="generatedImageUrl">
           <img :src="generatedImageUrl" style="max-width: 100%; max-height: 400px; display: block; margin: 0 auto;" />
         </div>
         <v-alert v-if="generateImageError" type="error" class="mt-2">{{ generateImageError }}</v-alert>
+        <div class="d-flex justify-center align-center mt-4">
+          <v-btn color="primary" class="mr-2" :disabled="generatingImage" @click="startImageGeneration">
+            <v-icon left>mdi-image-auto-adjust</v-icon>
+            Generate Image
+          </v-btn>
+          <v-btn v-if="generatedImageUrl" color="success" :disabled="!generatedImageBlob || updatingImage || generatingImage" @click="updateRecipeImage">
+            <v-icon left>mdi-check-circle</v-icon>
+            Use Image
+          </v-btn>
+        </div>
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn color="grey" variant="text" @click="closeGenerateImageModal">Cancel</v-btn>
-        <v-btn color="primary" :loading="updatingImage" :disabled="!generatedImageBlob || updatingImage" @click="updateRecipeImage">Use This Image</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -610,12 +622,15 @@ function openGenerateImageModal() {
   generatedImageBlob.value = null
   generatedImageUrl.value = null
   showGeneratedImageModal.value = true
+}
+
+async function startImageGeneration() {
+  generatingImage.value = true
   generateRecipeImage()
 }
 
 async function generateRecipeImage() {
   if (!recipe.value?.name) return
-  generatingImage.value = true
   generateImageError.value = null
   try {
     const blob = await fileService.GenerateRecipeImage({ name: recipe.value.name })
@@ -626,14 +641,12 @@ async function generateRecipeImage() {
     generatedImageUrl.value = URL.createObjectURL(blob)
   } catch (error) {
     generateImageError.value = error instanceof Error ? error.message : String(error)
+    generatedImageBlob.value = null
+    generatedImageUrl.value = null
   } finally {
     generatingImage.value = false
   }
 }
-
-// *** Update Image Modal ***
-
-const updatingImage = ref(false)
 
 function closeGenerateImageModal() {
   showGeneratedImageModal.value = false
@@ -641,7 +654,13 @@ function closeGenerateImageModal() {
     URL.revokeObjectURL(generatedImageUrl.value)
     generatedImageUrl.value = null
   }
+  generatedImageBlob.value = null
+  generateImageError.value = null
 }
+
+// *** Update Image Modal ***
+
+const updatingImage = ref(false)
 
 async function updateRecipeImage() {
   if (!recipe.value?.name || !generatedImageBlob.value) return
