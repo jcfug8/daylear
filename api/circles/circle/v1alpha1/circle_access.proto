@@ -201,6 +201,12 @@ message Access {
 
     // the username of the user
     string username = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the full name of the user
+    string given_name = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the last name of the user
+    string family_name = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
   }
 }
 

@@ -374,8 +374,10 @@ func (s *RecipeService) RecipeAccessToProto(modelAccess model.RecipeAccess) (*pb
 		pbAccess.Recipient = &pb.Access_RequesterOrRecipient{
 			Name: &pb.Access_RequesterOrRecipient_User{
 				User: &pb.Access_User{
-					Name:     userName,
-					Username: modelAccess.RecipientUsername,
+					Name:       userName,
+					Username:   modelAccess.RecipientUsername,
+					GivenName:  modelAccess.RecipientGivenName,
+					FamilyName: modelAccess.RecipientFamilyName,
 				},
 			},
 		}
@@ -387,8 +389,9 @@ func (s *RecipeService) RecipeAccessToProto(modelAccess model.RecipeAccess) (*pb
 		pbAccess.Recipient = &pb.Access_RequesterOrRecipient{
 			Name: &pb.Access_RequesterOrRecipient_Circle{
 				Circle: &pb.Access_Circle{
-					Name:  circleName,
-					Title: modelAccess.RecipientCircleTitle,
+					Name:   circleName,
+					Title:  modelAccess.RecipientCircleTitle,
+					Handle: modelAccess.RecipientCircleHandle,
 				},
 			},
 		}

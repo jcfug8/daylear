@@ -57,16 +57,19 @@ func (fields recipeAccessFields) Mask() []string {
 
 // RecipeAccess -
 type RecipeAccess struct {
-	RecipeAccessId       int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
-	RecipeId             int64                 `gorm:"not null;index;uniqueIndex:idx_recipe_id_recipient_user_id;uniqueIndex:idx_recipe_id_recipient_circle_id;"`
-	requesterUserId      int64                 `gorm:"index"`
-	requesterCircleId    int64                 `gorm:"index"`
-	RecipientUserId      int64                 `gorm:"index;uniqueIndex:idx_recipe_id_recipient_user_id,where:recipient_user_id <> null"`
-	RecipientCircleId    int64                 `gorm:"index;uniqueIndex:idx_recipe_id_recipient_circle_id,where:recipient_circle_id <> null"`
-	PermissionLevel      types.PermissionLevel `gorm:"not null"`
-	State                types.AccessState     `gorm:"not null"`
-	RecipientUsername    string                `gorm:"->;-:migration"` // read only from join
-	RecipientCircleTitle string                `gorm:"->;-:migration"` // read only from join
+	RecipeAccessId        int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
+	RecipeId              int64                 `gorm:"not null;index;uniqueIndex:idx_recipe_id_recipient_user_id;uniqueIndex:idx_recipe_id_recipient_circle_id;"`
+	requesterUserId       int64                 `gorm:"index"`
+	requesterCircleId     int64                 `gorm:"index"`
+	RecipientUserId       int64                 `gorm:"index;uniqueIndex:idx_recipe_id_recipient_user_id,where:recipient_user_id <> null"`
+	RecipientCircleId     int64                 `gorm:"index;uniqueIndex:idx_recipe_id_recipient_circle_id,where:recipient_circle_id <> null"`
+	PermissionLevel       types.PermissionLevel `gorm:"not null"`
+	State                 types.AccessState     `gorm:"not null"`
+	RecipientUsername     string                `gorm:"->;-:migration"` // read only from join
+	RecipientGivenName    string                `gorm:"->;-:migration"` // read only from join
+	RecipientFamilyName   string                `gorm:"->;-:migration"` // read only from join
+	RecipientCircleTitle  string                `gorm:"->;-:migration"` // read only from join
+	RecipientCircleHandle string                `gorm:"->;-:migration"` // read only from join
 }
 
 // TableName -

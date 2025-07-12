@@ -107,7 +107,7 @@ func (repo *Client) GetCircleAccess(ctx context.Context, parent model.CircleAcce
 
 	var circleAccess dbModel.CircleAccess
 	res := db.Table("circle_access").
-		Select("circle_access.*, daylear_user.username as recipient_username").
+		Select("circle_access.*, daylear_user.username as recipient_username, daylear_user.given_name as recipient_given_name, daylear_user.family_name as recipient_family_name").
 		Joins("LEFT JOIN daylear_user ON circle_access.recipient_user_id = daylear_user.user_id").
 		Where("circle_access.circle_id = ? AND circle_access.circle_access_id = ?", parent.CircleId.CircleId, id.CircleAccessId).
 		First(&circleAccess)
@@ -140,7 +140,7 @@ func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.A
 
 	var circleAccesses []dbModel.CircleAccess
 	db := repo.db.WithContext(ctx).Table("circle_access").
-		Select("circle_access.*, daylear_user.username as recipient_username").
+		Select("circle_access.*, daylear_user.username as recipient_username, daylear_user.given_name as recipient_given_name, daylear_user.family_name as recipient_family_name").
 		Joins("LEFT JOIN daylear_user ON circle_access.recipient_user_id = daylear_user.user_id")
 
 	if conversion.WhereClause != "" {

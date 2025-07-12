@@ -116,7 +116,7 @@ func (repo *Client) GetRecipeAccess(ctx context.Context, parent model.RecipeAcce
 
 	var recipeAccess dbModel.RecipeAccess
 	res := db.Table("recipe_access").
-		Select(`recipe_access.*, u.username as recipient_username, c.title as recipient_circle_title`).
+		Select(`recipe_access.*, u.username as recipient_username, u.given_name as recipient_given_name, u.family_name as recipient_family_name, c.title as recipient_circle_title, c.handle as recipient_circle_handle`).
 		Joins(`LEFT JOIN daylear_user u ON recipe_access.recipient_user_id = u.user_id`).
 		Joins(`LEFT JOIN circle c ON recipe_access.recipient_circle_id = c.circle_id`).
 		Where("recipe_access.recipe_id = ? AND recipe_access.recipe_access_id = ?", parent.RecipeId.RecipeId, id.RecipeAccessId).
@@ -148,7 +148,7 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 	// Start building the query
 	db := repo.db.WithContext(ctx).
 		Table("recipe_access").
-		Select(`recipe_access.*, u.username as recipient_username, c.title as recipient_circle_title`).
+		Select(`recipe_access.*, u.username as recipient_username, u.given_name as recipient_given_name, u.family_name as recipient_family_name, c.title as recipient_circle_title, c.handle as recipient_circle_handle`).
 		Joins(`LEFT JOIN daylear_user u ON recipe_access.recipient_user_id = u.user_id`).
 		Joins(`LEFT JOIN circle c ON recipe_access.recipient_circle_id = c.circle_id`).
 		Order(clause.OrderBy{Columns: orders}).

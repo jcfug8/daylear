@@ -400,6 +400,16 @@
           "type": "string",
           "title": "the username of the user",
           "readOnly": true
+        },
+        "givenName": {
+          "type": "string",
+          "title": "the full name of the user",
+          "readOnly": true
+        },
+        "familyName": {
+          "type": "string",
+          "title": "the last name of the user",
+          "readOnly": true
         }
       },
       "title": "user data",

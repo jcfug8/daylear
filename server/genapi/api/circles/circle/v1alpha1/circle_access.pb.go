@@ -575,7 +575,11 @@ type Access_User struct {
 	// the name of the user
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// the username of the user
-	Username      string `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Username string `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	// the full name of the user
+	GivenName string `protobuf:"bytes,3,opt,name=given_name,json=givenName,proto3" json:"given_name,omitempty"`
+	// the last name of the user
+	FamilyName    string `protobuf:"bytes,4,opt,name=family_name,json=familyName,proto3" json:"family_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -624,11 +628,25 @@ func (x *Access_User) GetUsername() string {
 	return ""
 }
 
+func (x *Access_User) GetGivenName() string {
+	if x != nil {
+		return x.GivenName
+	}
+	return ""
+}
+
+func (x *Access_User) GetFamilyName() string {
+	if x != nil {
+		return x.FamilyName
+	}
+	return ""
+}
+
 var File_api_circles_circle_v1alpha1_circle_access_proto protoreflect.FileDescriptor
 
 const file_api_circles_circle_v1alpha1_circle_access_proto_rawDesc = "" +
 	"\n" +
-	"/api/circles/circle/v1alpha1/circle_access.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x90\x04\n" +
+	"/api/circles/circle/v1alpha1/circle_access.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xdb\x04\n" +
 	"\x06Access\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12P\n" +
 	"\trequester\x18\x02 \x01(\v2-.api.circles.circle.v1alpha1.Access.RequesterB\x03\xe0A\x03R\trequester\x12K\n" +
@@ -638,10 +656,14 @@ const file_api_circles_circle_v1alpha1_circle_access_proto_rawDesc = "" +
 	"\tRequester\x12\x14\n" +
 	"\x04user\x18\x01 \x01(\tH\x00R\x04user\x12\x18\n" +
 	"\x06circle\x18\x02 \x01(\tH\x00R\x06circleB\x06\n" +
-	"\x04name\x1a@\n" +
+	"\x04name\x1a\x8a\x01\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name\x12\x1f\n" +
-	"\busername\x18\x02 \x01(\tB\x03\xe0A\x03R\busername:]\xeaAZ\n" +
+	"\busername\x18\x02 \x01(\tB\x03\xe0A\x03R\busername\x12\"\n" +
+	"\n" +
+	"given_name\x18\x03 \x01(\tB\x03\xe0A\x03R\tgivenName\x12$\n" +
+	"\vfamily_name\x18\x04 \x01(\tB\x03\xe0A\x03R\n" +
+	"familyName:]\xeaAZ\n" +
 	"\"api.circles.circle.v1alpha1/Access\x12\"circles/{circle}/accesses/{access}*\baccesses2\x06access\"\x9b\x01\n" +
 	"\x13CreateAccessRequest\x12B\n" +
 	"\x06parent\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\n" +

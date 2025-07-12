@@ -11,6 +11,9 @@
               <div class="text-h4">
                 {{ circle.title }}
               </div>
+              <div v-if="circle.handle" class="text-body-2 mt-1">
+                <strong>Handle:</strong> <code>{{ circle.handle }}</code>
+              </div>
             </v-col>
           </v-row>
           <v-row>

@@ -12,6 +12,10 @@ export type Circle = {
   //
   // Behaviors: REQUIRED
   title: string | undefined;
+  // the unique handle for the circle (like a username, must be unique, user-friendly, and can be used for sharing)
+  //
+  // Behaviors: OPTIONAL
+  handle: string | undefined;
   // the image url for the circle
   //
   // Behaviors: OPTIONAL
@@ -345,6 +349,14 @@ export type Access_User = {
   //
   // Behaviors: OUTPUT_ONLY
   username: string | undefined;
+  // the full name of the user
+  //
+  // Behaviors: OUTPUT_ONLY
+  givenName: string | undefined;
+  // the last name of the user
+  //
+  // Behaviors: OUTPUT_ONLY
+  familyName: string | undefined;
 };
 
 // The request to create an access to a circle

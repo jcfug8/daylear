@@ -332,8 +332,10 @@ func (s *CircleService) CircleAccessToProto(circleAccess model.CircleAccess) (*p
 			return nil, err
 		}
 		proto.Recipient = &pb.Access_User{
-			Name:     userName,
-			Username: circleAccess.RecipientUsername,
+			Name:       userName,
+			Username:   circleAccess.RecipientUsername,
+			GivenName:  circleAccess.RecipientGivenName,
+			FamilyName: circleAccess.RecipientFamilyName,
 		}
 	}
 

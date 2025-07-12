@@ -32,9 +32,12 @@ func RecipeAccessToCoreRecipeAccess(dbAccess dbModel.RecipeAccess) coreModel.Rec
 				CircleId: dbAccess.RecipientCircleId,
 			},
 		},
-		PermissionLevel:      dbAccess.PermissionLevel,
-		State:                dbAccess.State,
-		RecipientUsername:    dbAccess.RecipientUsername,
-		RecipientCircleTitle: dbAccess.RecipientCircleTitle,
+		PermissionLevel:       dbAccess.PermissionLevel,
+		State:                 dbAccess.State,
+		RecipientUsername:     dbAccess.RecipientUsername,
+		RecipientGivenName:    dbAccess.RecipientGivenName,
+		RecipientFamilyName:   dbAccess.RecipientFamilyName,
+		RecipientCircleTitle:  dbAccess.RecipientCircleTitle,
+		RecipientCircleHandle: dbAccess.RecipientCircleHandle,
 	}
 }

@@ -15,12 +15,15 @@ var CircleMap = masks.NewFieldMap().
 	MapFieldToFields(coremodel.CircleFields.Visibility,
 		CircleFields.Visibility).
 	MapFieldToFields(coremodel.CircleFields.ImageURI,
-		CircleFields.ImageURI)
+		CircleFields.ImageURI).
+	MapFieldToFields(coremodel.CircleFields.Handle,
+		CircleFields.Handle)
 
 // CircleFields defines the circle fields in the GORM model.
 var CircleFields = circleFields{
 	CircleId:   "circle.circle_id",
 	Title:      "circle.title",
+	Handle:     "circle.handle",
 	ImageURI:   "circle.image_uri",
 	Visibility: "circle.visibility_level",
 	Permission: "circle_access.permission_level",
@@ -30,6 +33,7 @@ var CircleFields = circleFields{
 type circleFields struct {
 	CircleId   string
 	Title      string
+	Handle     string
 	ImageURI   string
 	Visibility string
 	Permission string
@@ -41,6 +45,7 @@ func (fields circleFields) Map(m Circle) map[string]any {
 	return map[string]any{
 		fields.CircleId:   m.CircleId,
 		fields.Title:      m.Title,
+		fields.Handle:     m.Handle,
 		fields.ImageURI:   m.ImageURI,
 		fields.Visibility: m.VisibilityLevel,
 		fields.Permission: m.PermissionLevel,
@@ -53,6 +58,7 @@ func (fields circleFields) Mask() []string {
 	return []string{
 		fields.CircleId,
 		fields.Title,
+		fields.Handle,
 		fields.ImageURI,
 		fields.Visibility,
 		fields.Permission,
@@ -64,6 +70,7 @@ func (fields circleFields) Mask() []string {
 type Circle struct {
 	CircleId        int64                 `gorm:"primaryKey;column:circle_id;autoIncrement;<-:false"`
 	Title           string                `gorm:"column:title;not null"`
+	Handle          string                `gorm:"column:handle;unique;not null"`
 	ImageURI        string                `gorm:"column:image_uri"`
 	VisibilityLevel types.VisibilityLevel `gorm:"column:visibility_level;not null;default:1"`
 

@@ -19,6 +19,14 @@
                 required
               ></v-text-field>
 
+              <v-text-field
+                v-model="circle.handle"
+                label="Handle (unique, for sharing)"
+                hint="Optional. If left blank, one will be generated. Must be unique."
+                persistent-hint
+                :rules="[handleRule]"
+              ></v-text-field>
+
               <v-select
                 v-model="circle.visibility"
                 :items="visibilityOptions"
@@ -72,7 +80,7 @@
 
   <!-- Close FAB -->
   <v-btn
-    color="primary"
+    color="error"
     icon="mdi-close"
     style="position: fixed; bottom: 16px; left: 16px"
     @click="$emit('close')"
@@ -80,7 +88,7 @@
 
   <!-- Save FAB -->
   <v-btn
-    color="primary"
+    color="success"
     icon="mdi-content-save"
     style="position: fixed; bottom: 16px; right: 16px"
     @click="handleSave"
@@ -261,6 +269,13 @@ function handleImageSubmit() {
 
 function handleSave() {
   emit('save')
+}
+
+// Simple rule: allow only letters, numbers, dashes, underscores
+const handleRule = (v: string) => {
+  if (!v) return true
+  if (!/^[a-zA-Z0-9_-]+$/.test(v)) return 'Handle can only contain letters, numbers, dashes, and underscores.'
+  return true
 }
 </script>
 

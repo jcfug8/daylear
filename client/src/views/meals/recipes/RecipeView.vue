@@ -53,7 +53,7 @@
                 <v-btn
                   v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel) && !recipe.imageUri"
                   class="generate-image-btn"
-                  color="primary"
+                  color="warning"
                   @click="openGenerateImageModal"
                   style="position: absolute; bottom: 8px; right: 8px; z-index: 2;"
                   :loading="generatingImage"

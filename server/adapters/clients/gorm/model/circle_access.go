@@ -53,14 +53,16 @@ func (fields circleAccessFields) Mask() []string {
 
 // CircleAccess -
 type CircleAccess struct {
-	CircleAccessId    int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
-	CircleId          int64                 `gorm:"not null;index;uniqueIndex:idx_circle_id_recipient_user_id"`
-	RequesterUserId   int64                 `gorm:"index"`
-	RequesterCircleId int64                 `gorm:"index"`
-	RecipientUserId   int64                 `gorm:"not null;uniqueIndex:idx_circle_id_recipient_user_id,where:recipient_user_id <> 0"`
-	PermissionLevel   types.PermissionLevel `gorm:"not null"`
-	State             types.AccessState     `gorm:"not null"`
-	RecipientUsername string                `gorm:"->;-:migration"` // read only from join
+	CircleAccessId      int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
+	CircleId            int64                 `gorm:"not null;index;uniqueIndex:idx_circle_id_recipient_user_id"`
+	RequesterUserId     int64                 `gorm:"index"`
+	RequesterCircleId   int64                 `gorm:"index"`
+	RecipientUserId     int64                 `gorm:"not null;uniqueIndex:idx_circle_id_recipient_user_id,where:recipient_user_id <> 0"`
+	PermissionLevel     types.PermissionLevel `gorm:"not null"`
+	State               types.AccessState     `gorm:"not null"`
+	RecipientUsername   string                `gorm:"->;-:migration"` // read only from join
+	RecipientGivenName  string                `gorm:"->;-:migration"` // read only from join
+	RecipientFamilyName string                `gorm:"->;-:migration"` // read only from join
 }
 
 // TableName -

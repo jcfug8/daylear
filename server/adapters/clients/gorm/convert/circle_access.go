@@ -33,9 +33,11 @@ func CircleAccessToCoreCircleAccess(dbAccess dbModel.CircleAccess) coreModel.Cir
 			UserId:   dbAccess.RequesterUserId,
 			CircleId: dbAccess.RequesterCircleId,
 		},
-		Recipient:         dbAccess.RecipientUserId,
-		PermissionLevel:   dbAccess.PermissionLevel,
-		State:             dbAccess.State,
-		RecipientUsername: dbAccess.RecipientUsername,
+		Recipient:           dbAccess.RecipientUserId,
+		PermissionLevel:     dbAccess.PermissionLevel,
+		State:               dbAccess.State,
+		RecipientUsername:   dbAccess.RecipientUsername,
+		RecipientGivenName:  dbAccess.RecipientGivenName,
+		RecipientFamilyName: dbAccess.RecipientFamilyName,
 	}
 }

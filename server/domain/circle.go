@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"path"
+	"regexp"
 	"strconv"
+	"strings"
 
 	// "fmt"
 
@@ -30,6 +32,11 @@ func (d *Domain) CreateCircle(ctx context.Context, authAccount model.AuthAccount
 	}
 
 	circle.Id.CircleId = 0
+
+	// Generate a handle if not provided
+	if circle.Handle == "" {
+		circle.Handle, _ = d.generateUniqueCircleHandle(ctx, circle.Title)
+	}
 
 	tx, err := d.repo.Begin(ctx)
 	if err != nil {
@@ -395,4 +402,37 @@ func (d *Domain) removeCircleImage(ctx context.Context, authAccount model.AuthAc
 	}
 
 	return nil
+}
+
+// generateUniqueCircleHandle generates a unique handle for a circle based on the title or a random string
+func (d *Domain) generateUniqueCircleHandle(ctx context.Context, title string) (string, error) {
+	// Basic slugify: lowercase, replace spaces with dashes, remove non-alphanum
+	base := slugify(title)
+	if base == "" {
+		base = "circle"
+	}
+	handle := base
+	i := 1
+	circleRepo, ok := d.repo.(interface {
+		CircleHandleExists(context.Context, string) (bool, error)
+	})
+	if !ok {
+		return "", fmt.Errorf("repo does not implement CircleHandleExists")
+	}
+	for {
+		exists, _ := circleRepo.CircleHandleExists(ctx, handle)
+		if !exists {
+			return handle, nil
+		}
+		handle = base + "-" + strconv.Itoa(i)
+		i++
+	}
+}
+
+// slugify is a helper to create a URL-friendly string
+func slugify(s string) string {
+	s = strings.ToLower(s)
+	s = regexp.MustCompile(`[^a-z0-9]+`).ReplaceAllString(s, "-")
+	s = regexp.MustCompile(`(^-|-$)`).ReplaceAllString(s, "")
+	return s
 }

@@ -30,7 +30,7 @@
 
     <!-- Close FAB -->
     <v-btn
-      color="primary"
+      color="error"
       icon="mdi-close"
       style="position: fixed; bottom: 16px; left: 16px"
       @click="$emit('close')"
@@ -38,7 +38,7 @@
 
     <!-- Save FAB -->
     <v-btn
-      color="primary"
+      color="success"
       icon="mdi-content-save"
       style="position: fixed; bottom: 16px; right: 16px"
       @click="handleSave"

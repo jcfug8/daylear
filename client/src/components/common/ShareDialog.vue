@@ -25,7 +25,7 @@
             </v-btn>
           </v-window-item>
           <v-window-item value="circles">
-            <v-text-field v-model="circleInput" label="Enter Circle Name" :rules="[validateCircle]"
+            <v-text-field v-model="circleInput" label="Enter Circle Handle" :rules="[validateCircle]"
               :prepend-inner-icon="getCircleIcon" :color="getCircleColor" :loading="isLoadingCircle"
               @update:model-value="handleCircleInput"></v-text-field>
             <v-select
@@ -57,7 +57,7 @@
         <div v-if="currentShares.length > 0">
           <div class="text-subtitle-1 mb-2">Current Shares</div>
           <v-list>
-            <v-list-item v-for="share in currentShares as any[]" :key="share.name || ''" :title="shareTitle(share)" :subtitle="shareSubtitle(share)">
+            <v-list-item v-for="share in currentShares as any[]" :key="share.name || ''" :title="shareTitle(share)" :prependIcon="getShareIcon(share)" :subtitle="shareSubtitle(share)">
               <template #append>
                 <div class="d-flex align-center gap-2">
                   <v-menu
@@ -167,17 +167,57 @@ function emitClose() {
   emit('update:modelValue', false)
   emit('close')
 }
+function getShareIcon(share: any) {
+  if (share.recipient?.user || share.recipient?.username) { // user
+    return 'mdi-account'
+  } else if (share.recipient?.circle) { // circle
+    return 'mdi-account-group'
+  }
+  return ''
+}
 function shareTitle(share: any) {
-    var title = ''
-    if (share.recipient?.username) {
+    let title = ''
+
+    if (share.recipient?.user) { // user
+      if (share.recipient.user.givenName || share.recipient.user.familyName) { // user full name
+        title = share.recipient.user.givenName + ' ' + share.recipient.user.familyName
+        title = title.trim()
+      } else if (share.recipient.user.username) { // user username
+        title = share.recipient.user.username
+      } 
+    } else if (share.recipient?.circle) { // circle
+        title = share.recipient.circle.title || share.recipient.circle.handle || ''
+    } else if (share.recipient) {
+      if (share.recipient.givenName || share.recipient.familyName) { // user full name
+        title = share.recipient.givenName + ' ' + share.recipient.familyName
+        title = title.trim()
+      } else if (share.recipient.username) { // user username
         title = share.recipient.username
-    } else {
-        title = share.recipient?.user?.username || share.recipient?.circle?.title
+      } else if (share.recipient.title) { // circle title or handle
+        title = share.recipient.title || share.recipient.handle || ''
+      }
     }
   return title
 }
 function shareSubtitle(share: any) {
-  return share.state === 'ACCESS_STATE_PENDING' ? '(Pending)' : ''
+  // if it is user but there is a given/family name use the username else empty string
+  // if it is a circle use the handle
+  let subtitle = ''
+  if (share.recipient?.user) { // user
+    if (share.recipient.user.givenName || share.recipient.user.familyName) { // user username
+      subtitle = share.recipient.user.username || ''
+    }
+  } else if (share.recipient?.circle) { // circle
+      subtitle = share.recipient.circle.handle || ''
+  } else if (share.recipient) {
+    if (share.recipient.givenName || share.recipient.familyName) { // user full name
+      subtitle = share.recipient.username || ''
+    } else if (share.recipient.handle) { // circle title or handle
+      subtitle = share.recipient.handle || ''
+    }
+  }
+  
+  return subtitle
 }
 
 // *** Circle Sharing ***
@@ -235,8 +275,8 @@ function handleCircleInput(value: string) {
   }, 300)
 }
 
-async function checkCircle(circleName: string) {
-  if (!circleName) {
+async function checkCircle(circleHandle: string) {
+  if (!circleHandle) {
     isValidCircle.value = false
     selectedCircle.value = null
     return
@@ -245,7 +285,7 @@ async function checkCircle(circleName: string) {
   isLoadingCircle.value = true
   try {
     const request: ListCirclesRequest = {
-      filter: `title = "${circleName}"`,
+      filter: `handle = "${circleHandle}"`,
       pageSize: 1,
       pageToken: undefined
     }

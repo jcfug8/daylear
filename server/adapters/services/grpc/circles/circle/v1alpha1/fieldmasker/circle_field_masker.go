@@ -43,6 +43,7 @@ func NewCircleFieldMasker() CircleFieldMasker {
 	fm.mapFieldMaskPathToDomainMasks("title", model.CircleFields.Title)
 	fm.mapFieldMaskPathToDomainMasks("image_uri", model.CircleFields.ImageURI)
 	fm.mapFieldMaskPathToDomainMasks("visibility", model.CircleFields.Visibility)
+	fm.mapFieldMaskPathToDomainMasks("handle", model.CircleFields.Handle)
 	fm.mapFieldMaskPathToDomainMasks("circle_access.name", model.CircleFields.AccessId)
 	fm.mapFieldMaskPathToDomainMasks("circle_access.permission_level", model.CircleFields.Permission)
 	fm.mapFieldMaskPathToDomainMasks("circle_access.state", model.CircleFields.State)

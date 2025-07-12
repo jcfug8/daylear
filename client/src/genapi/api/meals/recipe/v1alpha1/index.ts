@@ -541,6 +541,14 @@ export type Access_User = {
   //
   // Behaviors: OUTPUT_ONLY
   username: string | undefined;
+  // the full name of the user
+  //
+  // Behaviors: OUTPUT_ONLY
+  givenName: string | undefined;
+  // the last name of the user
+  //
+  // Behaviors: OUTPUT_ONLY
+  familyName: string | undefined;
 };
 
 // circle data
@@ -553,6 +561,10 @@ export type Access_Circle = {
   //
   // Behaviors: OUTPUT_ONLY
   title: string | undefined;
+  // the handle of the circle
+  //
+  // Behaviors: OUTPUT_ONLY
+  handle: string | undefined;
 };
 
 // The request to create an access to a recipe

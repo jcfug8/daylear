@@ -21,6 +21,7 @@ var CircleMap = map[string]string{
 	"state":      dbModel.CircleFields.State,
 	"title":      dbModel.CircleFields.Title,
 	"visibility": dbModel.CircleFields.Visibility,
+	"handle":     dbModel.CircleFields.Handle,
 }
 
 // CreateCircle creates a new circle.
@@ -178,4 +179,14 @@ func (repo *Client) ListCircles(ctx context.Context, authAccount cmodel.AuthAcco
 	}
 	log.Info().Msg("GORM ListCircles returning successfully")
 	return res, nil
+}
+
+// CircleHandleExists checks if a circle handle already exists.
+func (repo *Client) CircleHandleExists(ctx context.Context, handle string) (bool, error) {
+	var count int64
+	err := repo.db.WithContext(ctx).Model(&gmodel.Circle{}).Where("handle = ?", handle).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

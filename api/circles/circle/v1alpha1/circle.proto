@@ -145,6 +145,9 @@ message Circle {
   // the title of the circle
   string title = 2 [(google.api.field_behavior) = REQUIRED];
 
+  // the unique handle for the circle (like a username, must be unique, user-friendly, and can be used for sharing)
+  string handle = 6 [(google.api.field_behavior) = OPTIONAL];
+
   // the image url for the circle
   string image_uri = 3 [(google.api.field_behavior) = OPTIONAL];
 
