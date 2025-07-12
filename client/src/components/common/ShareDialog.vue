@@ -216,7 +216,13 @@ function emitShareCircle() {
     circleInput.value = circleInput.value
     selectedPermission.value = selectedPermission.value
     checkCircle(circleInput.value).then(() => {
-        if (isValidCircle.value) emit('share-circle', { circle: circleInput.value, permission: selectedPermission.value })
+        if (isValidCircle.value) {
+            emit('share-circle', { circleName: selectedCircle.value?.name || '', permission: selectedPermission.value })
+            selectedCircle.value = null
+            circleInput.value = ''
+            isValidCircle.value = false
+            isLoadingCircle.value = false
+        }
     })
 }
 
@@ -297,7 +303,13 @@ function emitShareUser() {
     usernameInput.value = usernameInput.value
     selectedPermission.value = selectedPermission.value
     checkUsername(usernameInput.value).then(() => {
-        if (isValidUsername.value) emit('share-user', { username: usernameInput.value, permission: selectedPermission.value })
+        if (isValidUsername.value) {
+            emit('share-user', { userName: selectedUser.value?.name || '', permission: selectedPermission.value })
+            selectedUser.value = null
+            usernameInput.value = ''
+            isValidUsername.value = false
+            isLoadingUsername.value = false
+        }
     })
 }
 
