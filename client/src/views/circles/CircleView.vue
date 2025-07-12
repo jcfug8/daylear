@@ -17,6 +17,7 @@
             </v-col>
           </v-row>
           <v-row>
+            <v-spacer></v-spacer>
             <v-col align-self="auto" cols="12" sm="8">
               <div class="image-container">
                 <v-img 
@@ -39,6 +40,7 @@
                 </div>
               </div>
             </v-col>
+            <v-spacer></v-spacer>
           </v-row>
           <!-- Visibility Section -->
           <v-row>
