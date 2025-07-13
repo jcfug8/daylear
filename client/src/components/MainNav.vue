@@ -98,6 +98,7 @@
       </div>
     </template>
   </v-navigation-drawer>
+  <AlertStack />
 </template>
 
 <script setup lang="ts">
@@ -110,6 +111,7 @@ import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
 
 import { ref } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
+import AlertStack from './common/AlertStack.vue'
 
 const accountDrawer = ref(false)
 const navDrawer = ref(false)

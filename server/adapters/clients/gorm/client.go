@@ -1,6 +1,10 @@
 package gorm
 
 import (
+	"context"
+	"errors"
+
+	"github.com/jcfug8/daylear/server/adapters/clients/gorm/migrations"
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	"github.com/jcfug8/daylear/server/filter"
 	"github.com/jcfug8/daylear/server/ports/repository"
@@ -47,6 +51,14 @@ type Client struct {
 
 // Migrate migrates the database.
 func (repo *Client) Migrate() (err error) {
+	repo.log.Info().Msg("migrating database")
+
+	err = migrations.RunMigrations(context.Background(), repo.db, manualMigrations)
+	if err != nil {
+		repo.log.Error().Err(err).Msg("failed to migrate database")
+		return errors.New("failed to migrate database")
+	}
+
 	for _, m := range model.AllModels() {
 		repo.log.Info().Msgf("auto migrating model %T", m)
 		if err = repo.db.AutoMigrate(m); err != nil {
