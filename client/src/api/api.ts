@@ -37,7 +37,12 @@ export const authenticatedFetchHandler = function(contentType: string) {
     }
     const res = await fetch(API_BASE_URL + request.path, fetchOptions)
     if (!res.ok) {
-      throw new Error(`API error: ${res.status} ${res.statusText}`)
+      const error = await res.json()
+      let message = `API error: ${res.status} ${res.statusText}`
+      if (error.message) {
+        message = `\n${error.message}`
+      }
+      throw new Error(message)
     }
     if (res.status === 204) return undefined
     if (request.responseType === "blob") {

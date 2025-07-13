@@ -14,10 +14,12 @@ import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import RecipeForm from '@/views/meals/recipes/forms/RecipeForm.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useAlertStore } from '@/stores/alerts'
 const router = useRouter()
 const recipesStore = useRecipesStore()
 const breadcrumbStore = useBreadcrumbStore()
 const authStore = useAuthStore()
+const alertStore = useAlertStore()
 
 function navigateBack() {
   router.push({ name: 'recipes' })
@@ -31,7 +33,8 @@ async function saveRecipe() {
     await recipesStore.createRecipe(authStore.activeAccountName)
     navigateBack()
   } catch (err) {
-    alert(err instanceof Error ? err.message : String(err))
+    console.log("Error creating recipe:", err)
+    alertStore.addAlert(err instanceof Error ? "Unable to create recipe\n" + err.message : String(err), 'error')
   }
 }
 

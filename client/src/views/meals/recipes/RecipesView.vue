@@ -41,10 +41,12 @@ import { useAuthStore } from '@/stores/auth'
 import ListTabsPage from '@/components/common/ListTabsPage.vue'
 import RecipeGrid from '@/components/RecipeGrid.vue'
 import type { Recipe } from '@/genapi/api/meals/recipe/v1alpha1'
+import { useAlertStore } from '@/stores/alerts'
 
 const authStore = useAuthStore()
 const recipesStore = useRecipesStore()
 const breadcrumbStore = useBreadcrumbStore()
+const alertStore = useAlertStore()
 
 const acceptingRecipeId = ref<string | null>(null)
 const tabsPage = ref()
@@ -102,8 +104,9 @@ async function onAcceptRecipe(recipe: Recipe) {
     // Reload both accepted and pending subtabs
     tabsPage.value?.reloadTab('shared', 'accepted')
     tabsPage.value?.reloadTab('shared', 'pending')
-  } catch (error) {
-    // Optionally show a notification
+  } catch (err) {
+    console.log("Error accepting recipe:", err)
+    alertStore.addAlert(err instanceof Error ? "Unable to accept recipe\n" + err.message : String(err), 'error')
   } finally {
     acceptingRecipeId.value = null
   }
@@ -115,8 +118,9 @@ async function onDeclineRecipe(recipe: Recipe) {
     await recipesStore.deleteRecipeAccess(recipe.recipeAccess.name)
     // Reload only the pending subtab
     tabsPage.value?.reloadTab('shared', 'pending')
-  } catch (error) {
-    // Optionally show a notification
+  } catch (err) {
+    console.log("Error declining recipe:", err)
+    alertStore.addAlert(err instanceof Error ? "Unable to decline recipe\n" + err.message : String(err), 'error')
   }
 }
 

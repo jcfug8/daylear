@@ -1,29 +1,26 @@
 <template>
   <div class="alert-stack">
-    <div
-      v-for="alert in alerts"
-      :key="alert.id"
-      class="alert"
-      :class="alert.severity"
-    >
-      <button class="close" @click="remove(alert.id)">&times;</button>
-      <span class="message">{{ alert.message }}</span>
-    </div>
+    <transition-group name="fade" tag="div" class="alerts-inner">
+      <div
+        v-for="alert in alerts"
+        :key="alert.id"
+        class="alert"
+        :class="alert.severity"
+      >
+        <button class="close" @click="remove(alert.id)">&times;</button>
+        <span class="message">{{ alert.message }}</span>
+      </div>
+    </transition-group>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useAlertStore } from '@/stores/alerts';
 import { storeToRefs } from 'pinia';
-import { onMounted } from 'vue';
 
 const alertStore = useAlertStore();
 const { alerts } = storeToRefs(alertStore);
 const remove = alertStore.removeAlert;
-
-onMounted(() => {
-//   alertStore.addAlert('This is a test alert', 'info')
-})
 </script>
 
 <style scoped>
@@ -32,6 +29,8 @@ onMounted(() => {
   top: 1rem;
   right: 1rem;
   z-index: 10000;
+}
+.alerts-inner {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -68,5 +67,18 @@ onMounted(() => {
 @keyframes fadein {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Fade transition for alerts */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.4s, transform 0.4s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.fade-enter-to, .fade-leave-from {
+  opacity: 1;
+  transform: translateY(0);
 }
 </style> 

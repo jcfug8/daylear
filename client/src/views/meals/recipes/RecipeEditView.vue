@@ -16,12 +16,14 @@ import { useRoute, useRouter } from 'vue-router'
 import RecipeForm from '@/views/meals/recipes/forms/RecipeForm.vue'
 import { fileService } from '@/api/api'
 import { useCirclesStore } from '@/stores/circles'
+import { useAlertStore } from '@/stores/alerts'
 
 const route = useRoute()
 const router = useRouter()
 const recipesStore = useRecipesStore()
 const circlesStore = useCirclesStore()
 const breadcrumbStore = useBreadcrumbStore()
+const alertStore = useAlertStore()
 
 const { circle } = storeToRefs(circlesStore)
 
@@ -49,7 +51,8 @@ async function saveRecipe(pendingImageFile: File | null) {
     
     navigateBack()
   } catch (err) {
-    alert(err instanceof Error ? err.message : String(err))
+    console.log("Error saving recipe:", err)
+    alertStore.addAlert(err instanceof Error ? "Unable to save recipe\n" + err.message : String(err), 'error')
   }
 }
 

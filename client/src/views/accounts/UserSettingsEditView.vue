@@ -55,11 +55,13 @@ import { onMounted, ref } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRouter } from 'vue-router'
 import type { User, apitypes_VisibilityLevel } from '@/genapi/api/users/user/v1alpha1'
+import { useAlertStore } from '@/stores/alerts'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
 const breadcrumbStore = useBreadcrumbStore()
+const alertStore = useAlertStore()
 
 // Create a copy of the user object for editing
 const editedUser = ref<User>({
@@ -79,9 +81,9 @@ async function saveSettings() {
   try {
     await authStore.updateAuthUser(editedUser.value)
     navigateBack()
-  } catch (error) {
-    console.error('Error saving settings:', error)
-    alert('Failed to save settings')
+  } catch (err) {
+    console.log('Error saving settings:', err)
+    alertStore.addAlert(err instanceof Error ? "Unable to save settings\n" + err.message : String(err), 'error')
   }
 }
 

@@ -46,11 +46,6 @@
                   </v-btn>
                 </v-col>
               </v-row>
-              <v-row v-if="scrapeError">
-                <v-col cols="12">
-                  <v-alert type="error" density="compact">{{ scrapeError }}</v-alert>
-                </v-col>
-              </v-row>
             </v-window-item>
             <v-window-item value="ocr">
               <v-row class="mt-2">
@@ -321,6 +316,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import type { Recipe, apitypes_VisibilityLevel } from '@/genapi/api/meals/recipe/v1alpha1'
 import { recipeService, fileService } from '@/api/api'
+import { useAlertStore } from '@/stores/alerts'
 
 const props = defineProps<{
   modelValue: Recipe,
@@ -329,6 +325,7 @@ const props = defineProps<{
 }>()
 
 const isCreate = computed(() => props.isCreate ?? false)
+const alertStore = useAlertStore()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: Recipe): void
@@ -342,12 +339,10 @@ const importTab = ref('scrape')
 // Scrape logic
 const scrapeUrl = ref('')
 const scrapeLoading = ref(false)
-const scrapeError = ref('')
 
 const importAbortController = ref<AbortController | null>(null)
 
 async function scrapeRecipe() {
-  scrapeError.value = ''
   scrapeLoading.value = true
   importAbortController.value = new AbortController()
   try {
@@ -360,13 +355,12 @@ async function scrapeRecipe() {
       emit('update:modelValue', resp.recipe)
       showScrapeOcrDialog.value = false
     } else {
-      scrapeError.value = 'No recipe found at that URL.'
+      alertStore.addAlert('No recipe found at that URL.', 'error')
     }
   } catch (err: any) {
-    if (err?.name === 'AbortError') {
-      scrapeError.value = 'Import cancelled.'
-    } else {
-      scrapeError.value = err?.message || 'Failed to scrape recipe.'
+    if (err?.name !== 'AbortError') {
+      console.log('Error scraping recipe:', err)
+      alertStore.addAlert(err instanceof Error ? "Unable to scrape recipe\n" + err.message : String(err), 'error')
     }
   } finally {
     scrapeLoading.value = false
@@ -510,13 +504,12 @@ async function ocrRecipe() {
       emit('update:modelValue', resp.recipe)
       showScrapeOcrDialog.value = false
     } else {
-      ocrError.value = 'No recipe found in image.'
+      alertStore.addAlert('No recipe found in image.', 'error')
     }
   } catch (err: any) {
-    if (err?.name === 'AbortError') {
-      ocrError.value = 'Import cancelled.'
-    } else {
-      ocrError.value = err?.message || 'Failed to OCR recipe.'
+    if (err?.name !== 'AbortError') {
+      console.log('Error OCRing recipe:', err)
+      alertStore.addAlert(err instanceof Error ? "Unable to OCR recipe\n" + err.message : String(err), 'error')
     }
   } finally {
     ocrLoading.value = false

@@ -127,8 +127,10 @@ import type { ListCirclesRequest } from '@/genapi/api/circles/circle/v1alpha1'
 import { userService, circleService } from '@/api/api'
 import { useAuthStore } from '@/stores/auth'
 import type { PermissionLevel } from '@/genapi/api/types'
+import { useAlertStore } from '@/stores/alerts'
 
 const authStore = useAuthStore()
+const alertStore = useAlertStore()
 
 const props = defineProps({
   modelValue: Boolean,
@@ -299,7 +301,8 @@ async function checkCircle(circleHandle: string) {
       isValidCircle.value = false
     }
   } catch (error) {
-    console.error('Error checking circle:', error)
+    console.log('Error checking circle:', error)
+    alertStore.addAlert(error instanceof Error ? "Unable to check circle\n" + error.message : String(error), 'error')
     selectedCircle.value = null
     isValidCircle.value = false
   } finally {
@@ -386,7 +389,8 @@ async function checkUsername(username: string) {
       isValidUsername.value = false
     }
   } catch (error) {
-    console.error('Error checking username:', error)
+    console.log('Error checking username:', error)
+    alertStore.addAlert(error instanceof Error ? "Unable to check username\n" + error.message : String(error), 'error')
     selectedUser.value = null
     isValidUsername.value = false
   } finally {
