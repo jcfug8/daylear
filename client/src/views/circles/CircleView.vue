@@ -102,8 +102,8 @@
         @click="router.push({ name: 'circle-edit', params: { circleId: circle.name } })" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
         <v-btn key="share" v-if="hasWritePermission(circle.circleAccess?.permissionLevel) && circle.visibility !== 'VISIBILITY_LEVEL_HIDDEN'"
           @click="showShareDialog = true" color="primary"><v-icon>mdi-share-variant</v-icon>Share</v-btn>
-        <v-btn key="remove-access" v-if="!hasAdminPermission(circle.circleAccess?.permissionLevel)" @click="showRemoveAccessDialog = true" color="warning"><v-icon>mdi-link-variant-off</v-icon>Remove Access</v-btn>
-        <v-btn key="delete" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
+        <v-btn key="remove-access" v-if="!hasAdminPermission(circle.circleAccess?.permissionLevel)" @click="showRemoveAccessDialog = true" color="warning"><v-icon>mdi-link-variant-off</v-icon>Remove</v-btn>
+        <v-btn key="delete" v-if="hasAdminPermission(circle.circleAccess?.permissionLevel)"
           @click="showDeleteDialog = true" color="error"><v-icon>mdi-delete</v-icon>Delete</v-btn>
       </v-speed-dial>
     </v-fab>
@@ -306,35 +306,16 @@ const showRemoveAccessDialog = ref(false)
 const removingAccess = ref(false)
 
 async function handleRemoveAccess() {
-  if (!circle.value?.name || !authStore.activeAccount?.name) return
+  if (!circle.value?.circleAccess?.name || !authStore.activeAccount?.name) return
 
   removingAccess.value = true
   try {
-    // First, we need to find the current user's access to delete it
-    const listRequest: ListAccessesRequest = {
-      parent: circle.value.name,
-      filter: undefined,
-      pageSize: undefined,
-      pageToken: undefined
+    const deleteRequest: DeleteAccessRequest = {
+      name: circle.value.circleAccess.name
     }
     
-    const response = await circleAccessService.ListAccesses(listRequest)
-    
-    // Find the current user's access
-    const userAccess = response.accesses?.find(access => 
-      access.recipient?.name === authStore.activeAccount?.name
-    )
-    
-    if (userAccess?.name) {
-      const deleteRequest: DeleteAccessRequest = {
-        name: userAccess.name
-      }
-      
-      await circleAccessService.DeleteAccess(deleteRequest)
-      router.push({ name: 'circles' })
-    } else {
-      console.error('Could not find user access to remove')
-    }
+    await circleAccessService.DeleteAccess(deleteRequest)
+    router.push({ name: 'circles' })
   } catch (error) {
     console.error('Error removing access:', error)
     alert(error instanceof Error ? error.message : String(error))

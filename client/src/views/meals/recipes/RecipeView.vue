@@ -182,9 +182,9 @@
         <v-btn key="share" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel) && recipe.visibility !== 'VISIBILITY_LEVEL_HIDDEN'"
           @click="showShareDialog = true" color="primary"><v-icon>mdi-share-variant</v-icon>Share</v-btn>
   
-        <v-btn key="remove-access" v-if="!hasAdminPermission(recipe.recipeAccess?.permissionLevel)" @click="showRemoveAccessDialog = true" color="warning"><v-icon>mdi-link-variant-off</v-icon>Remove Access</v-btn>
+        <v-btn key="remove-access" v-if="!hasAdminPermission(recipe.recipeAccess?.permissionLevel)" @click="showRemoveAccessDialog = true" color="warning"><v-icon>mdi-link-variant-off</v-icon>Remove</v-btn>
   
-        <v-btn key="delete" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)"
+        <v-btn key="delete" v-if="hasAdminPermission(recipe.recipeAccess?.permissionLevel)"
           @click="showDeleteDialog = true" color="error"><v-icon>mdi-delete</v-icon>Delete</v-btn>
       </v-speed-dial>
     </v-fab>
@@ -465,35 +465,16 @@ const showRemoveAccessDialog = ref(false)
 const removingAccess = ref(false)
 
 async function handleRemoveAccess() {
-  if (!recipe.value?.name || !authStore.activeAccount?.name) return
+  if (!recipe.value?.recipeAccess?.name || !authStore.activeAccount?.name) return
 
   removingAccess.value = true
   try {
-    // First, we need to find the current user's access to delete it
-    const listRequest: ListAccessesRequest = {
-      parent: recipe.value.name,
-      filter: undefined,
-      pageSize: undefined,
-      pageToken: undefined
+    const deleteRequest: DeleteAccessRequest = {
+      name: recipe.value.recipeAccess.name
     }
     
-    const response = await recipeAccessService.ListAccesses(listRequest)
-    
-    // Find the current user's access
-    const userAccess = response.accesses?.find(access => 
-      access.recipient?.user === authStore.activeAccount?.name
-    )
-    
-    if (userAccess?.name) {
-      const deleteRequest: DeleteAccessRequest = {
-        name: userAccess.name
-      }
-      
-      await recipeAccessService.DeleteAccess(deleteRequest)
-      router.push({ name: 'recipes' })
-    } else {
-      console.error('Could not find user access to remove')
-    }
+    await recipeAccessService.DeleteAccess(deleteRequest)
+    router.push(route.params.circleId ? { name: 'circle', params: { circleId: route.params.circleId } } : { name: 'recipes' })
   } catch (error) {
     console.error('Error removing access:', error)
     alert(error instanceof Error ? error.message : String(error))
