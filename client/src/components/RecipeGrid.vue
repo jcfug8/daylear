@@ -11,7 +11,7 @@
     <v-row v-if="!loading && recipes.length > 0">
       <v-col lg="3" md="4" sm="6" cols="12" v-for="recipe in recipes" :key="recipe.name">
         <v-card
-          :to="{ name: 'recipe', params: { recipeId: recipe.name } }"
+          :to="getRecipeRoute(recipe)"
           :title="recipe.title"
           style="aspect-ratio: 8/6"
           hover
@@ -72,6 +72,9 @@
 <script setup lang="ts">
 import type { Recipe } from '@/genapi/api/meals/recipe/v1alpha1'
 import { defineEmits } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
 
 interface Props {
   recipes: Recipe[]
@@ -80,6 +83,13 @@ interface Props {
 
 defineProps<Props>()
 const emit = defineEmits(['accept', 'decline'])
+
+function getRecipeRoute(recipe: Recipe) {
+  if (route.params.circleId) {
+    return { name: 'circleRecipe', params: { circleId: route.params.circleId, recipeId: recipe.name } }
+  }
+  return { name: 'recipe', params: { recipeId: recipe.name } }
+}
 
 function getPermissionColor(permission: string) {
   switch (permission) {

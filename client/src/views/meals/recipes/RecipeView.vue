@@ -177,7 +177,7 @@
       <v-icon>mdi-dots-vertical</v-icon>
       <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
         <v-btn key="edit" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)"
-        @click="router.push({ name: 'recipeEdit', params: { recipeId: recipe.name } })" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
+        :to="getRecipeEditRoute()" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
 
         <v-btn key="share" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel) && recipe.visibility !== 'VISIBILITY_LEVEL_HIDDEN'"
           @click="showShareDialog = true" color="primary"><v-icon>mdi-share-variant</v-icon>Share</v-btn>
@@ -307,6 +307,7 @@ import type { PermissionLevel } from '@/genapi/api/types'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRecipesStore } from '@/stores/recipes'
 import { useRecipeFormStore } from '@/stores/recipeForm'
+import { useCirclesStore } from '@/stores/circles'
 import { storeToRefs } from 'pinia'
 import { onMounted, onBeforeUnmount, watch, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -318,12 +319,21 @@ import ShareDialog from '@/components/common/ShareDialog.vue'
 const authStore = useAuthStore()
 const breadcrumbStore = useBreadcrumbStore()
 const recipesStore = useRecipesStore()
+const circlesStore = useCirclesStore()
 const recipeFormStore = useRecipeFormStore()
 const route = useRoute()
 const router = useRouter()
 
 const { recipe } = storeToRefs(recipesStore)
+const { circle } = storeToRefs(circlesStore)
 const speedDialOpen = ref(false)
+
+function getRecipeEditRoute() {
+  if (route.params.circleId) {
+    return { name: 'circleRecipeEdit', params: { circleId: route.params.circleId, recipeId: recipe.value?.name } }
+  }
+  return { name: 'recipeEdit', params: { recipeId: recipe.value?.name } }
+}
 
 // *** Breadcrumbs ***
 
@@ -338,8 +348,20 @@ onMounted(async () => {
   const recipeId = route.params.recipeId as string
   await recipesStore.loadRecipe(recipeId)
 
+  let firstCrumbs
+
+  if (route.params.circleId) {
+    await circlesStore.loadCircle(route.params.circleId as string)
+    firstCrumbs = [
+      { title: 'Circles', to: { name: 'circles' } },
+      { title: circle.value?.title || '', to: { name: 'circle', params: { circleId: route.params.circleId } } },
+    ]
+  } else {
+    firstCrumbs = [{ title: 'Recipes', to: { name: 'recipes' } }]
+  }
+
   breadcrumbStore.setBreadcrumbs([
-    { title: 'Recipes', to: { name: 'recipes' } },
+    ...firstCrumbs,
     {
       title: recipe.value?.title || '',
       to: { name: 'recipe', params: { recipeId: recipe.value?.name } },
@@ -351,7 +373,7 @@ onMounted(async () => {
 
 const { activeTab } = storeToRefs(recipeFormStore)
 onBeforeUnmount(() => {
-  if (router.currentRoute.value.name !== 'recipeEdit') {
+  if (router.currentRoute.value.name !== 'recipeEdit' && router.currentRoute.value.name !== 'circleRecipeEdit') {
     recipeFormStore.setActiveTab('general')
   }
 })

@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LogInView from '../views/login/LogInView.vue'
 import { useAuthStore } from '@/stores/auth'
-import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -50,8 +49,26 @@ const router = createRouter({
       },
     },
     {
+      path: '/circles/:circleId/recipes/:recipeId',
+      name: 'circleRecipe',
+      component: () => import('../views/meals/recipes/RecipeView.vue'),
+      meta: {
+        requiresAuth: true,
+        breadcrumbs: true,
+      },
+    },
+    {
       path: '/meals/recipes/:recipeId/edit',
       name: 'recipeEdit',
+      component: () => import('../views/meals/recipes/RecipeEditView.vue'),
+      meta: {
+        requiresAuth: true,
+        breadcrumbs: true,
+      },
+    },
+    {
+      path: '/circles/:circleId/recipes/:recipeId/edit',
+      name: 'circleRecipeEdit',
       component: () => import('../views/meals/recipes/RecipeEditView.vue'),
       meta: {
         requiresAuth: true,
