@@ -211,6 +211,7 @@ const tabs = [
   {
     label: 'My Recipes',
     value: 'my',
+    icon: 'mdi-book-open-variant',
     loader: async () => {
       if (!authStore.user || !authStore.user.name) throw new Error('User not authenticated')
       await recipesStore.loadMyRecipes(authStore.activeAccountName)
@@ -220,6 +221,7 @@ const tabs = [
   {
     label: 'Pending',
     value: 'pending',
+    icon: 'mdi-email-arrow-left-outline',
     loader: async () => {
       if (!authStore.user || !authStore.user.name) throw new Error('User not authenticated')
       await recipesStore.loadSharedRecipes(authStore.activeAccountName, 100)
@@ -229,6 +231,7 @@ const tabs = [
   {
     label: 'Explore Recipes',
     value: 'explore',
+    icon: 'mdi-card-search-outline',
     loader: async () => {
       if (!authStore.user || !authStore.user.name) throw new Error('User not authenticated')
       await recipesStore.loadPublicRecipes(authStore.activeAccountName)

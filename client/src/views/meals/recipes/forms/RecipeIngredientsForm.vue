@@ -86,7 +86,7 @@
                     color="primary"
                     @click="toggleSecondMeasurement(i, j)"
                   >
-                    {{ showSecondMeasurementMap[i]?.[j] ? 'Remove second measurement' : 'Add another measurement' }}
+                    {{ showSecondMeasurementMap[i]?.[j] ? 'Remove measurement' : 'Add measurement' }}
                   </v-btn>
                 </v-col>
                 <v-col cols="6" class="d-flex justify-end">

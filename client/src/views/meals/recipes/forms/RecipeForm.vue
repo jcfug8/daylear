@@ -7,7 +7,7 @@
             v-for="tabItem in tabs"
             :key="tabItem.value"
             :value="tabItem.value"
-            :text="tabItem.text"
+            :prepend-icon="tabItem.icon"
           ></v-tab>
         </v-tabs>
       </v-app-bar>
@@ -87,9 +87,9 @@ const tab = computed({
 })
 
 const tabs = [
-  { value: 'general', text: 'General' },
-  { value: 'ingredients', text: 'Ingredients' },
-  { value: 'directions', text: 'Directions' },
+  { value: 'general', text: 'General', icon: 'mdi-information-outline' },
+  { value: 'ingredients', text: 'Ingredients', icon: 'mdi-food-apple-outline' },
+  { value: 'directions', text: 'Directions', icon: 'mdi-format-list-numbered' },
 ]
 
 // Map hash values to tab values

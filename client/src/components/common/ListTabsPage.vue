@@ -2,7 +2,8 @@
   <v-container>
     <v-tabs v-model="activeTab" align-tabs="center" color="primary" grow>
       <v-tab density="compact" v-for="tab in tabs" :key="tab.value" :value="tab.value">
-        {{ tab.label }}
+        <v-icon v-if="tab.icon" left>{{ tab.icon }}</v-icon>
+        <span v-else>{{ tab.label }}</span>
       </v-tab>
     </v-tabs>
     <slot name="filter" />
@@ -37,6 +38,7 @@ interface TabDef {
   value: string
   loader?: () => Promise<any>
   subTabs?: Array<{ label: string; value: string; loader?: () => Promise<any> }>
+  icon?: string // Optional icon property for tab icons
 }
 
 const props = defineProps<{

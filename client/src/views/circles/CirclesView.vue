@@ -47,6 +47,7 @@ const tabs = [
   {
     label: 'My Circles',
     value: 'my',
+    icon: 'mdi-account-circle',
     loader: async () => {
       await circlesStore.loadMyCircles()
       return [...circlesStore.myCircles]
@@ -55,6 +56,7 @@ const tabs = [
   {
     label: 'Pending',
     value: 'pending',
+    icon: 'mdi-clock-outline',
     loader: async () => {
       await circlesStore.loadSharedCircles(100)
       return [...circlesStore.sharedPendingCircles]
@@ -63,6 +65,7 @@ const tabs = [
   {
     label: 'Explore Circles',
     value: 'explore',
+    icon: 'mdi-compass-outline',
     loader: async () => {
       await circlesStore.loadPublicCircles()
       return [...circlesStore.publicCircles]
