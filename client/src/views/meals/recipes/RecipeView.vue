@@ -136,18 +136,22 @@
             <v-card-title v-if="ingredientGroup.title">{{ ingredientGroup.title }}</v-card-title>
             <v-card-text>
               <v-list>
-                <v-list-item class="ingredient-item" slim prepend-icon="mdi-circle-small" v-for="(ingredient, j) in ingredientGroup.ingredients"
-                  :key="j">
-                  <strong>
-                  <span v-if="ingredient.measurementAmount">{{ isFranctional(ingredient.measurementType) ? toFraction(ingredient.measurementAmount ?? 0) : ingredient.measurementAmount }}</span>
-                  {{ measurementTypeLabel(ingredient.measurementType, ingredient.measurementAmount) }}
-                  <template v-if="ingredient.measurementConjunction && ingredient.secondMeasurementAmount && ingredient.secondMeasurementType">
-                    {{ renderConjunction(ingredient.measurementConjunction) }}
-                    <span v-if="ingredient.secondMeasurementAmount">{{ isFranctional(ingredient.secondMeasurementType) ? toFraction(ingredient.secondMeasurementAmount ?? 0) : ingredient.secondMeasurementAmount }}</span>
-                    {{ measurementTypeLabel(ingredient.secondMeasurementType, ingredient.secondMeasurementAmount) }}
-                  </template>
-                  </strong>
-                  {{ ingredient.title }} <span v-if="ingredient.optional">(optional)</span>
+                <v-list-item class="ingredient-item" v-for="(ingredient, j) in ingredientGroup.ingredients" :key="j">
+                  <div class="d-flex align-center" style="width: 100%;">
+                    <v-checkbox v-model="checkedIngredients[i][j]" class="mr-2" hide-details density="compact" style="margin-bottom: 0;" />
+                    <span :style="checkedIngredients[i][j] ? 'text-decoration: line-through; color: #888;' : ''">
+                      <strong>
+                        <span v-if="ingredient.measurementAmount">{{ isFranctional(ingredient.measurementType) ? toFraction(ingredient.measurementAmount ?? 0) : ingredient.measurementAmount }}</span>
+                        {{ measurementTypeLabel(ingredient.measurementType, ingredient.measurementAmount) }}
+                        <template v-if="ingredient.measurementConjunction && ingredient.secondMeasurementAmount && ingredient.secondMeasurementType">
+                          {{ renderConjunction(ingredient.measurementConjunction) }}
+                          <span v-if="ingredient.secondMeasurementAmount">{{ isFranctional(ingredient.secondMeasurementType) ? toFraction(ingredient.secondMeasurementAmount ?? 0) : ingredient.secondMeasurementAmount }}</span>
+                          {{ measurementTypeLabel(ingredient.secondMeasurementType, ingredient.secondMeasurementAmount) }}
+                        </template>
+                      </strong>
+                      {{ ingredient.title }} <span v-if="ingredient.optional">(optional)</span>
+                    </span>
+                  </div>
                 </v-list-item>
               </v-list>
             </v-card-text>
@@ -156,13 +160,27 @@
       </v-tabs-window-item>
       <v-tabs-window-item value="directions">
         <v-container max-width="600">
-          <v-card class="my-1" v-for="(direction, i) in recipe.directions" :key="i">
+          <v-card v-for="(direction, i) in recipe.directions" :key="i">
             <v-card-title v-if="direction.title">{{ direction.title }}</v-card-title>
             <v-card-text>
               <v-list>
-                <v-list-item slim prepend-icon="mdi-circle-small" v-for="(step, n) in direction.steps">
-                  <div class="font-weight-bold">Step {{ n + 1 }}</div>
-                  {{ step }}
+                <v-list-item  v-for="(step, n) in direction.steps" :key="n">
+                  <div class="d-flex align-start" style="width: 100%;">
+                    <v-checkbox
+                      v-model="checkedDirections[i][n]"
+                      class="mr-2"
+                      hide-details
+                      density="compact"
+                      style="margin-bottom: 0; align-self: flex-start;"
+                    />
+                    <span
+                      :style="checkedDirections[i][n] ? 'text-decoration: line-through; color: #888;' : ''"
+                      style="margin-left: 4px; flex: 1 1 0; word-break: break-word;"
+                    >
+                      <span class="font-weight-bold" style="display: inline;">Step {{ n + 1 }}</span>
+                      {{ step }}
+                    </span>
+                  </div>
                 </v-list-item>
               </v-list>
             </v-card-text>
@@ -309,7 +327,7 @@ import { useRecipesStore } from '@/stores/recipes'
 import { useRecipeFormStore } from '@/stores/recipeForm'
 import { useCirclesStore } from '@/stores/circles'
 import { storeToRefs } from 'pinia'
-import { onMounted, onBeforeUnmount, watch, computed, ref } from 'vue'
+import { onMounted, onBeforeUnmount, watch, computed, ref, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { recipeService, recipeAccessService, fileService } from '@/api/api'
 import { useAuthStore } from '@/stores/auth'
@@ -327,6 +345,29 @@ const router = useRouter()
 const { recipe } = storeToRefs(recipesStore)
 const { circle } = storeToRefs(circlesStore)
 const speedDialOpen = ref(false)
+
+// Add local state for checked ingredients and directions
+const checkedIngredients = reactive<Array<Array<boolean>>>([])
+const checkedDirections = reactive<Array<Array<boolean>>>([])
+
+function initializeCheckedState() {
+  checkedIngredients.length = 0
+  recipe.value?.ingredientGroups?.forEach((group, i) => {
+    checkedIngredients[i] = []
+    group.ingredients?.forEach((_, j) => {
+      checkedIngredients[i][j] = false
+    })
+  })
+  checkedDirections.length = 0
+  recipe.value?.directions?.forEach((dir, i) => {
+    checkedDirections[i] = []
+    dir.steps?.forEach((_, n) => {
+      checkedDirections[i][n] = false
+    })
+  })
+}
+
+watch(recipe, initializeCheckedState, { immediate: true })
 
 function getRecipeEditRoute() {
   if (route.params.circleId) {
