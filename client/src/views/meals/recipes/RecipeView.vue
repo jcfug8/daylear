@@ -2,9 +2,15 @@
   <v-container v-if="recipe">
     <v-app-bar>
       <v-tabs style="width: 100%" v-model="tab" center-active show-arrows fixed-tabs>
-        <v-tab value="general" text="General"></v-tab>
-        <v-tab value="ingredients" text="Ingredients"></v-tab>
-        <v-tab value="directions" text="Directions"></v-tab>
+        <v-tab value="general">
+          <v-icon left>mdi-information-outline</v-icon>
+        </v-tab>
+        <v-tab value="ingredients">
+          <v-icon left>mdi-food-apple-outline</v-icon>
+        </v-tab>
+        <v-tab value="directions">
+          <v-icon left>mdi-format-list-numbered</v-icon>
+        </v-tab>
       </v-tabs>
       <template #append>
       </template>
