@@ -15,16 +15,28 @@ import (
 	"github.com/jcfug8/daylear/server/core/schemaorgrecipe"
 	"github.com/jcfug8/daylear/server/ports/config"
 	"github.com/jcfug8/daylear/server/ports/imagegenerator"
-	"github.com/jcfug8/daylear/server/ports/ingredientcleaner"
-	"github.com/jcfug8/daylear/server/ports/recipeocr"
+	"github.com/jcfug8/daylear/server/ports/recipescraper"
 	"github.com/rs/zerolog"
 	"go.uber.org/fx"
 	"google.golang.org/genai"
 )
 
-var _ recipeocr.Client = &RecipeGeminiClient{}
-var _ ingredientcleaner.Client = &RecipeGeminiClient{}
+var _ recipescraper.Client = &RecipeGeminiClient{}
 var _ imagegenerator.Client = &RecipeGeminiClient{}
+
+var recipePromptTemplate = `
+		  - Do not make up any content that is not there, but correct any typos or errors that seem useful.
+		  - Use the full name of the unit, not the abbreviation. i.e. "1 cup" not "1 c" or "1 tablespoon" not "1 tbsp".
+		  - the basic format of an ingredient should be '{amount} {unit} {ingredient}'.
+		  - If there are clearly multiple sets of ingredients for different parts of the recipe, then the ingredients must be output as a itemList. The @type for each group shold be 'IngredientSection', the @type for each ingredient should be 'Ingredient', and the text of the ingredient should be keyed by 'text'. This is not in the schema.org/Recipe but that is how i want to format it.
+		  - If an igredient item list an alternative ingredient append '[{alternative name}]' to the first ingredient name. The input may be formatted like, but not limited to, "1 cup honey or brown sugar" or "1 cup honey (brown sugar)"
+		  - If the ingredient has two measurements that are to be treated as a range, then the output ingredient should be formatted like. "1 -- 2 cups sugar". The input may be formatted like, but not limited to, "1 - 2 cups sugar" or "1 to 2 cups sugar".
+		  - If the ingredient has two measurements that should be combined or added together and are using two different units, then the output ingredient should be formatted like "1 cup && 1 tablespoon sugar". The input may be formatted like, but not limited to, "1 cup + 1 tablespoon sugar" or "1 cup and 1 tablespoon sugar".
+		  - If the ingredient has two measurements but only one should be used, e.i one is volume and the other is weight, then the output ingredient should be formatted like. "1 cup || 100 grams sugar". The input may be formatted like, but not limited to, "1 cup or 100 grams sugar" or "1 cup (100 grams) sugar" or "1 cup sugar - 100 grams".
+		  - Steps can, but don't have to, be grouped using a itemList if the steps are related to a specific section of the recipe. Do this if it would help clarify the recipe directions.
+		  - If the recipe is in a foreign language, translate the recipe to English.
+		  - If the ingredient is optional, end the ingredient with '*'.
+`
 
 type RecipeGeminiClient struct {
 	logger                 zerolog.Logger
@@ -85,24 +97,14 @@ func NewRecipeGeminiClient(params RecipeGeminiClientParams) (*RecipeGeminiClient
 	}, nil
 }
 
-func (c *RecipeGeminiClient) OCRRecipe(ctx context.Context, files []file.File) (recipe model.Recipe, err error) {
+func (c *RecipeGeminiClient) RecipeFromImage(ctx context.Context, files []file.File) (recipe model.Recipe, err error) {
 	log := logutil.EnrichLoggerWithContext(c.logger, ctx)
 
 	parts := []*genai.Part{
 		genai.NewPartFromText(
 			`Please convert the recipe on the image(s) to the schema.org/Recipe format as JSON. Only output the JSON. Do not include any other text or comments. If no recipe is found, return an empty JSON object and do not make up a recipe. 
 		When formatting a recipe:
-		  - The images may be out of order so please first figure out the order of the images, then parse the recipe from the images in the correct order.
-		  - Do not make up any content that is not in the image, but correct any typos or errors that seem useful.
-		  - Use the full name of the unit, not the abbreviation. i.e. "1 cup" not "1 c" or "1 tablespoon" not "1 tbsp".
-		  - the basic format of an ingredient should be '{amount} {unit} {ingredient}'.
-		  - If there are multiple ingredients with the same name, specify the part of the recipe that the ingredient is used in by appending '({part of recipe})' to the ingredient name. Do not do this unless there is actual ambiguity in the recipe.
-		  - If an igredient item list an alternative ingredient append '[alternative name]' to the first ingredient name. The input may be formatted like, but not limited to, "1 cup honey or brown sugar" or "1 cup honey (brown sugar)"
-		  - If the ingredient has two measurements that are to be treated as a range, then the output ingredient should be formatted like. "1 to 2 cups sugar". The input may be formatted like, but not limited to, "1 - 2 cups sugar" or "1 to 2 cups sugar".
-		  - If the ingredient has two measurements that should be combined or added together and are using two different units, then the output ingredient should be formatted like "1 cup and 1 tablespoon sugar". The input may be formatted like, but not limited to, "1 cup + 1 tablespoon sugar" or "1 cup and 1 tablespoon sugar".
-		  - If the ingredient has two measurements but only one should be used, e.i one is volume and the other is weight, then the output ingredient should be formatted like. "1 cup or 100 grams sugar". The input may be formatted like, but not limited to, "1 cup or 100 grams sugar" or "1 cup (100 grams) sugar" or "1 cup sugar - 100 grams".
-		  - Steps can, but don't have to, be grouped using a itemListElement if the steps are related to a specific section of the recipe. Do this if it would help clarify the recipe directions.
-		  - If the recipe is in a foreign language, translate the recipe to English.`,
+		  - The images may be out of order so please first figure out the order of the images, then parse the recipe from the images in the correct order` + recipePromptTemplate,
 		),
 	}
 	for _, file := range files {
@@ -121,8 +123,8 @@ func (c *RecipeGeminiClient) OCRRecipe(ctx context.Context, files []file.File) (
 	modelName := ""
 	for {
 		if tryCount >= len(c.modelNames) {
-			log.Error().Msg("failed to get recipe from gemini after trying all models")
-			return model.Recipe{}, fmt.Errorf("failed to get recipe from gemini after %d tries", tryCount)
+			log.Error().Msg("failed to get recipe from image after trying all models")
+			return model.Recipe{}, fmt.Errorf("failed to get recipe from image after %d tries", tryCount)
 		}
 		tryCount++
 		modelName = c.getModelName()
@@ -157,27 +159,20 @@ func (c *RecipeGeminiClient) OCRRecipe(ctx context.Context, files []file.File) (
 	}
 
 	recipe = schemaorgrecipe.ToModelRecipe(schemaRecipe)
-	log.Info().Str("model", modelName).Interface("recipe", recipe).Interface("schemaRecipe", schemaRecipe).Msg("ran OCR")
+	log.Info().Str("model", modelName).Interface("recipe", recipe).Interface("schemaRecipe", schemaRecipe).Msg("ran recipe from image")
 
 	return recipe, nil
 }
 
-func (c *RecipeGeminiClient) CleanIngredients(ctx context.Context, ingredients []string) (cleanedIngredients []string, err error) {
+func (c *RecipeGeminiClient) RecipeFromData(ctx context.Context, data []byte) (recipe model.Recipe, err error) {
 	log := logutil.EnrichLoggerWithContext(c.logger, ctx)
 
 	parts := []*genai.Part{
 		genai.NewPartFromText(
-			`Please clean up this newline separated list of recipe ingredients and return the cleaned newline separated list of ingredients. The output must be a newline separated list of ingredients. Do not include any other text or comments.
-		When cleaning the list of recipe ingredients:
-		  - Use the full name of the unit, not the abbreviation. i.e. "1 cup" not "1 c" or "1 tablespoon" not "1 tbsp".
-		  - a basic format of an ingredient should be '{amount} {unit} {ingredient}'.
-		  - If there are multiple ingredients with the same name, specify the part of the recipe that the ingredient is used in by appending '({part of recipe})' to the ingredient name. Do not do this unless there is actual ambiguity in the recipe.
-		  - If an igredient item list an alternative ingredient append '[alternative name]' to the first ingredient name. The input may be formatted like, but not limited to, "1 cup honey or brown sugar" or "1 cup honey (brown sugar)"
-		  - If the ingredient has two measurements that are to be treated as a range, then the output ingredient should be formatted like. "1 to 2 cups sugar". The input may be formatted like, but not limited to, "1 - 2 cups sugar" or "1 to 2 cups sugar".
-		  - If the ingredient has two measurements that should be combined or added together and are using two different units, then the output ingredient should be formatted like "1 cup and 1 tablespoon sugar". The input may be formatted like, but not limited to, "1 cup + 1 tablespoon sugar" or "1 cup and 1 tablespoon sugar".
-		  - If the ingredient has two measurements but only one should be used, e.i one is volume and the other is weight, then the output ingredient should be formatted like. "1 cup or 100 grams sugar". The input may be formatted like, but not limited to, "1 cup or 100 grams sugar" or "1 cup (100 grams) sugar" or "1 cup sugar - 100 grams".`,
+			`Please use the scraped web page data from https://recipeyumm.com/the-best-cowboy-caviar-ever/ and convert itinto the schema.org/Recipe format as JSON. Only output the JSON. Do not include any other text or comments. If no recipe is found, return an empty JSON object and do not make up a recipe. 
+		When formatting a recipe:` + recipePromptTemplate,
 		),
-		genai.NewPartFromText(strings.Join(ingredients, "\n")),
+		genai.NewPartFromText(fmt.Sprintf("`Here is the scraped web page data: \n%s`", string(data))),
 	}
 
 	content := genai.NewContentFromParts(parts, genai.RoleUser)
@@ -187,15 +182,15 @@ func (c *RecipeGeminiClient) CleanIngredients(ctx context.Context, ingredients [
 	modelName := ""
 	for {
 		if tryCount >= len(c.modelNames) {
-			log.Error().Msg("failed to get recipe from gemini after trying all models")
-			return nil, fmt.Errorf("failed to get recipe from gemini after %d tries", tryCount)
+			log.Error().Msg("failed to get recipe from data after trying all models")
+			return model.Recipe{}, fmt.Errorf("failed to get recipe from data after %d tries", tryCount)
 		}
 		tryCount++
 		modelName = c.getModelName()
-		log.Info().Str("model", modelName).Msg("attempting cleaning ingredients")
+		log.Info().Str("model", modelName).Msg("attempting to get recipe from data")
 		resp, err = c.client.Models.GenerateContent(ctx, modelName, []*genai.Content{content}, nil)
 		if err != nil {
-			log.Info().Err(err).Str("model", modelName).Msg("failed cleaning ingredients")
+			log.Info().Err(err).Str("model", modelName).Msg("failed to get recipe from data")
 			continue
 		}
 		break
@@ -207,14 +202,25 @@ func (c *RecipeGeminiClient) CleanIngredients(ctx context.Context, ingredients [
 	}
 	if text == "" {
 		log.Warn().Msg("no text response from Gemini")
-		return nil, fmt.Errorf("no text response from Gemini")
+		return model.Recipe{}, fmt.Errorf("no text response from Gemini")
 	}
 
-	cleanedIngredients = strings.Split(text, "\n")
+	text = strings.TrimSpace(text)
+	text = strings.TrimPrefix(text, "```json")
+	text = strings.TrimSuffix(text, "```")
+	text = strings.TrimSpace(text)
 
-	log.Info().Str("model", modelName).Interface("ingredients", ingredients).Interface("cleanedIngredients", cleanedIngredients).Msg("cleaned ingredients")
+	var schemaRecipe schemaorgrecipe.SchemaOrgRecipe
+	err = json.Unmarshal([]byte(text), &schemaRecipe)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to unmarshal schema.org recipe")
+		return model.Recipe{}, fmt.Errorf("failed to unmarshal schema.org recipe: %w", err)
+	}
 
-	return cleanedIngredients, nil
+	recipe = schemaorgrecipe.ToModelRecipe(schemaRecipe)
+	log.Info().Str("model", modelName).Interface("recipe", recipe).Interface("schemaRecipe", schemaRecipe).Msg("ran recipe from data")
+
+	return recipe, nil
 }
 
 func (c *RecipeGeminiClient) GenerateRecipeImage(ctx context.Context, recipe model.Recipe) (file.File, error) {

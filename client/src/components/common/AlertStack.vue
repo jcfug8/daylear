@@ -37,12 +37,13 @@ const remove = alertStore.removeAlert;
 }
 .alert {
   min-width: 250px;
+  max-width: 500px;
   padding: 1rem 2.5rem 1rem 1rem;
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   color: #fff;
   position: relative;
-  font-size: 1rem;
+  font-size: .9rem;
   animation: fadein 0.2s;
 }
 .alert.info { background: #2196f3; }

@@ -1,10 +1,14 @@
 package domain
 
 import (
+	"bytes"
+	"compress/flate"
+	"compress/gzip"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
-	"net/url"
+	"net/http"
 	"path"
 	"strconv"
 
@@ -13,11 +17,14 @@ import (
 	// "strconv"
 	// "strings"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/jcfug8/daylear/server/core/file"
 	model "github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/core/schemaorgrecipe"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
-	"github.com/jcfug8/daylear/server/ports/recipescraper"
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/rs/zerolog"
 	uuid "github.com/satori/go.uuid"
 
 	// "github.com/jcfug8/daylear/server/ports/repository"
@@ -457,28 +464,135 @@ func (d *Domain) ScrapeRecipe(ctx context.Context, authAccount model.AuthAccount
 		}
 	}
 
-	parsedURI, err := url.Parse(uri)
+	request, err := http.NewRequestWithContext(ctx, "GET", uri, nil)
 	if err != nil {
-		log.Warn().Err(err).Msg("invalid uri")
-		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "invalid uri"}
+		log.Error().Err(err).Str("uri", uri).Msg("failed to create request")
+		return model.Recipe{}, fmt.Errorf("failed to create request: %w", err)
+	}
+	// Set a common browser User-Agent
+	request.Header.Set("User-Agent", "Daylear/1.0")
+	request.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	request.Header.Set("Accept-Language", "en-US,en;q=0.5")
+	request.Header.Set("Accept-Encoding", "gzip, deflate")
+	request.Header.Set("Connection", "keep-alive")
+	request.Header.Set("Upgrade-Insecure-Requests", "1")
+
+	resp, err := http.DefaultClient.Do(request)
+	if err != nil {
+		log.Error().Err(err).Str("uri", uri).Msg("failed to fetch url")
+		return model.Recipe{}, fmt.Errorf("failed to fetch url: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		l := log.Warn().Str("uri", uri).Int("status_code", resp.StatusCode)
+		if len(body) > 0 {
+			l.Str("body", string(body))
+		}
+		l.Msg("non-200 response")
+		return model.Recipe{}, fmt.Errorf("non-200 response: %d", resp.StatusCode)
 	}
 
-	host := parsedURI.Host
-
-	var scraper recipescraper.DefaultClient
-
-	scraper, ok := d.recipeScrapers[host]
-	if !ok {
-		scraper = d.defaultRecipeScraper
+	var reader io.Reader = resp.Body
+	switch resp.Header.Get("Content-Encoding") {
+	case "gzip":
+		r, err := gzip.NewReader(resp.Body)
+		if err != nil {
+			return model.Recipe{}, err
+		}
+		defer r.Close()
+		reader = r
+	case "deflate":
+		r := flate.NewReader(resp.Body)
+		defer r.Close()
+		reader = r
 	}
 
-	recipe, err = scraper.ScrapeRecipe(ctx, uri)
+	body, err := io.ReadAll(reader)
 	if err != nil {
-		log.Error().Err(err).Msg("scraper.ScrapeRecipe failed")
+		fmt.Println("unable to read body", err.Error())
+		return
+	}
+
+	extraRecipeData := d.appendSchemaOrgRecipe(log, body)
+	body = bluemonday.StrictPolicy().SanitizeBytes(body)
+
+	recipe, err = d.recipeScraper.RecipeFromData(ctx, body)
+	if err != nil {
+		log.Error().Err(err).Msg("recipeScraper.RecipeFromData failed")
 		return model.Recipe{}, err
 	}
 
+	if extraRecipeData.ImageURI != "" {
+		recipe.ImageURI = extraRecipeData.ImageURI
+	}
+	recipe.Citation = uri
+
 	return recipe, nil
+}
+
+func (d *Domain) appendSchemaOrgRecipe(log zerolog.Logger, body []byte) model.Recipe {
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(body))
+	if err != nil {
+		log.Error().Err(err).Msg("failed to parse HTML")
+		return model.Recipe{}
+	}
+
+	// Try to parse JSON-LD first
+	schemaTag := doc.Find("script[type='application/ld+json']")
+	found := false
+	schemaRecipes := []schemaorgrecipe.SchemaOrgRecipe{}
+	schemaRecipe := schemaorgrecipe.SchemaOrgRecipe{}
+	schemaTag.EachWithBreak(func(i int, s *goquery.Selection) bool {
+		schemaRecipes = []schemaorgrecipe.SchemaOrgRecipe{}
+		schemaRecipe = schemaorgrecipe.SchemaOrgRecipe{}
+
+		jsonText := s.Text()
+		// Try @graph object
+		var graphObj map[string]interface{}
+		err := json.Unmarshal([]byte(jsonText), &graphObj)
+		if err == nil {
+			if graph, ok := graphObj["@graph"]; ok {
+				if arr, ok := graph.([]interface{}); ok {
+					for _, item := range arr {
+						if m, ok := item.(map[string]interface{}); ok {
+							typeVal, _ := m["@type"].(string)
+							if typeVal == "Recipe" {
+								b, _ := json.Marshal(m)
+								_ = json.Unmarshal(b, &schemaRecipe)
+								found = true
+								return false // break
+							}
+						}
+					}
+				}
+			}
+		}
+		// Try array of recipes
+		err = json.Unmarshal([]byte(jsonText), &schemaRecipes)
+		if err == nil && len(schemaRecipes) > 0 {
+			for _, rec := range schemaRecipes {
+				if schemaorgrecipe.AsString(rec.Type) == "Recipe" {
+					schemaRecipe = rec
+					found = true
+					return false // break
+				}
+			}
+		}
+		// Try single recipe
+		err = json.Unmarshal([]byte(jsonText), &schemaRecipe)
+		if err == nil && schemaorgrecipe.AsString(schemaRecipe.Type) == "Recipe" {
+			found = true
+			return false // break
+		}
+		return true // continue
+	})
+	if !found {
+		log.Warn().Msg("no schema.org recipe found in ld+json")
+		return model.Recipe{}
+	}
+
+	return schemaorgrecipe.ToModelRecipe(schemaRecipe)
 }
 
 func (d *Domain) OCRRecipe(ctx context.Context, authAccount model.AuthAccount, imageReaders []io.Reader) (recipe model.Recipe, err error) {
@@ -508,9 +622,9 @@ func (d *Domain) OCRRecipe(ctx context.Context, authAccount model.AuthAccount, i
 		files = append(files, file)
 	}
 
-	recipe, err = d.recipeOCR.OCRRecipe(ctx, files)
+	recipe, err = d.recipeScraper.RecipeFromImage(ctx, files)
 	if err != nil {
-		log.Error().Err(err).Msg("recipeOCR.OCRRecipe failed")
+		log.Error().Err(err).Msg("recipeScraper.RecipeFromImage failed")
 		return model.Recipe{}, err
 	}
 

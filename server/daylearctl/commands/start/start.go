@@ -9,7 +9,6 @@ import (
 	gorm_dialer "github.com/jcfug8/daylear/server/adapters/clients/gorm/dialer"
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/dialer/dialects/postgres"
 	"github.com/jcfug8/daylear/server/adapters/clients/http/fileretriever"
-	"github.com/jcfug8/daylear/server/adapters/clients/http/recipescraper"
 	"github.com/jcfug8/daylear/server/adapters/clients/imagemagick"
 	tokenClient "github.com/jcfug8/daylear/server/adapters/clients/jwt/token"
 	s3 "github.com/jcfug8/daylear/server/adapters/clients/s3"
@@ -80,7 +79,6 @@ func start(opts ...fx.Option) error {
 		s3.Module,
 		imagemagick.Module,
 		fileretriever.Module,
-		recipescraper.Module,
 		gemini.Module,
 
 		// domain

@@ -85,7 +85,7 @@ func ParseIngredient(text string) (amount1 float64, unit1 string, conj string, a
 	conjWord := ""
 	for i, p := range parts {
 		lp := strings.ToLower(p)
-		if lp == "and" || lp == "+" || lp == "or" || lp == "to" || lp == "-" {
+		if lp == "&&" || lp == "||" || lp == "--" {
 			conjIdx = i
 			conjWord = lp
 			break
@@ -149,7 +149,7 @@ func ParseIngredient(text string) (amount1 float64, unit1 string, conj string, a
 		unit2 = parts[unit2Idx]
 		name = strings.Join(parts[unit2Idx+1:], " ")
 
-		if unit1 == unit2 && (conjWord == "and" || conjWord == "+") {
+		if unit1 == unit2 && (conjWord == "&&") {
 			return amount1 + amount2, unit1, "", 0, "", name
 		}
 		return amount1, unit1, conjWord, amount2, unit2, name
@@ -246,11 +246,11 @@ func MapUnitToMeasurementType(unit string) pb.Recipe_MeasurementType {
 // Helper to map conjunction string to proto enum
 func MapConjunctionToProto(conj string) pb.Recipe_Ingredient_MeasurementConjunction {
 	switch conj {
-	case "and", "+":
+	case "&&":
 		return pb.Recipe_Ingredient_MEASUREMENT_CONJUNCTION_AND
-	case "or":
+	case "||":
 		return pb.Recipe_Ingredient_MEASUREMENT_CONJUNCTION_OR
-	case "to", "-":
+	case "--":
 		return pb.Recipe_Ingredient_MEASUREMENT_CONJUNCTION_TO
 	default:
 		return pb.Recipe_Ingredient_MEASUREMENT_CONJUNCTION_UNSPECIFIED
@@ -327,7 +327,7 @@ func ToModelRecipe(schemaRecipe SchemaOrgRecipe) model.Recipe {
 	var coreRecipe model.Recipe
 	coreRecipe.Title = AsString(schemaRecipe.Name)
 	coreRecipe.Description = AsString(schemaRecipe.Description)
-	coreRecipe.ImageURI = AsString(schemaRecipe.Image)
+	coreRecipe.ImageURI = parseImageURI(schemaRecipe.Image)
 
 	// New fields
 	// Citation: try mainEntityOfPage, url, isBasedOn
@@ -375,9 +375,9 @@ func ToModelRecipe(schemaRecipe SchemaOrgRecipe) model.Recipe {
 	}
 
 	// Ingredients
-	var ingredientGroup model.IngredientGroup
-	var ingredients = AsStringSlice(schemaRecipe.RecipeIngredient)
-	for _, ing := range ingredients {
+	var ingredientGroups []model.IngredientGroup
+	var parseIngredientGroups func(interface{}, string)
+	parseIngredient := func(ing string) model.RecipeIngredient {
 		amount1, unit1, conj, amount2, unit2, name := ParseIngredient(ing)
 		measurementType1 := MapUnitToMeasurementType(unit1)
 		measurementType2 := MapUnitToMeasurementType(unit2)
@@ -385,17 +385,58 @@ func ToModelRecipe(schemaRecipe SchemaOrgRecipe) model.Recipe {
 			name = unit1 + " " + name
 			name = strings.TrimSpace(name)
 		}
-		ingredientGroup.RecipeIngredients = append(ingredientGroup.RecipeIngredients, model.RecipeIngredient{
-			Optional:                false,
+		optional := false
+		if strings.HasSuffix(name, "*") {
+			optional = true
+			name = strings.TrimSuffix(name, "*")
+		}
+		return model.RecipeIngredient{
+			Optional:                optional,
 			MeasurementAmount:       amount1,
 			MeasurementType:         measurementType1,
 			MeasurementConjunction:  MapConjunctionToProto(conj),
 			SecondMeasurementAmount: amount2,
 			SecondMeasurementType:   measurementType2,
 			Title:                   name,
-		})
+		}
 	}
-	coreRecipe.IngredientGroups = []model.IngredientGroup{ingredientGroup}
+	parseIngredientGroups = func(instr interface{}, sectionTitle string) {
+		var ingredients []model.RecipeIngredient
+		switch v := instr.(type) {
+		case string:
+			if v != "" {
+				ingredients = append(ingredients, parseIngredient(v))
+			}
+		case []interface{}:
+			for _, step := range v {
+				switch st := step.(type) {
+				case string:
+					if st != "" {
+						ingredients = append(ingredients, parseIngredient(st))
+					}
+				case map[string]interface{}:
+					typeVal, _ := st["@type"].(string)
+					if typeVal == "IngredientSection" || typeVal == "ItemList" {
+						name, _ := st["name"].(string)
+						parseIngredientGroups(st["itemListElement"], name)
+					} else if typeVal == "Ingredient" {
+						if txt, ok := st["text"].(string); ok && txt != "" {
+							ingredients = append(ingredients, parseIngredient(txt))
+						} else if txt, ok := st["name"].(string); ok && txt != "" {
+							ingredients = append(ingredients, parseIngredient(txt))
+						}
+					}
+				}
+			}
+		}
+		if len(ingredients) > 0 {
+			ingredientGroups = append(ingredientGroups, model.IngredientGroup{Title: sectionTitle, RecipeIngredients: ingredients})
+		}
+	}
+	parseIngredientGroups(schemaRecipe.RecipeIngredient, "")
+	if len(ingredientGroups) > 0 {
+		coreRecipe.IngredientGroups = ingredientGroups
+	}
 
 	// Directions
 	var directions []model.RecipeDirection
@@ -416,11 +457,13 @@ func ToModelRecipe(schemaRecipe SchemaOrgRecipe) model.Recipe {
 					}
 				case map[string]interface{}:
 					typeVal, _ := st["@type"].(string)
-					if typeVal == "HowToSection" {
+					if typeVal == "HowToSection" || typeVal == "ItemList" {
 						name, _ := st["name"].(string)
 						parseInstructions(st["itemListElement"], name)
 					} else if typeVal == "HowToStep" {
 						if txt, ok := st["text"].(string); ok && txt != "" {
+							steps = append(steps, txt)
+						} else if txt, ok := st["name"].(string); ok && txt != "" {
 							steps = append(steps, txt)
 						}
 					}
@@ -437,6 +480,23 @@ func ToModelRecipe(schemaRecipe SchemaOrgRecipe) model.Recipe {
 	}
 	coreRecipe.Visibility = 300
 	return coreRecipe
+}
+
+// parse image uri from schema.org/Recipe
+func parseImageURI(imageData interface{}) string {
+	switch v := imageData.(type) {
+	case string:
+		return v
+	case []interface{}:
+		for _, item := range v {
+			if img, ok := item.(map[string]interface{}); ok {
+				if imgURI, ok := img["url"].(string); ok {
+					return imgURI
+				}
+			}
+		}
+	}
+	return ""
 }
 
 // durationToISO8601 converts a time.Duration to an ISO 8601 duration string (e.g., PT1H30M)
@@ -518,21 +578,32 @@ func directionsToSchemaOrg(directions []model.RecipeDirection) interface{} {
 	return out
 }
 
+func ingredientsToSchemaOrg(ingredients []model.IngredientGroup) interface{} {
+	if len(ingredients) == 1 && ingredients[0].Title == "" {
+		// Single section, no title: return steps as []string
+		return ingredients[0].RecipeIngredients
+	}
+	var out []map[string]interface{}
+	for _, group := range ingredients {
+		section := map[string]interface{}{
+			"@type":           "IngredientSection",
+			"name":            group.Title,
+			"itemListElement": group.RecipeIngredients,
+		}
+		out = append(out, section)
+	}
+	return out
+}
+
 // ToSchemaOrgRecipe converts a model.Recipe to a SchemaOrgRecipe
 func ToSchemaOrgRecipe(r model.Recipe) SchemaOrgRecipe {
-	ingredients := []string{}
-	for _, group := range r.IngredientGroups {
-		for _, ing := range group.RecipeIngredients {
-			ingredients = append(ingredients, ingredientToString(ing))
-		}
-	}
 	return SchemaOrgRecipe{
 		Context:            "https://schema.org/",
 		Type:               "Recipe",
 		Name:               r.Title,
 		Description:        r.Description,
 		Image:              r.ImageURI,
-		RecipeIngredient:   ingredients,
+		RecipeIngredient:   ingredientsToSchemaOrg(r.IngredientGroups),
 		RecipeInstructions: directionsToSchemaOrg(r.Directions),
 		RecipeYield:        r.YieldAmount,
 		DatePublished:      timeToRFC3339(r.CreateTime),

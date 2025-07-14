@@ -8,7 +8,6 @@ import (
 	"github.com/jcfug8/daylear/server/ports/filestorage"
 	"github.com/jcfug8/daylear/server/ports/image"
 	"github.com/jcfug8/daylear/server/ports/imagegenerator"
-	"github.com/jcfug8/daylear/server/ports/recipeocr"
 	"github.com/jcfug8/daylear/server/ports/recipescraper"
 	"github.com/jcfug8/daylear/server/ports/repository"
 	"github.com/jcfug8/daylear/server/ports/token"
@@ -36,36 +35,22 @@ type DomainParams struct {
 	ImageClient    image.Client
 	FileRetriever  fileretriever.Client
 	ImageGenerator imagegenerator.Client
-
-	RecipeScrapers       []recipescraper.HostSpecificClient `group:"recipescrapers"`
-	DefaultRecipeScraper recipescraper.DefaultClient
-
-	RecipeOCR recipeocr.Client
+	RecipeScraper  recipescraper.Client
 }
 
 // NewDomain creates a new domain.
 func NewDomain(params DomainParams) domainPort.Domain {
-	recipeScrapers := make(map[string]recipescraper.HostSpecificClient)
-	for _, scraper := range params.RecipeScrapers {
-		for _, host := range scraper.GetHost() {
-			recipeScrapers[host] = scraper
-		}
-	}
-
 	d := &Domain{
 		log:  params.Log,
 		repo: params.Repo,
 
-		tokenClient:          params.TokenClient,
-		tokenStore:           &sync.Map{},
-		fileStore:            params.ImageStore,
-		imageClient:          params.ImageClient,
-		fileRetriever:        params.FileRetriever,
-		imageGenerator:       params.ImageGenerator,
-		recipeScrapers:       recipeScrapers,
-		defaultRecipeScraper: params.DefaultRecipeScraper,
-
-		recipeOCR: params.RecipeOCR,
+		tokenClient:    params.TokenClient,
+		tokenStore:     &sync.Map{},
+		fileStore:      params.ImageStore,
+		imageClient:    params.ImageClient,
+		fileRetriever:  params.FileRetriever,
+		imageGenerator: params.ImageGenerator,
+		recipeScraper:  params.RecipeScraper,
 	}
 	return d
 }
@@ -75,14 +60,11 @@ type Domain struct {
 	log  zerolog.Logger
 	repo repository.Client
 
-	tokenClient          token.Client
-	tokenStore           *sync.Map
-	fileStore            filestorage.Client
-	imageClient          image.Client
-	fileRetriever        fileretriever.Client
-	imageGenerator       imagegenerator.Client
-	recipeScrapers       map[string]recipescraper.HostSpecificClient
-	defaultRecipeScraper recipescraper.DefaultClient
-
-	recipeOCR recipeocr.Client
+	tokenClient    token.Client
+	tokenStore     *sync.Map
+	fileStore      filestorage.Client
+	imageClient    image.Client
+	fileRetriever  fileretriever.Client
+	imageGenerator imagegenerator.Client
+	recipeScraper  recipescraper.Client
 }

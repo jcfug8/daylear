@@ -79,7 +79,7 @@
                     @click="removeIngredient(i, j)"
                   ></v-btn>
                 </v-col>
-                <v-col cols="12" sm="12" class="d-flex align-center">
+                <v-col cols="6" class="d-flex align-center">
                   <v-btn
                     size="small"
                     variant="text"
@@ -88,6 +88,15 @@
                   >
                     {{ showSecondMeasurementMap[i]?.[j] ? 'Remove second measurement' : 'Add another measurement' }}
                   </v-btn>
+                </v-col>
+                <v-col cols="6" class="d-flex justify-end">
+                  <v-checkbox
+                    density="compact"
+                    hide-details
+                    v-model="ingredient.optional"
+                    label="Optional"
+                    class="mt-0"
+                  ></v-checkbox>
                 </v-col>
                 <template v-if="showSecondMeasurementMap[i]?.[j]">
                   <v-col cols="12" sm="3">
@@ -129,15 +138,6 @@
                     ></v-select>
                   </v-col>
                 </template>
-                <v-col cols="6" sm="12" class="d-flex justify-end">
-                  <v-checkbox
-                    density="compact"
-                    hide-details
-                    v-model="ingredient.optional"
-                    label="Optional"
-                    class="mt-0"
-                  ></v-checkbox>
-                </v-col>
               </v-row>
             </div>
           </div>
