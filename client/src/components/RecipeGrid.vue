@@ -38,6 +38,7 @@
           <v-chip
             v-if="recipe.recipeAccess?.permissionLevel"
             size="small"
+            variant="elevated"
             :color="getPermissionColor(recipe.recipeAccess?.permissionLevel)"
             class="permission-chip"
           >
@@ -134,7 +135,7 @@ function getPermissionText(permission: string) {
 
 .permission-chip {
   position: absolute;
-  top: 8px;
+  bottom: 8px;
   right: 8px;
   z-index: 1;
 }

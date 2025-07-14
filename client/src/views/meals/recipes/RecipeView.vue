@@ -132,11 +132,11 @@
       </v-tabs-window-item>
       <v-tabs-window-item value="ingredients">
         <v-container max-width="600">
-          <v-card class="my-4 mx-1 pa-2" v-for="(ingredientGroup, i) in recipe.ingredientGroups" :key="i">
+          <v-card class="my-1" v-for="(ingredientGroup, i) in recipe.ingredientGroups" :key="i">
             <v-card-title v-if="ingredientGroup.title">{{ ingredientGroup.title }}</v-card-title>
             <v-card-text>
               <v-list>
-                <v-list-item slim prepend-icon="mdi-circle-small" v-for="(ingredient, j) in ingredientGroup.ingredients"
+                <v-list-item class="ingredient-item" slim prepend-icon="mdi-circle-small" v-for="(ingredient, j) in ingredientGroup.ingredients"
                   :key="j">
                   <strong>
                   <span v-if="ingredient.measurementAmount">{{ isFranctional(ingredient.measurementType) ? toFraction(ingredient.measurementAmount ?? 0) : ingredient.measurementAmount }}</span>
@@ -156,7 +156,7 @@
       </v-tabs-window-item>
       <v-tabs-window-item value="directions">
         <v-container max-width="600">
-          <v-card class="my-4 mx-1 pa-2" v-for="(direction, i) in recipe.directions" :key="i">
+          <v-card class="my-1" v-for="(direction, i) in recipe.directions" :key="i">
             <v-card-title v-if="direction.title">{{ direction.title }}</v-card-title>
             <v-card-text>
               <v-list>
@@ -863,5 +863,8 @@ function parseDuration(duration: string): number {
 }
 .generate-image-btn {
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.ingredient-item {
+  min-height: auto;
 }
 </style>

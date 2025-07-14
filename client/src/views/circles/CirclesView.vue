@@ -5,20 +5,15 @@
   >
     <template #my="{ items, loading }">
       <div class="d-flex justify-space-between align-center mb-4">
-        <h2>My Circles</h2>
       </div>
       <CircleGrid :circles="items" :loading="loading" />
     </template>
-    <template #shared-accepted="{ items, loading }">
-      <CircleGrid :circles="items" :loading="loading" />
-    </template>
-    <template #shared-pending="{ items, loading }">
+    <template #pending="{ items, loading }">
       <CircleGrid :circles="items" :loading="loading" @accept="acceptCircleAccess" :acceptingCircleId="acceptingCircleId" @decline="onDeclineCircle" />
       <div v-if="!loading && items.length === 0">No pending shared circles found.</div>
     </template>
     <template #explore="{ items, loading }">
       <div class="d-flex justify-space-between align-center mb-4">
-        <h2>Explore Public Circles</h2>
       </div>
       <CircleGrid :circles="items" :loading="loading" />
     </template>
@@ -58,26 +53,12 @@ const tabs = [
     },
   },
   {
-    label: 'Shared Circles',
-    value: 'shared',
-    subTabs: [
-      {
-        label: 'Accepted',
-        value: 'accepted',
-        loader: async () => {
-          await circlesStore.loadSharedCircles(200)
-          return [...circlesStore.sharedAcceptedCircles]
-        },
-      },
-      {
-        label: 'Pending',
-        value: 'pending',
-        loader: async () => {
-          await circlesStore.loadSharedCircles(100)
-          return [...circlesStore.sharedPendingCircles]
-        },
-      },
-    ],
+    label: 'Pending',
+    value: 'pending',
+    loader: async () => {
+      await circlesStore.loadSharedCircles(100)
+      return [...circlesStore.sharedPendingCircles]
+    },
   },
   {
     label: 'Explore Circles',
@@ -94,9 +75,7 @@ async function acceptCircleAccess(circle: Circle) {
   acceptingCircleId.value = circle.name
   try {
     await circleAccessService.AcceptAccess({ name: circle.circleAccess?.name })
-    // Reload both accepted and pending subtabs
-    tabsPage.value?.reloadTab('shared', 'accepted')
-    tabsPage.value?.reloadTab('shared', 'pending')
+    tabsPage.value?.reloadTab('pending')
   } catch (error) {
     // Optionally show a notification
   } finally {
@@ -109,7 +88,7 @@ async function onDeclineCircle(circle: Circle) {
   try {
     await circleAccessService.DeleteAccess({ name: circle.circleAccess.name })
     // Reload only the pending subtab
-    tabsPage.value?.reloadTab('shared', 'pending')
+    tabsPage.value?.reloadTab('pending')
   } catch (error) {
     // Optionally show a notification
   }

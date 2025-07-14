@@ -123,7 +123,7 @@ function getPermissionText(permission: string) {
 
 .permission-chip {
   position: absolute;
-  top: 8px;
+  bottom: 8px;
   right: 8px;
   z-index: 1;
 }

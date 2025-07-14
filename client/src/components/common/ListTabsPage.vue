@@ -1,10 +1,11 @@
 <template>
   <v-container>
     <v-tabs v-model="activeTab" align-tabs="center" color="primary" grow>
-      <v-tab v-for="tab in tabs" :key="tab.value" :value="tab.value">
+      <v-tab density="compact" v-for="tab in tabs" :key="tab.value" :value="tab.value">
         {{ tab.label }}
       </v-tab>
     </v-tabs>
+    <slot name="filter" />
     <v-card-text>
       <v-tabs-window v-model="activeTab">
         <v-tabs-window-item v-for="tab in tabs" :key="tab.value" :value="tab.value">

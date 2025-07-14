@@ -139,6 +139,7 @@
                   </v-col>
                 </template>
               </v-row>
+              <v-divider class="my-1"></v-divider>
             </div>
           </div>
           <v-btn block variant="text" prepend-icon="mdi-plus" class="mt-2" @click="addIngredient(i)"

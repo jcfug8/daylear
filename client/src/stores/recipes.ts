@@ -38,7 +38,7 @@ export const useRecipesStore = defineStore('recipes', () => {
 
   // Load my recipes (recipes where I have admin permission)
   async function loadMyRecipes(parent: string) {
-    const recipes = await loadRecipes(parent, 'permission = 300')
+    const recipes = await loadRecipes(parent, 'permission = 300 OR ((permission = 200 OR permission = 100) AND state = 200)')
     myRecipes.value = recipes
   }
 

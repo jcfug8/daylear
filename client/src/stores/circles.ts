@@ -94,7 +94,7 @@ export const useCirclesStore = defineStore('circles', () => {
 
   // Load my circles (admin permission)
   async function loadMyCircles() {
-    const circles = await loadCircles('permission = 300')
+    const circles = await loadCircles('permission = 300 OR (permission = 200 AND state = 200)')
     myCircles.value = circles
   }
 

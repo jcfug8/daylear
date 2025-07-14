@@ -27,7 +27,6 @@ const router = createRouter({
       component: () => import('../views/meals/recipes/RecipesView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {

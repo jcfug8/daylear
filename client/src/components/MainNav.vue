@@ -1,5 +1,5 @@
 <template>
-  <v-app-bar>
+  <v-app-bar density="compact">
     <template #prepend>
       <v-app-bar-nav-icon @click.stop="toggleNavDrawer" v-if="isLoggedIn"></v-app-bar-nav-icon>
     </template>
@@ -51,7 +51,7 @@
     </v-list>
   </v-navigation-drawer>
   <v-app-bar v-if="$route.meta.breadcrumbs && breadcrumbs.length > 0" flat density="compact">
-    <v-breadcrumbs
+    <v-breadcrumbs density="compact"
       :items="breadcrumbs.map((crumb) => ({ title: crumb.title, to: crumb.to }))"
     ></v-breadcrumbs>
   </v-app-bar>
