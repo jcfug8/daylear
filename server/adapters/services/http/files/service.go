@@ -45,7 +45,9 @@ func (s *Service) Register(m *http.ServeMux) error {
 
 	s.log.Info().Msg("Registering files service routes")
 	r.HandleFunc("/meals/v1alpha1/{name:recipes/[0-9]+}/image", s.UploadRecipeImage).Methods(http.MethodPut)
+	r.HandleFunc("/meals/v1alpha1/{name:circles/[0-9]*/recipes/[0-9]+}/image", s.UploadRecipeImage).Methods(http.MethodPut)
 	r.HandleFunc("/meals/v1alpha1/{name:recipes/[0-9]+}/image:generate", s.GenerateRecipeImage).Methods(http.MethodGet)
+	r.HandleFunc("/meals/v1alpha1/{name:circles/[0-9]*/recipes/[0-9]+}/image:generate", s.GenerateRecipeImage).Methods(http.MethodGet)
 
 	r.HandleFunc("/circles/v1alpha1/{name:circles/[0-9]+}/image", s.UploadCircleImage).Methods(http.MethodPut)
 
