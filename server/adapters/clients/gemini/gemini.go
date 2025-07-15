@@ -229,6 +229,7 @@ func (c *RecipeGeminiClient) GenerateRecipeImage(ctx context.Context, recipe mod
 	schemaRecipe := schemaorgrecipe.ToSchemaOrgRecipe(recipe)
 	schemaRecipeJson, err := json.Marshal(schemaRecipe)
 	if err != nil {
+		log.Error().Err(err).Msg("failed to marshal schema.org recipe")
 		return file.File{}, fmt.Errorf("failed to marshal schema.org recipe: %w", err)
 	}
 
