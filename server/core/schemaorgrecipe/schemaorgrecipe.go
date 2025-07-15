@@ -585,10 +585,17 @@ func ingredientsToSchemaOrg(ingredients []model.IngredientGroup) interface{} {
 	}
 	var out []map[string]interface{}
 	for _, group := range ingredients {
+		var ings []map[string]interface{}
+		for _, ingredient := range group.RecipeIngredients {
+			ings = append(ings, map[string]interface{}{
+				"@type": "HowToStep",
+				"text":  ingredientToString(ingredient),
+			})
+		}
 		section := map[string]interface{}{
 			"@type":           "IngredientSection",
 			"name":            group.Title,
-			"itemListElement": group.RecipeIngredients,
+			"itemListElement": ings,
 		}
 		out = append(out, section)
 	}

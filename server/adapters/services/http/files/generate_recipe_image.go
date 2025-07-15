@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/core/model"
+	"github.com/rs/zerolog/log"
 )
 
 func (s *Service) GenerateRecipeImage(w http.ResponseWriter, r *http.Request) {
@@ -30,6 +31,7 @@ func (s *Service) GenerateRecipeImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Info().Msgf("Generating recipe image for %d", mRecipe.Id)
 	file, err := s.domain.GenerateRecipeImage(r.Context(), authAccount, mRecipe.Parent, mRecipe.Id)
 	if err != nil {
 		http.Error(w, "Failed to generate recipe image", http.StatusInternalServerError)

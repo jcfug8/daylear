@@ -146,3 +146,14 @@ const { isLoggedIn, activeAccount, user, circles } = storeToRefs(authStore)
 const { breadcrumbs } = storeToRefs(breadcrumbStore)
 console.log('breadcrumbs', breadcrumbs.value)
 </script>
+
+<style>
+.v-breadcrumbs-item--link {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 33vw;
+  vertical-align: bottom;
+}
+</style>
