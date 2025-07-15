@@ -1,5 +1,5 @@
 <template>
-  <v-container max-width="600">
+  <v-container class="pl-0" max-width="600">
     <div v-for="(ingredientGroup, i) in recipe.ingredientGroups" :key="i" class="d-flex gap-2 mb-4">
       <move-buttons
         :show-up="i > 0"
@@ -141,7 +141,7 @@
                   ></v-checkbox>
                 </v-col>
               </v-row>
-              <v-divider class="mb-3 mt-4"></v-divider>
+              <v-divider class="mb-4 mt-4"></v-divider>
             </div>
           </div>
           <v-btn block variant="text" prepend-icon="mdi-plus" class="mt-2" @click="addIngredient(i)"
@@ -267,4 +267,15 @@ function removeIngredient(groupIndex: number, ingredientIndex: number) {
 .gap-2 {
   gap: 8px;
 }
+</style>
+
+<style scoped lang="scss">
+// .v-input--density-compact {
+//     --v-input-control-height: 24px;
+//     --v-input-padding-top: 2px;
+// }
+  
+// .v-input--density-compact .v-field__input {
+//   padding-bottom: 2px !important;
+// }
 </style>
