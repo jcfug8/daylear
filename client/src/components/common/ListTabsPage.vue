@@ -1,12 +1,18 @@
 <template>
-  <v-container>
-    <v-tabs v-model="activeTab" align-tabs="center" color="primary" grow>
-      <v-tab density="compact" v-for="tab in tabs" :key="tab.value" :value="tab.value">
-        <v-icon v-if="tab.icon" left>{{ tab.icon }}</v-icon>
-        <span v-else>{{ tab.label }}</span>
-      </v-tab>
-    </v-tabs>
-    <slot name="filter" />
+  <v-container class="pt-0">
+    <v-app-bar elevation="0" density="compact">
+        <v-tabs v-model="activeTab" align-tabs="center" color="primary" grow>
+          <v-tab density="compact" v-for="tab in tabs" :key="tab.value" :value="tab.value">
+            <v-icon v-if="tab.icon" left>{{ tab.icon }}</v-icon>
+            <span v-else>{{ tab.label }}</span>
+          </v-tab>
+        </v-tabs>
+      </v-app-bar>
+      <v-app-bar density="compact">
+        <div style="width: 100%;">
+          <slot name="filter" />
+        </div>
+    </v-app-bar>
     <v-card-text>
       <v-tabs-window v-model="activeTab">
         <v-tabs-window-item v-for="tab in tabs" :key="tab.value" :value="tab.value">

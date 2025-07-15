@@ -270,6 +270,7 @@
             <v-window-item value="url">
               <v-text-field
                 v-model="imageUrl"
+                clearable
                 label="Image URL"
                 placeholder="Enter image URL"
                 class="mt-4"

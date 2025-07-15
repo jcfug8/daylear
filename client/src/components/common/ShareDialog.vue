@@ -12,6 +12,7 @@
         <v-window v-if="allowCircleShare" v-model="shareTab">
           <v-window-item value="users">
             <v-text-field v-model="usernameInput" label="Enter Username" :rules="[validateUsername]"
+              
               :prepend-inner-icon="getUsernameIcon" :color="getUsernameColor" :loading="isLoadingUsername"
               @update:model-value="handleUsernameInput"></v-text-field>
             <v-select
@@ -26,6 +27,7 @@
           </v-window-item>
           <v-window-item value="circles">
             <v-text-field v-model="circleInput" label="Enter Circle Handle" :rules="[validateCircle]"
+              clearable
               :prepend-inner-icon="getCircleIcon" :color="getCircleColor" :loading="isLoadingCircle"
               @update:model-value="handleCircleInput"></v-text-field>
             <v-select

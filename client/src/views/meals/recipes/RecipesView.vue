@@ -6,30 +6,29 @@
     >
     <template #filter style="max-width: 1000px; margin: 0 auto;">
       <div class="d-flex align-center ml-2 mt-1" style="gap: 8px;">
-        <v-text-field
-          v-model="searchQuery"
-          label="Search recipes"
-          prepend-inner-icon="mdi-magnify"
-          clearable
-          hide-details
-          density="compact"
-          class="mt-1"
-          style="max-width: 350px;"
-        />
-        <div class="d-flex align-center flex-wrap" style="gap: 4px;">
-          <template v-for="cuisine in selectedCuisines" :key="'cuisine-'+cuisine">
-            <v-chip size="small" closable @click:close="removeCuisine(cuisine)">
-              {{ cuisine }}
-            </v-chip>
-          </template>
-          <template v-for="category in selectedCategories" :key="'category-'+category">
-            <v-chip size="small" closable @click:close="removeCategory(category)">
-              {{ category }}
-            </v-chip>
-          </template>
-        </div>
+        <template v-if="searchExpanded || searchQuery">
+          <v-text-field
+            v-model="searchQuery"
+            label="Search recipes"
+            prepend-inner-icon="mdi-magnify"
+            clearable
+            hide-details
+            density="compact"
+            class="mt-1 search-bar"
+            :class="{ expanded: searchExpanded || searchQuery, collapsed: !searchExpanded && !searchQuery }"
+            :style="searchBarStyle"
+            @focus="onSearchFocus"
+            @blur="onSearchBlur"
+            ref="searchInput"
+          />
+        </template>
+        <template v-else>
+          <v-btn icon variant="text" class="search-icon-btn" @click="expandSearch">
+            <v-icon>mdi-magnify</v-icon>
+          </v-btn>
+        </template>
         <div style="flex: 1 1 auto;"></div>
-        <v-btn variant="flat" class="mr-2" @click="showFilterModal = true" title="Filter recipes">
+        <v-btn class="filter-button" :color="selectedCuisines.length === 0 && selectedCategories.length === 0 ? 'white' : 'grey'" variant="flat" @click="showFilterModal = true" title="Filter recipes">
           <v-icon>mdi-filter-variant</v-icon>
         </v-btn>
       </div>
@@ -103,9 +102,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { useRecipesStore } from '@/stores/recipes'
-import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useAuthStore } from '@/stores/auth'
 import ListTabsPage from '@/components/common/ListTabsPage.vue'
 import RecipeGrid from '@/components/RecipeGrid.vue'
@@ -115,13 +113,38 @@ import Fuse from 'fuse.js'
 
 const authStore = useAuthStore()
 const recipesStore = useRecipesStore()
-const breadcrumbStore = useBreadcrumbStore()
 const alertStore = useAlertStore()
 
 const acceptingRecipeId = ref<string | null>(null)
 const tabsPage = ref()
 
 const searchQuery = ref('')
+const searchExpanded = ref(false)
+const searchInput = ref<HTMLInputElement | null>(null)
+
+function expandSearch() {
+  searchExpanded.value = true
+  nextTick(() => {
+    if (searchInput.value && searchInput.value.focus) {
+      searchInput.value.focus()
+    }
+  })
+}
+function onSearchFocus() {
+  searchExpanded.value = true
+}
+function onSearchBlur() {
+  if (!searchQuery.value) {
+    searchExpanded.value = false
+  }
+}
+
+const searchBarStyle = computed(() => {
+  return searchExpanded.value || searchQuery.value
+    ? { maxWidth: '350px', width: '100%', transition: 'max-width 0.3s cubic-bezier(0.4,0,0.2,1)' }
+    : { maxWidth: '44px', width: '44px', transition: 'max-width 0.3s cubic-bezier(0.4,0,0.2,1)' }
+})
+
 const showFilterModal = ref(false)
 const selectedCuisines = ref<string[]>([])
 const selectedCategories = ref<string[]>([])
@@ -271,5 +294,30 @@ async function onDeclineRecipe(recipe: Recipe) {
 <style scoped>
 .v-tabs {
   margin-bottom: 24px;
+}
+
+.filter-button {
+  width: 10px
+}
+.search-bar {
+  transition: max-width 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s cubic-bezier(0.4,0,0.2,1);
+  min-width: 44px;
+}
+.search-bar.collapsed {
+  max-width: 44px !important;
+  width: 44px !important;
+  padding-left: 0 !important;
+}
+.search-bar.expanded {
+  max-width: 350px !important;
+  width: 100% !important;
+}
+.search-icon-btn {
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

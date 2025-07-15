@@ -31,14 +31,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useCirclesStore } from '@/stores/circles'
-import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import ListTabsPage from '@/components/common/ListTabsPage.vue'
 import CircleGrid from '@/components/CircleGrid.vue'
 import { circleAccessService } from '@/api/api'
 import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
 
 const circlesStore = useCirclesStore()
-const breadcrumbStore = useBreadcrumbStore()
 
 const acceptingCircleId = ref<string | null>(null)
 const tabsPage = ref()
@@ -96,10 +94,6 @@ async function onDeclineCircle(circle: Circle) {
     // Optionally show a notification
   }
 }
-
-breadcrumbStore.setBreadcrumbs([
-  { title: 'Circles', to: { name: 'circles' } },
-])
 </script>
 
 <style scoped>

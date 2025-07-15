@@ -6,4 +6,8 @@
 
 <script setup lang="ts"></script>
 
-<style></style>
+<style>
+.v-calendar__container {
+  overflow: auto;
+}
+</style>
