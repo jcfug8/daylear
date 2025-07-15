@@ -1,5 +1,5 @@
 <template>
-  <v-container v-if="recipe">
+  <div v-if="recipe">
     <v-app-bar>
       <v-tabs style="width: 100%" v-model="tab" center-active show-arrows fixed-tabs>
         <v-tab value="general">
@@ -138,6 +138,23 @@
       </v-tabs-window-item>
       <v-tabs-window-item value="ingredients">
         <v-container max-width="600">
+          <!-- Multiplier Card -->
+          <v-card class="mb-2" outlined>
+            <v-card-text class="d-flex align-center">
+              <span class="mr-4 font-weight-medium">Multiplier</span>
+              <v-select
+                v-model="ingredientMultiplier"
+                :items="multiplierOptions"
+                :item-title="x => `${x}x`"
+                :item-value="x => x"
+                :menu-props="{ maxHeight: '200px' }"
+                hide-details
+                density="compact"
+                style="max-width: 120px;"
+              />
+            </v-card-text>
+          </v-card>
+          <!-- Ingredients List -->
           <v-card class="my-1" v-for="(ingredientGroup, i) in recipe.ingredientGroups" :key="i">
             <v-card-title v-if="ingredientGroup.title">{{ ingredientGroup.title }}</v-card-title>
             <v-card-text>
@@ -147,12 +164,38 @@
                     <v-checkbox v-model="checkedIngredients[i][j]" class="mr-2" hide-details density="compact" style="margin-bottom: 0;" />
                     <span :style="checkedIngredients[i][j] ? 'text-decoration: line-through; color: #888;' : ''">
                       <strong>
-                        <span v-if="ingredient.measurementAmount">{{ isFranctional(ingredient.measurementType) ? toFraction(ingredient.measurementAmount ?? 0) : ingredient.measurementAmount }}</span>
-                        {{ measurementTypeLabel(ingredient.measurementType, ingredient.measurementAmount) }}
+                        <span v-if="ingredient.measurementAmount && ingredient.measurementType">
+                          <span>
+                            {{ isFranctional(ingredient.measurementType)
+                              ? toFraction(getDisplayAmount(ingredient.measurementAmount, i, j, ingredient.measurementType))
+                              : formatAmountDisplay(getDisplayAmount(ingredient.measurementAmount, i, j, ingredient.measurementType))
+                            }}
+                          </span>
+                          <span
+                            :style="'cursor: pointer; text-decoration: underline dotted; margin-left: 2px;'"
+                            @click="handleUnitClick(i, j, ingredient.measurementType)"
+                            title="Click to change unit"
+                          >
+                            {{ measurementTypeLabel(getDisplayUnit(i, j, ingredient.measurementType), getDisplayAmount(ingredient.measurementAmount, i, j, ingredient.measurementType)) }}
+                          </span>
+                        </span>
                         <template v-if="ingredient.measurementConjunction && ingredient.secondMeasurementAmount && ingredient.secondMeasurementType">
                           {{ renderConjunction(ingredient.measurementConjunction) }}
-                          <span v-if="ingredient.secondMeasurementAmount">{{ isFranctional(ingredient.secondMeasurementType) ? toFraction(ingredient.secondMeasurementAmount ?? 0) : ingredient.secondMeasurementAmount }}</span>
-                          {{ measurementTypeLabel(ingredient.secondMeasurementType, ingredient.secondMeasurementAmount) }}
+                          <span v-if="ingredient.secondMeasurementAmount && ingredient.secondMeasurementType">
+                            <span>
+                              {{ isFranctional(ingredient.secondMeasurementType)
+                                ? toFraction(getDisplayAmount(ingredient.secondMeasurementAmount, i, j, ingredient.secondMeasurementType, true))
+                                : formatAmountDisplay(getDisplayAmount(ingredient.secondMeasurementAmount, i, j, ingredient.secondMeasurementType, true))
+                              }}
+                            </span>
+                            <span
+                              :style="'cursor: pointer; text-decoration: underline dotted; margin-left: 2px;'"
+                              @click="handleUnitClick(i, j, ingredient.secondMeasurementType, true)"
+                              title="Click to change unit"
+                            >
+                              {{ measurementTypeLabel(getDisplayUnit(i, j, ingredient.secondMeasurementType, true), getDisplayAmount(ingredient.secondMeasurementAmount, i, j, ingredient.secondMeasurementType, true)) }}
+                            </span>
+                          </span>
                         </template>
                       </strong>
                       {{ ingredient.title }} <span v-if="ingredient.optional">(optional)</span>
@@ -233,7 +276,7 @@
     >
       Decline
     </v-btn>
-  </v-container>
+  </div>
   <!-- Remove Access Dialog -->
   <v-dialog v-model="showRemoveAccessDialog" max-width="500">
     <v-card>
@@ -339,6 +382,7 @@ import { recipeService, recipeAccessService, fileService } from '@/api/api'
 import { useAuthStore } from '@/stores/auth'
 import { hasWritePermission, hasAdminPermission } from '@/utils/permissions'
 import ShareDialog from '@/components/common/ShareDialog.vue'
+import { MEASUREMENT_TYPE_TO_STRING } from '@/constants/measurements'
 
 const authStore = useAuthStore()
 const breadcrumbStore = useBreadcrumbStore()
@@ -355,6 +399,107 @@ const speedDialOpen = ref(false)
 // Add local state for checked ingredients and directions
 const checkedIngredients = reactive<Array<Array<boolean>>>([])
 const checkedDirections = reactive<Array<Array<boolean>>>([])
+
+// Multiplier for ingredients
+const ingredientMultiplier = ref(1)
+const multiplierOptions = [0.5, 1, 2, 3, 4, 5, 6]
+
+// --- Refactored unit conversion logic ---
+// Volume: all multipliers are in terms of teaspoons (smallest)
+const VOLUME_UNIT_MULTIPLIERS: Partial<Record<Recipe_MeasurementType, number>> = {
+  MEASUREMENT_TYPE_TEASPOON: 1,
+  MEASUREMENT_TYPE_TABLESPOON: 3,
+  MEASUREMENT_TYPE_CUP: 48,
+  MEASUREMENT_TYPE_MILLILITER: 0.202884,
+  MEASUREMENT_TYPE_LITER: 202.884,
+}
+const VOLUME_UNITS: Recipe_MeasurementType[] = [
+  'MEASUREMENT_TYPE_TEASPOON',
+  'MEASUREMENT_TYPE_TABLESPOON',
+  'MEASUREMENT_TYPE_CUP',
+  'MEASUREMENT_TYPE_MILLILITER',
+  'MEASUREMENT_TYPE_LITER',
+]
+// Weight: all multipliers are in terms of grams (smallest)
+const WEIGHT_UNIT_MULTIPLIERS: Partial<Record<Recipe_MeasurementType, number>> = {
+  MEASUREMENT_TYPE_GRAM: 1,
+  MEASUREMENT_TYPE_OUNCE: 28.3495,
+  MEASUREMENT_TYPE_POUND: 453.592,
+}
+const WEIGHT_UNITS: Recipe_MeasurementType[] = [
+  'MEASUREMENT_TYPE_GRAM',
+  'MEASUREMENT_TYPE_OUNCE',
+  'MEASUREMENT_TYPE_POUND',
+]
+
+function getUnitGroupAndList(unit: Recipe_MeasurementType | undefined): { group: 'volume' | 'weight' | null, units: Recipe_MeasurementType[] } {
+  if (!unit || unit === 'MEASUREMENT_TYPE_UNSPECIFIED') return { group: null, units: [] }
+  if (VOLUME_UNIT_MULTIPLIERS[unit] !== undefined) {
+    return { group: 'volume', units: VOLUME_UNITS }
+  }
+  if (WEIGHT_UNIT_MULTIPLIERS[unit] !== undefined) {
+    return { group: 'weight', units: WEIGHT_UNITS }
+  }
+  return { group: null, units: [] }
+}
+
+function getNextUnit(unit: Recipe_MeasurementType | undefined) {
+  if (!unit || unit === 'MEASUREMENT_TYPE_UNSPECIFIED') return unit
+  const { units } = getUnitGroupAndList(unit)
+  if (!units.length) return unit
+  const idx = units.indexOf(unit)
+  return units[(idx + 1) % units.length]
+}
+
+function convertAmount(amount: number, from: Recipe_MeasurementType, to: Recipe_MeasurementType): number {
+  if (from === 'MEASUREMENT_TYPE_UNSPECIFIED' || to === 'MEASUREMENT_TYPE_UNSPECIFIED') return amount
+  if (VOLUME_UNIT_MULTIPLIERS[from] !== undefined && VOLUME_UNIT_MULTIPLIERS[to] !== undefined) {
+    const base = amount * (VOLUME_UNIT_MULTIPLIERS[from] as number)
+    return base / (VOLUME_UNIT_MULTIPLIERS[to] as number)
+  }
+  if (WEIGHT_UNIT_MULTIPLIERS[from] !== undefined && WEIGHT_UNIT_MULTIPLIERS[to] !== undefined) {
+    const base = amount * (WEIGHT_UNIT_MULTIPLIERS[from] as number)
+    return base / (WEIGHT_UNIT_MULTIPLIERS[to] as number)
+  }
+  return amount
+}
+
+function getUnitGroup(unit: string) {
+  // For cycling logic compatibility
+  if (VOLUME_UNIT_MULTIPLIERS[unit as Recipe_MeasurementType] !== undefined) {
+    return { units: VOLUME_UNITS }
+  }
+  if (WEIGHT_UNIT_MULTIPLIERS[unit as Recipe_MeasurementType] !== undefined) {
+    return { units: WEIGHT_UNITS }
+  }
+  return undefined
+}
+
+function getDisplayUnitKey(i: number, j: number, secondary = false) {
+  return `${i}_${j}${secondary ? '_2' : ''}`
+}
+
+function handleUnitClick(i: number, j: number, unit: Recipe_MeasurementType | undefined, secondary = false) {
+  if (!unit || unit === 'MEASUREMENT_TYPE_UNSPECIFIED') return
+  const key = getDisplayUnitKey(i, j, secondary)
+  const current = String(ingredientDisplayUnits[key] ?? unit)
+  const next = getNextUnit(current as Recipe_MeasurementType)
+  ingredientDisplayUnits[key] = String(next)
+}
+
+function getDisplayAmount(amount: number | undefined, i: number, j: number, unit: Recipe_MeasurementType | undefined, secondary = false): number {
+  if (typeof amount !== 'number' || !unit) return 0
+  const key = getDisplayUnitKey(i, j, secondary)
+  const displayUnit = (ingredientDisplayUnits[key] as Recipe_MeasurementType) || unit
+  const converted = convertAmount(amount * ingredientMultiplier.value, unit, displayUnit)
+  return converted
+}
+
+function getDisplayUnit(i: number, j: number, unit: Recipe_MeasurementType | undefined, secondary = false): Recipe_MeasurementType {
+  if (!unit) return 'MEASUREMENT_TYPE_UNSPECIFIED'
+  const key = getDisplayUnitKey(i, j, secondary)
+  return (ingredientDisplayUnits[key] as Recipe_MeasurementType) || unit
+}
 
 function initializeCheckedState() {
   checkedIngredients.length = 0
@@ -507,6 +652,9 @@ const visibilityOptions = [
   }
 ]
 
+// Track current display unit for each ingredient (by group and index)
+const ingredientDisplayUnits = reactive<{ [key: string]: string }>({})
+
 // *** Remove Access ***
 const showRemoveAccessDialog = ref(false)
 const removingAccess = ref(false)
@@ -655,8 +803,16 @@ function toFraction(amount: number): string {
     if (whole > 0) result += ' '
     result += `${best.num}/${best.den}`
   }
-  if (result === '') result = '0'
+  if (result === '') result = amount.toLocaleString(undefined, { maximumFractionDigits: 3 })
   return result
+}
+
+// Helper to format small values for display
+function formatAmountDisplay(val: number): string {
+  if (val === 0) return '0'
+  if (val > 0 && val < 0.01) return '< 0.01'
+  if (val > 0 && val < 1) return val.toLocaleString(undefined, { maximumFractionDigits: 3 })
+  return val.toLocaleString(undefined, { maximumFractionDigits: 2 })
 }
 
 // *** Generate Image ***

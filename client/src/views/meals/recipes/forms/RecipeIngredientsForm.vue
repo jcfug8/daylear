@@ -60,44 +60,6 @@
                     class="mt-0"
                   ></v-select>
                 </v-col>
-                <v-col cols="11" sm="5">
-                  <v-text-field
-                    density="compact"
-                    variant="outlined"
-                    hide-details
-                    v-model="ingredient.title"
-                    placeholder="Ingredient Name"
-                    class="mt-0"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="1" sm="1" class="d-flex justify-end align-center">
-                  <v-btn
-                    icon="mdi-delete"
-                    size="small"
-                    variant="text"
-                    color="error"
-                    @click="removeIngredient(i, j)"
-                  ></v-btn>
-                </v-col>
-                <v-col cols="6" class="d-flex align-center">
-                  <v-btn
-                    size="small"
-                    variant="text"
-                    color="primary"
-                    @click="toggleSecondMeasurement(i, j)"
-                  >
-                    {{ showSecondMeasurementMap[i]?.[j] ? 'Remove measurement' : 'Add measurement' }}
-                  </v-btn>
-                </v-col>
-                <v-col cols="6" class="d-flex justify-end">
-                  <v-checkbox
-                    density="compact"
-                    hide-details
-                    v-model="ingredient.optional"
-                    label="Optional"
-                    class="mt-0"
-                  ></v-checkbox>
-                </v-col>
                 <template v-if="showSecondMeasurementMap[i]?.[j]">
                   <v-col cols="12" sm="3">
                     <v-select
@@ -138,6 +100,44 @@
                     ></v-select>
                   </v-col>
                 </template>
+                <v-col cols="11" sm="5">
+                  <v-text-field
+                    density="compact"
+                    variant="outlined"
+                    hide-details
+                    v-model="ingredient.title"
+                    placeholder="Ingredient Name"
+                    class="mt-0"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="1" sm="1" class="d-flex justify-end align-center">
+                  <v-btn
+                    icon="mdi-delete"
+                    size="small"
+                    variant="text"
+                    color="error"
+                    @click="removeIngredient(i, j)"
+                  ></v-btn>
+                </v-col>
+                <v-col cols="6" class="d-flex align-center">
+                  <v-btn
+                    size="small"
+                    variant="text"
+                    color="primary"
+                    @click="toggleSecondMeasurement(i, j)"
+                  >
+                    {{ showSecondMeasurementMap[i]?.[j] ? 'Remove measurement' : 'Add measurement' }}
+                  </v-btn>
+                </v-col>
+                <v-col cols="6" class="d-flex justify-end">
+                  <v-checkbox
+                    density="compact"
+                    hide-details
+                    v-model="ingredient.optional"
+                    label="Optional"
+                    class="mt-0"
+                  ></v-checkbox>
+                </v-col>
               </v-row>
               <v-divider class="mb-1 mt-2"></v-divider>
             </div>

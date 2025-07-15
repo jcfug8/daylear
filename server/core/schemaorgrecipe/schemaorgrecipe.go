@@ -419,7 +419,7 @@ func ToModelRecipe(schemaRecipe SchemaOrgRecipe) model.Recipe {
 					if typeVal == "IngredientSection" || typeVal == "ItemList" {
 						name, _ := st["name"].(string)
 						parseIngredientGroups(st["itemListElement"], name)
-					} else if typeVal == "Ingredient" {
+					} else {
 						if txt, ok := st["text"].(string); ok && txt != "" {
 							ingredients = append(ingredients, parseIngredient(txt))
 						} else if txt, ok := st["name"].(string); ok && txt != "" {
@@ -460,7 +460,7 @@ func ToModelRecipe(schemaRecipe SchemaOrgRecipe) model.Recipe {
 					if typeVal == "HowToSection" || typeVal == "ItemList" {
 						name, _ := st["name"].(string)
 						parseInstructions(st["itemListElement"], name)
-					} else if typeVal == "HowToStep" {
+					} else {
 						if txt, ok := st["text"].(string); ok && txt != "" {
 							steps = append(steps, txt)
 						} else if txt, ok := st["name"].(string); ok && txt != "" {
