@@ -151,5 +151,5 @@ function reloadTab(tabValue: string, subTabValue?: string) {
     loadTab(tabValue)
   }
 }
-defineExpose({ reloadActiveTab, reloadTab })
+defineExpose({ reloadActiveTab, reloadTab, activeTab })
 </script> 

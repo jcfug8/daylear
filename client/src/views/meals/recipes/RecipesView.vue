@@ -5,33 +5,50 @@
       :tabs="tabs"
     >
     <template #filter style="max-width: 1000px; margin: 0 auto;">
-      <div class="d-flex align-center ml-2 mt-1" style="gap: 8px;">
-        <template v-if="searchExpanded || searchQuery">
-          <v-text-field
-            v-model="searchQuery"
-            label="Search recipes"
-            prepend-inner-icon="mdi-magnify"
-            clearable
-            hide-details
-            density="compact"
-            class="mt-1 search-bar"
-            :class="{ expanded: searchExpanded || searchQuery, collapsed: !searchExpanded && !searchQuery }"
-            :style="searchBarStyle"
-            @focus="onSearchFocus"
-            @blur="onSearchBlur"
-            ref="searchInput"
-          />
-        </template>
-        <template v-else>
-          <v-btn icon variant="text" class="search-icon-btn" @click="expandSearch">
-            <v-icon>mdi-magnify</v-icon>
+      <v-row class="align-center" style="max-width: 600px; margin: 0 auto;">
+        <!-- Left: Search -->
+        <v-col cols="3" class="pa-0 d-flex align-center justify-start">
+          <template v-if="searchExpanded || searchQuery">
+            <v-text-field
+              v-model="searchQuery"
+              label="Search recipes"
+              prepend-inner-icon="mdi-magnify"
+              clearable
+              hide-details
+              density="compact"
+              class="mt-1 search-bar"
+              :class="{ expanded: searchExpanded || searchQuery, collapsed: !searchExpanded && !searchQuery }"
+              :style="searchBarStyle"
+              @focus="onSearchFocus"
+              @blur="onSearchBlur"
+              @keydown.enter="onSearchEnter"
+              ref="searchInput"
+            />
+          </template>
+          <template v-else>
+            <v-btn icon variant="text" class="search-icon-btn" @click="expandSearch">
+              <v-icon>mdi-magnify</v-icon>
+            </v-btn>
+          </template>
+        </v-col>
+        <!-- Center: Active account title/name -->
+        <v-col cols="6" class="pa-0 d-flex align-center justify-center">
+          <div
+            class="active-account-title clickable text-center"
+            style="cursor: pointer; user-select: none; font-weight: 500; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; gap: 4px;"
+            @click="openFilterDialogAndFocusAccountSelect"
+          >
+            <v-icon size="18">{{ selectedAccount?.icon || 'mdi-account-circle' }}</v-icon>
+            <span class="account-title-ellipsis">{{ selectedAccount?.label || 'My Recipes' }}</span>
+          </div>
+        </v-col>
+        <!-- Right: Filter button -->
+        <v-col cols="3" class="pa-0 d-flex align-center justify-end">
+          <v-btn class="filter-button mr-2" :color="selectedCuisines.length === 0 && selectedCategories.length === 0 ? 'white' : 'grey'" variant="flat" @click="showFilterModal = true" title="Filter recipes">
+            <v-icon>mdi-filter-variant</v-icon>
           </v-btn>
-        </template>
-        <div style="flex: 1 1 auto;"></div>
-        <v-btn class="filter-button mr-2" :color="selectedCuisines.length === 0 && selectedCategories.length === 0 ? 'white' : 'grey'" variant="flat" @click="showFilterModal = true" title="Filter recipes">
-          <v-icon>mdi-filter-variant</v-icon>
-        </v-btn>
-      </div>
+        </v-col>
+      </v-row>
     </template>
       <template #my="{ items, loading }">
         <RecipeGrid :recipes="getFilteredRecipes(items)" :loading="loading" />
@@ -47,6 +64,7 @@
       </template>
       <template #fab>
         <v-btn
+          v-if="selectedAccount?.value === authStore.user.name"
           color="primary"
           icon="mdi-plus"
           style="position: fixed; bottom: 16px; right: 16px"
@@ -56,53 +74,64 @@
     </ListTabsPage>
   </div>
   <v-dialog v-model="showFilterModal" max-width="500">
-      <v-card>
-        <v-card-title>Filter Recipes</v-card-title>
-        <v-card-text>
-          <div class="mb-4">
-            <div class="font-weight-bold mb-2">Cuisines</div>
-            <v-chip-group v-model="selectedCuisines" multiple column>
-              <v-chip
-                v-for="cuisine in allCuisines"
-                :key="cuisine"
-                :value="cuisine"
-                filter
-                class="ma-1"
-                @click="toggleCuisine(cuisine)"
-                :color="selectedCuisines.includes(cuisine) ? 'primary' : ''"
-              >
-                {{ cuisine }}
-              </v-chip>
-            </v-chip-group>
-          </div>
-          <div>
-            <div class="font-weight-bold mb-2">Categories</div>
-            <v-chip-group v-model="selectedCategories" multiple column>
-              <v-chip
-                v-for="category in allCategories"
-                :key="category"
-                :value="category"
-                filter
-                class="ma-1"
-                @click="toggleCategory(category)"
-                :color="selectedCategories.includes(category) ? 'primary' : ''"
-              >
-                {{ category }}
-              </v-chip>
-            </v-chip-group>
-          </div>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn text @click="clearFilters">Clear</v-btn>
-          <v-btn color="primary" @click="showFilterModal = false">Close</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <v-card>
+      <v-card-title>Filter Recipes</v-card-title>
+      <v-card-text>
+        <!-- User/Circle select at the top -->
+        <div class="mb-4">
+          <div class="font-weight-bold mb-2">Account</div>
+          <v-autocomplete
+            ref="accountSelectRef"
+            v-model="selectedAccount"
+            :items="accountOptions"
+            item-title="label"
+            item-value="value"
+            return-object
+            hide-details
+            density="compact"
+            class="mb-4"
+            :prepend-inner-icon="selectedAccount?.icon"
+            :menu-props="{ maxHeight: '300px' }"
+          />
+        </div>
+        <div class="mb-4">
+          <div class="font-weight-bold mb-2">Cuisines</div>
+          <v-autocomplete
+            v-model="selectedCuisines"
+            :items="allCuisines"
+            label="Select cuisines"
+            multiple
+            chips
+            clearable
+            hide-details
+            density="compact"
+          />
+        </div>
+        <div>
+          <div class="font-weight-bold mb-2">Categories</div>
+          <v-autocomplete
+            v-model="selectedCategories"
+            :items="allCategories"
+            label="Select categories"
+            multiple
+            chips
+            clearable
+            hide-details
+            density="compact"
+          />
+        </div>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text @click="clearFilters">Clear</v-btn>
+        <v-btn color="primary" @click="showFilterModal = false">Ok</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import { useRecipesStore } from '@/stores/recipes'
 import { useAuthStore } from '@/stores/auth'
 import ListTabsPage from '@/components/common/ListTabsPage.vue'
@@ -121,6 +150,67 @@ const tabsPage = ref()
 const searchQuery = ref('')
 const searchExpanded = ref(false)
 const searchInput = ref<HTMLInputElement | null>(null)
+
+// Dropdown for account/circle selection
+const selectedAccount = ref<any>(null)
+const accountSelectRef = ref()
+
+function openFilterDialogAndFocusAccountSelect() {
+  showFilterModal.value = true
+  nextTick(() => {
+    accountSelectRef.value?.focus && accountSelectRef.value.focus()
+  })
+}
+
+function onSearchEnter() {
+  searchExpanded.value = false
+}
+
+// Compute dropdown options: user first, then circles
+const accountOptions = computed(() => {
+  const options = []
+  if (authStore.user && authStore.user.name) {
+    options.push({
+      label: 'My Recipes',
+      value: authStore.user.name,
+      account: "",
+      icon: 'mdi-account-circle',
+    })
+  }
+  if (Array.isArray(authStore.circles)) {
+    for (const circle of authStore.circles) {
+      options.push({
+        label: circle.title || 'Untitled Circle',
+        value: circle.name,
+        account: circle,
+        icon: 'mdi-account-group',
+      })
+    }
+  }
+  return options
+})
+
+// Set default selectedAccount to user on mount or when user changes
+watch(
+  () => authStore.user?.name,
+  (newUserName) => {
+    if (newUserName && (!selectedAccount.value || selectedAccount.value.value !== newUserName)) {
+      selectedAccount.value = accountOptions.value[0]
+    }
+  },
+  { immediate: true }
+)
+
+// When selectedAccount changes, reload the current tab
+watch(
+  selectedAccount,
+  () => {
+    // Only reload if tabsPage is ready
+    nextTick(() => {
+      tabsPage.value?.reloadActiveTab()
+    })
+  }
+)
 
 function expandSearch() {
   searchExpanded.value = true
@@ -152,27 +242,6 @@ const selectedCategories = ref<string[]>([])
 function clearFilters() {
   selectedCuisines.value = []
   selectedCategories.value = []
-}
-
-function removeCuisine(cuisine: string) {
-  selectedCuisines.value = selectedCuisines.value.filter(c => c !== cuisine)
-}
-function removeCategory(category: string) {
-  selectedCategories.value = selectedCategories.value.filter(c => c !== category)
-}
-function toggleCuisine(cuisine: string) {
-  if (selectedCuisines.value.includes(cuisine)) {
-    removeCuisine(cuisine)
-  } else {
-    selectedCuisines.value = [...selectedCuisines.value, cuisine]
-  }
-}
-function toggleCategory(category: string) {
-  if (selectedCategories.value.includes(category)) {
-    removeCategory(category)
-  } else {
-    selectedCategories.value = [...selectedCategories.value, category]
-  }
 }
 
 const allCuisines = computed(() => {
@@ -237,7 +306,9 @@ const tabs = [
     icon: 'mdi-book-open-variant',
     loader: async () => {
       if (!authStore.user || !authStore.user.name) throw new Error('User not authenticated')
-      await recipesStore.loadMyRecipes(authStore.activeAccountName)
+      // Use selectedAccount for context
+      const account = selectedAccount.value?.account
+      await recipesStore.loadMyRecipes(account.name)
       return [...recipesStore.myRecipes]
     },
   },
@@ -247,7 +318,8 @@ const tabs = [
     icon: 'mdi-email-arrow-left-outline',
     loader: async () => {
       if (!authStore.user || !authStore.user.name) throw new Error('User not authenticated')
-      await recipesStore.loadSharedRecipes(authStore.activeAccountName, 100)
+      const account = selectedAccount.value?.account
+      await recipesStore.loadSharedRecipes(account.name, 100)
       return [...recipesStore.sharedPendingRecipes]
     },
   },
@@ -257,7 +329,8 @@ const tabs = [
     icon: 'mdi-card-search-outline',
     loader: async () => {
       if (!authStore.user || !authStore.user.name) throw new Error('User not authenticated')
-      await recipesStore.loadPublicRecipes(authStore.activeAccountName)
+      const account = selectedAccount.value?.account
+      await recipesStore.loadPublicRecipes(account.name)
       return [...recipesStore.publicRecipes]
     },
   },
@@ -296,9 +369,6 @@ async function onDeclineRecipe(recipe: Recipe) {
   margin-bottom: 24px;
 }
 
-.filter-button {
-  width: 10px
-}
 .search-bar {
   transition: max-width 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s cubic-bezier(0.4,0,0.2,1);
   min-width: 44px;
@@ -319,5 +389,13 @@ async function onDeclineRecipe(recipe: Recipe) {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.account-title-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+  display: inline-block;
+  vertical-align: middle;
 }
 </style>
