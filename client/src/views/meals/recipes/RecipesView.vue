@@ -139,7 +139,9 @@ import RecipeGrid from '@/components/RecipeGrid.vue'
 import type { Recipe } from '@/genapi/api/meals/recipe/v1alpha1'
 import { useAlertStore } from '@/stores/alerts'
 import Fuse from 'fuse.js'
+import { useCirclesStore } from '@/stores/circles'
 
+const circlesStore = useCirclesStore()
 const authStore = useAuthStore()
 const recipesStore = useRecipesStore()
 const alertStore = useAlertStore()
@@ -176,16 +178,17 @@ const accountOptions = computed(() => {
       account: "",
       icon: 'mdi-account-circle',
     })
+    circlesStore.loadMyCircles()
+    if (Array.isArray(circlesStore.myCircles)) {
+      for (const circle of circlesStore.myCircles) {
+        options.push({
+          label: circle.title || 'Untitled Circle',
+          value: circle.name,
+          account: circle,
+          icon: 'mdi-account-group',
+        })
+      }
   }
-  if (Array.isArray(authStore.circles)) {
-    for (const circle of authStore.circles) {
-      options.push({
-        label: circle.title || 'Untitled Circle',
-        value: circle.name,
-        account: circle,
-        icon: 'mdi-account-group',
-      })
-    }
   }
   return options
 })

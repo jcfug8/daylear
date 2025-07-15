@@ -23,7 +23,7 @@ watch(
   () => authStore.isLoggedIn,
   (newValue: boolean) => {
     if (newValue) {
-      router.push({ name: 'calendar' }) // Redirect to the home page or another route
+      router.push({ name: 'recipes' })
     }
   },
 )

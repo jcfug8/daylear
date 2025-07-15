@@ -17,12 +17,12 @@
   </v-app-bar>
   <v-navigation-drawer temporary v-if="isLoggedIn" v-model="navDrawer" density="compact">
     <v-list nav>
-      <v-list-item
+      <!-- <v-list-item
         prepend-icon="mdi-calendar"
         title="Calendar"
         value="calendar"
         :to="{ name: 'calendar' }"
-      ></v-list-item>
+      ></v-list-item> -->
       <v-list-item
         v-if="authStore.activeAccountType === AccountType.USER"
         prepend-icon="mdi-account-group"

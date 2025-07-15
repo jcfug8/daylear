@@ -179,7 +179,7 @@ router.beforeEach(async (to, from, next) => {
   } else if (to.meta.requiresNoAuth) {
     if (authStore.isLoggedIn) {
       // User is authenticated, redirect to home
-      next('/calendar')
+      next('/meals/recipes')
     } else {
       // User is not authenticated, allow access
       next()
