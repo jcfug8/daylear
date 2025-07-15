@@ -14,7 +14,7 @@ func TestParseIngredient(t *testing.T) {
 		unit2   string
 		name    string
 	}{
-		{"1 ½ cups sugar", 1.5, "cup", "", 0, "", "sugar"},
+		{"1 ½ cups sugar", 1.5, "cups", "", 0, "", "sugar"},
 		{"1 and 1/2 cup sugar", 1.5, "cup", "", 0, "", "sugar"},
 		{"1 + 1/2 cup sugar", 1.5, "cup", "", 0, "", "sugar"},
 		{"1 cup sugar", 1, "cup", "", 0, "", "sugar"},
@@ -39,7 +39,7 @@ func TestParseIngredient(t *testing.T) {
 	for _, tt := range tests {
 		amount1, unit1, conj, amount2, unit2, name := ParseIngredient(tt.input)
 		if amount1 != tt.amount1 || unit1 != tt.unit1 || conj != tt.conj || amount2 != tt.amount2 || unit2 != tt.unit2 || name != tt.name {
-			t.Errorf("ParseIngredient(%q) = %v, %q, %q, %v, %q, %q; want %v, %q, %q, %v, %q, %q", tt.input, amount1, unit1, conj, amount2, unit2, name, tt.amount1, tt.unit1, tt.conj, tt.amount2, tt.unit2, tt.name)
+			t.Errorf("ParseIngredient(%q) = \nhave: \t%v, \t%q, \t%q, \t%v, \t%q, \t%q \nwant: \t%v, \t%q, \t%q, \t%v, \t%q, \t%q", tt.input, amount1, unit1, conj, amount2, unit2, name, tt.amount1, tt.unit1, tt.conj, tt.amount2, tt.unit2, tt.name)
 		}
 	}
 }

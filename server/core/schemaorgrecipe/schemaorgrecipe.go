@@ -85,7 +85,15 @@ func ParseIngredient(text string) (amount1 float64, unit1 string, conj string, a
 	conjWord := ""
 	for i, p := range parts {
 		lp := strings.ToLower(p)
-		if lp == "&&" || lp == "||" || lp == "--" {
+		if lp == "&&" || lp == "||" || lp == "--" || lp == "+" || lp == "-" || lp == "to" || lp == "and" || lp == "or" {
+			switch lp {
+			case "+", "and":
+				lp = "&&"
+			case "or":
+				lp = "||"
+			case "to", "-":
+				lp = "--"
+			}
 			conjIdx = i
 			conjWord = lp
 			break
@@ -191,10 +199,13 @@ func ParseAmount(s string) (float64, error) {
 	if strings.Contains(s, " ") {
 		parts := strings.Split(s, " ")
 		if len(parts) == 2 {
-			whole, err1 := strconv.Atoi(parts[0])
-			frac, err2 := ParseFraction(parts[1])
+			first, err1 := strconv.Atoi(parts[0])
+			second, err2 := strconv.ParseFloat(parts[1], 64)
+			if err2 != nil {
+				second, err2 = ParseFraction(parts[1])
+			}
 			if err1 == nil && err2 == nil {
-				return float64(whole) + frac, nil
+				return float64(first) + second, nil
 			}
 		}
 	}

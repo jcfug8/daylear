@@ -738,11 +738,11 @@ async function declineRecipe() {
 function renderConjunction(conjunction: Recipe_Ingredient_MeasurementConjunction | undefined): string {
   switch (conjunction) {
     case 'MEASUREMENT_CONJUNCTION_AND':
-      return '+';
+      return ' +';
     case 'MEASUREMENT_CONJUNCTION_TO':
-      return '-';
+      return ' -';
     case 'MEASUREMENT_CONJUNCTION_OR':
-      return 'or';
+      return ' or';
     default:
       return '';
   }
