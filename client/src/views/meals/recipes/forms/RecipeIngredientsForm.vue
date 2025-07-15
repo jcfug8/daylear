@@ -36,8 +36,8 @@
             />
             <div class="flex-grow-1">
               <v-row dense>
-                <v-col cols="4" sm="2">
-                  <v-text-field
+                <v-col cols="4" >
+                  <v-text-field 
                     density="compact"
                     variant="outlined"
                     hide-details
@@ -48,7 +48,7 @@
                     class="mt-0"
                   ></v-text-field>
                 </v-col>
-                <v-col cols="8" sm="4">
+                <v-col cols="8">
                   <v-select
                     density="compact"
                     variant="outlined"
@@ -61,7 +61,8 @@
                   ></v-select>
                 </v-col>
                 <template v-if="showSecondMeasurementMap[i]?.[j]">
-                  <v-col cols="12" sm="3">
+                  <v-col cols="3"></v-col>
+                  <v-col cols="6">
                     <v-select
                       density="compact"
                       variant="outlined"
@@ -74,7 +75,8 @@
                       class="mt-0"
                     ></v-select>
                   </v-col>
-                  <v-col cols="4" sm="2">
+                  <v-col cols="3" ></v-col>
+                  <v-col cols="4">
                     <v-text-field
                       density="compact"
                       variant="outlined"
@@ -86,7 +88,7 @@
                       class="mt-0"
                     ></v-text-field>
                   </v-col>
-                  <v-col cols="8" sm="4">
+                  <v-col cols="8">
                     <v-select
                       density="compact"
                       variant="outlined"
@@ -100,7 +102,7 @@
                     ></v-select>
                   </v-col>
                 </template>
-                <v-col cols="11" sm="5">
+                <v-col cols="11" sm="11">
                   <v-text-field
                     density="compact"
                     variant="outlined"
@@ -139,7 +141,7 @@
                   ></v-checkbox>
                 </v-col>
               </v-row>
-              <v-divider class="mb-1 mt-2"></v-divider>
+              <v-divider class="mb-3 mt-4"></v-divider>
             </div>
           </div>
           <v-btn block variant="text" prepend-icon="mdi-plus" class="mt-2" @click="addIngredient(i)"
