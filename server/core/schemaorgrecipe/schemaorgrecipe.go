@@ -478,7 +478,7 @@ func ToModelRecipe(schemaRecipe SchemaOrgRecipe) model.Recipe {
 	if len(directions) > 0 {
 		coreRecipe.Directions = directions
 	}
-	coreRecipe.Visibility = 300
+	coreRecipe.Visibility = 1
 	return coreRecipe
 }
 
@@ -489,7 +489,9 @@ func parseImageURI(imageData interface{}) string {
 		return v
 	case []interface{}:
 		for _, item := range v {
-			if img, ok := item.(map[string]interface{}); ok {
+			if img, ok := item.(string); ok {
+				return img
+			} else if img, ok := item.(map[string]interface{}); ok {
 				if imgURI, ok := img["url"].(string); ok {
 					return imgURI
 				}

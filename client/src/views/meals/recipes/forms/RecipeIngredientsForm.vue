@@ -60,7 +60,7 @@
                     class="mt-0"
                   ></v-select>
                 </v-col>
-                <v-col cols="6" sm="5">
+                <v-col cols="11" sm="5">
                   <v-text-field
                     density="compact"
                     variant="outlined"
@@ -70,7 +70,7 @@
                     class="mt-0"
                   ></v-text-field>
                 </v-col>
-                <v-col cols="6" sm="1" class="d-flex justify-end align-center">
+                <v-col cols="1" sm="1" class="d-flex justify-end align-center">
                   <v-btn
                     icon="mdi-delete"
                     size="small"
@@ -139,7 +139,7 @@
                   </v-col>
                 </template>
               </v-row>
-              <v-divider class="my-1"></v-divider>
+              <v-divider class="mb-1 mt-2"></v-divider>
             </div>
           </div>
           <v-btn block variant="text" prepend-icon="mdi-plus" class="mt-2" @click="addIngredient(i)"

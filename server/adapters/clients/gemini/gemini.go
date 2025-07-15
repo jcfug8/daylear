@@ -26,6 +26,7 @@ var _ imagegenerator.Client = &RecipeGeminiClient{}
 
 var recipePromptTemplate = `
 		  - Do not make up any content that is not there, but correct any typos or errors that seem useful.
+		  - schema.org @type fields must included in the output.
 		  - Use the full name of the unit, not the abbreviation. i.e. "1 cup" not "1 c" or "1 tablespoon" not "1 tbsp".
 		  - the basic format of an ingredient should be '{amount} {unit} {ingredient}'.
 		  - If there are clearly multiple sets of ingredients for different parts of the recipe, then the ingredients must be output as a itemList. The @type for each group shold be 'IngredientSection', the @type for each ingredient should be 'Ingredient', and the text of the ingredient should be keyed by 'text'. This is not in the schema.org/Recipe but that is how i want to format it.

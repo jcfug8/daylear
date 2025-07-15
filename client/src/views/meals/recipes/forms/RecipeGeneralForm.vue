@@ -5,7 +5,6 @@
       <v-col cols="auto">
         <v-btn
           color="primary"
-          class="mb-4"
           @click="showScrapeOcrDialog = true"
           prepend-icon="mdi-import"
         >
@@ -31,17 +30,18 @@
           <v-window v-model="importTab">
             <v-window-item value="scrape">
               <v-row class="mt-2">
-                <v-col cols="9">
+                <v-col cols="12" sm="9">
                   <v-text-field
                     v-model="scrapeUrl"
+                    clearable
                     label="Import Recipe from URL"
                     placeholder="Paste recipe URL (e.g. https://...)"
                     density="compact"
                     :disabled="scrapeLoading"
                   />
                 </v-col>
-                <v-col cols="3" class="d-flex align-end">
-                  <v-btn color="primary" :loading="scrapeLoading" @click="scrapeRecipe" :disabled="!scrapeUrl || scrapeLoading">
+                <v-col cols="12" sm="3" class="d-flex align-end">
+                  <v-btn color="primary" block :loading="scrapeLoading" @click="scrapeRecipe" :disabled="!scrapeUrl || scrapeLoading">
                     Import
                   </v-btn>
                 </v-col>
@@ -49,7 +49,7 @@
             </v-window-item>
             <v-window-item value="ocr">
               <v-row class="mt-2">
-                <v-col cols="9">
+                <v-col cols="12" sm="9">
                   <v-file-input
                     multiple
                     v-model="ocrImageFiles"
@@ -60,8 +60,8 @@
                     prepend-icon="mdi-camera"
                   />
                 </v-col>
-                <v-col cols="3" class="d-flex align-end">
-                  <v-btn color="primary" :loading="ocrLoading" @click="ocrRecipe" :disabled="!ocrImageFiles || ocrLoading">
+                <v-col cols="12" sm="3" class="d-flex align-end">
+                  <v-btn color="primary" block :loading="ocrLoading" @click="ocrRecipe" :disabled="!ocrImageFiles || ocrLoading">
                     Import
                   </v-btn>
                 </v-col>
@@ -77,6 +77,19 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="grey" variant="text" @click="handleCloseScrapeOcrDialog">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="showPostImportDialog" max-width="400">
+      <v-card>
+        <v-card-title>Recipe Imported</v-card-title>
+        <v-card-text>
+          <div class="mb-2">Your recipe has been imported. Would you like to save it now, or review and edit it first?</div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="secondary" @click="showPostImportDialog = false">Review Import</v-btn>
+          <v-btn color="success" @click="handleSaveAfterImport">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -332,6 +345,7 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: Recipe): void
   (e: 'imageSelected', file: File | null, url: string | null): void
   (e: 'close-scrape-ocr-dialog'): void
+  (e: 'save', pendingImageFile: File | null): void
 }>()
 
 const showScrapeOcrDialog = ref(false)
@@ -355,6 +369,7 @@ async function scrapeRecipe() {
       }
       emit('update:modelValue', resp.recipe)
       showScrapeOcrDialog.value = false
+      showPostImportDialog.value = true // <-- show modal
     } else {
       alertStore.addAlert('No recipe found at that URL.', 'error')
     }
@@ -504,6 +519,7 @@ async function ocrRecipe() {
       }
       emit('update:modelValue', resp.recipe)
       showScrapeOcrDialog.value = false
+      showPostImportDialog.value = true // <-- show modal
     } else {
       alertStore.addAlert('No recipe found in image.', 'error')
     }
@@ -658,6 +674,13 @@ function parseDuration(duration: string): number {
     return parseInt(duration.slice(0, -1))/60;
   }
   return 0;
+}
+
+const showPostImportDialog = ref(false)
+
+function handleSaveAfterImport() {
+  emit('save', null)
+  showPostImportDialog.value = false
 }
 </script>
 
