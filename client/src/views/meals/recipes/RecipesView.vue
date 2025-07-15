@@ -28,7 +28,7 @@
           </v-btn>
         </template>
         <div style="flex: 1 1 auto;"></div>
-        <v-btn class="filter-button" :color="selectedCuisines.length === 0 && selectedCategories.length === 0 ? 'white' : 'grey'" variant="flat" @click="showFilterModal = true" title="Filter recipes">
+        <v-btn class="filter-button mr-2" :color="selectedCuisines.length === 0 && selectedCategories.length === 0 ? 'white' : 'grey'" variant="flat" @click="showFilterModal = true" title="Filter recipes">
           <v-icon>mdi-filter-variant</v-icon>
         </v-btn>
       </div>
@@ -252,7 +252,7 @@ const tabs = [
     },
   },
   {
-    label: 'Explore Recipes',
+    label: 'Explore',
     value: 'explore',
     icon: 'mdi-card-search-outline',
     loader: async () => {

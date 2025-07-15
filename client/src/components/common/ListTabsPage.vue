@@ -4,11 +4,11 @@
         <v-tabs v-model="activeTab" align-tabs="center" color="primary" grow>
           <v-tab density="compact" v-for="tab in tabs" :key="tab.value" :value="tab.value">
             <v-icon v-if="tab.icon" left>{{ tab.icon }}</v-icon>
-            <span v-else>{{ tab.label }}</span>
+            <span class="text-caption">{{ tab.label }}</span>
           </v-tab>
         </v-tabs>
       </v-app-bar>
-      <v-app-bar density="compact">
+      <v-app-bar density="compact" v-if="slots.filter">
         <div style="width: 100%;">
           <slot name="filter" />
         </div>
@@ -37,14 +37,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, defineExpose } from 'vue'
+import { ref, watch, onMounted, defineExpose, useSlots } from 'vue'
 
 interface TabDef {
   label: string
   value: string
   loader?: () => Promise<any>
   subTabs?: Array<{ label: string; value: string; loader?: () => Promise<any> }>
-  icon?: string // Optional icon property for tab icons
+  icon?: string
 }
 
 const props = defineProps<{
@@ -56,6 +56,7 @@ const activeTab = ref(props.initialTab ?? props.tabs[0]?.value ?? '')
 const subTab = ref<Record<string, string>>({})
 const items = ref<Record<string, any>>({})
 const loading = ref<Record<string, any>>({})
+const slots = useSlots()
 
 function loadTab(tabValue: string) {
   const tab = props.tabs.find(t => t.value === tabValue)

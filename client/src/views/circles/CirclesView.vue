@@ -61,7 +61,7 @@ const tabs = [
     },
   },
   {
-    label: 'Explore Circles',
+    label: 'Explore',
     value: 'explore',
     icon: 'mdi-compass-outline',
     loader: async () => {
