@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package api.users.user.v1alpha1;
+
+import "api/types/visibility_level.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  security_definitions: {
+    security: {
+      key: "BearerAuth"
+      value: {
+        type: TYPE_API_KEY
+        in: IN_HEADER
+        name: "Authorization"
+        description: "Bearer token for authentication"
+      }
+    }
+  }
+  security: {
+    security_requirement: {
+      key: "BearerAuth"
+      value: {}
+    }
+  }
+};
+
+// the user settings service with private fields
+service UserSettingsService {
+  // get a user
+  rpc GetUserSettings(GetUserSettingsRequest) returns (UserSettings) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {get: "/users/v1alpha1/{name=users/*/settings}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get a user"
+      description: "Retrieves a single user by resource name."
+      tags: "UserSettingsService"
+    };
+  }
+
+  // update a user settings
+  rpc UpdateUserSettings(UpdateUserSettingsRequest) returns (UserSettings) {
+    option (google.api.method_signature) = "user_settings,update_mask";
+    option (google.api.http) = {
+      patch: "/users/v1alpha1/{user_settings.name=users/*/settings}"
+      body: "user_settings"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Update a user"
+      description: "Updates the details of a user."
+      tags: "UserSettingsService"
+    };
+  }
+}
+
+// the main user settings object
+message UserSettings {
+  option (google.api.resource) = {
+    type: "api.meals.user.v1alpha1/UserSettings"
+    pattern: "users/{user}/settings"
+    plural: "userSettings"
+    singular: "userSettings"
+  };
+
+  // the name of the user
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // the email of the user
+  string email = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// the request to get user settings
+message GetUserSettingsRequest {
+  // the name of the user settings to get
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.meals.user.v1alpha1/UserSettings"
+  ];
+}
+
+// the request to update a user
+message UpdateUserSettingsRequest {
+  // the user settings to update
+  UserSettings user_settings = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // the fields to update
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}

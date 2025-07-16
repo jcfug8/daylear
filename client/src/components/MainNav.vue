@@ -23,13 +23,6 @@
         value="calendar"
         :to="{ name: 'calendar' }"
       ></v-list-item> -->
-      <v-list-item
-        v-if="authStore.activeAccountType === AccountType.USER"
-        prepend-icon="mdi-account-group"
-        title="Circles"
-        value="circles"
-        :to="{ name: 'circles' }"
-      ></v-list-item>
       <!-- <v-list-group value="Meals">
         <template v-slot:activator="{ props }">
           <v-list-item v-bind="props" title="Meals" prepend-icon="mdi-food"></v-list-item>
@@ -42,11 +35,24 @@
           :to="{ name: 'recipes' }"
         ></v-list-item>
         <!-- <v-list-item
-          prepend-icon="mdi-food-apple"
-          title="Ingredients"
-          value="ingredients"
-          :to="{ name: 'ingredients' }"
+        prepend-icon="mdi-food-apple"
+        title="Ingredients"
+        value="ingredients"
+        :to="{ name: 'ingredients' }"
         ></v-list-item> -->
+        <v-list-item
+          prepend-icon="mdi-account"
+          title="Users"
+          value="users"
+          :to="{ name: 'users' }"
+        ></v-list-item>
+        <v-list-item
+        v-if="authStore.activeAccountType === AccountType.USER"
+        prepend-icon="mdi-account-group"
+        title="Circles"
+        value="circles"
+        :to="{ name: 'circles' }"
+      ></v-list-item>
       <!-- </v-list-group> -->
     </v-list>
   </v-navigation-drawer>
@@ -68,7 +74,7 @@
             icon="mdi-cog"
             density="comfortable"
             @click.stop
-            :to="{ name: 'user-settings', params: { userId: user?.name } }"
+            :to="{ name: 'user', params: { userId: user?.name } }"
           ></v-btn>
         </template>
       </v-list-item>

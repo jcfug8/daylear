@@ -8,10 +8,11 @@ import (
 // User defines the model for a user.
 type User struct {
 	Id         UserId
-	Email      string
 	Username   string
 	GivenName  string
 	FamilyName string
+
+	Email      string
 	Visibility types.VisibilityLevel
 
 	AmazonId   string
@@ -30,10 +31,13 @@ type UserId struct {
 // UserFields defines the user fields.
 var UserFields = userFields{
 	Id:         "id",
-	Email:      "email",
 	Username:   "username",
 	GivenName:  "given_name",
 	FamilyName: "family_name",
+
+	Email:      "email",
+	Visibility: "visibility",
+
 	GoogleId:   "google_id",
 	FacebookId: "facebook_id",
 	AmazonId:   "amazon_id",
@@ -41,10 +45,13 @@ var UserFields = userFields{
 
 type userFields struct {
 	Id         string
-	Email      string
 	Username   string
 	GivenName  string
 	FamilyName string
+
+	Email      string
+	Visibility string
+
 	GoogleId   string
 	FacebookId string
 	AmazonId   string
@@ -54,10 +61,13 @@ type userFields struct {
 func (fields userFields) Mask() []string {
 	return []string{
 		fields.Id,
-		fields.Email,
 		fields.Username,
 		fields.GivenName,
 		fields.FamilyName,
+
+		fields.Email,
+		fields.Visibility,
+
 		fields.GoogleId,
 		fields.FacebookId,
 		fields.AmazonId,
@@ -70,6 +80,8 @@ func (fields userFields) UpdateMask(mask []string) []string {
 		fields.Username,
 		fields.GivenName,
 		fields.FamilyName,
+
+		fields.Visibility,
 	}
 
 	if len(mask) == 0 {

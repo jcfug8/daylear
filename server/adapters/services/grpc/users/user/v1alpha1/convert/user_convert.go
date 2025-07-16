@@ -18,10 +18,10 @@ func ProtoToUser(userNamer namer.ReflectNamer, proto *pb.User) (model.User, erro
 		}
 	}
 
-	user.Email = proto.Email
 	user.Username = proto.Username
 	user.GivenName = proto.GivenName
 	user.FamilyName = proto.FamilyName
+	user.Visibility = proto.Visibility
 
 	return user, nil
 }
@@ -35,10 +35,10 @@ func UserToProto(userNamer namer.ReflectNamer, user model.User) (*pb.User, error
 	}
 	proto.Name = name
 
-	proto.Email = user.Email
 	proto.Username = user.Username
 	proto.GivenName = user.GivenName
 	proto.FamilyName = user.FamilyName
+	proto.Visibility = user.Visibility
 
 	return proto, nil
 }
@@ -61,9 +61,8 @@ func UserListToProto(userNamer namer.ReflectNamer, users []model.User) ([]*pb.Us
 func ProtosToUser(userNamer namer.ReflectNamer, protos []*pb.User) ([]model.User, error) {
 	res := make([]model.User, len(protos))
 	for i, proto := range protos {
-		user := model.User{}
-		var err error
-		if user, err = ProtoToUser(userNamer, proto); err != nil {
+		user, err := ProtoToUser(userNamer, proto)
+		if err != nil {
 			return nil, err
 		}
 		res[i] = user

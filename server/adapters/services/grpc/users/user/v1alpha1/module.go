@@ -10,8 +10,11 @@ import (
 var Module = fx.Module(
 	"userGrpcAdapter",
 	fx.Provide(
-		NewUserService,
-		func(s *UserService) pb.UserServiceServer { return s },
+		fx.Annotate(
+			NewUserService,
+			fx.As(new(pb.UserServiceServer)),
+			fx.As(new(pb.UserSettingsServiceServer)),
+		),
 		fx.Annotate(
 			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.User]() },
 			fx.ResultTags(`name:"v1alpha1UserNamer"`),
@@ -19,6 +22,10 @@ var Module = fx.Module(
 		fx.Annotate(
 			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.Access]() },
 			fx.ResultTags(`name:"v1alpha1UserAccessNamer"`),
+		),
+		fx.Annotate(
+			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.UserSettings]() },
+			fx.ResultTags(`name:"v1alpha1UserSettingsNamer"`),
 		),
 	),
 )

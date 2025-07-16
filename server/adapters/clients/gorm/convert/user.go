@@ -3,19 +3,18 @@ package convert
 import (
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
-	// IRIOMO:CUSTOM_CODE_SLOT_START resourceConvert
-	// IRIOMO:CUSTOM_CODE_SLOT_END
 )
 
 // UserFromCoreModel converts a core model to a gorm model.
 func UserFromCoreModel(m cmodel.User) (gmodel.User, error) {
-	// IRIOMO:CUSTOM_CODE_SLOT_START userFromCoreModel
 	u := gmodel.User{
 		UserId:     m.Id.UserId,
-		Email:      m.Email,
 		Username:   m.Username,
 		GivenName:  m.GivenName,
 		FamilyName: m.FamilyName,
+		Visibility: m.Visibility,
+
+		Email: m.Email,
 	}
 
 	if m.AmazonId != "" {
@@ -31,20 +30,20 @@ func UserFromCoreModel(m cmodel.User) (gmodel.User, error) {
 	}
 
 	return u, nil
-	// IRIOMO:CUSTOM_CODE_SLOT_END
 }
 
 // UserToCoreModel converts a gorm model to a core model.
 func UserToCoreModel(m gmodel.User) (cmodel.User, error) {
-	// IRIOMO:CUSTOM_CODE_SLOT_START userToCoreModel
 	u := cmodel.User{
 		Id: cmodel.UserId{
 			UserId: m.UserId,
 		},
-		Email:      m.Email,
 		Username:   m.Username,
 		GivenName:  m.GivenName,
 		FamilyName: m.FamilyName,
+		Visibility: m.Visibility,
+
+		Email: m.Email,
 	}
 
 	if m.AmazonId != nil {
@@ -60,7 +59,6 @@ func UserToCoreModel(m gmodel.User) (cmodel.User, error) {
 	}
 
 	return u, nil
-	// IRIOMO:CUSTOM_CODE_SLOT_END
 }
 
 // UserListFromCoreModel converts a list of core models to a list of gorm models.

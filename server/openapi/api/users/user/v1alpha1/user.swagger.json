@@ -148,11 +148,6 @@
             "schema": {
               "type": "object",
               "properties": {
-                "email": {
-                  "type": "string",
-                  "title": "the email of the user",
-                  "readOnly": true
-                },
                 "username": {
                   "type": "string",
                   "title": "the username of the user"
@@ -172,7 +167,6 @@
               },
               "title": "the user to update",
               "required": [
-                "email",
                 "visibility",
                 "user"
               ]
@@ -241,11 +235,6 @@
           "type": "string",
           "title": "the name of the user"
         },
-        "email": {
-          "type": "string",
-          "title": "the email of the user",
-          "readOnly": true
-        },
         "username": {
           "type": "string",
           "title": "the username of the user"
@@ -265,7 +254,6 @@
       },
       "title": "the main user object",
       "required": [
-        "email",
         "visibility"
       ]
     },

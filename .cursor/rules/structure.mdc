@@ -74,7 +74,7 @@ A port should also have a set of errors that it can return. An adapter, or the d
 ## Configuration
 Found in /server/.env and used/parsed by server/adapters/clients/config.
 ## API
-Our api is mainly build off of protos/grpc along with a few pure http endpoints for authentication. On top of our grpc api we use grpcgateway found in server/adapters/services/http/grpcgateway to alow client to purely use http. With our grpc api we do our best to strictly follow google AIP's.
+Our api is mainly build off of protos/grpc along with a few pure http endpoints for authentication. On top of our grpc api we use grpcgateway found in server/adapters/services/http/grpcgateway to alow client to purely use http. With our grpc api we do our best to strictly follow google AIP's. If you create a new grpc api, you must add it to the grpcgateway server.
 
 ## Database Layer
 Currently we use GORM in our database layer. Our gorm/database models/structs are found in server/adapters/clients/gorm/model along with some methods and type to facilitate converting field masks into the database columns. We use gorm's auto migrate so gorm struct tags are needed.

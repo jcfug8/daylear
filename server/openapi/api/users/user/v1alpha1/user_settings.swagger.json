@@ -1,0 +1,166 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/users/user/v1alpha1/user_settings.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "UserSettingsService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/users/v1alpha1/{name}": {
+      "get": {
+        "summary": "Get a user",
+        "description": "Retrieves a single user by resource name.",
+        "operationId": "UserSettingsService_GetUserSettings",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UserSettings"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the user settings to get",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/settings"
+          }
+        ],
+        "tags": [
+          "UserSettingsService"
+        ]
+      }
+    },
+    "/users/v1alpha1/{userSettings.name}": {
+      "patch": {
+        "summary": "Update a user",
+        "description": "Updates the details of a user.",
+        "operationId": "UserSettingsService_UpdateUserSettings",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UserSettings"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userSettings.name",
+            "description": "the name of the user",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/settings"
+          },
+          {
+            "name": "userSettings",
+            "description": "the user settings to update",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "title": "the email of the user",
+                  "readOnly": true
+                }
+              },
+              "title": "the user settings to update",
+              "required": [
+                "userSettings"
+              ]
+            }
+          }
+        ],
+        "tags": [
+          "UserSettingsService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1alpha1UserSettings": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the user"
+        },
+        "email": {
+          "type": "string",
+          "title": "the email of the user",
+          "readOnly": true
+        }
+      },
+      "title": "the main user settings object"
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "description": "Bearer token for authentication",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

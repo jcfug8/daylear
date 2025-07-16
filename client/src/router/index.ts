@@ -91,18 +91,9 @@ const router = createRouter({
       },
     },
     {
-      path: '/user/:userId/settings',
-      name: 'user-settings',
-      component: () => import('../views/accounts/UserSettingsView.vue'),
-      meta: {
-        requiresAuth: true,
-        breadcrumbs: true,
-      },
-    },
-    {
-      path: '/user/:userId/settings/edit',
-      name: 'user-settings-edit',
-      component: () => import('../views/accounts/UserSettingsEditView.vue'),
+      path: '/user/:userId/edit',
+      name: 'user-edit',
+      component: () => import('../views/users/UserEditView.vue'),
       meta: {
         requiresAuth: true,
         breadcrumbs: true,
@@ -111,7 +102,15 @@ const router = createRouter({
     {
       path: '/user/:userId',
       name: 'user',
-      component: () => import('../views/accounts/UserView.vue'),
+      component: () => import('../views/users/UserView.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/users',
+      name: 'users',
+      component: () => import('../views/users/UsersView.vue'),
       meta: {
         requiresAuth: true,
       },

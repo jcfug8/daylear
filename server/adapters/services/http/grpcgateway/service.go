@@ -16,33 +16,36 @@ import (
 )
 
 type Service struct {
-	userV1alpha1Service    userV1alpha1.UserServiceServer
-	recipesV1alpha1Service recipesV1alpha1.RecipeServiceServer
-	recipeAccessService    recipesV1alpha1.RecipeAccessServiceServer
-	circleV1alpha1Service  circleV1alpha1.CircleServiceServer
-	circleAccessService    circleV1alpha1.CircleAccessServiceServer
-	domain                 domain.Domain
+	userV1alpha1Service         userV1alpha1.UserServiceServer
+	userSettingsV1alpha1Service userV1alpha1.UserSettingsServiceServer
+	recipesV1alpha1Service      recipesV1alpha1.RecipeServiceServer
+	recipeAccessService         recipesV1alpha1.RecipeAccessServiceServer
+	circleV1alpha1Service       circleV1alpha1.CircleServiceServer
+	circleAccessService         circleV1alpha1.CircleAccessServiceServer
+	domain                      domain.Domain
 }
 
 type NewServiceParams struct {
 	fx.In
 
-	UserV1alpha1Service    userV1alpha1.UserServiceServer
-	RecipesV1alpha1Service recipesV1alpha1.RecipeServiceServer
-	RecipeAccessService    recipesV1alpha1.RecipeAccessServiceServer
-	CircleV1alpha1Service  circleV1alpha1.CircleServiceServer
-	CircleAccessService    circleV1alpha1.CircleAccessServiceServer
-	Domain                 domain.Domain
+	UserV1alpha1Service         userV1alpha1.UserServiceServer
+	UserSettingsV1alpha1Service userV1alpha1.UserSettingsServiceServer
+	RecipesV1alpha1Service      recipesV1alpha1.RecipeServiceServer
+	RecipeAccessService         recipesV1alpha1.RecipeAccessServiceServer
+	CircleV1alpha1Service       circleV1alpha1.CircleServiceServer
+	CircleAccessService         circleV1alpha1.CircleAccessServiceServer
+	Domain                      domain.Domain
 }
 
 func NewService(params NewServiceParams) *Service {
 	return &Service{
-		userV1alpha1Service:    params.UserV1alpha1Service,
-		recipesV1alpha1Service: params.RecipesV1alpha1Service,
-		recipeAccessService:    params.RecipeAccessService,
-		circleV1alpha1Service:  params.CircleV1alpha1Service,
-		circleAccessService:    params.CircleAccessService,
-		domain:                 params.Domain,
+		userV1alpha1Service:         params.UserV1alpha1Service,
+		userSettingsV1alpha1Service: params.UserSettingsV1alpha1Service,
+		recipesV1alpha1Service:      params.RecipesV1alpha1Service,
+		recipeAccessService:         params.RecipeAccessService,
+		circleV1alpha1Service:       params.CircleV1alpha1Service,
+		circleAccessService:         params.CircleAccessService,
+		domain:                      params.Domain,
 	}
 }
 
@@ -53,6 +56,11 @@ func (s *Service) Register(m *http.ServeMux) error {
 
 	mux := runtime.NewServeMux()
 	err := userV1alpha1.RegisterUserServiceHandlerServer(ctx, mux, s.userV1alpha1Service)
+	if err != nil {
+		log.Printf("Failed to register gRPC gateway: %v", err)
+		return err
+	}
+	err = userV1alpha1.RegisterUserSettingsServiceHandlerServer(ctx, mux, s.userSettingsV1alpha1Service)
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
 		return err

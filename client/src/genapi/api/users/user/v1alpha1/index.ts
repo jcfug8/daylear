@@ -8,10 +8,6 @@ export type User = {
   //
   // Behaviors: IDENTIFIER
   name: string | undefined;
-  // the email of the user
-  //
-  // Behaviors: REQUIRED, OUTPUT_ONLY
-  email: string | undefined;
   // the username of the user
   //
   // Behaviors: OPTIONAL
@@ -496,5 +492,94 @@ export function createUserAccessServiceClient(
 // An empty JSON object
 type wellKnownEmpty = Record<never, never>;
 
+// the main user settings object
+export type UserSettings = {
+  // the name of the user
+  //
+  // Behaviors: IDENTIFIER
+  name: string | undefined;
+  // the email of the user
+  //
+  // Behaviors: OUTPUT_ONLY
+  email: string | undefined;
+};
+
+// the request to get user settings
+export type GetUserSettingsRequest = {
+  // the name of the user settings to get
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the request to update a user
+export type UpdateUserSettingsRequest = {
+  // the user settings to update
+  //
+  // Behaviors: REQUIRED
+  userSettings: UserSettings | undefined;
+  // the fields to update
+  //
+  // Behaviors: OPTIONAL
+  updateMask: wellKnownFieldMask | undefined;
+};
+
+// the user settings service
+export interface UserSettingsService {
+  // get a user
+  GetUserSettings(request: GetUserSettingsRequest): Promise<UserSettings>;
+  // update a user settings
+  UpdateUserSettings(request: UpdateUserSettingsRequest): Promise<UserSettings>;
+}
+
+export function createUserSettingsServiceClient(
+  handler: RequestHandler
+): UserSettingsService {
+  return {
+    GetUserSettings(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `users/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "UserSettingsService",
+        method: "GetUserSettings",
+      }) as Promise<UserSettings>;
+    },
+    UpdateUserSettings(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.userSettings?.name) {
+        throw new Error("missing required field request.user_settings.name");
+      }
+      const path = `users/v1alpha1/${request.userSettings.name}`; // eslint-disable-line quotes
+      const body = JSON.stringify(request?.userSettings ?? {});
+      const queryParams: string[] = [];
+      if (request.updateMask) {
+        queryParams.push(`updateMask=${encodeURIComponent(request.updateMask.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "PATCH",
+        body,
+      }, {
+        service: "UserSettingsService",
+        method: "UpdateUserSettings",
+      }) as Promise<UserSettings>;
+    },
+  };
+}
 
 // @@protoc_insertion_point(typescript-http-eof)

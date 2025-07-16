@@ -15,21 +15,23 @@ import (
 type NewUserServiceParams struct {
 	fx.In
 
-	Domain          domain.Domain
-	Log             zerolog.Logger
-	UserFieldMasker fieldMasker.UserFieldMasker
-	UserNamer       namer.ReflectNamer `name:"v1alpha1UserNamer"`
-	AccessNamer     namer.ReflectNamer `name:"v1alpha1UserAccessNamer"`
+	Domain            domain.Domain
+	Log               zerolog.Logger
+	UserFieldMasker   fieldMasker.UserFieldMasker
+	UserNamer         namer.ReflectNamer `name:"v1alpha1UserNamer"`
+	AccessNamer       namer.ReflectNamer `name:"v1alpha1UserAccessNamer"`
+	UserSettingsNamer namer.ReflectNamer `name:"v1alpha1UserSettingsNamer"`
 }
 
 // NewUserService creates a new UserService.
 func NewUserService(params NewUserServiceParams) (*UserService, error) {
 	return &UserService{
-		domain:          params.Domain,
-		log:             params.Log,
-		userFieldMasker: params.UserFieldMasker,
-		userNamer:       params.UserNamer,
-		accessNamer:     params.AccessNamer,
+		domain:            params.Domain,
+		log:               params.Log,
+		userFieldMasker:   params.UserFieldMasker,
+		userNamer:         params.UserNamer,
+		accessNamer:       params.AccessNamer,
+		userSettingsNamer: params.UserSettingsNamer,
 	}, nil
 }
 
@@ -37,16 +39,19 @@ func NewUserService(params NewUserServiceParams) (*UserService, error) {
 type UserService struct {
 	pb.UnimplementedUserServiceServer
 	pb.UnimplementedUserAccessServiceServer
-	domain          domain.Domain
-	log             zerolog.Logger
-	userFieldMasker fieldMasker.UserFieldMasker
-	userNamer       namer.ReflectNamer
-	accessNamer     namer.ReflectNamer
+	pb.UnimplementedUserSettingsServiceServer
+	domain            domain.Domain
+	log               zerolog.Logger
+	userFieldMasker   fieldMasker.UserFieldMasker
+	userNamer         namer.ReflectNamer
+	accessNamer       namer.ReflectNamer
+	userSettingsNamer namer.ReflectNamer
 }
 
 // Register registers s to the grpc implementation of the service.
 func (s *UserService) Register(server *grpc.Server) error {
 	pb.RegisterUserServiceServer(server, s)
 	pb.RegisterUserAccessServiceServer(server, s)
+	pb.RegisterUserSettingsServiceServer(server, s)
 	return nil
 }

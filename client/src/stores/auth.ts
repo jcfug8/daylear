@@ -1,8 +1,8 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { User } from '@/genapi/api/users/user/v1alpha1'
+import type { User, UserSettings } from '@/genapi/api/users/user/v1alpha1'
 import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
-import { userService, authService, circleService } from '@/api/api'
+import { userService, authService, circleService, userSettingsService } from '@/api/api'
 import type { PermissionLevel  } from '@/genapi/api/types'
 
 export enum AccountType {
@@ -20,11 +20,14 @@ export const useAuthStore = defineStore('auth', () => {
   const userId = ref<number>(0)
   const user = ref<User>({
     name: '',
-    email: '',
     username: '',
     givenName: '',
     familyName: '',
     visibility: undefined,
+  })
+  const userSettings = ref<UserSettings>({
+    name: '',
+    email: '',
   })
   const circles = ref<Circle[]>([])
   const activeAccount = ref<User | Circle>()
@@ -87,6 +90,9 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = await userService.GetUser({
         name: `users/${userId.value}`,
       })
+      userSettings.value = await userSettingsService.GetUserSettings({
+        name: `users/${userId.value}/settings`,
+      })
     } catch (error) {
       console.error('Error:', error)
       throw error
@@ -113,10 +119,23 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * updateAuthUser
    */
-  async function updateAuthUser(editUser: User) {
+  async function updateAuthUser(editUser: User & UserSettings) {
     try {
       user.value = await userService.UpdateUser({
-        user: editUser,
+        user: {
+          name: editUser.name,
+          username: editUser.username,
+          givenName: editUser.givenName,
+          familyName: editUser.familyName,
+          visibility: editUser.visibility,
+        },
+        updateMask: undefined,
+      })
+      userSettings.value = await userSettingsService.UpdateUserSettings({
+        userSettings: {
+          name: editUser.name + '/settings',
+          email: editUser.email,
+        },
         updateMask: undefined,
       })
     } catch (error) {
@@ -219,7 +238,6 @@ export const useAuthStore = defineStore('auth', () => {
     isLoggedIn.value = false
     user.value = {
       name: '',
-      email: '',
       username: '',
       givenName: '',
       familyName: '',
@@ -317,6 +335,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     user,
+    userSettings,
     circles,
     activeAccount,
     activeAccountName,
