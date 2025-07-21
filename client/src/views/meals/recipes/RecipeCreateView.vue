@@ -30,8 +30,8 @@ async function saveRecipe() {
     throw new Error('User not authenticated')
   }
   try {
-    await recipesStore.createRecipe(authStore.activeAccountName)
-    navigateBack()
+    const recipe = await recipesStore.createRecipe(authStore.activeAccountName)
+    router.push({ name: 'recipe', params: { recipeId: recipe.name } })
   } catch (err) {
     console.log("Error creating recipe:", err)
     alertStore.addAlert(err instanceof Error ? "Unable to create recipe\n" + err.message : String(err), 'error')

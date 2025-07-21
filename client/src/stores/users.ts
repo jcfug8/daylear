@@ -45,13 +45,6 @@ export const useUsersStore = defineStore('users', () => {
   async function loadUser(name: string) {
     loading.value = true
     try {
-      currentUserSettings.value = await userSettingsService.GetUserSettings({ name: `${name}/settings` })
-    } catch (error) {
-      currentUserSettings.value = null
-      console.error('Failed to load user settings:', error)
-    }
-
-    try {
       currentUser.value = await userService.GetUser({ name })
     } catch (error) {
       currentUser.value = null
@@ -62,7 +55,19 @@ export const useUsersStore = defineStore('users', () => {
     }
   }
 
-  async function updateUser(editUser: User & UserSettings) {
+  async function loadUserSettings(name: string) {
+    loading.value = true
+    try {
+      currentUserSettings.value = await userSettingsService.GetUserSettings({ name: `${name}/settings` })
+    } catch (error) {
+      currentUserSettings.value = null
+      console.error('Failed to load user settings:', error)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function updateUser(editUser: User) {
     loading.value = true
     try {
       currentUser.value = await userService.UpdateUser({
@@ -78,15 +83,28 @@ export const useUsersStore = defineStore('users', () => {
         },
         updateMask: undefined,
       })
+      return currentUser.value
+    } catch (error) {
+      console.error('Failed to update user:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function updateUserSettings(editUserSettings: UserSettings) {
+    loading.value = true
+    try {
       currentUserSettings.value = await userSettingsService.UpdateUserSettings({
         userSettings: {
-          name: editUser.name + '/settings',
-          email: editUser.email,
+          name: editUserSettings.name,
+          email: editUserSettings.email,
         },
         updateMask: undefined,
       })
+      return currentUserSettings.value
     } catch (error) {
-      console.error('Failed to update user:', error)
+      console.error('Failed to update user settings:', error)
       throw error
     } finally {
       loading.value = false
@@ -106,6 +124,8 @@ export const useUsersStore = defineStore('users', () => {
     currentUser,
     currentUserSettings,
     loadUser,
+    loadUserSettings,
     updateUser,
+    updateUserSettings,
   }
 }) 

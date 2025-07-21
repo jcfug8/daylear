@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container v-if="user && userSettings">
     <v-card class="mx-auto" max-width="600">
       <v-card-title>Edit User Settings</v-card-title>
       <v-card-text>
@@ -7,7 +7,7 @@
           <v-img
             class="mt-1"
             style="background-color: lightgray"
-            :src="imageCleared ? '' : (previewImage || editedUser.imageUri)"
+            :src="imageCleared ? '' : (previewImage || user.imageUri)"
             cover
             height="300"
           >
@@ -29,7 +29,7 @@
             @click="showImageDialog = true"
           ></v-btn>
           <v-btn
-            v-if="(previewImage || editedUser.imageUri) && !imageCleared"
+            v-if="(previewImage || user.imageUri) && !imageCleared"
             icon="mdi-close"
             color="warning"
             class="image-x-btn"
@@ -46,7 +46,7 @@
           ></v-btn>
         </div>
         <v-textarea
-          v-model="editedUser.bio"
+          v-model="user.bio"
           label="Bio"
           placeholder="Tell us about yourself..."
           rows="3"
@@ -82,31 +82,31 @@
         </v-dialog>
         <v-form @submit.prevent="saveSettings">
           <v-text-field
-            v-model="editedUser.givenName"
+            v-model="user.givenName"
             label="Given Name"
           ></v-text-field>
 
           <v-text-field
-            v-model="editedUser.familyName"
+            v-model="user.familyName"
             label="Family Name"
           ></v-text-field>
 
           <v-text-field
             disabled
-            v-model="editedUser.email"
+            v-model="userSettings.email"
             label="Email"
             type="email"
             required
           ></v-text-field>
 
           <v-text-field
-            v-model="editedUser.username"
+            v-model="user.username"
             label="Username"
             required
           ></v-text-field>
 
           <v-select
-            v-model="editedUser.visibility"
+            v-model="user.visibility"
             :items="visibilityOptions"
             item-title="label"
             item-value="value"
@@ -169,18 +169,6 @@ const breadcrumbStore = useBreadcrumbStore()
 const alertStore = useAlertStore()
 const route = useRoute()
 
-const editedUser = ref<User & UserSettings>({
-  name: '',
-  email: '',
-  username: '',
-  givenName: '',
-  familyName: '',
-  visibility: 'VISIBILITY_LEVEL_PUBLIC' as apitypes_VisibilityLevel,
-  imageUri: '',
-  access: undefined,
-  bio: '',
-})
-
 const visibilityOptions = [
   {
     value: 'VISIBILITY_LEVEL_PUBLIC',
@@ -241,17 +229,17 @@ function handleImageSubmit() {
 }
 
 function clearImage() {
-  if (!imageCleared.value) {
-    originalImageUri.value = previewImage.value || editedUser.value.imageUri || null
+  if (!imageCleared.value && user.value) {
+    originalImageUri.value = previewImage.value || user.value?.imageUri || null
     imageCleared.value = true
     previewImage.value = null
-    editedUser.value.imageUri = ''
+    user.value.imageUri = ''
   }
 }
 
 function undoClearImage() {
-  if (imageCleared.value && originalImageUri.value) {
-    editedUser.value.imageUri = originalImageUri.value
+  if (imageCleared.value && originalImageUri.value && user.value) {
+    user.value.imageUri = originalImageUri.value
     previewImage.value = originalImageUri.value
     imageCleared.value = false
   }
@@ -262,16 +250,21 @@ function navigateBack() {
 }
 
 async function saveSettings() {
+  if (!user.value || !userSettings.value) {
+    return
+  }
   try {
-    const updated = await usersStore.updateUser(editedUser.value)
-    Object.assign(editedUser.value, updated)
+    // Update user and user settings separately
+    await usersStore.updateUser(user.value)
+    await usersStore.updateUserSettings(userSettings.value)
+
     // Upload image if there's a pending file
-    if (imageFile.value && editedUser.value.name) {
+    if (imageFile.value && user.value.name) {
       const response = await fileService.UploadUserImage({
-        name: editedUser.value.name,
+        name: user.value.name,
         file: imageFile.value,
       })
-      editedUser.value.imageUri = response.imageUri
+      user.value.imageUri = response.imageUri
     }
     navigateBack()
   } catch (err) {
@@ -282,13 +275,10 @@ async function saveSettings() {
 
 onMounted(async () => {
   const userId = String(route.params.userId || '')
-  await usersStore.loadUser(userId)
-  if (user.value && userSettings.value) {
-    if (userSettings.value) {
-      Object.assign(editedUser.value, userSettings.value)
-    }
-    Object.assign(editedUser.value, user.value)
-  }
+  await Promise.all([
+    usersStore.loadUser(userId),
+    usersStore.loadUserSettings(userId)
+  ])
   breadcrumbStore.setBreadcrumbs([
     { title: 'User Settings', to: { name: 'user', params: { userId } } },
     { title: 'Edit', to: { name: 'user-edit', params: { userId } } },

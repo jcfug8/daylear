@@ -35,7 +35,7 @@ async function saveCircle() {
     throw new Error('User not authenticated')
   }
   try {
-    await circlesStore.createCircle(authStore.user.name)
+    const circle = await circlesStore.createCircle(authStore.user.name)
     // Upload image if there's a pending file
     if (pendingImageFile.value && circlesStore.circle?.name) {
       const response = await fileService.UploadCircleImage({
@@ -45,7 +45,7 @@ async function saveCircle() {
       circlesStore.circle.imageUri = response.imageUri
     }
     authStore.loadAuthCircles()
-    navigateBack()
+    router.push({ name: 'circle', params: { circleId: circle.name } })
   } catch (err) {
     alert(err instanceof Error ? err.message : String(err))
   }
@@ -66,6 +66,7 @@ onMounted(() => {
     imageUri: '',
     visibility: 'VISIBILITY_LEVEL_PUBLIC' as apitypes_VisibilityLevel,
     circleAccess: undefined,
+    description: '',
   }
   breadcrumbStore.setBreadcrumbs([
     { title: 'Circles', to: { name: 'circles' } },

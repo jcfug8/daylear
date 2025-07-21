@@ -89,7 +89,9 @@ const route = useRoute()
 
 onMounted(async () => {
   const userId = String(route.params.userId || '')
-  await usersStore.loadUser(userId)
+  await Promise.all([
+    usersStore.loadUser(userId),
+  ])
   breadcrumbStore.setBreadcrumbs([
     { title: 'User Settings', to: { name: 'user', params: { userId } } },
   ])
