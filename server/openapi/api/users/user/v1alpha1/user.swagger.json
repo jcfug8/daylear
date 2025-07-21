@@ -160,6 +160,10 @@
                   "type": "string",
                   "title": "the family name of the user"
                 },
+                "imageUri": {
+                  "type": "string",
+                  "title": "the image url for the user"
+                },
                 "visibility": {
                   "$ref": "#/definitions/typesVisibilityLevel",
                   "title": "the visibility of the user"
@@ -275,6 +279,10 @@
         "familyName": {
           "type": "string",
           "title": "the family name of the user"
+        },
+        "imageUri": {
+          "type": "string",
+          "title": "the image url for the user"
         },
         "visibility": {
           "$ref": "#/definitions/typesVisibilityLevel",

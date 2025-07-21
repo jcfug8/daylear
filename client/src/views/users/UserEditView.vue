@@ -3,6 +3,75 @@
     <v-card class="mx-auto" max-width="600">
       <v-card-title>Edit User Settings</v-card-title>
       <v-card-text>
+        <div class="image-container mb-4" style="position: relative;">
+          <v-img
+            class="mt-1"
+            style="background-color: lightgray"
+            :src="imageCleared ? '' : (previewImage || editedUser.imageUri)"
+            cover
+            height="300"
+          >
+            <template #placeholder>
+              <v-row class="fill-height ma-0" align="center" justify="center">
+                <v-icon size="64" color="grey-darken-1">mdi-image-outline</v-icon>
+              </v-row>
+            </template>
+            <template #error>
+              <v-row class="fill-height ma-0" align="center" justify="center">
+                <v-icon size="64" color="grey-darken-1">mdi-image-outline</v-icon>
+              </v-row>
+            </template>
+          </v-img>
+          <v-btn
+            icon="mdi-camera"
+            color="primary"
+            class="image-upload-btn"
+            @click="showImageDialog = true"
+          ></v-btn>
+          <v-btn
+            v-if="(previewImage || editedUser.imageUri) && !imageCleared"
+            icon="mdi-close"
+            color="warning"
+            class="image-x-btn"
+            @click="clearImage"
+            title="Remove Image"
+          ></v-btn>
+          <v-btn
+            v-if="imageCleared"
+            icon="mdi-arrow-u-left-top"
+            color="info"
+            class="image-undo-btn"
+            @click="undoClearImage"
+            title="Undo Remove Image"
+          ></v-btn>
+        </div>
+        <v-dialog v-model="showImageDialog" max-width="500">
+          <v-card>
+            <v-card-title>Add User Image</v-card-title>
+            <v-card-text>
+              <v-file-input
+                v-model="imageFile"
+                label="Choose Image"
+                accept="image/jpeg, image/jpg, image/png, image/gif, image/webp, image/bmp, image/svg, image/heic, image/heif"
+                class="mt-4"
+                prepend-icon="mdi-camera"
+                @update:model-value="handleFileSelect"
+              ></v-file-input>
+              <v-img
+                v-if="previewImage"
+                :src="previewImage"
+                max-height="200"
+                contain
+                class="mt-4"
+              ></v-img>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="error" @click="cancelImageDialog">Cancel</v-btn>
+              <v-btn color="primary" @click="handleImageSubmit">OK</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
         <v-form @submit.prevent="saveSettings">
           <v-text-field
             v-model="editedUser.givenName"
@@ -83,6 +152,7 @@ import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRouter } from 'vue-router'
 import type { User, UserSettings, apitypes_VisibilityLevel } from '@/genapi/api/users/user/v1alpha1'
 import { useAlertStore } from '@/stores/alerts'
+import { fileService } from '@/api/api'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -98,6 +168,8 @@ const editedUser = ref<User & UserSettings>({
   givenName: user.value.givenName,
   familyName: user.value.familyName,
   visibility: (user.value.visibility || 'VISIBILITY_LEVEL_PUBLIC') as apitypes_VisibilityLevel,
+  imageUri: user.value.imageUri,
+  access: user.value.access,  
 })
 
 const visibilityOptions = [
@@ -131,6 +203,51 @@ const visibilityOptions = [
   }
 ]
 
+const showImageDialog = ref(false)
+const imageFile = ref<File | null>(null)
+const previewImage = ref<string | null>(null)
+const imageCleared = ref(false)
+const originalImageUri = ref<string | null>(null)
+
+function handleFileSelect(files: File | File[] | null) {
+  if (files instanceof File) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      previewImage.value = e.target?.result as string
+    }
+    reader.readAsDataURL(files)
+  } else {
+    previewImage.value = null
+  }
+}
+
+function cancelImageDialog() {
+  showImageDialog.value = false
+  imageFile.value = null
+  previewImage.value = null
+}
+
+function handleImageSubmit() {
+  showImageDialog.value = false
+}
+
+function clearImage() {
+  if (!imageCleared.value) {
+    originalImageUri.value = previewImage.value || editedUser.value.imageUri || null
+    imageCleared.value = true
+    previewImage.value = null
+    editedUser.value.imageUri = ''
+  }
+}
+
+function undoClearImage() {
+  if (imageCleared.value && originalImageUri.value) {
+    editedUser.value.imageUri = originalImageUri.value
+    previewImage.value = originalImageUri.value
+    imageCleared.value = false
+  }
+}
+
 function navigateBack() {
   router.push({ name: 'user', params: { userId: user.value.name } })
 }
@@ -138,6 +255,14 @@ function navigateBack() {
 async function saveSettings() {
   try {
     await authStore.updateAuthUser(editedUser.value)
+    // Upload image if there's a pending file
+    if (imageFile.value && editedUser.value.name) {
+      const response = await fileService.UploadUserImage({
+        name: editedUser.value.name,
+        file: imageFile.value,
+      })
+      editedUser.value.imageUri = response.imageUri
+    }
     navigateBack()
   } catch (err) {
     console.log('Error saving settings:', err)
@@ -155,4 +280,18 @@ onMounted(async () => {
 })
 </script>
 
-<style></style>
+<style>
+.image-container {
+  position: relative;
+}
+.image-upload-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+}
+.image-x-btn, .image-undo-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+</style>

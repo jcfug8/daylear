@@ -112,6 +112,9 @@ message User {
   // the family name of the user
   string family_name = 5 [(google.api.field_behavior) = OPTIONAL];
 
+  // the image url for the user
+  string image_uri = 8 [(google.api.field_behavior) = OPTIONAL];
+
   // the visibility of the user
   api.types.VisibilityLevel visibility = 6 [(google.api.field_behavior) = REQUIRED];
 

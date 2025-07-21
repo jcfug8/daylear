@@ -24,6 +24,8 @@ export const useAuthStore = defineStore('auth', () => {
     givenName: '',
     familyName: '',
     visibility: undefined,
+    imageUri: '',
+    access: undefined,
   })
   const userSettings = ref<UserSettings>({
     name: '',
@@ -130,6 +132,8 @@ export const useAuthStore = defineStore('auth', () => {
           givenName: editUser.givenName,
           familyName: editUser.familyName,
           visibility: editUser.visibility,
+          imageUri: editUser.imageUri,
+          access: undefined,
         },
         updateMask: undefined,
       })
@@ -253,6 +257,8 @@ export const useAuthStore = defineStore('auth', () => {
       givenName: '',
       familyName: '',
       visibility: undefined,
+      imageUri: '',
+      access: undefined,
     }
     circles.value = []
     activeAccount.value = undefined

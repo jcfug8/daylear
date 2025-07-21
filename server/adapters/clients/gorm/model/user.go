@@ -20,7 +20,9 @@ var UserMap = masks.NewFieldMap().
 	MapFieldToFields(model.UserFields.FamilyName,
 		UserFields.FamilyName).
 	MapFieldToFields(model.UserFields.Visibility,
-		UserFields.Visibility)
+		UserFields.Visibility).
+	MapFieldToFields(model.UserFields.ImageUri,
+		UserFields.ImageUri)
 
 // UserFields defines the user fields.
 var UserFields = userFields{
@@ -28,6 +30,7 @@ var UserFields = userFields{
 	Username:   "daylear_user.username",
 	GivenName:  "daylear_user.given_name",
 	FamilyName: "daylear_user.family_name",
+	ImageUri:   "daylear_user.image_uri",
 	Visibility: "daylear_user.visibility",
 
 	Email: "daylear_user.email",
@@ -45,6 +48,7 @@ type userFields struct {
 	Username   string
 	GivenName  string
 	FamilyName string
+	ImageUri   string
 	Visibility string
 
 	Email string
@@ -65,6 +69,7 @@ func (fields userFields) Map(m User) map[string]any {
 		fields.GivenName:  m.GivenName,
 		fields.FamilyName: m.FamilyName,
 		fields.Visibility: m.Visibility,
+		fields.ImageUri:   m.ImageUri,
 
 		fields.Email: m.Email,
 
@@ -84,6 +89,7 @@ func (fields userFields) Mask() []string {
 		fields.Username,
 		fields.GivenName,
 		fields.FamilyName,
+		fields.ImageUri,
 		fields.Visibility,
 
 		fields.Email,
@@ -110,6 +116,8 @@ type User struct {
 	AmazonId   *string `gorm:"size:255;->:false;<-:create;uniqueIndex"`
 	FacebookId *string `gorm:"size:255;->:false;<-:create;uniqueIndex"`
 	GoogleId   *string `gorm:"size:255;->:false;<-:create;uniqueIndex"`
+
+	ImageUri string `gorm:"size:255"`
 
 	UserAccessId    int64                 `gorm:"->;-:migration"` // only used for read from a join
 	PermissionLevel types.PermissionLevel `gorm:"->;-:migration"` // only used for read from a join

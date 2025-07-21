@@ -18,6 +18,8 @@ type Service struct {
 	recipeNamer       namer.ReflectNamer
 	circleNamer       namer.ReflectNamer
 	recipeAccessNamer namer.ReflectNamer
+
+	userNamer namer.ReflectNamer
 }
 
 type NewServiceParams struct {
@@ -28,6 +30,8 @@ type NewServiceParams struct {
 	RecipeNamer       namer.ReflectNamer `name:"v1alpha1RecipeNamer"`
 	CircleNamer       namer.ReflectNamer `name:"v1alpha1CircleNamer"`
 	RecipeAccessNamer namer.ReflectNamer `name:"v1alpha1RecipeAccessNamer"`
+
+	UserNamer namer.ReflectNamer `name:"v1alpha1UserNamer"`
 }
 
 func NewService(params NewServiceParams) (*Service, error) {
@@ -37,6 +41,7 @@ func NewService(params NewServiceParams) (*Service, error) {
 		recipeNamer:       params.RecipeNamer,
 		circleNamer:       params.CircleNamer,
 		recipeAccessNamer: params.RecipeAccessNamer,
+		userNamer:         params.UserNamer,
 	}, nil
 }
 
@@ -50,6 +55,7 @@ func (s *Service) Register(m *http.ServeMux) error {
 	r.HandleFunc("/meals/v1alpha1/{name:circles/[0-9]*/recipes/[0-9]+}/image:generate", s.GenerateRecipeImage).Methods(http.MethodGet)
 
 	r.HandleFunc("/circles/v1alpha1/{name:circles/[0-9]+}/image", s.UploadCircleImage).Methods(http.MethodPut)
+	r.HandleFunc("/users/v1alpha1/{name:users/[0-9]+}/image", s.UploadUserImage).Methods(http.MethodPut)
 
 	r.HandleFunc("/meals/v1alpha1/recipes:ocr", s.OCRRecipe).Methods(http.MethodPost)
 

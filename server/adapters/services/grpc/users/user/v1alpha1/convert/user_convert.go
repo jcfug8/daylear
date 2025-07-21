@@ -21,6 +21,7 @@ func ProtoToUser(userNamer namer.ReflectNamer, accessNamer namer.ReflectNamer, p
 	user.Username = proto.Username
 	user.GivenName = proto.GivenName
 	user.FamilyName = proto.FamilyName
+	user.ImageUri = proto.ImageUri
 	user.Visibility = proto.Visibility
 
 	return user, nil
@@ -38,6 +39,7 @@ func UserToProto(userNamer namer.ReflectNamer, accessNamer namer.ReflectNamer, u
 	proto.Username = user.Username
 	proto.GivenName = user.GivenName
 	proto.FamilyName = user.FamilyName
+	proto.ImageUri = user.ImageUri
 	proto.Visibility = user.Visibility
 
 	if (user.UserAccess != model.UserAccess{}) {

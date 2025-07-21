@@ -1,6 +1,22 @@
 <template>
   <v-container>
     <v-card class="mx-auto" max-width="600">
+      <div class="image-container">
+        <v-img
+          v-if="user.imageUri"
+          class="mt-1"
+          style="background-color: lightgray"
+          :src="user.imageUri"
+          cover
+          height="300"
+        ></v-img>
+        <div v-else class="mt-1 d-flex align-center justify-center" style="background-color: lightgray; height: 300px; border-radius: 4px;">
+          <div class="text-center">
+            <v-icon size="64" color="grey-darken-1">mdi-image-outline</v-icon>
+            <div class="text-grey-darken-1 mt-2">No image available</div>
+          </div>
+        </div>
+      </div>
       <v-card-title>User Settings</v-card-title>
       <v-card-text>
         <v-list>

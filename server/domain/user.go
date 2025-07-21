@@ -6,11 +6,19 @@ import (
 	"math/rand"
 	"strings"
 
+	"io"
+	"path"
+	"strconv"
+
 	"github.com/jcfug8/daylear/server/core/logutil"
 	model "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
+
+	uuid "github.com/satori/go.uuid"
 )
+
+const UserImageRoot = "users"
 
 func (d *Domain) IdentifyUser(ctx context.Context, user model.User) (model.User, error) {
 	filter := ""
@@ -59,15 +67,15 @@ func (d *Domain) UpdateUser(ctx context.Context, authAccount model.AuthAccount, 
 		return model.User{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_ADMIN {
-		log.Warn().Msg("user does not have admin permission")
-		return model.User{}, domain.ErrPermissionDenied{Msg: "user does not have admin permission"}
-	}
-
 	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevelsForUser(ctx, authAccount, user.Id)
 	if err != nil {
 		log.Error().Err(err).Msg("getUserAccessLevelsForUser failed")
 		return model.User{}, err
+	}
+
+	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_ADMIN {
+		log.Warn().Msg("user does not have admin permission")
+		return model.User{}, domain.ErrPermissionDenied{Msg: "user does not have admin permission"}
 	}
 
 	dbUser, err = d.repo.UpdateUser(ctx, authAccount, user, updateMask)
@@ -181,4 +189,76 @@ func (d *Domain) determineUsername(ctx context.Context, email string) (string, e
 	}
 
 	return username, nil
+}
+
+// UploadUserImage uploads a user image and returns the image URI
+func (d *Domain) UploadUserImage(ctx context.Context, authAccount model.AuthAccount, id model.UserId, imageReader io.Reader) (imageURI string, err error) {
+	if authAccount.UserId == 0 {
+		return "", domain.ErrInvalidArgument{Msg: "parent required"}
+	}
+	if id.UserId == 0 {
+		return "", domain.ErrInvalidArgument{Msg: "id required"}
+	}
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevelsForUser(ctx, authAccount, id)
+	if err != nil {
+		return "", err
+	}
+	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_ADMIN {
+		return "", domain.ErrPermissionDenied{Msg: "user does not have access"}
+	}
+	user, err := d.repo.GetUser(ctx, authAccount, id)
+	if err != nil {
+		return "", err
+	}
+	oldImageURI := user.ImageUri
+
+	imageURI, err = d.uploadUserImage(ctx, id, imageReader)
+	if err != nil {
+		return "", err
+	}
+	_, err = d.repo.UpdateUser(ctx, authAccount, model.User{
+		Id:       id,
+		ImageUri: imageURI,
+	}, []string{model.UserFields.ImageUri})
+	if err != nil {
+		return "", err
+	}
+	if oldImageURI != "" && oldImageURI != imageURI {
+		go d.fileStore.DeleteFile(context.Background(), oldImageURI)
+	}
+	return imageURI, nil
+}
+
+func (d *Domain) uploadUserImage(ctx context.Context, id model.UserId, imageReader io.Reader) (imageURL string, err error) {
+	image, err := d.imageClient.CreateImage(ctx, imageReader)
+	if err != nil {
+		return "", err
+	}
+	err = image.Convert(ctx, "jpg")
+	if err != nil {
+		return "", err
+	}
+	width, height, err := image.GetDimensions(ctx)
+	if err != nil {
+		return "", err
+	}
+	if width > maxImageWidth || height > maxImageHeight {
+		newWidth, newHeight := resizeToFit(width, height, maxImageWidth)
+		err = image.Resize(ctx, newWidth, newHeight)
+		if err != nil {
+			return "", err
+		}
+	}
+	file, err := image.GetFile()
+	if err != nil {
+		return "", err
+	}
+	defer image.Remove(ctx)
+	imagePath := path.Join(UserImageRoot, strconv.FormatInt(id.UserId, 10), uuid.NewV4().String())
+	imagePath = imagePath + file.Extension
+	imageURI, err := d.fileStore.UploadPublicFile(ctx, imagePath, file)
+	if err != nil {
+		return "", err
+	}
+	return imageURI, nil
 }

@@ -9,7 +9,10 @@
       <v-col lg="3" md="4" sm="6" cols="12" v-for="user in users" :key="user.name">
         <v-card>
           <v-card-title>
-            <v-icon left>mdi-account</v-icon>
+            <v-avatar size="32" class="me-2">
+              <v-img v-if="user.imageUri" :src="user.imageUri" />
+              <v-icon v-else>mdi-account</v-icon>
+            </v-avatar>
             {{ user.username || user.name }}
           </v-card-title>
           <v-card-subtitle>

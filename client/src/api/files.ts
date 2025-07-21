@@ -45,10 +45,22 @@ export type GenerateRecipeImageRequest = {
 // the response to generate a recipe image
 export type GenerateRecipeImageResponse = Blob;
 
+// the response to upload a user image
+export type UploadUserImageResponse = {
+    imageUri: string | undefined;
+};
+
+// the request to upload a user image
+export type UploadUserImageRequest = {
+    name: string | undefined;
+    file: File | undefined;
+};
+
 // the auth service
 export interface FileService {
     UploadRecipeImage(request: UploadRecipeImageRequest, signal?: AbortSignal): Promise<UploadRecipeImageResponse>;
     UploadCircleImage(request: UploadCircleImageRequest, signal?: AbortSignal): Promise<UploadCircleImageResponse>;
+    UploadUserImage(request: UploadUserImageRequest, signal?: AbortSignal): Promise<UploadUserImageResponse>;
     OCRRecipe(request: OCRRecipeRequest, signal?: AbortSignal): Promise<OCRRecipeResponse>;
     GenerateRecipeImage(request: GenerateRecipeImageRequest, signal?: AbortSignal): Promise<GenerateRecipeImageResponse>;
   }
@@ -114,6 +126,31 @@ export function createFileServiceClient(handler: RequestHandler): FileService {
           service: "FileService",
           method: "UploadCircleImage",
         }) as Promise<UploadCircleImageResponse>;
+      },
+      UploadUserImage(request, signal) {
+        if (!request.name) {
+          throw new Error("missing required field request.name");
+        }
+        if (!request.file) {
+          throw new Error("missing required field request.file");
+        }
+        const path = `files/users/v1alpha1/${request.name}/image`;
+        const body = new FormData();
+        body.append("file", request.file);
+        const queryParams: string[] = [];
+        let uri = path;
+        if (queryParams.length > 0) {
+          uri += `?${queryParams.join("&")}`
+        }
+        return handler({
+          path: uri,
+          method: "PUT",
+          body,
+          signal,
+        }, {
+          service: "FileService",
+          method: "UploadUserImage",
+        }) as Promise<UploadUserImageResponse>;
       },
       OCRRecipe(request, signal) { // eslint-disable-line @typescript-eslint/no-unused-vars
         if (!request.files) {

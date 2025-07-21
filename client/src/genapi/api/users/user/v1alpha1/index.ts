@@ -20,6 +20,10 @@ export type User = {
   //
   // Behaviors: OPTIONAL
   familyName: string | undefined;
+  // the image url for the user
+  //
+  // Behaviors: OPTIONAL
+  imageUri: string | undefined;
   // the visibility of the user
   //
   // Behaviors: REQUIRED
