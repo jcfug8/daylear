@@ -18,6 +18,9 @@
           class="circle-card"
         >
           <v-card-subtitle>
+            <div v-if="circle.description" class="text-body-2 mb-1" style="max-height: 2.5em; overflow: hidden; text-overflow: ellipsis; white-space: pre-line;">
+              {{ circle.description.length > 80 ? circle.description.slice(0, 80) + '…' : circle.description }}
+            </div>
           </v-card-subtitle>
           <v-img
             class="mt-4"

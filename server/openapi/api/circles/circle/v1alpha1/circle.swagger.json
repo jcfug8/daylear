@@ -161,6 +161,10 @@
                   "type": "string",
                   "title": "the title of the circle"
                 },
+                "description": {
+                  "type": "string",
+                  "title": "the description of the circle"
+                },
                 "handle": {
                   "type": "string",
                   "title": "the unique handle for the circle (like a username, must be unique, user-friendly, and can be used for sharing)"
@@ -313,6 +317,10 @@
         "title": {
           "type": "string",
           "title": "the title of the circle"
+        },
+        "description": {
+          "type": "string",
+          "title": "the description of the circle"
         },
         "handle": {
           "type": "string",

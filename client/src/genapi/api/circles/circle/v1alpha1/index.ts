@@ -12,6 +12,10 @@ export type Circle = {
   //
   // Behaviors: REQUIRED
   title: string | undefined;
+  // the description of the circle
+  //
+  // Behaviors: OPTIONAL
+  description: string | undefined;
   // the unique handle for the circle (like a username, must be unique, user-friendly, and can be used for sharing)
   //
   // Behaviors: OPTIONAL

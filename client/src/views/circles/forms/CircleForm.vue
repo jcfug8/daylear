@@ -18,7 +18,14 @@
                 label="Circle Title"
                 required
               ></v-text-field>
-
+              <v-textarea
+                v-model="circle.description"
+                label="Description"
+                placeholder="Describe this circle..."
+                rows="3"
+                auto-grow
+                class="mb-4"
+              ></v-textarea>
               <v-text-field
                 v-model="circle.handle"
                 label="Handle (unique, for sharing)"

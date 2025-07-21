@@ -11,6 +11,12 @@
               <div class="text-h4">
                 {{ circle.title }}
               </div>
+              <div class="bio-section pa-2">
+                <div class="text-subtitle-1 font-weight-bold mb-1">Description</div>
+                <div class="text-body-1" style="white-space: pre-line;">
+                  {{ circle.description || 'No description set.' }}
+                </div>
+              </div>
               <div v-if="circle.handle" class="text-body-2 mt-1">
                 <strong>Handle:</strong> <code>{{ circle.handle }}</code>
               </div>

@@ -249,6 +249,7 @@ func (s *CircleService) ProtoToCircle(proto *pb.Circle) (model.Circle, error) {
 		}
 	}
 	circle.Title = proto.Title
+	circle.Description = proto.Description
 	circle.Handle = proto.Handle
 	circle.ImageURI = proto.ImageUri
 	circle.VisibilityLevel = proto.Visibility
@@ -264,6 +265,7 @@ func (s *CircleService) CircleToProto(circle model.Circle) (*pb.Circle, error) {
 	}
 	proto.Name = name
 	proto.Title = circle.Title
+	proto.Description = circle.Description
 	proto.Handle = circle.Handle
 	proto.ImageUri = circle.ImageURI
 	proto.Visibility = circle.VisibilityLevel
