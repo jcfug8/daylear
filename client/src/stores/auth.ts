@@ -122,36 +122,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * updateAuthUser
-   */
-  async function updateAuthUser(editUser: User & UserSettings) {
-    try {
-      user.value = await userService.UpdateUser({
-        user: {
-          name: editUser.name,
-          username: editUser.username,
-          givenName: editUser.givenName,
-          familyName: editUser.familyName,
-          visibility: editUser.visibility,
-          imageUri: editUser.imageUri,
-          access: undefined,
-          bio: editUser.bio,
-        },
-        updateMask: undefined,
-      })
-      userSettings.value = await userSettingsService.UpdateUserSettings({
-        userSettings: {
-          name: editUser.name + '/settings',
-          email: editUser.email,
-        },
-        updateMask: undefined,
-      })
-    } catch (error) {
-      console.error('Error:', error)
-    }
-  }
-
-  /**
    * Checks if a JWT exists in localStorage or sessionStorage and sets up authentication data if it does.
    * Clears authentication data if no JWT is found.
    *
@@ -367,7 +337,6 @@ export const useAuthStore = defineStore('auth', () => {
     waitForAuthInit,
     loadAuthUser,
     loadAuthCircles,
-    updateAuthUser,
     logOut,
     setActiveAccount,
   }

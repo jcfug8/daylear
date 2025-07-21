@@ -15,6 +15,7 @@ type userDomain interface {
 
 	DeleteUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.User, error)
 	GetUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId, fieldMask []string) (model.User, error)
+	GetOwnUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId, fieldMask []string) (model.User, error)
 	ListUsers(ctx context.Context, authAccount model.AuthAccount, pageSize int32, offset int64, filter string, fieldMask []string) ([]model.User, error)
 	UpdateUser(ctx context.Context, authAccount model.AuthAccount, user model.User, updateMask []string) (model.User, error)
 

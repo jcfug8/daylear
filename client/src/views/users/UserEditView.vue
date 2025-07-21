@@ -153,32 +153,32 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from '@/stores/auth'
+import { useUsersStore } from '@/stores/users'
 import { storeToRefs } from 'pinia'
 import { onMounted, ref, computed } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import type { User, UserSettings, apitypes_VisibilityLevel } from '@/genapi/api/users/user/v1alpha1'
 import { useAlertStore } from '@/stores/alerts'
 import { fileService } from '@/api/api'
 
 const router = useRouter()
-const authStore = useAuthStore()
-const { user, userSettings } = storeToRefs(authStore)
+const usersStore = useUsersStore()
+const { currentUser: user, currentUserSettings: userSettings } = storeToRefs(usersStore)
 const breadcrumbStore = useBreadcrumbStore()
 const alertStore = useAlertStore()
+const route = useRoute()
 
-// Create a copy of the user object for editing
 const editedUser = ref<User & UserSettings>({
-  name: user.value.name,
-  email: userSettings.value.email,
-  username: user.value.username,
-  givenName: user.value.givenName,
-  familyName: user.value.familyName,
-  visibility: (user.value.visibility || 'VISIBILITY_LEVEL_PUBLIC') as apitypes_VisibilityLevel,
-  imageUri: user.value.imageUri,
-  access: user.value.access,
-  bio: user.value.bio,
+  name: '',
+  email: '',
+  username: '',
+  givenName: '',
+  familyName: '',
+  visibility: 'VISIBILITY_LEVEL_PUBLIC' as apitypes_VisibilityLevel,
+  imageUri: '',
+  access: undefined,
+  bio: '',
 })
 
 const visibilityOptions = [
@@ -258,12 +258,13 @@ function undoClearImage() {
 }
 
 function navigateBack() {
-  router.push({ name: 'user', params: { userId: user.value.name } })
+  router.push({ name: 'user', params: { userId: user.value?.name } })
 }
 
 async function saveSettings() {
   try {
-    await authStore.updateAuthUser(editedUser.value)
+    const updated = await usersStore.updateUser(editedUser.value)
+    Object.assign(editedUser.value, updated)
     // Upload image if there's a pending file
     if (imageFile.value && editedUser.value.name) {
       const response = await fileService.UploadUserImage({
@@ -280,11 +281,17 @@ async function saveSettings() {
 }
 
 onMounted(async () => {
-  await authStore.loadAuthUser()
-
+  const userId = String(route.params.userId || '')
+  await usersStore.loadUser(userId)
+  if (user.value && userSettings.value) {
+    if (userSettings.value) {
+      Object.assign(editedUser.value, userSettings.value)
+    }
+    Object.assign(editedUser.value, user.value)
+  }
   breadcrumbStore.setBreadcrumbs([
-    { title: 'User Settings', to: { name: 'user', params: { userId: user.value.name } } },
-    { title: 'Edit', to: { name: 'user-edit', params: { userId: user.value.name } } },
+    { title: 'User Settings', to: { name: 'user', params: { userId } } },
+    { title: 'Edit', to: { name: 'user-edit', params: { userId } } },
   ])
 })
 </script>

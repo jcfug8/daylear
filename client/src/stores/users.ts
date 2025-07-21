@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { userService } from '@/api/api'
-import type { User } from '@/genapi/api/users/user/v1alpha1'
+import { userService, userSettingsService } from '@/api/api'
+import type { User, UserSettings } from '@/genapi/api/users/user/v1alpha1'
 
 export const useUsersStore = defineStore('users', () => {
   const users = ref<User[]>([])
@@ -9,6 +9,8 @@ export const useUsersStore = defineStore('users', () => {
   const pendingFriends = ref<User[]>([])
   const publicUsers = ref<User[]>([])
   const loading = ref(false)
+  const currentUser = ref<User | null>(null)
+  const currentUserSettings = ref<UserSettings | null>(null)
 
   async function loadUsers(filter?: string) {
     loading.value = true
@@ -40,6 +42,57 @@ export const useUsersStore = defineStore('users', () => {
     publicUsers.value = result
   }
 
+  async function loadUser(name: string) {
+    loading.value = true
+    try {
+      currentUserSettings.value = await userSettingsService.GetUserSettings({ name: `${name}/settings` })
+    } catch (error) {
+      currentUserSettings.value = null
+      console.error('Failed to load user settings:', error)
+    }
+
+    try {
+      currentUser.value = await userService.GetUser({ name })
+    } catch (error) {
+      currentUser.value = null
+      console.error('Failed to load user:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function updateUser(editUser: User & UserSettings) {
+    loading.value = true
+    try {
+      currentUser.value = await userService.UpdateUser({
+        user: {
+          name: editUser.name,
+          username: editUser.username,
+          givenName: editUser.givenName,
+          familyName: editUser.familyName,
+          visibility: editUser.visibility,
+          imageUri: editUser.imageUri,
+          access: undefined,
+          bio: editUser.bio,
+        },
+        updateMask: undefined,
+      })
+      currentUserSettings.value = await userSettingsService.UpdateUserSettings({
+        userSettings: {
+          name: editUser.name + '/settings',
+          email: editUser.email,
+        },
+        updateMask: undefined,
+      })
+    } catch (error) {
+      console.error('Failed to update user:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     users,
     friends,
@@ -50,5 +103,9 @@ export const useUsersStore = defineStore('users', () => {
     loadFriends,
     loadPendingFriends,
     loadPublicUsers,
+    currentUser,
+    currentUserSettings,
+    loadUser,
+    updateUser,
   }
 }) 

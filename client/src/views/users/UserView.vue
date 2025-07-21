@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container v-if="user">
     <v-card class="mx-auto" max-width="600">
       <div class="image-container">
         <v-img
@@ -44,14 +44,6 @@
 
           <v-list-item>
             <template v-slot:prepend>
-              <v-icon icon="mdi-email"></v-icon>
-            </template>
-            <v-list-item-title>Email</v-list-item-title>
-            <v-list-item-subtitle>{{ userSettings.email }}</v-list-item-subtitle>
-          </v-list-item>
-
-          <v-list-item>
-            <template v-slot:prepend>
               <v-icon icon="mdi-account-circle"></v-icon>
             </template>
             <v-list-item-title>Username</v-list-item-title>
@@ -83,21 +75,23 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from '@/stores/auth'
+import { useUsersStore } from '@/stores/users'
 import { storeToRefs } from 'pinia'
 import { onMounted } from 'vue'
 import { computed } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
+import { useRoute } from 'vue-router'
 
-const authStore = useAuthStore()
-const { user, userSettings } = storeToRefs(authStore)
+const usersStore = useUsersStore()
+const { currentUser: user } = storeToRefs(usersStore)
 const breadcrumbStore = useBreadcrumbStore()
+const route = useRoute()
 
 onMounted(async () => {
-  await authStore.loadAuthUser()
-
+  const userId = String(route.params.userId || '')
+  await usersStore.loadUser(userId)
   breadcrumbStore.setBreadcrumbs([
-    { title: 'User Settings', to: { name: 'user', params: { userId: user.value.name } } },
+    { title: 'User Settings', to: { name: 'user', params: { userId } } },
   ])
 })
 
@@ -133,7 +127,7 @@ const visibilityOptions = [
 ]
 
 const selectedVisibility = computed(() => {
-  return visibilityOptions.find(option => option.value === user.value.visibility)
+  return visibilityOptions.find(option => option.value === user.value?.visibility)
 })
 const selectedVisibilityLabel = computed(() => selectedVisibility.value?.label || '')
 const selectedVisibilityDescription = computed(() => selectedVisibility.value?.description || '')

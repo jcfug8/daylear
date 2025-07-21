@@ -11,6 +11,7 @@
           class="user-card"
           hover
           style="aspect-ratio: 8/6"
+          :to="{ name: 'user', params: { userId: user.name } }"
         >
         <v-card-title class="pt-4 pb-1">
             <div>

@@ -31,7 +31,7 @@ func (s *UserService) GetUserSettings(ctx context.Context, req *pb.GetUserSettin
 
 	// Only allow name and email fields
 	fieldMask := []string{"id", "email"}
-	mUser, err = s.domain.GetUser(ctx, authAccount, mUser.Id, fieldMask)
+	mUser, err = s.domain.GetOwnUser(ctx, authAccount, mUser.Id, fieldMask)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.GetUser failed")
 		return nil, status.Error(codes.Internal, err.Error())
