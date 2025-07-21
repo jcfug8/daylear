@@ -164,6 +164,10 @@
                   "type": "string",
                   "title": "the image url for the user"
                 },
+                "bio": {
+                  "type": "string",
+                  "title": "the bio for the user"
+                },
                 "visibility": {
                   "$ref": "#/definitions/typesVisibilityLevel",
                   "title": "the visibility of the user"
@@ -283,6 +287,10 @@
         "imageUri": {
           "type": "string",
           "title": "the image url for the user"
+        },
+        "bio": {
+          "type": "string",
+          "title": "the bio for the user"
         },
         "visibility": {
           "$ref": "#/definitions/typesVisibilityLevel",

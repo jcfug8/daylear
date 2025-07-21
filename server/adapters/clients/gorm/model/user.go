@@ -22,7 +22,9 @@ var UserMap = masks.NewFieldMap().
 	MapFieldToFields(model.UserFields.Visibility,
 		UserFields.Visibility).
 	MapFieldToFields(model.UserFields.ImageUri,
-		UserFields.ImageUri)
+		UserFields.ImageUri).
+	MapFieldToFields(model.UserFields.Bio,
+		UserFields.Bio)
 
 // UserFields defines the user fields.
 var UserFields = userFields{
@@ -31,6 +33,7 @@ var UserFields = userFields{
 	GivenName:  "daylear_user.given_name",
 	FamilyName: "daylear_user.family_name",
 	ImageUri:   "daylear_user.image_uri",
+	Bio:        "daylear_user.bio",
 	Visibility: "daylear_user.visibility",
 
 	Email: "daylear_user.email",
@@ -49,6 +52,7 @@ type userFields struct {
 	GivenName  string
 	FamilyName string
 	ImageUri   string
+	Bio        string
 	Visibility string
 
 	Email string
@@ -70,6 +74,7 @@ func (fields userFields) Map(m User) map[string]any {
 		fields.FamilyName: m.FamilyName,
 		fields.Visibility: m.Visibility,
 		fields.ImageUri:   m.ImageUri,
+		fields.Bio:        m.Bio,
 
 		fields.Email: m.Email,
 
@@ -90,6 +95,7 @@ func (fields userFields) Mask() []string {
 		fields.GivenName,
 		fields.FamilyName,
 		fields.ImageUri,
+		fields.Bio,
 		fields.Visibility,
 
 		fields.Email,
@@ -118,6 +124,7 @@ type User struct {
 	GoogleId   *string `gorm:"size:255;->:false;<-:create;uniqueIndex"`
 
 	ImageUri string `gorm:"size:255"`
+	Bio      string `gorm:"size:1024"`
 
 	UserAccessId    int64                 `gorm:"->;-:migration"` // only used for read from a join
 	PermissionLevel types.PermissionLevel `gorm:"->;-:migration"` // only used for read from a join

@@ -17,6 +17,12 @@
           </div>
         </div>
       </div>
+      <div class="bio-section pa-4">
+        <div class="text-subtitle-1 font-weight-bold mb-1">Bio</div>
+        <div class="text-body-1" style="white-space: pre-line;">
+          {{ user.bio || 'No bio set.' }}
+        </div>
+      </div>
       <v-card-title>User Settings</v-card-title>
       <v-card-text>
         <v-list>

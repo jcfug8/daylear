@@ -38,6 +38,8 @@ type User struct {
 	FamilyName string `protobuf:"bytes,5,opt,name=family_name,json=familyName,proto3" json:"family_name,omitempty"`
 	// the image url for the user
 	ImageUri string `protobuf:"bytes,8,opt,name=image_uri,json=imageUri,proto3" json:"image_uri,omitempty"`
+	// the bio for the user
+	Bio string `protobuf:"bytes,9,opt,name=bio,proto3" json:"bio,omitempty"`
 	// the visibility of the user
 	Visibility types.VisibilityLevel `protobuf:"varint,6,opt,name=visibility,proto3,enum=api.types.VisibilityLevel" json:"visibility,omitempty"`
 	// the user access details
@@ -107,6 +109,13 @@ func (x *User) GetFamilyName() string {
 func (x *User) GetImageUri() string {
 	if x != nil {
 		return x.ImageUri
+	}
+	return ""
+}
+
+func (x *User) GetBio() string {
+	if x != nil {
+		return x.Bio
 	}
 	return ""
 }
@@ -413,7 +422,7 @@ var File_api_users_user_v1alpha1_user_proto protoreflect.FileDescriptor
 
 const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\n" +
-	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x91\x04\n" +
+	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xa8\x04\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x1f\n" +
 	"\busername\x18\x03 \x01(\tB\x03\xe0A\x01R\busername\x12\"\n" +
@@ -421,7 +430,8 @@ const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"given_name\x18\x04 \x01(\tB\x03\xe0A\x01R\tgivenName\x12$\n" +
 	"\vfamily_name\x18\x05 \x01(\tB\x03\xe0A\x01R\n" +
 	"familyName\x12 \n" +
-	"\timage_uri\x18\b \x01(\tB\x03\xe0A\x01R\bimageUri\x12?\n" +
+	"\timage_uri\x18\b \x01(\tB\x03\xe0A\x01R\bimageUri\x12\x15\n" +
+	"\x03bio\x18\t \x01(\tB\x03\xe0A\x01R\x03bio\x12?\n" +
 	"\n" +
 	"visibility\x18\x06 \x01(\x0e2\x1a.api.types.VisibilityLevelB\x03\xe0A\x02R\n" +
 	"visibility\x12A\n" +

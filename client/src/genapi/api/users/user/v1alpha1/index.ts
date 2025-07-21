@@ -24,6 +24,10 @@ export type User = {
   //
   // Behaviors: OPTIONAL
   imageUri: string | undefined;
+  // the bio for the user
+  //
+  // Behaviors: OPTIONAL
+  bio: string | undefined;
   // the visibility of the user
   //
   // Behaviors: REQUIRED

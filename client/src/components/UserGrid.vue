@@ -19,6 +19,9 @@
             {{ user.givenName }} {{ user.familyName }}
           </v-card-subtitle>
           <v-card-text>
+            <div v-if="user.bio" class="text-body-2 mb-1" style="max-height: 2.5em; overflow: hidden; text-overflow: ellipsis; white-space: pre-line;">
+              {{ user.bio.length > 80 ? user.bio.slice(0, 80) + '…' : user.bio }}
+            </div>
             <span v-if="user.visibility">Visibility: {{ user.visibility.replace('VISIBILITY_LEVEL_', '').toLowerCase() }}</span>
           </v-card-text>
           <v-card-actions v-if="showActions">

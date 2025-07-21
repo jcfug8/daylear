@@ -45,6 +45,14 @@
             title="Undo Remove Image"
           ></v-btn>
         </div>
+        <v-textarea
+          v-model="editedUser.bio"
+          label="Bio"
+          placeholder="Tell us about yourself..."
+          rows="3"
+          auto-grow
+          class="mb-4"
+        ></v-textarea>
         <v-dialog v-model="showImageDialog" max-width="500">
           <v-card>
             <v-card-title>Add User Image</v-card-title>
@@ -169,7 +177,8 @@ const editedUser = ref<User & UserSettings>({
   familyName: user.value.familyName,
   visibility: (user.value.visibility || 'VISIBILITY_LEVEL_PUBLIC') as apitypes_VisibilityLevel,
   imageUri: user.value.imageUri,
-  access: user.value.access,  
+  access: user.value.access,
+  bio: user.value.bio,
 })
 
 const visibilityOptions = [

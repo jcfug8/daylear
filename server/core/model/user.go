@@ -15,6 +15,9 @@ type User struct {
 	// the image url for the user
 	ImageUri string
 
+	// the bio for the user
+	Bio string
+
 	Email      string
 	Visibility types.VisibilityLevel
 
@@ -41,6 +44,7 @@ var UserFields = userFields{
 	FamilyName: "family_name",
 
 	ImageUri: "image_uri",
+	Bio:      "bio",
 
 	Email:      "email",
 	Visibility: "visibility",
@@ -61,6 +65,7 @@ type userFields struct {
 	FamilyName string
 
 	ImageUri string
+	Bio      string
 
 	Email      string
 	Visibility string
@@ -82,6 +87,7 @@ func (fields userFields) Mask() []string {
 		fields.GivenName,
 		fields.FamilyName,
 		fields.ImageUri,
+		fields.Bio,
 
 		fields.Email,
 		fields.Visibility,
@@ -103,8 +109,8 @@ func (fields userFields) UpdateMask(mask []string) []string {
 		fields.GivenName,
 		fields.FamilyName,
 		fields.ImageUri,
-
 		fields.Visibility,
+		fields.Bio,
 	}
 
 	if len(mask) == 0 {
