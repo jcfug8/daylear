@@ -89,7 +89,6 @@ func RecipeToProto(RecipeNamer namer.ReflectNamer, AccessNamer namer.ReflectName
 				State:           recipe.RecipeAccess.State,
 			}
 		}
-
 	}
 
 	return proto, nil

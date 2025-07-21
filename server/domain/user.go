@@ -8,6 +8,7 @@ import (
 
 	"github.com/jcfug8/daylear/server/core/logutil"
 	model "github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
 	domain "github.com/jcfug8/daylear/server/ports/domain"
 )
 
@@ -49,12 +50,27 @@ func (d *Domain) ListUsers(ctx context.Context, authAccount model.AuthAccount, p
 }
 
 // UpdateUser updates a user.
-func (d *Domain) UpdateUser(ctx context.Context, authAccount model.AuthAccount, user model.User, updateMask []string) (model.User, error) {
+func (d *Domain) UpdateUser(ctx context.Context, authAccount model.AuthAccount, user model.User, updateMask []string) (dbUser model.User, err error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	log.Info().Msg("Domain UpdateUser called")
+
 	if user.Id.UserId == 0 {
+		log.Warn().Msg("id required")
 		return model.User{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	dbUser, err := d.repo.UpdateUser(ctx, user, updateMask)
+	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_ADMIN {
+		log.Warn().Msg("user does not have admin permission")
+		return model.User{}, domain.ErrPermissionDenied{Msg: "user does not have admin permission"}
+	}
+
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevelsForUser(ctx, authAccount, user.Id)
+	if err != nil {
+		log.Error().Err(err).Msg("getUserAccessLevelsForUser failed")
+		return model.User{}, err
+	}
+
+	dbUser, err = d.repo.UpdateUser(ctx, authAccount, user, updateMask)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -63,7 +79,7 @@ func (d *Domain) UpdateUser(ctx context.Context, authAccount model.AuthAccount, 
 }
 
 // GetUser gets a user.
-func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId, fieldMask []string) (model.User, error) {
+func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId, fieldMask []string) (dbUser model.User, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 
 	if id.UserId == 0 {
@@ -71,13 +87,42 @@ func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, id 
 		return model.User{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	user, err := d.repo.GetUser(ctx, id, fieldMask)
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevelsForUser(ctx, authAccount, id)
+	if err != nil {
+		log.Error().Err(err).Msg("getUserAccessLevelsForUser failed")
+		return model.User{}, err
+	}
+
+	if authAccount.VisibilityLevel != types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC && authAccount.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+		log.Warn().Msg("user does not have write permission")
+		return model.User{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
+	}
+
+	dbUser, err = d.repo.GetUser(ctx, authAccount, id)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.GetUser failed")
 		return model.User{}, err
 	}
 
-	return user, nil
+	return dbUser, nil
+}
+
+// GetOwnUser gets the current user.
+func (d *Domain) GetOwnUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId, fieldMask []string) (model.User, error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+
+	if id.UserId != authAccount.UserId {
+		log.Warn().Msg("id does not match auth account")
+		return model.User{}, domain.ErrInvalidArgument{Msg: "id does not match auth account"}
+	}
+
+	dbUser, err := d.repo.GetUser(ctx, authAccount, id)
+	if err != nil {
+		log.Error().Err(err).Msg("repo.GetUser failed")
+		return model.User{}, err
+	}
+
+	return dbUser, nil
 }
 
 // DeleteUser deletes a user.

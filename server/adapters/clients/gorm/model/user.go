@@ -24,17 +24,20 @@ var UserMap = masks.NewFieldMap().
 
 // UserFields defines the user fields.
 var UserFields = userFields{
-	UserId:     "user_id",
-	Username:   "username",
-	GivenName:  "given_name",
-	FamilyName: "family_name",
-	Visibility: "visibility",
+	UserId:     "daylear_user.user_id",
+	Username:   "daylear_user.username",
+	GivenName:  "daylear_user.given_name",
+	FamilyName: "daylear_user.family_name",
+	Visibility: "daylear_user.visibility",
 
-	Email: "email",
+	Email: "daylear_user.email",
 
-	AmazonId:   "amazon_id",
-	FacebookId: "facebook_id",
-	GoogleId:   "google_id",
+	AmazonId:   "daylear_user.amazon_id",
+	FacebookId: "daylear_user.facebook_id",
+	GoogleId:   "daylear_user.google_id",
+
+	Permission: "user_access.permission_level",
+	State:      "user_access.state",
 }
 
 type userFields struct {
@@ -49,6 +52,9 @@ type userFields struct {
 	AmazonId   string
 	FacebookId string
 	GoogleId   string
+
+	Permission string
+	State      string
 }
 
 // Map maps the user fields to their corresponding model values.
@@ -65,6 +71,9 @@ func (fields userFields) Map(m User) map[string]any {
 		fields.AmazonId:   m.AmazonId,
 		fields.FacebookId: m.FacebookId,
 		fields.GoogleId:   m.GoogleId,
+
+		fields.Permission: m.PermissionLevel,
+		fields.State:      m.State,
 	}
 }
 
@@ -82,6 +91,9 @@ func (fields userFields) Mask() []string {
 		fields.AmazonId,
 		fields.FacebookId,
 		fields.GoogleId,
+
+		fields.Permission,
+		fields.State,
 	}
 }
 
@@ -98,6 +110,10 @@ type User struct {
 	AmazonId   *string `gorm:"size:255;->:false;<-:create;uniqueIndex"`
 	FacebookId *string `gorm:"size:255;->:false;<-:create;uniqueIndex"`
 	GoogleId   *string `gorm:"size:255;->:false;<-:create;uniqueIndex"`
+
+	UserAccessId    int64                 `gorm:"->;-:migration"` // only used for read from a join
+	PermissionLevel types.PermissionLevel `gorm:"->;-:migration"` // only used for read from a join
+	State           types.AccessState     `gorm:"->;-:migration"` // only used for read from a join
 }
 
 // TableName -

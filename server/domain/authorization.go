@@ -8,6 +8,29 @@ import (
 	domain "github.com/jcfug8/daylear/server/ports/domain"
 )
 
+func (d *Domain) getUserAccessLevelsForUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (types.PermissionLevel, types.VisibilityLevel, error) {
+	// verify auth account is set
+	if authAccount.UserId == 0 {
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "auth user is required"}
+	}
+
+	// verify user exists
+	user, err := d.repo.GetUser(ctx, authAccount, id)
+	if err != nil {
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+	}
+
+	if user.Id.UserId == authAccount.UserId {
+		return types.PermissionLevel_PERMISSION_LEVEL_ADMIN, user.Visibility, nil
+	}
+
+	if user.Visibility == types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED && user.UserAccess.Level == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user does not have access to user"}
+	}
+
+	return user.UserAccess.Level, user.Visibility, nil
+}
+
 func (d *Domain) getCircleAccessLevels(ctx context.Context, authAccount model.AuthAccount) (types.PermissionLevel, types.VisibilityLevel, error) {
 	// verify auth account is set
 	if authAccount.UserId == 0 {

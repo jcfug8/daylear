@@ -94,22 +94,14 @@ export const useCirclesStore = defineStore('circles', () => {
 
   // Load my circles (admin permission)
   async function loadMyCircles() {
-    const circles = await loadCircles('permission = 300 OR (permission = 200 AND state = 200)')
+    const circles = await loadCircles('state = 200')
     myCircles.value = circles
   }
 
   // Load shared circles (accepted or pending)
-  async function loadSharedCircles(state?: number) {
-    let filter = 'permission = 100 OR permission = 200'
-    if (state) {
-      filter += ` AND state = ${state}`
-    }
-    const circles = await loadCircles(filter)
-    if (state === 200) {
-      sharedAcceptedCircles.value = circles
-    } else if (state === 100) {
-      sharedPendingCircles.value = circles
-    }
+  async function loadPendingCircles() {
+    const circles = await loadCircles('state = 100')
+    sharedPendingCircles.value = circles
   }
 
   // Load public circles
@@ -129,7 +121,7 @@ export const useCirclesStore = defineStore('circles', () => {
     sharedPendingCircles,
     publicCircles,
     loadMyCircles,
-    loadSharedCircles,
+    loadPendingCircles,
     loadPublicCircles,
   }
 }) 

@@ -56,7 +56,7 @@ const tabs = [
     value: 'pending',
     icon: 'mdi-clock-outline',
     loader: async () => {
-      await circlesStore.loadSharedCircles(100)
+      await circlesStore.loadPendingCircles()
       return [...circlesStore.sharedPendingCircles]
     },
   },

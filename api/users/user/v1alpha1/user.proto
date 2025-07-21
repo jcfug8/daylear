@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package api.users.user.v1alpha1;
 
+import "api/types/access_state.proto";
+import "api/types/permission_level.proto";
 import "api/types/visibility_level.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
@@ -112,6 +114,21 @@ message User {
 
   // the visibility of the user
   api.types.VisibilityLevel visibility = 6 [(google.api.field_behavior) = REQUIRED];
+
+  // the user access details
+  Access access = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the user access details
+  message Access {
+    // the name of the access
+    string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the permission of the access
+    api.types.PermissionLevel permission_level = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the access state of the user to the access
+    api.types.AccessState state = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
 }
 
 // the request to get a user

@@ -163,6 +163,11 @@
                 "visibility": {
                   "$ref": "#/definitions/typesVisibilityLevel",
                   "title": "the visibility of the user"
+                },
+                "access": {
+                  "$ref": "#/definitions/v1alpha1UserAccess",
+                  "title": "the user access details",
+                  "readOnly": true
                 }
               },
               "title": "the user to update",
@@ -215,6 +220,30 @@
         }
       }
     },
+    "typesAccessState": {
+      "type": "string",
+      "enum": [
+        "ACCESS_STATE_UNSPECIFIED",
+        "ACCESS_STATE_PENDING",
+        "ACCESS_STATE_ACCEPTED"
+      ],
+      "default": "ACCESS_STATE_UNSPECIFIED",
+      "description": "- ACCESS_STATE_UNSPECIFIED: This status should never get used.\n - ACCESS_STATE_PENDING: The access is pending and can either be accepted or deleted.\n - ACCESS_STATE_ACCEPTED: The access is accepted and can be deleted.",
+      "title": "the visibility levels"
+    },
+    "typesPermissionLevel": {
+      "type": "string",
+      "enum": [
+        "PERMISSION_LEVEL_UNSPECIFIED",
+        "PERMISSION_LEVEL_PUBLIC",
+        "PERMISSION_LEVEL_READ",
+        "PERMISSION_LEVEL_WRITE",
+        "PERMISSION_LEVEL_ADMIN"
+      ],
+      "default": "PERMISSION_LEVEL_UNSPECIFIED",
+      "description": "- PERMISSION_LEVEL_UNSPECIFIED: the permission is not specified\n - PERMISSION_LEVEL_PUBLIC: the permission is public\n - PERMISSION_LEVEL_READ: the permission is read\n - PERMISSION_LEVEL_WRITE: the permission is write\n - PERMISSION_LEVEL_ADMIN: the permission is admin",
+      "title": "the permission levels"
+    },
     "typesVisibilityLevel": {
       "type": "string",
       "enum": [
@@ -250,9 +279,14 @@
         "visibility": {
           "$ref": "#/definitions/typesVisibilityLevel",
           "title": "the visibility of the user"
+        },
+        "access": {
+          "$ref": "#/definitions/v1alpha1UserAccess",
+          "title": "the user access details",
+          "readOnly": true
         }
       },
-      "title": "the main user object",
+      "title": "the main user object with public fields",
       "required": [
         "visibility"
       ]
@@ -274,6 +308,27 @@
         }
       },
       "title": "the response to list users"
+    },
+    "v1alpha1UserAccess": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the access",
+          "readOnly": true
+        },
+        "permissionLevel": {
+          "$ref": "#/definitions/typesPermissionLevel",
+          "title": "the permission of the access",
+          "readOnly": true
+        },
+        "state": {
+          "$ref": "#/definitions/typesAccessState",
+          "title": "the access state of the user to the access",
+          "readOnly": true
+        }
+      },
+      "title": "the user access details"
     }
   },
   "securityDefinitions": {

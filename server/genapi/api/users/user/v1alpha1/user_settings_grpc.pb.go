@@ -27,7 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// the user settings service
+// the user settings service with private fields
 type UserSettingsServiceClient interface {
 	// get a user
 	GetUserSettings(ctx context.Context, in *GetUserSettingsRequest, opts ...grpc.CallOption) (*UserSettings, error)
@@ -67,7 +67,7 @@ func (c *userSettingsServiceClient) UpdateUserSettings(ctx context.Context, in *
 // All implementations must embed UnimplementedUserSettingsServiceServer
 // for forward compatibility.
 //
-// the user settings service
+// the user settings service with private fields
 type UserSettingsServiceServer interface {
 	// get a user
 	GetUserSettings(context.Context, *GetUserSettingsRequest) (*UserSettings, error)

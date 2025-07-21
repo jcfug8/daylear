@@ -2,7 +2,7 @@
 /* eslint-disable camelcase */
 // @ts-nocheck
 
-// the main user object
+// the main user object with public fields
 export type User = {
   // the name of the user
   //
@@ -24,6 +24,10 @@ export type User = {
   //
   // Behaviors: REQUIRED
   visibility: apitypes_VisibilityLevel | undefined;
+  // the user access details
+  //
+  // Behaviors: OUTPUT_ONLY
+  access: User_Access | undefined;
 };
 
 // the visibility levels
@@ -38,6 +42,42 @@ export type apitypes_VisibilityLevel =
   | "VISIBILITY_LEVEL_PRIVATE"
   // the visibility is hidden
   | "VISIBILITY_LEVEL_HIDDEN";
+// the user access details
+export type User_Access = {
+  // the name of the access
+  //
+  // Behaviors: OUTPUT_ONLY
+  name: string | undefined;
+  // the permission of the access
+  //
+  // Behaviors: OUTPUT_ONLY
+  permissionLevel: apitypes_PermissionLevel | undefined;
+  // the access state of the user to the access
+  //
+  // Behaviors: OUTPUT_ONLY
+  state: apitypes_AccessState | undefined;
+};
+
+// the permission levels
+export type apitypes_PermissionLevel =
+  // the permission is not specified
+  | "PERMISSION_LEVEL_UNSPECIFIED"
+  // the permission is public
+  | "PERMISSION_LEVEL_PUBLIC"
+  // the permission is read
+  | "PERMISSION_LEVEL_READ"
+  // the permission is write
+  | "PERMISSION_LEVEL_WRITE"
+  // the permission is admin
+  | "PERMISSION_LEVEL_ADMIN";
+// the visibility levels
+export type apitypes_AccessState =
+  // This status should never get used.
+  | "ACCESS_STATE_UNSPECIFIED"
+  // The access is pending and can either be accepted or deleted.
+  | "ACCESS_STATE_PENDING"
+  // The access is accepted and can be deleted.
+  | "ACCESS_STATE_ACCEPTED";
 // the request to get a user
 export type GetUserRequest = {
   // the name of the user to get
@@ -239,26 +279,6 @@ export type Access_User = {
   username: string | undefined;
 };
 
-// the permission levels
-export type apitypes_PermissionLevel =
-  // the permission is not specified
-  | "PERMISSION_LEVEL_UNSPECIFIED"
-  // the permission is public
-  | "PERMISSION_LEVEL_PUBLIC"
-  // the permission is read
-  | "PERMISSION_LEVEL_READ"
-  // the permission is write
-  | "PERMISSION_LEVEL_WRITE"
-  // the permission is admin
-  | "PERMISSION_LEVEL_ADMIN";
-// the visibility levels
-export type apitypes_AccessState =
-  // This status should never get used.
-  | "ACCESS_STATE_UNSPECIFIED"
-  // The access is pending and can either be accepted or deleted.
-  | "ACCESS_STATE_PENDING"
-  // The access is accepted and can be deleted.
-  | "ACCESS_STATE_ACCEPTED";
 // The request to create an access to a user
 export type CreateAccessRequest = {
   // parent
@@ -524,7 +544,7 @@ export type UpdateUserSettingsRequest = {
   updateMask: wellKnownFieldMask | undefined;
 };
 
-// the user settings service
+// the user settings service with private fields
 export interface UserSettingsService {
   // get a user
   GetUserSettings(request: GetUserSettingsRequest): Promise<UserSettings>;

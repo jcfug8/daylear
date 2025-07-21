@@ -239,7 +239,7 @@ const tabs = [
         loader: async () => {
           if (!circle.value?.name) return []
           // Non-admin, non-pending recipes for this circle
-          await recipesStore.loadSharedRecipes(circle.value.name, 200)
+          await recipesStore.loadPendingRecipes(circle.value.name)
           return [...recipesStore.sharedAcceptedRecipes]
         },
       },

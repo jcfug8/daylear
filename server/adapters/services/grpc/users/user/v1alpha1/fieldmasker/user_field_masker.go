@@ -44,6 +44,9 @@ func NewUserFieldMasker() UserFieldMasker {
 	fm.mapFieldMaskPathToDomainMasks("given_name", model.UserFields.GivenName)
 	fm.mapFieldMaskPathToDomainMasks("family_name", model.UserFields.FamilyName)
 	fm.mapFieldMaskPathToDomainMasks("visibility", model.UserFields.Visibility)
+	fm.mapFieldMaskPathToDomainMasks("access.name", model.UserFields.AccessName)
+	fm.mapFieldMaskPathToDomainMasks("access.permission_level", model.UserFields.AccessPermissionLevel)
+	fm.mapFieldMaskPathToDomainMasks("access.state", model.UserFields.AccessState)
 	// IRIOMO:CUSTOM_CODE_SLOT_END
 
 	return fm

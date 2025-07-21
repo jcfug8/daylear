@@ -38,22 +38,14 @@ export const useRecipesStore = defineStore('recipes', () => {
 
   // Load my recipes (recipes where I have admin permission)
   async function loadMyRecipes(parent: string) {
-    const recipes = await loadRecipes(parent, 'permission = 300 OR ((permission = 200 OR permission = 100) AND state = 200)')
+    const recipes = await loadRecipes(parent, 'state = 200')
     myRecipes.value = recipes
   }
 
   // Load shared recipes (recipes shared with me - read or write permission)
-  async function loadSharedRecipes(parent: string, state?: number) {
-    let filter = 'permission = 100 OR permission = 200'
-    if (state) {
-      filter += ` AND state = ${state}`
-    }
-    const recipes = await loadRecipes(parent, filter)
-    if (state === 200) {
-      sharedAcceptedRecipes.value = recipes
-    } else if (state === 100) {
-      sharedPendingRecipes.value = recipes
-    }
+  async function loadPendingRecipes(parent: string) {
+    const recipes = await loadRecipes(parent, 'state = 100')
+    sharedPendingRecipes.value = recipes
   }
 
   // Load public recipes (recipes with public visibility)
@@ -158,7 +150,7 @@ export const useRecipesStore = defineStore('recipes', () => {
 
   return {
     loadMyRecipes,
-    loadSharedRecipes,
+    loadPendingRecipes,
     loadPublicRecipes,
     loadRecipe,
     initEmptyRecipe,

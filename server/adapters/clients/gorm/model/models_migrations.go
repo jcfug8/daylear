@@ -6,6 +6,7 @@ func AllModels() []interface{} {
 		&Recipe{},
 		&RecipeAccess{},
 		&User{},
+		&UserAccess{},
 		&Circle{},
 		&CircleAccess{},
 	}

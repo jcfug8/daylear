@@ -50,7 +50,7 @@ func (s *UserService) GetUser(ctx context.Context, request *pb.GetUserRequest) (
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	user, err := convert.UserToProto(s.userNamer, mUser)
+	user, err := convert.UserToProto(s.userNamer, s.accessNamer, mUser)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -85,7 +85,7 @@ func (s *UserService) UpdateUser(ctx context.Context, request *pb.UpdateUserRequ
 		return nil, status.Error(codes.InvalidArgument, "invalid field mask")
 	}
 
-	mUser, err = convert.ProtoToUser(s.userNamer, userProto)
+	mUser, err = convert.ProtoToUser(s.userNamer, s.accessNamer, userProto)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to convert proto to model")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -97,7 +97,7 @@ func (s *UserService) UpdateUser(ctx context.Context, request *pb.UpdateUserRequ
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	userProto, err = convert.UserToProto(s.userNamer, mUser)
+	userProto, err = convert.UserToProto(s.userNamer, s.accessNamer, mUser)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -140,7 +140,7 @@ func (s *UserService) ListUsers(ctx context.Context, request *pb.ListUsersReques
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	userProtos, err := convert.UserListToProto(s.userNamer, users)
+	userProtos, err := convert.UserListToProto(s.userNamer, s.accessNamer, users)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")

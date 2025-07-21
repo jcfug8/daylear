@@ -322,7 +322,7 @@ const tabs = [
     loader: async () => {
       if (!authStore.user || !authStore.user.name) throw new Error('User not authenticated')
       const account = selectedAccount.value?.account
-      await recipesStore.loadSharedRecipes(account.name, 100)
+      await recipesStore.loadPendingRecipes(account.name)
       return [...recipesStore.sharedPendingRecipes]
     },
   },

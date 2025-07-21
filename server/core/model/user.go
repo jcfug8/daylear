@@ -18,6 +18,8 @@ type User struct {
 	AmazonId   string
 	FacebookId string
 	GoogleId   string
+
+	UserAccess UserAccess
 }
 
 // UserId defines the name for a user.
@@ -41,6 +43,10 @@ var UserFields = userFields{
 	GoogleId:   "google_id",
 	FacebookId: "facebook_id",
 	AmazonId:   "amazon_id",
+
+	AccessName:            "access_id",
+	AccessPermissionLevel: "permission_level",
+	AccessState:           "state",
 }
 
 type userFields struct {
@@ -55,6 +61,10 @@ type userFields struct {
 	GoogleId   string
 	FacebookId string
 	AmazonId   string
+
+	AccessName            string
+	AccessPermissionLevel string
+	AccessState           string
 }
 
 // Mask returns a FieldMask for the user fields.
@@ -71,6 +81,10 @@ func (fields userFields) Mask() []string {
 		fields.GoogleId,
 		fields.FacebookId,
 		fields.AmazonId,
+
+		fields.AccessName,
+		fields.AccessPermissionLevel,
+		fields.AccessState,
 	}
 }
 
