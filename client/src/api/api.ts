@@ -14,7 +14,7 @@ export const authenticatedFetchHandler = function(contentType: string) {
   ) {
     const authStore = useAuthStore()
 
-    const token = sessionStorage.getItem('jwt')
+    const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt')
     const headers: Record<string, string> = {}
 
     if (contentType) {

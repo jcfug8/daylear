@@ -61,12 +61,14 @@ export const useAuthStore = defineStore('auth', () => {
     return "PERMISSION_LEVEL_UNSPECIFIED"
   })
   /**
-   * Logs the user out by clearing authentication data and removing the JWT from sessionStorage.
+   * Logs the user out by clearing authentication data and removing the JWT from both storages.
    */
   function logOut() {
     console.log('logOut')
     sessionStorage.removeItem(JWT_STORAGE_KEY) // Remove the JWT from sessionStorage
+    localStorage.removeItem(JWT_STORAGE_KEY) // Remove the JWT from localStorage
     sessionStorage.removeItem(ACTIVE_ACCOUNT_STORAGE_KEY) // Remove the active account from sessionStorage
+    localStorage.removeItem(ACTIVE_ACCOUNT_STORAGE_KEY) // Remove the active account from localStorage (if ever used)
     _clearAuthData()
     isLoggedIn.value = false
   }
@@ -144,7 +146,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Checks if a JWT exists in sessionStorage and sets up authentication data if it does.
+   * Checks if a JWT exists in localStorage or sessionStorage and sets up authentication data if it does.
    * Clears authentication data if no JWT is found.
    *
    * @private
@@ -159,18 +161,27 @@ export const useAuthStore = defineStore('auth', () => {
           tokenKey: value,
         })
         if (res.token) {
-          sessionStorage.setItem(JWT_STORAGE_KEY, res.token)
+          // Check if rememberMe is set in localStorage
+          const rememberMe = localStorage.getItem('rememberMe') === 'true'
+          if (rememberMe) {
+            localStorage.setItem(JWT_STORAGE_KEY, res.token)
+          } else {
+            sessionStorage.setItem(JWT_STORAGE_KEY, res.token)
+          }
+          // Remove rememberMe flag after use
+          localStorage.removeItem('rememberMe')
         } else {
           throw new Error('No token returned from auth service')
         }
       }
       
-      const token = sessionStorage.getItem(JWT_STORAGE_KEY) // Retrieve the JWT from sessionStorage
+      // Check for JWT in localStorage first, then sessionStorage
+      const token = localStorage.getItem(JWT_STORAGE_KEY) || sessionStorage.getItem(JWT_STORAGE_KEY)
       if (token) {
-        console.log('JWT found in sessionStorage')
+        console.log('JWT found in storage')
         await _setupAuthData()
       } else {
-        console.log('No JWT found in sessionStorage')
+        console.log('No JWT found in storage')
         _clearAuthData()
       }
     } catch (error) {
