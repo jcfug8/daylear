@@ -18,6 +18,7 @@ import (
 type Service struct {
 	userV1alpha1Service         userV1alpha1.UserServiceServer
 	userSettingsV1alpha1Service userV1alpha1.UserSettingsServiceServer
+	userAccessService           userV1alpha1.UserAccessServiceServer
 	recipesV1alpha1Service      recipesV1alpha1.RecipeServiceServer
 	recipeAccessService         recipesV1alpha1.RecipeAccessServiceServer
 	circleV1alpha1Service       circleV1alpha1.CircleServiceServer
@@ -30,6 +31,7 @@ type NewServiceParams struct {
 
 	UserV1alpha1Service         userV1alpha1.UserServiceServer
 	UserSettingsV1alpha1Service userV1alpha1.UserSettingsServiceServer
+	UserAccessService           userV1alpha1.UserAccessServiceServer
 	RecipesV1alpha1Service      recipesV1alpha1.RecipeServiceServer
 	RecipeAccessService         recipesV1alpha1.RecipeAccessServiceServer
 	CircleV1alpha1Service       circleV1alpha1.CircleServiceServer
@@ -41,6 +43,7 @@ func NewService(params NewServiceParams) *Service {
 	return &Service{
 		userV1alpha1Service:         params.UserV1alpha1Service,
 		userSettingsV1alpha1Service: params.UserSettingsV1alpha1Service,
+		userAccessService:           params.UserAccessService,
 		recipesV1alpha1Service:      params.RecipesV1alpha1Service,
 		recipeAccessService:         params.RecipeAccessService,
 		circleV1alpha1Service:       params.CircleV1alpha1Service,
@@ -61,6 +64,11 @@ func (s *Service) Register(m *http.ServeMux) error {
 		return err
 	}
 	err = userV1alpha1.RegisterUserSettingsServiceHandlerServer(ctx, mux, s.userSettingsV1alpha1Service)
+	if err != nil {
+		log.Printf("Failed to register gRPC gateway: %v", err)
+		return err
+	}
+	err = userV1alpha1.RegisterUserAccessServiceHandlerServer(ctx, mux, s.userAccessService)
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
 		return err

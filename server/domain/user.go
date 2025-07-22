@@ -54,6 +54,24 @@ func (d *Domain) ListUsers(ctx context.Context, authAccount model.AuthAccount, p
 		return nil, err
 	}
 
+	// manually add the user access for the current user
+	for i, user := range users {
+		if user.Id.UserId == authAccount.AuthUserId {
+			users[i].UserAccess = model.UserAccess{
+				UserAccessParent: model.UserAccessParent{
+					UserId: user.Id,
+				},
+				Requester: model.UserId{
+					UserId: authAccount.AuthUserId,
+				},
+				Recipient: model.UserId{
+					UserId: authAccount.AuthUserId,
+				},
+				Level: types.PermissionLevel_PERMISSION_LEVEL_ADMIN,
+			}
+		}
+	}
+
 	return users, nil
 }
 
@@ -114,6 +132,22 @@ func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, id 
 	if err != nil {
 		log.Error().Err(err).Msg("repo.GetUser failed")
 		return model.User{}, err
+	}
+
+	// manually add the user access for the current user
+	if authAccount.AuthUserId == authAccount.UserId {
+		dbUser.UserAccess = model.UserAccess{
+			UserAccessParent: model.UserAccessParent{
+				UserId: id,
+			},
+			Requester: model.UserId{
+				UserId: authAccount.AuthUserId,
+			},
+			Recipient: model.UserId{
+				UserId: authAccount.AuthUserId,
+			},
+			Level: types.PermissionLevel_PERMISSION_LEVEL_ADMIN,
+		}
 	}
 
 	return dbUser, nil

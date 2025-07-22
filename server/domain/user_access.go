@@ -17,9 +17,14 @@ func (d *Domain) CreateUserAccess(ctx context.Context, authAccount model.AuthAcc
 		log.Warn().Msg("user id is required")
 		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "user id is required"}
 	}
-	if access.Recipient == 0 {
+	if access.Recipient.UserId == 0 {
 		log.Warn().Msg("recipient is required")
 		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "recipient is required"}
+	}
+
+	if access.Level != types.PermissionLevel_PERMISSION_LEVEL_WRITE {
+		log.Warn().Msg("access level must be write")
+		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "access level must be write"}
 	}
 
 	authAccount.UserId = access.UserAccessParent.UserId.UserId
@@ -30,7 +35,9 @@ func (d *Domain) CreateUserAccess(ctx context.Context, authAccount model.AuthAcc
 	}
 
 	access.State = types.AccessState_ACCESS_STATE_PENDING
-	access.Requester = authAccount.AuthUserId
+	access.Requester = model.UserId{
+		UserId: authAccount.AuthUserId,
+	}
 
 	dbUserAccess, err = d.repo.CreateUserAccess(ctx, access)
 	if err != nil {
@@ -60,7 +67,7 @@ func (d *Domain) DeleteUserAccess(ctx context.Context, authAccount model.AuthAcc
 		return err
 	}
 
-	if access.Recipient == authAccount.AuthUserId || access.Requester == authAccount.AuthUserId {
+	if access.Recipient.UserId != authAccount.AuthUserId && access.Requester.UserId != authAccount.AuthUserId {
 		log.Warn().Msg("user does not have access to delete this user access")
 		return domain.ErrPermissionDenied{Msg: "user does not have access to delete this user access"}
 	}
@@ -91,7 +98,7 @@ func (d *Domain) GetUserAccess(ctx context.Context, authAccount model.AuthAccoun
 		return model.UserAccess{}, err
 	}
 
-	if access.Recipient != authAccount.AuthUserId && access.Requester != authAccount.AuthUserId {
+	if access.Recipient.UserId != authAccount.AuthUserId && access.Requester.UserId != authAccount.AuthUserId {
 		log.Warn().Msg("user does not have access to view this user access")
 		return model.UserAccess{}, domain.ErrPermissionDenied{Msg: "user does not have access to view this user access"}
 	}
@@ -151,7 +158,7 @@ func (d *Domain) AcceptUserAccess(ctx context.Context, authAccount model.AuthAcc
 		log.Warn().Msg("access must be in pending state to be accepted")
 		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "access must be in pending state to be accepted"}
 	}
-	if access.Recipient != authAccount.AuthUserId {
+	if access.Recipient.UserId != authAccount.AuthUserId {
 		log.Warn().Msg("only the recipient can accept this access")
 		return model.UserAccess{}, domain.ErrPermissionDenied{Msg: "only the recipient can accept this access"}
 	}

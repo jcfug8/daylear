@@ -14,6 +14,7 @@ var Module = fx.Module(
 			NewUserService,
 			fx.As(new(pb.UserServiceServer)),
 			fx.As(new(pb.UserSettingsServiceServer)),
+			fx.As(new(pb.UserAccessServiceServer)),
 		),
 		fx.Annotate(
 			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.User]() },

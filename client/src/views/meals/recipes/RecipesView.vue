@@ -131,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, watch } from 'vue'
+import { ref, computed, nextTick, watch, onMounted } from 'vue'
 import { useRecipesStore } from '@/stores/recipes'
 import { useAuthStore } from '@/stores/auth'
 import ListTabsPage from '@/components/common/ListTabsPage.vue'
@@ -168,7 +168,10 @@ function onSearchEnter() {
   searchExpanded.value = false
 }
 
-// Compute dropdown options: user first, then circles
+onMounted(() => {
+  circlesStore.loadMyCircles()
+})
+
 const accountOptions = computed(() => {
   const options = []
   if (authStore.user && authStore.user.name) {
@@ -178,7 +181,6 @@ const accountOptions = computed(() => {
       account: "",
       icon: 'mdi-account-circle',
     })
-    circlesStore.loadMyCircles()
     if (Array.isArray(circlesStore.myCircles)) {
       for (const circle of circlesStore.myCircles) {
         options.push({
@@ -188,7 +190,7 @@ const accountOptions = computed(() => {
           icon: 'mdi-account-group',
         })
       }
-  }
+    }
   }
   return options
 })

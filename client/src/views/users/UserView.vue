@@ -73,18 +73,42 @@
         <RecipeGrid :recipes="items" :loading="loading" />
       </template>
     </ListTabsPage>
-  </v-container>
-  <template v-if="user && authStore.user.name && user.name === authStore.user.name">
-    <v-fab
-      location="bottom right"
-      color="primary"
-      icon
-      style="position: fixed; bottom: 24px; right: 24px; z-index: 10;"
-      @click="router.push({ name: 'user-edit', params: { userId: user.name } })"
-    >
-      <v-icon>mdi-pencil</v-icon>
+    <!-- Speed Dial -->
+    <v-fab location="bottom right" app color="primary"  icon @click="speedDialOpen = !speedDialOpen">
+      <v-icon>mdi-dots-vertical</v-icon>
+      <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
+        <v-btn key="edit" v-if="hasAdminPermission(user.access?.permissionLevel)"
+        :to="{ name: 'user-edit', params: { userId: user.name } }" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
+
+        <v-btn key="share" v-if="!hasWritePermission(user.access?.permissionLevel)"
+          @click="handleConnect" :loading="connecting" color="primary"><v-icon>mdi-share-variant</v-icon>Connect</v-btn>
+        
+        <v-btn key="remove-access" v-if="hasWritePermission(user.access?.permissionLevel) && user.access?.state === 'ACCESS_STATE_PENDING'"
+          @click="showRemoveAccessDialog = true" color="warning"><v-icon>mdi-link-variant-off</v-icon>Remove Connection</v-btn>
+      </v-speed-dial>
     </v-fab>
-  </template>
+
+    <!-- Remove Access Dialog -->
+  <v-dialog v-model="showRemoveAccessDialog" max-width="500">
+    <v-card>
+      <v-card-title class="text-h5">
+        Remove Access
+      </v-card-title>
+      <v-card-text>
+        Are you sure you want to remove your access to this user? You may no longer be able to view them.
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="grey" variant="text" @click="showRemoveAccessDialog = false">
+          Cancel
+        </v-btn>
+        <v-btn color="error" @click="handleRemoveAccess" :loading="removingAccess">
+          Remove Access
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -98,13 +122,21 @@ import ListTabsPage from '@/components/common/ListTabsPage.vue'
 import RecipeGrid from '@/components/RecipeGrid.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import { hasWritePermission, hasAdminPermission } from '@/utils/permissions'
+import { userAccessService } from '@/api/api'
+import type { DeleteAccessRequest } from '@/genapi/api/meals/recipe/v1alpha1'
+import type { CreateAccessRequest, Access, Access_User } from '@/genapi/api/users/user/v1alpha1'
+import type { PermissionLevel } from '@/genapi/api/types'
+import { useAlertStore } from '@/stores/alerts'
 
 const usersStore = useUsersStore()
+const alertsStore = useAlertStore()
 const recipesStore = useRecipesStore()
 const { currentUser: user } = storeToRefs(usersStore)
 const breadcrumbStore = useBreadcrumbStore()
 const route = useRoute()
 const tabsPage = ref()
+const speedDialOpen = ref(false)
 
 const userId = computed(() => String(route.params.userId || ''))
 
@@ -174,6 +206,70 @@ const tabs = [
 
 const authStore = useAuthStore()
 const router = useRouter()
+
+// *** Remove Access ***
+const showRemoveAccessDialog = ref(false)
+const removingAccess = ref(false)
+
+async function handleRemoveAccess() {
+  if (!user.value?.access?.name || !authStore.activeAccount?.name) return
+
+  removingAccess.value = true
+  try {
+    const deleteRequest: DeleteAccessRequest = {
+      name: user.value.access.name
+    }
+    
+    await userAccessService.DeleteAccess(deleteRequest)
+    router.push({ name: 'users' })
+  } catch (error) {
+    const msg = `Error removing access: ${error instanceof Error ? 
+    error.message : String(error)}`
+    console.error(msg)
+    alertsStore.addAlert(msg, 'error')
+  } finally {
+    removingAccess.value = false
+    showRemoveAccessDialog.value = false
+  }
+}
+
+// *** Connect ***
+const connecting = ref(false)
+
+async function handleConnect() {
+  if (!user.value?.name || !authStore.activeAccount?.name) return
+  connecting.value = true
+  try {
+    // Build the access object
+    const access: Access = {
+      name: undefined, // Will be set by backend
+      requester: undefined, // Will be set by backend
+      recipient: {
+        name: user.value.name,
+        username: undefined,
+        givenName: undefined,
+        familyName: undefined,
+      },
+      level: 'PERMISSION_LEVEL_WRITE',
+      state: undefined,
+    }
+    const req: CreateAccessRequest = {
+      parent: user.value.name,
+      access,
+    }
+    await userAccessService.CreateAccess(req)
+    // Optionally reload user or show a message
+    await usersStore.loadUser(user.value.name)
+    alertsStore.addAlert('Connection request sent.', 'info')
+  } catch (error) {
+    const msg = `Error connecting: ${error instanceof Error ? 
+    error.message : String(error)}`
+    console.error(msg)
+    alertsStore.addAlert(msg, 'error')
+  } finally {
+    connecting.value = false
+  }
+}
 </script>
 
 <style></style>

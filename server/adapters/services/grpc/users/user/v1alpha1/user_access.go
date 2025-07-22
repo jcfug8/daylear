@@ -36,14 +36,6 @@ func (s *UserService) CreateAccess(ctx context.Context, request *pb.CreateAccess
 		return nil, err
 	}
 
-	// parse parent user name
-	var mUserParent model.User
-	_, err = s.userNamer.Parse(request.GetParent(), &mUserParent)
-	if err != nil {
-		log.Warn().Err(err).Str("parent", request.GetParent()).Msg("invalid parent")
-		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
-	}
-
 	// convert proto to model
 	pbAccess := request.GetAccess()
 	pbAccess.Name = ""
@@ -53,7 +45,13 @@ func (s *UserService) CreateAccess(ctx context.Context, request *pb.CreateAccess
 		log.Warn().Err(err).Msg("invalid request data")
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
 	}
-	mUserAccess.UserId = mUserParent.Id
+
+	// parse parent
+	_, err = s.accessNamer.ParseParent(request.Parent, &mUserAccess)
+	if err != nil {
+		log.Warn().Err(err).Msg("invalid parent")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", err)
+	}
 
 	// create access
 	mUserAccess, err = s.domain.CreateUserAccess(ctx, authAccount, mUserAccess)
@@ -276,7 +274,7 @@ func (s *UserService) UserAccessToProto(mUserAccess model.UserAccess) (*pb.Acces
 		pbAccess.Name = name
 	}
 
-	if mUserAccess.Requester != 0 {
+	if mUserAccess.Requester.UserId != 0 {
 		userName, err := s.userNamer.Format(mUserAccess.Requester)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "failed to format requester: %v", err)
@@ -286,7 +284,7 @@ func (s *UserService) UserAccessToProto(mUserAccess model.UserAccess) (*pb.Acces
 		}
 	}
 
-	if mUserAccess.Recipient != 0 {
+	if mUserAccess.Recipient.UserId != 0 {
 		userName, err := s.userNamer.Format(mUserAccess.Recipient)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "failed to format recipient: %v", err)

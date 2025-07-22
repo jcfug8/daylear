@@ -26,9 +26,9 @@ type UserAccess struct {
 	Level types.PermissionLevel
 	State types.AccessState
 
-	Requester int64
+	Requester UserId
 
-	Recipient           int64
+	Recipient           UserId
 	RecipientUsername   string // username of the recipient
 	RecipientGivenName  string // given name of the recipient
 	RecipientFamilyName string // family name of the recipient

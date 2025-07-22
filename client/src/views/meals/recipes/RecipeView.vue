@@ -284,7 +284,7 @@
         Remove Access
       </v-card-title>
       <v-card-text>
-        Are you sure you want to remove your access to this recipe? You will no longer be able to view it.
+        Are you sure you want to remove your access to this recipe? You may no longer be able to view it.
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>

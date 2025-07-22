@@ -48,6 +48,19 @@ func UserToCoreModel(m gmodel.User) (cmodel.User, error) {
 		Bio:        m.Bio,
 
 		Email: m.Email,
+
+		UserAccess: cmodel.UserAccess{
+			UserAccessId: cmodel.UserAccessId{
+				UserAccessId: m.UserAccessId,
+			},
+			UserAccessParent: cmodel.UserAccessParent{
+				UserId: cmodel.UserId{
+					UserId: m.UserId,
+				},
+			},
+			Level: m.PermissionLevel,
+			State: m.State,
+		},
 	}
 
 	if m.AmazonId != nil {
