@@ -20,9 +20,9 @@ func (d *Domain) CreateRecipeAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// based on recipient, set state and verify that the requester has access to recipient
-	if access.RecipeAccessParent.Recipient.UserId != 0 {
+	if access.Recipient.UserId != 0 {
 		access.State = types.AccessState_ACCESS_STATE_PENDING
-	} else if access.RecipeAccessParent.Recipient.CircleId != 0 {
+	} else if access.Recipient.CircleId != 0 {
 		access.State = types.AccessState_ACCESS_STATE_ACCEPTED
 	} else {
 		log.Warn().Msg("recipient is required")
@@ -93,8 +93,8 @@ func (d *Domain) DeleteRecipeAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// check if the access is for the given user (they can delete their own access)
-	isRecipient := (access.RecipeAccessParent.Recipient.UserId != 0 && access.RecipeAccessParent.Recipient.UserId == authAccount.UserId) ||
-		(access.RecipeAccessParent.Recipient.CircleId != 0 && access.RecipeAccessParent.Recipient.CircleId == authAccount.CircleId)
+	isRecipient := (access.Recipient.UserId != 0 && access.Recipient.UserId == authAccount.AuthUserId) ||
+		(access.Recipient.CircleId != 0 && access.Recipient.CircleId == authAccount.CircleId)
 
 	if !isRecipient {
 		// user is not the recipient, so they need management permissions
@@ -158,8 +158,8 @@ func (d *Domain) GetRecipeAccess(ctx context.Context, authAccount model.AuthAcco
 	}
 
 	// check if the access is for the given user (they can view their own access)
-	isRecipient := (access.RecipeAccessParent.Recipient.UserId != 0 && access.RecipeAccessParent.Recipient.UserId == authAccount.UserId) ||
-		(access.RecipeAccessParent.Recipient.CircleId != 0 && access.RecipeAccessParent.Recipient.CircleId == authAccount.CircleId)
+	isRecipient := (access.Recipient.UserId != 0 && access.Recipient.UserId == authAccount.AuthUserId) ||
+		(access.Recipient.CircleId != 0 && access.Recipient.CircleId == authAccount.CircleId)
 
 	if !isRecipient {
 		// user is not the recipient, so they need management permissions to view
@@ -191,7 +191,7 @@ func (d *Domain) GetRecipeAccess(ctx context.Context, authAccount model.AuthAcco
 func (d *Domain) ListRecipeAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeAccessParent, pageSize int32, pageOffset int64, filter string) (recipeAccesses []model.RecipeAccess, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	log.Info().Msg("Domain ListRecipeAccesses called")
-	if authAccount.UserId == 0 && authAccount.CircleId == 0 {
+	if authAccount.AuthUserId == 0 && authAccount.CircleId == 0 {
 		log.Warn().Msg("requester is required")
 		return nil, domain.ErrInvalidArgument{Msg: "requester is required"}
 	}
@@ -323,8 +323,8 @@ func (d *Domain) AcceptRecipeAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// verify the user is the recipient of this access
-	isRecipient := (access.RecipeAccessParent.Recipient.UserId != 0 && access.RecipeAccessParent.Recipient.UserId == authAccount.UserId) ||
-		(access.RecipeAccessParent.Recipient.CircleId != 0 && access.RecipeAccessParent.Recipient.CircleId == authAccount.CircleId)
+	isRecipient := (access.Recipient.UserId != 0 && access.Recipient.UserId == authAccount.AuthUserId) ||
+		(access.Recipient.CircleId != 0 && access.Recipient.CircleId == authAccount.CircleId)
 
 	if !isRecipient {
 		log.Warn().Msg("only the recipient can accept this access")

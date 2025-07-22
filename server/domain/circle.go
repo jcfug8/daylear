@@ -26,7 +26,7 @@ const CircleImageRoot = "circles"
 func (d *Domain) CreateCircle(ctx context.Context, authAccount model.AuthAccount, circle model.Circle) (model.Circle, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	log.Info().Msg("Domain CreateCircle called")
-	if authAccount.UserId == 0 {
+	if authAccount.AuthUserId == 0 {
 		log.Warn().Msg("parent required: missing user id")
 		return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent required"}
 	}
@@ -61,10 +61,10 @@ func (d *Domain) CreateCircle(ctx context.Context, authAccount model.AuthAccount
 		CircleAccessParent: model.CircleAccessParent{
 			CircleId: dbCircle.Id,
 		},
-		Requester: model.AuthAccount{
-			UserId: authAccount.UserId,
+		Requester: model.CircleRequester{
+			UserId: authAccount.AuthUserId,
 		},
-		Recipient:       authAccount.UserId,
+		Recipient:       authAccount.AuthUserId,
 		PermissionLevel: types.PermissionLevel_PERMISSION_LEVEL_ADMIN,
 		State:           types.AccessState_ACCESS_STATE_ACCEPTED,
 	}
@@ -90,7 +90,7 @@ func (d *Domain) CreateCircle(ctx context.Context, authAccount model.AuthAccount
 func (d *Domain) DeleteCircle(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (circle model.Circle, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	log.Info().Msg("Domain DeleteCircle called")
-	if authAccount.UserId == 0 || id.CircleId == 0 {
+	if authAccount.AuthUserId == 0 || id.CircleId == 0 {
 		log.Warn().Msg("parent and id required")
 		return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent and id required"}
 	}
@@ -139,7 +139,7 @@ func (d *Domain) DeleteCircle(ctx context.Context, authAccount model.AuthAccount
 func (d *Domain) GetCircle(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (circle model.Circle, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	log.Info().Msg("Domain GetCircle called")
-	if authAccount.UserId == 0 {
+	if authAccount.AuthUserId == 0 {
 		log.Warn().Msg("parent required: missing user id")
 		return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent required"}
 	}
@@ -176,7 +176,7 @@ func (d *Domain) GetCircle(ctx context.Context, authAccount model.AuthAccount, i
 func (d *Domain) ListCircles(ctx context.Context, authAccount model.AuthAccount, pageSize int32, pageOffset int64, filter string, fieldMask []string) ([]model.Circle, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	log.Info().Msg("Domain ListCircles called")
-	if authAccount.UserId == 0 {
+	if authAccount.AuthUserId == 0 {
 		log.Warn().Msg("parent required: missing user id")
 		return nil, domain.ErrInvalidArgument{Msg: "parent required"}
 	}
@@ -195,7 +195,7 @@ func (d *Domain) ListCircles(ctx context.Context, authAccount model.AuthAccount,
 func (d *Domain) UpdateCircle(ctx context.Context, authAccount model.AuthAccount, circle model.Circle, updateMask []string) (dbCircle model.Circle, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	log.Info().Msg("Domain UpdateCircle called")
-	if authAccount.UserId == 0 {
+	if authAccount.AuthUserId == 0 {
 		log.Warn().Msg("parent required: missing user id")
 		return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent required"}
 	}
@@ -259,7 +259,7 @@ func (d *Domain) UpdateCircle(ctx context.Context, authAccount model.AuthAccount
 
 // UploadCircleImage uploads a circle image.
 func (d *Domain) UploadCircleImage(ctx context.Context, authAccount model.AuthAccount, id model.CircleId, imageReader io.Reader) (imageURI string, err error) {
-	if authAccount.UserId == 0 {
+	if authAccount.AuthUserId == 0 {
 		return "", domain.ErrInvalidArgument{Msg: "parent required"}
 	}
 

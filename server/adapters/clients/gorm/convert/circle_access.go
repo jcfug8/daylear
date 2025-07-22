@@ -9,7 +9,7 @@ import (
 func CoreCircleAccessToCircleAccess(access coreModel.CircleAccess) dbModel.CircleAccess {
 	return dbModel.CircleAccess{
 		CircleAccessId:    access.CircleAccessId.CircleAccessId,
-		CircleId:          access.CircleId.CircleId,
+		CircleId:          access.CircleAccessParent.CircleId.CircleId,
 		RequesterUserId:   access.Requester.UserId,
 		RequesterCircleId: access.Requester.CircleId,
 		RecipientUserId:   access.Recipient,
@@ -29,7 +29,7 @@ func CircleAccessToCoreCircleAccess(dbAccess dbModel.CircleAccess) coreModel.Cir
 				CircleId: dbAccess.CircleId,
 			},
 		},
-		Requester: coreModel.AuthAccount{
+		Requester: coreModel.CircleRequester{
 			UserId:   dbAccess.RequesterUserId,
 			CircleId: dbAccess.RequesterCircleId,
 		},

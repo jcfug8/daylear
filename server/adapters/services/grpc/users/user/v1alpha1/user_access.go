@@ -48,7 +48,7 @@ func (s *UserService) CreateAccess(ctx context.Context, request *pb.CreateAccess
 	pbAccess := request.GetAccess()
 	pbAccess.Name = ""
 
-	mUserAccess, err := ProtoToUserAccess(s.userNamer, s.accessNamer, pbAccess)
+	mUserAccess, err := s.ProtoToUserAccess(pbAccess)
 	if err != nil {
 		log.Warn().Err(err).Msg("invalid request data")
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
@@ -63,7 +63,7 @@ func (s *UserService) CreateAccess(ctx context.Context, request *pb.CreateAccess
 	}
 
 	// convert model to proto
-	pbAccess, err = UserAccessToProto(s.userNamer, s.accessNamer, mUserAccess)
+	pbAccess, err = s.UserAccessToProto(mUserAccess)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -125,7 +125,7 @@ func (s *UserService) GetAccess(ctx context.Context, request *pb.GetAccessReques
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	pbAccess, err := UserAccessToProto(s.userNamer, s.accessNamer, mUserAccess)
+	pbAccess, err := s.UserAccessToProto(mUserAccess)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -173,7 +173,7 @@ func (s *UserService) ListAccesses(ctx context.Context, request *pb.ListAccesses
 
 	accessProtos := make([]*pb.Access, 0, len(accesses))
 	for _, access := range accesses {
-		accessProto, err := UserAccessToProto(s.userNamer, s.accessNamer, access)
+		accessProto, err := s.UserAccessToProto(access)
 		if err != nil {
 			log.Error().Err(err).Msg("unable to prepare response")
 			return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -193,50 +193,6 @@ func (s *UserService) ListAccesses(ctx context.Context, request *pb.ListAccesses
 
 	log.Info().Msg("gRPC ListAccesses returning successfully")
 	return response, nil
-}
-
-// UpdateAccess -
-func (s *UserService) UpdateAccess(ctx context.Context, request *pb.UpdateAccessRequest) (*pb.Access, error) {
-	log := logutil.EnrichLoggerWithContext(s.log, ctx)
-	log.Info().Msg("gRPC UpdateAccess called")
-	authAccount, err := headers.ParseAuthData(ctx)
-	if err != nil {
-		log.Warn().Err(err).Msg("failed to parse auth data")
-		return nil, err
-	}
-
-	accessProto := request.GetAccess()
-	var mUserAccess model.UserAccess
-	_, err = s.accessNamer.Parse(accessProto.GetName(), &mUserAccess)
-	if err != nil {
-		log.Warn().Err(err).Str("name", accessProto.GetName()).Msg("invalid name")
-		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", accessProto.GetName())
-	}
-
-	// TODO: update mask
-
-	mUserAccess, err = ProtoToUserAccess(s.userNamer, s.accessNamer, accessProto)
-	if err != nil {
-		log.Warn().Err(err).Msg("invalid request data")
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	mUserAccess, err = s.domain.UpdateUserAccess(ctx, authAccount, mUserAccess)
-	if err != nil {
-		log.Error().Err(err).Msg("domain.UpdateUserAccess failed")
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	accessProto, err = UserAccessToProto(s.userNamer, s.accessNamer, mUserAccess)
-	if err != nil {
-		log.Error().Err(err).Msg("unable to prepare response")
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	// check field behavior
-	grpc.ProcessResponseFieldBehavior(accessProto)
-	log.Info().Msg("gRPC UpdateAccess returning successfully")
-	return accessProto, nil
 }
 
 // AcceptAccess -
@@ -262,7 +218,7 @@ func (s *UserService) AcceptAccess(ctx context.Context, request *pb.AcceptAccess
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	pbAccess, err := UserAccessToProto(s.userNamer, s.accessNamer, mUserAccess)
+	pbAccess, err := s.UserAccessToProto(mUserAccess)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -275,42 +231,72 @@ func (s *UserService) AcceptAccess(ctx context.Context, request *pb.AcceptAccess
 }
 
 // ProtoToUserAccess converts a proto Access to a model UserAccess
-func ProtoToUserAccess(userNamer, accessNamer interface{}, pbAccess *pb.Access) (model.UserAccess, error) {
-	// TODO: Implement actual conversion logic
-	// This should parse the name, extract requester and recipient info
-	// and convert the permission level and state
-
-	var mUserAccess model.UserAccess
-
-	// Parse recipient from the proto (assuming it's a user name)
-	if pbAccess.GetRecipient().GetName() != "" {
-		var recipientUser model.User
-		// Note: This needs proper implementation based on how recipient is structured
-		// For now, assuming it's a user name that can be parsed
-		mUserAccess.Recipient = recipientUser.Id.UserId
+func (s *UserService) ProtoToUserAccess(pbAccess *pb.Access) (model.UserAccess, error) {
+	mUserAccess := model.UserAccess{
+		Level: pbAccess.GetLevel(),
+		State: pbAccess.GetState(),
 	}
 
-	// Convert permission level and state
-	mUserAccess.Level = pbAccess.GetLevel()
-	mUserAccess.State = pbAccess.GetState()
+	if pbAccess.GetName() != "" {
+		_, err := s.accessNamer.Parse(pbAccess.GetName(), &mUserAccess)
+		if err != nil {
+			return model.UserAccess{}, err
+		}
+	}
+
+	if pbAccess.GetRequester().GetName() != "" {
+		_, err := s.userNamer.Parse(pbAccess.GetRequester().GetName(), &mUserAccess.Requester)
+		if err != nil {
+			return model.UserAccess{}, err
+		}
+	}
+
+	if pbAccess.GetRecipient().GetName() != "" {
+		_, err := s.userNamer.Parse(pbAccess.GetRecipient().GetName(), &mUserAccess.Recipient)
+		if err != nil {
+			return model.UserAccess{}, err
+		}
+	}
 
 	return mUserAccess, nil
 }
 
 // UserAccessToProto converts a model UserAccess to a proto Access
-func UserAccessToProto(userNamer, accessNamer interface{}, mUserAccess model.UserAccess) (*pb.Access, error) {
-	// TODO: Implement actual conversion logic
-	// This should generate the proper name, requester, and recipient fields
-	// and convert the permission level and state
-
+func (s *UserService) UserAccessToProto(mUserAccess model.UserAccess) (*pb.Access, error) {
 	pbAccess := &pb.Access{
-		// Name should be generated using the accessNamer
-		// Name: accessNamer.Name(&mUserAccess),
 		Level: mUserAccess.Level,
 		State: mUserAccess.State,
-		// Requester and Recipient should be converted from user IDs to names
-		// Requester: userNamer.Name(&model.User{Id: mUserAccess.requester}),
-		// Recipient: userNamer.Name(&model.User{Id: mUserAccess.Recipient}),
+	}
+
+	if mUserAccess.UserId.UserId != 0 && mUserAccess.UserAccessId.UserAccessId != 0 {
+		name, err := s.accessNamer.Format(mUserAccess)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to format access: %v", err)
+		}
+		pbAccess.Name = name
+	}
+
+	if mUserAccess.Requester != 0 {
+		userName, err := s.userNamer.Format(mUserAccess.Requester)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to format requester: %v", err)
+		}
+		pbAccess.Requester = &pb.Access_User{
+			Name: userName,
+		}
+	}
+
+	if mUserAccess.Recipient != 0 {
+		userName, err := s.userNamer.Format(mUserAccess.Recipient)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to format recipient: %v", err)
+		}
+		pbAccess.Recipient = &pb.Access_User{
+			Name:       userName,
+			Username:   mUserAccess.RecipientUsername,
+			GivenName:  mUserAccess.RecipientGivenName,
+			FamilyName: mUserAccess.RecipientFamilyName,
+		}
 	}
 
 	return pbAccess, nil

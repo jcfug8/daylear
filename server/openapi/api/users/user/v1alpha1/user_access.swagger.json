@@ -21,82 +21,6 @@
     "application/json"
   ],
   "paths": {
-    "/users/v1alpha1/{access.name}": {
-      "patch": {
-        "summary": "Update a user access",
-        "description": "Updates the permission level or recipient for a user access.",
-        "operationId": "UserAccessService_UpdateAccess",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/usersuserv1alpha1Access"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "access.name",
-            "description": "The name of the access",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "pattern": "users/[^/]+/accesses/[^/]+"
-          },
-          {
-            "name": "access",
-            "description": "access",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "requester": {
-                  "type": "string",
-                  "title": "the name of the issuing user",
-                  "readOnly": true
-                },
-                "recipient": {
-                  "$ref": "#/definitions/usersuserv1alpha1AccessUser",
-                  "title": "the name of the receiving user"
-                },
-                "level": {
-                  "$ref": "#/definitions/typesPermissionLevel",
-                  "title": "the permission level of the access"
-                },
-                "state": {
-                  "$ref": "#/definitions/typesAccessState",
-                  "title": "the status of the access",
-                  "readOnly": true
-                }
-              },
-              "title": "access",
-              "required": [
-                "recipient",
-                "level",
-                "access"
-              ]
-            }
-          },
-          {
-            "name": "X-Daylear-User",
-            "description": "the name of the user to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "UserAccessService"
-        ]
-      }
-    },
     "/users/v1alpha1/{name}": {
       "get": {
         "summary": "Get a user access",
@@ -403,8 +327,8 @@
           "title": "The name of the access"
         },
         "requester": {
-          "type": "string",
-          "title": "the name of the issuing user",
+          "$ref": "#/definitions/usersuserv1alpha1AccessUser",
+          "title": "the name of the requesting user",
           "readOnly": true
         },
         "recipient": {
@@ -437,6 +361,16 @@
         "username": {
           "type": "string",
           "title": "the username of the user",
+          "readOnly": true
+        },
+        "givenName": {
+          "type": "string",
+          "title": "the given name of the user",
+          "readOnly": true
+        },
+        "familyName": {
+          "type": "string",
+          "title": "the family name of the user",
           "readOnly": true
         }
       },

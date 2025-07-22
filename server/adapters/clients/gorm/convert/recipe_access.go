@@ -9,7 +9,7 @@ import (
 func CoreRecipeAccessToRecipeAccess(access coreModel.RecipeAccess) dbModel.RecipeAccess {
 	return dbModel.RecipeAccess{
 		RecipeAccessId:    access.RecipeAccessId.RecipeAccessId,
-		RecipeId:          access.RecipeId.RecipeId,
+		RecipeId:          access.RecipeAccessParent.RecipeId.RecipeId,
 		RecipientUserId:   access.Recipient.UserId,
 		RecipientCircleId: access.Recipient.CircleId,
 		PermissionLevel:   access.PermissionLevel,
@@ -27,10 +27,10 @@ func RecipeAccessToCoreRecipeAccess(dbAccess dbModel.RecipeAccess) coreModel.Rec
 			RecipeId: coreModel.RecipeId{
 				RecipeId: dbAccess.RecipeId,
 			},
-			Recipient: coreModel.AuthAccount{
-				UserId:   dbAccess.RecipientUserId,
-				CircleId: dbAccess.RecipientCircleId,
-			},
+		},
+		Recipient: coreModel.RecipeRecipientOrRequester{
+			UserId:   dbAccess.RecipientUserId,
+			CircleId: dbAccess.RecipientCircleId,
 		},
 		PermissionLevel:       dbAccess.PermissionLevel,
 		State:                 dbAccess.State,

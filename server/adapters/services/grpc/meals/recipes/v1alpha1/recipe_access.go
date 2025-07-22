@@ -287,7 +287,7 @@ func (s *RecipeService) ProtoToRecipeAccess(pbAccess *pb.Access) (model.RecipeAc
 
 	switch pbrequester := pbAccess.GetRequester().GetName().(type) {
 	case *pb.Access_RequesterOrRecipient_User:
-		modelAccess.Requester = model.AuthAccount{}
+		modelAccess.Requester = model.RecipeRecipientOrRequester{}
 		if pbrequester.User != nil {
 			_, err := s.userNamer.Parse(pbrequester.User.Name, &modelAccess.Requester)
 			if err != nil {
@@ -295,7 +295,7 @@ func (s *RecipeService) ProtoToRecipeAccess(pbAccess *pb.Access) (model.RecipeAc
 			}
 		}
 	case *pb.Access_RequesterOrRecipient_Circle:
-		modelAccess.Requester = model.AuthAccount{}
+		modelAccess.Requester = model.RecipeRecipientOrRequester{}
 		if pbrequester.Circle != nil {
 			_, err := s.circleNamer.Parse(pbrequester.Circle.Name, &modelAccess.Requester)
 			if err != nil {
@@ -306,7 +306,7 @@ func (s *RecipeService) ProtoToRecipeAccess(pbAccess *pb.Access) (model.RecipeAc
 
 	switch pbRecipient := pbAccess.GetRecipient().GetName().(type) {
 	case *pb.Access_RequesterOrRecipient_User:
-		modelAccess.Recipient = model.AuthAccount{}
+		modelAccess.Recipient = model.RecipeRecipientOrRequester{}
 		if pbRecipient.User != nil {
 			_, err := s.userNamer.Parse(pbRecipient.User.Name, &modelAccess.Recipient)
 			if err != nil {
@@ -314,7 +314,7 @@ func (s *RecipeService) ProtoToRecipeAccess(pbAccess *pb.Access) (model.RecipeAc
 			}
 		}
 	case *pb.Access_RequesterOrRecipient_Circle:
-		modelAccess.Recipient = model.AuthAccount{}
+		modelAccess.Recipient = model.RecipeRecipientOrRequester{}
 		if pbRecipient.Circle != nil {
 			_, err := s.circleNamer.Parse(pbRecipient.Circle.Name, &modelAccess.Recipient)
 			if err != nil {

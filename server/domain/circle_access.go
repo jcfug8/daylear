@@ -23,7 +23,15 @@ func (d *Domain) CreateCircleAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// Set the requester
-	access.Requester = authAccount
+	if authAccount.CircleId != 0 {
+		access.Requester = model.CircleRequester{
+			CircleId: authAccount.CircleId,
+		}
+	} else {
+		access.Requester = model.CircleRequester{
+			UserId: authAccount.AuthUserId,
+		}
+	}
 
 	// For user recipients, access should be pending; for circle recipients (not applicable here), it would be accepted
 	// Since CircleAccess.Recipient is an int64 (user ID), we assume it's always a user and set to pending
@@ -81,9 +89,7 @@ func (d *Domain) DeleteCircleAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// check if the access is for the given user (they can delete their own access)
-	isRecipient := (access.Recipient == authAccount.UserId)
-
-	if !isRecipient {
+	if access.Recipient != authAccount.AuthUserId {
 		// user is not the recipient, so they need management permissions
 		// get permission levels for the circle
 		tempAuthAccount := authAccount
@@ -132,10 +138,7 @@ func (d *Domain) GetCircleAccess(ctx context.Context, authAccount model.AuthAcco
 		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "access is not for the given circle"}
 	}
 
-	// check if the access is for the given user (they can view their own access)
-	isRecipient := (access.Recipient == authAccount.UserId)
-
-	if !isRecipient {
+	if access.Recipient != authAccount.AuthUserId {
 		// user is not the recipient, so they need management permissions to view
 		// get permission levels for the circle
 		tempAuthAccount := authAccount
@@ -158,7 +161,7 @@ func (d *Domain) GetCircleAccess(ctx context.Context, authAccount model.AuthAcco
 func (d *Domain) ListCircleAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.CircleAccessParent, pageSize int32, pageOffset int64, filter string) ([]model.CircleAccess, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	log.Info().Msg("Domain ListCircleAccesses called")
-	if authAccount.UserId == 0 {
+	if authAccount.AuthUserId == 0 {
 		return nil, domain.ErrInvalidArgument{Msg: "requester is required"}
 	}
 
@@ -268,7 +271,7 @@ func (d *Domain) AcceptCircleAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// verify the user is the recipient of this access
-	if access.Recipient != authAccount.UserId {
+	if access.Recipient != authAccount.AuthUserId {
 		return model.CircleAccess{}, domain.ErrPermissionDenied{Msg: "only the recipient can accept this access"}
 	}
 

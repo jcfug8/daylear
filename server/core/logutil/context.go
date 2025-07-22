@@ -24,7 +24,7 @@ func ExtractLogFieldsFromContext(ctx context.Context) (requestID string, userID 
 	// User/Circle (via AuthTokenMiddleware)
 	auth, err := headers.ParseAuthData(ctx)
 	if err == nil {
-		userID = auth.UserId
+		userID = auth.AuthUserId
 		circleID = auth.CircleId
 	}
 

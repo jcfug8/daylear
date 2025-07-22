@@ -117,27 +117,6 @@ service UserAccessService {
     };
   }
 
-  // Update an access to a user
-  rpc UpdateAccess(UpdateAccessRequest) returns (Access) {
-    option (google.api.method_signature) = "access,update_mask";
-    option (google.api.http) = {
-      patch: "/users/v1alpha1/{access.name=users/*/accesses/*}"
-      body: "access"
-    };
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "Update a user access"
-      description: "Updates the permission level or recipient for a user access."
-      tags: "UserAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-User"
-          description: "the name of the user to act as"
-          type: STRING
-        }
-      }
-    };
-  }
-
   // Accept a user access
   rpc AcceptAccess(AcceptAccessRequest) returns (Access) {
     option (google.api.method_signature) = "name";
@@ -172,8 +151,8 @@ message Access {
   // The name of the access
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
-  // the name of the issuing user
-  string requester = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // the name of the requesting user
+  User requester = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // the name of the receiving user
   User recipient = 3 [(google.api.field_behavior) = REQUIRED];
@@ -191,6 +170,12 @@ message Access {
 
     // the username of the user
     string username = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the given name of the user
+    string given_name = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the family name of the user
+    string family_name = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
   }
 }
 

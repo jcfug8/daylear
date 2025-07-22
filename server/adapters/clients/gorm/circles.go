@@ -86,8 +86,8 @@ func (repo *Client) GetCircle(ctx context.Context, authAccount cmodel.AuthAccoun
 
 	tx := repo.db.WithContext(ctx).
 		Select("circle.*", "circle_access.permission_level", "circle_access.state", "circle_access.circle_access_id").
-		Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.UserId).
-		Where("circle.circle_id = ? AND (circle.visibility_level = ? OR circle_access.recipient_user_id = ?)", id.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.UserId)
+		Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.AuthUserId).
+		Where("circle.circle_id = ? AND (circle.visibility_level = ? OR circle_access.recipient_user_id = ?)", id.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
 
 	err := tx.First(&gm).Error
 	if err != nil {
@@ -150,8 +150,8 @@ func (repo *Client) ListCircles(ctx context.Context, authAccount cmodel.AuthAcco
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(offset)).
-		Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.UserId).
-		Where("(circle_access.recipient_user_id = ? OR circle.visibility_level = ?)", authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC)
+		Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.AuthUserId).
+		Where("(circle_access.recipient_user_id = ? OR circle.visibility_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC)
 
 	conversion, err := repo.circleSQLConverter.Convert(filter)
 	if err != nil {

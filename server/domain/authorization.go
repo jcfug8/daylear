@@ -8,19 +8,24 @@ import (
 	domain "github.com/jcfug8/daylear/server/ports/domain"
 )
 
-func (d *Domain) getUserAccessLevelsForUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (types.PermissionLevel, types.VisibilityLevel, error) {
+func (d *Domain) getUserAccessLevels(ctx context.Context, authAccount model.AuthAccount) (types.PermissionLevel, types.VisibilityLevel, error) {
 	// verify auth account is set
-	if authAccount.UserId == 0 {
+	if authAccount.AuthUserId == 0 {
 		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "auth user is required"}
 	}
 
+	// verify user id is set
+	if authAccount.UserId == 0 {
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "user id is required"}
+	}
+
 	// verify user exists
-	user, err := d.repo.GetUser(ctx, authAccount, id)
+	user, err := d.repo.GetUser(ctx, authAccount, model.UserId{UserId: authAccount.UserId})
 	if err != nil {
 		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
 	}
 
-	if user.Id.UserId == authAccount.UserId {
+	if user.Id.UserId == authAccount.AuthUserId {
 		return types.PermissionLevel_PERMISSION_LEVEL_ADMIN, user.Visibility, nil
 	}
 
@@ -33,7 +38,7 @@ func (d *Domain) getUserAccessLevelsForUser(ctx context.Context, authAccount mod
 
 func (d *Domain) getCircleAccessLevels(ctx context.Context, authAccount model.AuthAccount) (types.PermissionLevel, types.VisibilityLevel, error) {
 	// verify auth account is set
-	if authAccount.UserId == 0 {
+	if authAccount.AuthUserId == 0 {
 		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "auth user is required"}
 	}
 
@@ -57,7 +62,7 @@ func (d *Domain) getCircleAccessLevels(ctx context.Context, authAccount model.Au
 
 func (d *Domain) getRecipeAccessLevels(ctx context.Context, authAccount model.AuthAccount, recipeId model.RecipeId) (types.PermissionLevel, types.VisibilityLevel, error) {
 	// verify auth account is set
-	if authAccount.UserId == 0 {
+	if authAccount.AuthUserId == 0 {
 		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "auth user is required"}
 	}
 
@@ -95,6 +100,20 @@ func (d *Domain) getRecipeAccessLevelsForCircle(ctx context.Context, authAccount
 	}
 
 	return determineRecipeAccessLevels(circleVisibilityLevel, circlePermissionLevel, recipeVisibilityLevel, recipePermissionLevel)
+}
+
+func (d *Domain) getRecipeAccessLevelsForUser(ctx context.Context, authAccount model.AuthAccount, recipeId model.RecipeId) (types.PermissionLevel, types.VisibilityLevel, error) {
+	userPermissionLevel, userVisibilityLevel, err := d.getUserAccessLevels(ctx, authAccount)
+	if err != nil {
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+	}
+
+	recipePermissionLevel, recipeVisibilityLevel, err := d.getRecipeAccessLevels(ctx, authAccount, recipeId)
+	if err != nil {
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+	}
+
+	return determineRecipeAccessLevels(userVisibilityLevel, userPermissionLevel, recipeVisibilityLevel, recipePermissionLevel)
 }
 
 func determineRecipeAccessLevels(circleVisibilityLevel types.VisibilityLevel, circlePermissionLevel types.PermissionLevel, recipeVisibilityLevel types.VisibilityLevel, recipePermissionLevel types.PermissionLevel) (types.PermissionLevel, types.VisibilityLevel, error) {

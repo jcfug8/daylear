@@ -24,7 +24,6 @@ const (
 	UserAccessService_DeleteAccess_FullMethodName = "/api.users.user.v1alpha1.UserAccessService/DeleteAccess"
 	UserAccessService_GetAccess_FullMethodName    = "/api.users.user.v1alpha1.UserAccessService/GetAccess"
 	UserAccessService_ListAccesses_FullMethodName = "/api.users.user.v1alpha1.UserAccessService/ListAccesses"
-	UserAccessService_UpdateAccess_FullMethodName = "/api.users.user.v1alpha1.UserAccessService/UpdateAccess"
 	UserAccessService_AcceptAccess_FullMethodName = "/api.users.user.v1alpha1.UserAccessService/AcceptAccess"
 )
 
@@ -42,8 +41,6 @@ type UserAccessServiceClient interface {
 	GetAccess(ctx context.Context, in *GetAccessRequest, opts ...grpc.CallOption) (*Access, error)
 	// List accesses to a user
 	ListAccesses(ctx context.Context, in *ListAccessesRequest, opts ...grpc.CallOption) (*ListAccessesResponse, error)
-	// Update an access to a user
-	UpdateAccess(ctx context.Context, in *UpdateAccessRequest, opts ...grpc.CallOption) (*Access, error)
 	// Accept a user access
 	AcceptAccess(ctx context.Context, in *AcceptAccessRequest, opts ...grpc.CallOption) (*Access, error)
 }
@@ -96,16 +93,6 @@ func (c *userAccessServiceClient) ListAccesses(ctx context.Context, in *ListAcce
 	return out, nil
 }
 
-func (c *userAccessServiceClient) UpdateAccess(ctx context.Context, in *UpdateAccessRequest, opts ...grpc.CallOption) (*Access, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Access)
-	err := c.cc.Invoke(ctx, UserAccessService_UpdateAccess_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *userAccessServiceClient) AcceptAccess(ctx context.Context, in *AcceptAccessRequest, opts ...grpc.CallOption) (*Access, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Access)
@@ -130,8 +117,6 @@ type UserAccessServiceServer interface {
 	GetAccess(context.Context, *GetAccessRequest) (*Access, error)
 	// List accesses to a user
 	ListAccesses(context.Context, *ListAccessesRequest) (*ListAccessesResponse, error)
-	// Update an access to a user
-	UpdateAccess(context.Context, *UpdateAccessRequest) (*Access, error)
 	// Accept a user access
 	AcceptAccess(context.Context, *AcceptAccessRequest) (*Access, error)
 	mustEmbedUnimplementedUserAccessServiceServer()
@@ -155,9 +140,6 @@ func (UnimplementedUserAccessServiceServer) GetAccess(context.Context, *GetAcces
 }
 func (UnimplementedUserAccessServiceServer) ListAccesses(context.Context, *ListAccessesRequest) (*ListAccessesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAccesses not implemented")
-}
-func (UnimplementedUserAccessServiceServer) UpdateAccess(context.Context, *UpdateAccessRequest) (*Access, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateAccess not implemented")
 }
 func (UnimplementedUserAccessServiceServer) AcceptAccess(context.Context, *AcceptAccessRequest) (*Access, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AcceptAccess not implemented")
@@ -255,24 +237,6 @@ func _UserAccessService_ListAccesses_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserAccessService_UpdateAccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateAccessRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserAccessServiceServer).UpdateAccess(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserAccessService_UpdateAccess_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserAccessServiceServer).UpdateAccess(ctx, req.(*UpdateAccessRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _UserAccessService_AcceptAccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AcceptAccessRequest)
 	if err := dec(in); err != nil {
@@ -313,10 +277,6 @@ var UserAccessService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAccesses",
 			Handler:    _UserAccessService_ListAccesses_Handler,
-		},
-		{
-			MethodName: "UpdateAccess",
-			Handler:    _UserAccessService_UpdateAccess_Handler,
 		},
 		{
 			MethodName: "AcceptAccess",

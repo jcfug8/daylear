@@ -1070,7 +1070,7 @@ var File_api_meals_recipe_v1alpha1_recipe_proto protoreflect.FileDescriptor
 
 const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\n" +
-	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xa0\x13\n" +
+	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xc1\x13\n" +
 	"\x06Recipe\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
@@ -1132,8 +1132,8 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\x15MEASUREMENT_TYPE_GRAM\x10\x05\x12\x1f\n" +
 	"\x1bMEASUREMENT_TYPE_MILLILITER\x10\x06\x12\x1a\n" +
 	"\x16MEASUREMENT_TYPE_LITER\x10\a\x12\x18\n" +
-	"\x14MEASUREMENT_TYPE_CUP\x10\b:k\xeaAh\n" +
-	" api.meals.recipe.v1alpha1/Recipe\x12\x10recipes/{recipe}\x12!circles/{circle}/recipes/{recipe}*\arecipes2\x06recipe\"\xb9\x01\n" +
+	"\x14MEASUREMENT_TYPE_CUP\x10\b:\x8b\x01\xeaA\x87\x01\n" +
+	" api.meals.recipe.v1alpha1/Recipe\x12\x10recipes/{recipe}\x12!circles/{circle}/recipes/{recipe}\x12\x1dusers/{user}/recipes/{recipe}*\arecipes2\x06recipe\"\xb9\x01\n" +
 	"\x13CreateRecipeRequest\x12>\n" +
 	"\x06recipe\x18\x01 \x01(\v2!.api.meals.recipe.v1alpha1.RecipeB\x03\xe0A\x02R\x06recipe\x12 \n" +
 	"\trecipe_id\x18\x02 \x01(\tB\x03\xe0A\x02R\brecipeId\x12@\n" +
@@ -1162,28 +1162,28 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\x13ScrapeRecipeRequest\x12\x15\n" +
 	"\x03uri\x18\x01 \x01(\tB\x03\xe0A\x02R\x03uri\"Q\n" +
 	"\x14ScrapeRecipeResponse\x129\n" +
-	"\x06recipe\x18\x01 \x01(\v2!.api.meals.recipe.v1alpha1.RecipeR\x06recipe2\xa0\x10\n" +
+	"\x06recipe\x18\x01 \x01(\v2!.api.meals.recipe.v1alpha1.RecipeR\x06recipe2\xe0\x11\n" +
 	"\rRecipeService\x12\xea\x02\n" +
 	"\fCreateRecipe\x12..api.meals.recipe.v1alpha1.CreateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x86\x02\x92A\x8b\x01\n" +
 	"\rRecipeService\x12\x0fCreate a recipe\x1a/Creates a new recipe with the provided details.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x17parent,recipe,recipe_id\x82\xd3\xe4\x93\x02W:\x06recipeZ4:\x06recipe\"*/meals/v1alpha1/{parent=circles/*}/recipes\"\x17/meals/v1alpha1/recipes\x12\xeb\x02\n" +
-	"\vListRecipes\x12-.api.meals.recipe.v1alpha1.ListRecipesRequest\x1a..api.meals.recipe.v1alpha1.ListRecipesResponse\"\xfc\x01\x92A\xa2\x01\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x17parent,recipe,recipe_id\x82\xd3\xe4\x93\x02W:\x06recipeZ4:\x06recipe\"*/meals/v1alpha1/{parent=circles/*}/recipes\"\x17/meals/v1alpha1/recipes\x12\x97\x03\n" +
+	"\vListRecipes\x12-.api.meals.recipe.v1alpha1.ListRecipesRequest\x1a..api.meals.recipe.v1alpha1.ListRecipesResponse\"\xa8\x02\x92A\xa2\x01\n" +
 	"\rRecipeService\x12\fList recipes\x1aIRetrieves a paginated list of recipes. Supports filtering and pagination.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x06parent\x82\xd3\xe4\x93\x02GZ,\x12*/meals/v1alpha1/{parent=circles/*}/recipes\x12\x17/meals/v1alpha1/recipes\x12\xf7\x02\n" +
-	"\fUpdateRecipe\x12..api.meals.recipe.v1alpha1.UpdateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x93\x02\x92A\x86\x01\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x06parent\x82\xd3\xe4\x93\x02sZ,\x12*/meals/v1alpha1/{parent=circles/*}/recipesZ*\x12(/meals/v1alpha1/{parent=users/*}/recipes\x12\x17/meals/v1alpha1/recipes\x12\xb3\x03\n" +
+	"\fUpdateRecipe\x12..api.meals.recipe.v1alpha1.UpdateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\xcf\x02\x92A\x86\x01\n" +
 	"\rRecipeService\x12\x0fUpdate a recipe\x1a*Updates the details of an existing recipe.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x12recipe,update_mask\x82\xd3\xe4\x93\x02n:\x06recipeZ;:\x06recipe21/meals/v1alpha1/{recipe.name=circles/*/recipes/*}2'/meals/v1alpha1/{recipe.name=recipes/*}\x12\xc2\x02\n" +
-	"\fDeleteRecipe\x12..api.meals.recipe.v1alpha1.DeleteRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\xde\x01\x92A~\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x12recipe,update_mask\x82\xd3\xe4\x93\x02\xa9\x01:\x06recipeZ;:\x06recipe21/meals/v1alpha1/{recipe.name=circles/*/recipes/*}Z9:\x06recipe2//meals/v1alpha1/{recipe.name=users/*/recipes/*}2'/meals/v1alpha1/{recipe.name=recipes/*}\x12\xee\x02\n" +
+	"\fDeleteRecipe\x12..api.meals.recipe.v1alpha1.DeleteRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x8a\x02\x92A~\n" +
 	"\rRecipeService\x12\x0fDelete a recipe\x1a\"Deletes a recipe by resource name.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02PZ,**/meals/v1alpha1/{name=circles/*/recipes/*}* /meals/v1alpha1/{name=recipes/*}\x12\xc3\x02\n" +
-	"\tGetRecipe\x12+.api.meals.recipe.v1alpha1.GetRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\xe5\x01\x92A\x84\x01\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02|Z,**/meals/v1alpha1/{name=circles/*/recipes/*}Z**(/meals/v1alpha1/{name=users/*/recipes/*}* /meals/v1alpha1/{name=recipes/*}\x12\xef\x02\n" +
+	"\tGetRecipe\x12+.api.meals.recipe.v1alpha1.GetRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x91\x02\x92A\x84\x01\n" +
 	"\rRecipeService\x12\fGet a recipe\x1a+Retrieves a single recipe by resource name.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02PZ,\x12*/meals/v1alpha1/{name=circles/*/recipes/*}\x12 /meals/v1alpha1/{name=recipes/*}\x12\xae\x02\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02|Z,\x12*/meals/v1alpha1/{name=circles/*/recipes/*}Z*\x12(/meals/v1alpha1/{name=users/*/recipes/*}\x12 /meals/v1alpha1/{name=recipes/*}\x12\xae\x02\n" +
 	"\fScrapeRecipe\x12..api.meals.recipe.v1alpha1.ScrapeRecipeRequest\x1a/.api.meals.recipe.v1alpha1.ScrapeRecipeResponse\"\xbc\x01\x92A\x83\x01\n" +
 	"\rRecipeService\x12\x1aScrape a recipe from a uri\x1a\x1cScrapes a recipe from a uri.r8\n" +
 	"6\n" +

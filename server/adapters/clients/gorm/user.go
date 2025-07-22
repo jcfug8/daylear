@@ -62,8 +62,8 @@ func (repo *Client) GetUser(ctx context.Context, authAccount cmodel.AuthAccount,
 
 	err := repo.db.WithContext(ctx).
 		Select("daylear_user.*", "user_access.permission_level", "user_access.state", "user_access.user_access_id").
-		Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.recipient_user_id AND user_access.recipient_user_id = ?", authAccount.UserId).
-		Where("daylear_user.user_id = ? AND (daylear_user.visibility = ? OR user_access.recipient_user_id = ?)", id.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.UserId).
+		Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.recipient_user_id AND user_access.recipient_user_id = ?", authAccount.AuthUserId).
+		Where("daylear_user.user_id = ? AND (daylear_user.visibility = ? OR user_access.recipient_user_id = ?)", id.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId).
 		First(&gm).Error
 	if err != nil {
 		log.Error().Err(err).Msg("db.First failed")
@@ -92,8 +92,8 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 
 	tx := repo.db.WithContext(ctx).
 		Select("daylear_user.*", "user_access.permission_level", "user_access.state", "user_access.user_access_id").
-		Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.recipient_user_id AND user_access.recipient_user_id = ?", authAccount.UserId).
-		Where("daylear_user.visibility = ? OR user_access.recipient_user_id = ?", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.UserId).
+		Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.recipient_user_id AND user_access.recipient_user_id = ?", authAccount.AuthUserId).
+		Where("daylear_user.visibility = ? OR user_access.recipient_user_id = ?", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId).
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(pageOffset))

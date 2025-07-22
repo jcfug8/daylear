@@ -41,7 +41,7 @@ func (repo *Client) CreateRecipeAccess(ctx context.Context, access model.RecipeA
 	db := repo.db.WithContext(ctx)
 
 	// Validate that exactly one recipient type is set
-	if (access.RecipeAccessParent.Recipient.UserId != 0) == (access.RecipeAccessParent.Recipient.CircleId != 0) {
+	if (access.Recipient.UserId != 0) == (access.Recipient.CircleId != 0) {
 		log.Error().Msg("exactly one recipient (user or circle) is required")
 		return model.RecipeAccess{}, repository.ErrInvalidArgument{Msg: "exactly one recipient (user or circle) is required"}
 	}
@@ -135,7 +135,7 @@ func (repo *Client) GetRecipeAccess(ctx context.Context, parent model.RecipeAcce
 
 func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent model.RecipeAccessParent, pageSize int32, pageOffset int64, filterStr string) ([]model.RecipeAccess, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	if authAccount.UserId == 0 && authAccount.CircleId == 0 {
+	if authAccount.AuthUserId == 0 && authAccount.CircleId == 0 {
 		return nil, repository.ErrInvalidArgument{Msg: "user id or circle id is required"}
 	}
 
@@ -165,10 +165,10 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 			"recipe_access.recipient_circle_id = ? OR recipe_access.recipe_id IN (SELECT recipe_id FROM recipe_access WHERE recipient_circle_id = ? AND permission_level >= ?)",
 			authAccount.CircleId, authAccount.CircleId, types.PermissionLevel_PERMISSION_LEVEL_WRITE,
 		)
-	} else if authAccount.UserId != 0 {
+	} else if authAccount.AuthUserId != 0 {
 		db = db.Where(
 			"recipe_access.recipient_user_id = ? OR recipe_access.recipe_id IN (SELECT recipe_id FROM recipe_access WHERE recipient_user_id = ? AND permission_level >= ?)",
-			authAccount.UserId, authAccount.UserId, types.PermissionLevel_PERMISSION_LEVEL_WRITE,
+			authAccount.AuthUserId, authAccount.AuthUserId, types.PermissionLevel_PERMISSION_LEVEL_WRITE,
 		)
 	}
 

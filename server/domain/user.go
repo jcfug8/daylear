@@ -67,9 +67,11 @@ func (d *Domain) UpdateUser(ctx context.Context, authAccount model.AuthAccount, 
 		return model.User{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevelsForUser(ctx, authAccount, user.Id)
+	authAccount.UserId = user.Id.UserId
+
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevels(ctx, authAccount)
 	if err != nil {
-		log.Error().Err(err).Msg("getUserAccessLevelsForUser failed")
+		log.Error().Err(err).Msg("getUserAccessLevels failed")
 		return model.User{}, err
 	}
 
@@ -95,9 +97,11 @@ func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, id 
 		return model.User{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevelsForUser(ctx, authAccount, id)
+	authAccount.UserId = id.UserId
+
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevels(ctx, authAccount)
 	if err != nil {
-		log.Error().Err(err).Msg("getUserAccessLevelsForUser failed")
+		log.Error().Err(err).Msg("getUserAccessLevels failed")
 		return model.User{}, err
 	}
 
@@ -119,7 +123,7 @@ func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, id 
 func (d *Domain) GetOwnUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId, fieldMask []string) (model.User, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 
-	if id.UserId != authAccount.UserId {
+	if id.UserId != authAccount.AuthUserId {
 		log.Warn().Msg("id does not match auth account")
 		return model.User{}, domain.ErrInvalidArgument{Msg: "id does not match auth account"}
 	}
@@ -193,13 +197,13 @@ func (d *Domain) determineUsername(ctx context.Context, email string) (string, e
 
 // UploadUserImage uploads a user image and returns the image URI
 func (d *Domain) UploadUserImage(ctx context.Context, authAccount model.AuthAccount, id model.UserId, imageReader io.Reader) (imageURI string, err error) {
-	if authAccount.UserId == 0 {
+	if authAccount.AuthUserId == 0 {
 		return "", domain.ErrInvalidArgument{Msg: "parent required"}
 	}
 	if id.UserId == 0 {
 		return "", domain.ErrInvalidArgument{Msg: "id required"}
 	}
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevelsForUser(ctx, authAccount, id)
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevels(ctx, authAccount)
 	if err != nil {
 		return "", err
 	}

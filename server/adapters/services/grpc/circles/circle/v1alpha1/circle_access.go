@@ -296,13 +296,13 @@ func (s *CircleService) ProtoToCircleAccess(proto *pb.Access) (model.CircleAcces
 
 	switch pbrequester := proto.GetRequester().GetName().(type) {
 	case *pb.Access_Requester_User:
-		circleAccess.Requester = model.AuthAccount{}
+		circleAccess.Requester = model.CircleRequester{}
 		_, err := s.userNamer.Parse(pbrequester.User, &circleAccess.Requester)
 		if err != nil {
 			return circleAccess, err
 		}
 	case *pb.Access_Requester_Circle:
-		circleAccess.Requester = model.AuthAccount{}
+		circleAccess.Requester = model.CircleRequester{}
 		_, err := s.circleNamer.Parse(proto.GetRequester().GetCircle(), &circleAccess.Requester)
 		if err != nil {
 			return circleAccess, err

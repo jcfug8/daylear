@@ -23,13 +23,20 @@ type circleAccessFields struct {
 type CircleAccess struct {
 	CircleAccessParent
 	CircleAccessId
-	Recipient           int64 `aip_pattern:"key=user"`
-	Requester           AuthAccount
-	PermissionLevel     types.PermissionLevel
-	State               types.AccessState
-	RecipientUsername   string // username of the recipient (if user)
-	RecipientGivenName  string // given name of the recipient (if user)
-	RecipientFamilyName string // family name of the recipient (if user)
+	PermissionLevel types.PermissionLevel
+	State           types.AccessState
+
+	Requester CircleRequester
+
+	Recipient           int64  `aip_pattern:"key=user"`
+	RecipientUsername   string // username of the recipient
+	RecipientGivenName  string // given name of the recipient
+	RecipientFamilyName string // family name of the recipient
+}
+
+type CircleRequester struct {
+	UserId   int64 `aip_pattern:"key=user"`
+	CircleId int64 `aip_pattern:"key=circle"`
 }
 
 type CircleAccessParent struct {

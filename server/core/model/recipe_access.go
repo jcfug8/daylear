@@ -23,8 +23,12 @@ type recipeAccessFields struct {
 type RecipeAccess struct {
 	RecipeAccessParent
 	RecipeAccessId
-	PermissionLevel       types.PermissionLevel
-	State                 types.AccessState
+	PermissionLevel types.PermissionLevel
+	State           types.AccessState
+
+	Requester RecipeRecipientOrRequester
+
+	Recipient             RecipeRecipientOrRequester
 	RecipientUsername     string // username of the recipient (if user)
 	RecipientGivenName    string // given name of the recipient (if user)
 	RecipientFamilyName   string // family name of the recipient (if user)
@@ -32,11 +36,14 @@ type RecipeAccess struct {
 	RecipientCircleHandle string // handle of the recipient (if circle)
 }
 
+type RecipeRecipientOrRequester struct {
+	UserId   int64 `aip_pattern:"key=user"`
+	CircleId int64 `aip_pattern:"key=circle"`
+}
+
 type RecipeAccessParent struct {
 	CircleId int64 `aip_pattern:"key=circle"`
 	RecipeId
-	Requester AuthAccount
-	Recipient AuthAccount
 }
 
 type RecipeAccessId struct {

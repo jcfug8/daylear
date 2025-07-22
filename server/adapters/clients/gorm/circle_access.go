@@ -127,7 +127,7 @@ func (repo *Client) GetCircleAccess(ctx context.Context, parent model.CircleAcce
 func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent model.CircleAccessParent, pageSize int32, pageOffset int64, filterStr string) ([]model.CircleAccess, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	log.Info().Msg("GORM ListCircleAccesses called")
-	if authAccount.UserId == 0 {
+	if authAccount.AuthUserId == 0 {
 		log.Error().Msg("user id is required")
 		return nil, repository.ErrInvalidArgument{Msg: "user id is required"}
 	}
@@ -154,7 +154,7 @@ func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.A
 
 	db = db.Where(
 		"circle_access.recipient_user_id = ? OR circle_access.circle_id IN (SELECT circle_id FROM circle_access WHERE recipient_user_id = ? AND permission_level >= ?)",
-		authAccount.UserId, authAccount.UserId, types.PermissionLevel_PERMISSION_LEVEL_WRITE,
+		authAccount.AuthUserId, authAccount.AuthUserId, types.PermissionLevel_PERMISSION_LEVEL_WRITE,
 	)
 
 	err = db.Limit(int(pageSize)).

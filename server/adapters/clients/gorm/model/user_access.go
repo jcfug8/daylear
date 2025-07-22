@@ -51,13 +51,14 @@ func (fields userAccessFields) Mask() []string {
 
 // UserAccess -
 type UserAccess struct {
-	UserAccessId      int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
-	UserId            int64                 `gorm:"not null;index"`
-	RequesterUserId   int64                 `gorm:"index"`
-	RecipientUserId   int64                 `gorm:"not null;index"`
-	PermissionLevel   types.PermissionLevel `gorm:"not null"`
-	State             types.AccessState     `gorm:"not null"`
-	RecipientUsername string                `gorm:"->;-:migration"` // read only from join
+	UserAccessId    int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
+	UserId          int64                 `gorm:"not null;index"`
+	RequesterUserId int64                 `gorm:"index"`
+	RecipientUserId int64                 `gorm:"not null;index"`
+	PermissionLevel types.PermissionLevel `gorm:"not null"`
+	State           types.AccessState     `gorm:"not null"`
+
+	RecipientUsername string `gorm:"->;-:migration"` // read only from join
 }
 
 // TableName -

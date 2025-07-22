@@ -101,5 +101,5 @@ func ParseAuthData(ctx context.Context) (model.AuthAccount, error) {
 		}
 	}
 
-	return model.AuthAccount{UserId: user.Id.UserId, CircleId: circleID.CircleId}, nil
+	return model.AuthAccount{AuthUserId: user.Id.UserId, CircleId: circleID.CircleId}, nil
 }

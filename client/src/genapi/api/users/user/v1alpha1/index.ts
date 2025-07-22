@@ -257,10 +257,10 @@ export type Access = {
   //
   // Behaviors: IDENTIFIER
   name: string | undefined;
-  // the name of the issuing user
+  // the name of the requesting user
   //
   // Behaviors: OUTPUT_ONLY
-  requester: string | undefined;
+  requester: Access_User | undefined;
   // the name of the receiving user
   //
   // Behaviors: REQUIRED
@@ -285,6 +285,14 @@ export type Access_User = {
   //
   // Behaviors: OUTPUT_ONLY
   username: string | undefined;
+  // the given name of the user
+  //
+  // Behaviors: OUTPUT_ONLY
+  givenName: string | undefined;
+  // the family name of the user
+  //
+  // Behaviors: OUTPUT_ONLY
+  familyName: string | undefined;
 };
 
 // The request to create an access to a user
@@ -373,8 +381,6 @@ export interface UserAccessService {
   GetAccess(request: GetAccessRequest): Promise<Access>;
   // List accesses to a user
   ListAccesses(request: ListAccessesRequest): Promise<ListAccessesResponse>;
-  // Update an access to a user
-  UpdateAccess(request: UpdateAccessRequest): Promise<Access>;
   // Accept a user access
   AcceptAccess(request: AcceptAccessRequest): Promise<Access>;
 }
@@ -471,29 +477,6 @@ export function createUserAccessServiceClient(
         service: "UserAccessService",
         method: "ListAccesses",
       }) as Promise<ListAccessesResponse>;
-    },
-    UpdateAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
-      if (!request.access?.name) {
-        throw new Error("missing required field request.access.name");
-      }
-      const path = `users/v1alpha1/${request.access.name}`; // eslint-disable-line quotes
-      const body = JSON.stringify(request?.access ?? {});
-      const queryParams: string[] = [];
-      if (request.updateMask) {
-        queryParams.push(`updateMask=${encodeURIComponent(request.updateMask.toString())}`)
-      }
-      let uri = path;
-      if (queryParams.length > 0) {
-        uri += `?${queryParams.join("&")}`
-      }
-      return handler({
-        path: uri,
-        method: "PATCH",
-        body,
-      }, {
-        service: "UserAccessService",
-        method: "UpdateAccess",
-      }) as Promise<Access>;
     },
     AcceptAccess(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (!request.name) {

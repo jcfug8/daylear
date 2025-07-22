@@ -64,8 +64,10 @@ type RecipeId struct {
 }
 
 // RecipeParent defines the name for a recipe parent.
+// Supports both circle and user parents for recipes.
 type RecipeParent struct {
-	CircleId int64 `aip_pattern:"key=circle"`
+	CircleId int64  `aip_pattern:"key=circle"`
+	UserId   UserId `aip_pattern:"key=user"`
 }
 
 // ----------------------------------------------------------------------------

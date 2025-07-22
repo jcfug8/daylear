@@ -23,15 +23,19 @@ type userAccessFields struct {
 type UserAccess struct {
 	UserAccessParent
 	UserAccessId
-	Level             types.PermissionLevel
-	State             types.AccessState
-	RecipientUsername string // username of the recipient
+	Level types.PermissionLevel
+	State types.AccessState
+
+	Requester int64
+
+	Recipient           int64
+	RecipientUsername   string // username of the recipient
+	RecipientGivenName  string // given name of the recipient
+	RecipientFamilyName string // family name of the recipient
 }
 
 type UserAccessParent struct {
 	UserId
-	Requester int64
-	Recipient int64
 }
 
 type UserAccessId struct {
