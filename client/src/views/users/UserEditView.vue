@@ -135,21 +135,23 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn
-          color="secondary"
-          @click="navigateBack"
-        >
-          Cancel
-        </v-btn>
-        <v-btn
-          color="primary"
-          @click="saveSettings"
-        >
-          Save Changes
-        </v-btn>
+        <!-- Removed Cancel and Save buttons -->
       </v-card-actions>
     </v-card>
   </v-container>
+  <!-- FABs for cancel and save -->
+  <v-btn
+    color="error"
+    icon="mdi-close"
+    style="position: fixed; bottom: 16px; left: 16px; z-index: 10;"
+    @click="navigateBack"
+  ></v-btn>
+  <v-btn
+    color="success"
+    icon="mdi-content-save"
+    style="position: fixed; bottom: 16px; right: 16px; z-index: 10;"
+    @click="saveSettings"
+  ></v-btn>
 </template>
 
 <script setup lang="ts">
