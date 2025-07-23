@@ -8,6 +8,44 @@ import (
 	domain "github.com/jcfug8/daylear/server/ports/domain"
 )
 
+func (d *Domain) checkRecipeAccess(ctx context.Context, authAccount model.AuthAccount, recipeId model.RecipeId, minPermLevel types.PermissionLevel) (permissionLevel types.PermissionLevel, visibilityLevel types.VisibilityLevel, err error) {
+	permissionLevel, visibilityLevel, err = d.getRecipeAccessLevels(ctx, authAccount, recipeId)
+	if err != nil {
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+	}
+
+	if authAccount.CircleId != 0 {
+		circlePermissionLevel, circleVisibilityLevel, err := d.getCircleAccessLevels(ctx, authAccount)
+		if err != nil {
+			return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+		}
+
+		permissionLevel, visibilityLevel, err = determineRecipeAccessLevels(circleVisibilityLevel, circlePermissionLevel, visibilityLevel, permissionLevel)
+		if err != nil {
+			return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+		}
+	}
+
+	if authAccount.UserId != 0 {
+		userPermissionLevel, userVisibilityLevel, err := d.getUserAccessLevels(ctx, authAccount)
+		if err != nil {
+			return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+		}
+
+		permissionLevel, visibilityLevel, err = determineRecipeAccessLevels(userVisibilityLevel, userPermissionLevel, visibilityLevel, permissionLevel)
+		if err != nil {
+			return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+		}
+	}
+
+	// verify requester has the required permission level
+	if permissionLevel < minPermLevel {
+		return 0, 0, domain.ErrPermissionDenied{Msg: "user does not have the correct permission level"}
+	}
+
+	return permissionLevel, visibilityLevel, nil
+}
+
 func (d *Domain) getUserAccessLevels(ctx context.Context, authAccount model.AuthAccount) (types.PermissionLevel, types.VisibilityLevel, error) {
 	// verify auth account is set
 	if authAccount.AuthUserId == 0 {
@@ -86,34 +124,6 @@ func (d *Domain) getRecipeAccessLevels(ctx context.Context, authAccount model.Au
 	}
 
 	return recipe.RecipeAccess.PermissionLevel, recipe.Visibility, nil
-}
-
-func (d *Domain) getRecipeAccessLevelsForCircle(ctx context.Context, authAccount model.AuthAccount, recipeId model.RecipeId) (types.PermissionLevel, types.VisibilityLevel, error) {
-	circlePermissionLevel, circleVisibilityLevel, err := d.getCircleAccessLevels(ctx, authAccount)
-	if err != nil {
-		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
-	}
-
-	recipePermissionLevel, recipeVisibilityLevel, err := d.getRecipeAccessLevels(ctx, authAccount, recipeId)
-	if err != nil {
-		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
-	}
-
-	return determineRecipeAccessLevels(circleVisibilityLevel, circlePermissionLevel, recipeVisibilityLevel, recipePermissionLevel)
-}
-
-func (d *Domain) getRecipeAccessLevelsForUser(ctx context.Context, authAccount model.AuthAccount, recipeId model.RecipeId) (types.PermissionLevel, types.VisibilityLevel, error) {
-	userPermissionLevel, userVisibilityLevel, err := d.getUserAccessLevels(ctx, authAccount)
-	if err != nil {
-		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
-	}
-
-	recipePermissionLevel, recipeVisibilityLevel, err := d.getRecipeAccessLevels(ctx, authAccount, recipeId)
-	if err != nil {
-		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
-	}
-
-	return determineRecipeAccessLevels(userVisibilityLevel, userPermissionLevel, recipeVisibilityLevel, recipePermissionLevel)
 }
 
 func determineRecipeAccessLevels(circleVisibilityLevel types.VisibilityLevel, circlePermissionLevel types.PermissionLevel, recipeVisibilityLevel types.VisibilityLevel, recipePermissionLevel types.PermissionLevel) (types.PermissionLevel, types.VisibilityLevel, error) {

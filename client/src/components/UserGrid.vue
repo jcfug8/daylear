@@ -105,7 +105,8 @@ defineEmits(['accept', 'decline'])
 function canNavigateToUser(user: any) {
   return (
     user.visibility === 'VISIBILITY_LEVEL_PUBLIC' ||
-    user.visibility === 'VISIBILITY_LEVEL_RESTRICTED'
+    user.visibility === 'VISIBILITY_LEVEL_RESTRICTED' ||
+    user.access?.state === 'ACCESS_STATE_ACCEPTED'
   )
 }
 

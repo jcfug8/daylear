@@ -12,13 +12,9 @@ import (
 	"path"
 	"strconv"
 
-	// "fmt"
-	// "path"
-	// "strconv"
-	// "strings"
-
 	"github.com/PuerkitoBio/goquery"
 	"github.com/jcfug8/daylear/server/core/file"
+	"github.com/jcfug8/daylear/server/core/logutil"
 	model "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/core/schemaorgrecipe"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
@@ -26,10 +22,6 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/rs/zerolog"
 	uuid "github.com/satori/go.uuid"
-
-	// "github.com/jcfug8/daylear/server/ports/repository"
-	// uuid "github.com/satori/go.uuid"
-	"github.com/jcfug8/daylear/server/core/logutil"
 )
 
 const RecipeImageRoot = "recipes"
@@ -147,29 +139,10 @@ func (d *Domain) DeleteRecipe(ctx context.Context, authAccount model.AuthAccount
 		authAccount.UserId = parent.UserId.UserId
 	}
 
-	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, id)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevelsForCircle failed")
-			return model.Recipe{}, err
-		}
-	} else if authAccount.UserId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForUser(ctx, authAccount, id)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevelsForUser failed")
-			return model.Recipe{}, err
-		}
-	} else {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevels(ctx, authAccount, id)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevels failed")
-			return model.Recipe{}, err
-		}
-	}
-
-	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_ADMIN {
-		log.Warn().Msg("user does not have access")
-		return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, id, types.PermissionLevel_PERMISSION_LEVEL_ADMIN)
+	if err != nil {
+		log.Error().Err(err).Msg("checkRecipeAccess failed")
+		return model.Recipe{}, err
 	}
 
 	tx, err := d.repo.Begin(ctx)
@@ -231,24 +204,10 @@ func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, p
 		authAccount.UserId = parent.UserId.UserId
 	}
 
-	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, id)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevelsForCircle failed")
-			return model.Recipe{}, err
-		}
-	} else if authAccount.UserId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForUser(ctx, authAccount, id)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevelsForUser failed")
-			return model.Recipe{}, err
-		}
-	} else {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevels(ctx, authAccount, id)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevels failed")
-			return model.Recipe{}, err
-		}
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, id, types.PermissionLevel_PERMISSION_LEVEL_ADMIN)
+	if err != nil {
+		log.Error().Err(err).Msg("checkRecipeAccess failed")
+		return model.Recipe{}, err
 	}
 
 	if authAccount.VisibilityLevel != types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC && authAccount.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
@@ -343,29 +302,10 @@ func (d *Domain) UpdateRecipe(ctx context.Context, authAccount model.AuthAccount
 		authAccount.UserId = recipe.Parent.UserId.UserId
 	}
 
-	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, recipe.Id)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevelsForCircle failed")
-			return model.Recipe{}, err
-		}
-	} else if authAccount.UserId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForUser(ctx, authAccount, recipe.Id)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevelsForUser failed")
-			return model.Recipe{}, err
-		}
-	} else {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevels(ctx, authAccount, recipe.Id)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevels failed")
-			return model.Recipe{}, err
-		}
-	}
-
-	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
-		log.Warn().Msg("user does not have access")
-		return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, recipe.Id, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
+	if err != nil {
+		log.Error().Err(err).Msg("checkRecipeAccess failed")
+		return model.Recipe{}, err
 	}
 
 	previousDbRecipe, err := d.repo.GetRecipe(ctx, authAccount, recipe.Id)
@@ -433,29 +373,10 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, authAccount model.AuthAc
 		authAccount.UserId = parent.UserId.UserId
 	}
 
-	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, id)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevelsForCircle failed")
-			return "", err
-		}
-	} else if authAccount.UserId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForUser(ctx, authAccount, id)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevelsForUser failed")
-			return "", err
-		}
-	} else {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevels(ctx, authAccount, id)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevels failed")
-			return "", err
-		}
-	}
-
-	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
-		log.Warn().Msg("user does not have access")
-		return "", domain.ErrPermissionDenied{Msg: "user does not have access"}
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, id, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
+	if err != nil {
+		log.Error().Err(err).Msg("checkRecipeAccess failed")
+		return "", err
 	}
 
 	recipe, err := d.repo.GetRecipe(ctx, authAccount, id)
@@ -483,6 +404,47 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, authAccount model.AuthAc
 	go d.fileStore.DeleteFile(context.Background(), oldImageURI)
 
 	return imageURI, nil
+}
+
+func (d *Domain) GenerateRecipeImage(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, id model.RecipeId) (file.File, error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	if authAccount.AuthUserId == 0 {
+		log.Warn().Msg("user id required")
+		return file.File{}, domain.ErrInvalidArgument{Msg: "user id required"}
+	}
+
+	if parent.CircleId != 0 && authAccount.CircleId != 0 && parent.CircleId != authAccount.CircleId {
+		log.Warn().Msg("both circle ids set but do not match")
+		return file.File{}, domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
+	}
+
+	if parent.CircleId != 0 {
+		authAccount.CircleId = parent.CircleId
+	} else if parent.UserId.UserId != 0 {
+		authAccount.UserId = parent.UserId.UserId
+	}
+
+	var err error
+
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, id, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
+	if err != nil {
+		log.Error().Err(err).Msg("checkRecipeAccess failed")
+		return file.File{}, err
+	}
+
+	recipe, err := d.repo.GetRecipe(ctx, authAccount, id)
+	if err != nil {
+		log.Error().Err(err).Msg("repo.GetRecipe failed")
+		return file.File{}, err
+	}
+
+	f, err := d.imageGenerator.GenerateRecipeImage(ctx, recipe)
+	if err != nil {
+		log.Error().Err(err).Msg("imageGenerator.GenerateRecipeImage failed")
+		return file.File{}, err
+	}
+
+	return f, nil
 }
 
 func (d *Domain) ScrapeRecipe(ctx context.Context, authAccount model.AuthAccount, uri string) (recipe model.Recipe, err error) {
@@ -573,6 +535,42 @@ func (d *Domain) ScrapeRecipe(ctx context.Context, authAccount model.AuthAccount
 	return recipe, nil
 }
 
+func (d *Domain) OCRRecipe(ctx context.Context, authAccount model.AuthAccount, imageReaders []io.Reader) (recipe model.Recipe, err error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	if authAccount.AuthUserId == 0 {
+		log.Warn().Msg("user id required")
+		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "user id required"}
+	}
+
+	var files []file.File
+
+	for _, imageReader := range imageReaders {
+		image, err := d.imageClient.CreateImage(ctx, imageReader)
+		if err != nil {
+			log.Error().Err(err).Msg("imageClient.CreateImage failed")
+			return model.Recipe{}, err
+		}
+
+		file, err := image.GetFile()
+		if err != nil {
+			log.Error().Err(err).Msg("image.GetFile failed")
+			return model.Recipe{}, err
+		}
+
+		defer image.Remove(ctx)
+
+		files = append(files, file)
+	}
+
+	recipe, err = d.recipeScraper.RecipeFromImage(ctx, files)
+	if err != nil {
+		log.Error().Err(err).Msg("recipeScraper.RecipeFromImage failed")
+		return model.Recipe{}, err
+	}
+
+	return recipe, nil
+}
+
 func (d *Domain) appendSchemaOrgRecipe(log zerolog.Logger, body []byte) model.Recipe {
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(body))
 	if err != nil {
@@ -635,102 +633,6 @@ func (d *Domain) appendSchemaOrgRecipe(log zerolog.Logger, body []byte) model.Re
 	}
 
 	return schemaorgrecipe.ToModelRecipe(schemaRecipe)
-}
-
-func (d *Domain) OCRRecipe(ctx context.Context, authAccount model.AuthAccount, imageReaders []io.Reader) (recipe model.Recipe, err error) {
-	log := logutil.EnrichLoggerWithContext(d.log, ctx)
-	if authAccount.AuthUserId == 0 {
-		log.Warn().Msg("user id required")
-		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "user id required"}
-	}
-
-	var files []file.File
-
-	for _, imageReader := range imageReaders {
-		image, err := d.imageClient.CreateImage(ctx, imageReader)
-		if err != nil {
-			log.Error().Err(err).Msg("imageClient.CreateImage failed")
-			return model.Recipe{}, err
-		}
-
-		file, err := image.GetFile()
-		if err != nil {
-			log.Error().Err(err).Msg("image.GetFile failed")
-			return model.Recipe{}, err
-		}
-
-		defer image.Remove(ctx)
-
-		files = append(files, file)
-	}
-
-	recipe, err = d.recipeScraper.RecipeFromImage(ctx, files)
-	if err != nil {
-		log.Error().Err(err).Msg("recipeScraper.RecipeFromImage failed")
-		return model.Recipe{}, err
-	}
-
-	return recipe, nil
-}
-
-func (d *Domain) GenerateRecipeImage(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, id model.RecipeId) (file.File, error) {
-	log := logutil.EnrichLoggerWithContext(d.log, ctx)
-	if authAccount.AuthUserId == 0 {
-		log.Warn().Msg("user id required")
-		return file.File{}, domain.ErrInvalidArgument{Msg: "user id required"}
-	}
-
-	if parent.CircleId != 0 && authAccount.CircleId != 0 && parent.CircleId != authAccount.CircleId {
-		log.Warn().Msg("both circle ids set but do not match")
-		return file.File{}, domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
-	}
-
-	if parent.CircleId != 0 {
-		authAccount.CircleId = parent.CircleId
-	} else if parent.UserId.UserId != 0 {
-		authAccount.UserId = parent.UserId.UserId
-	}
-
-	var err error
-
-	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, id)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevelsForCircle failed")
-			return file.File{}, err
-		}
-	} else if authAccount.UserId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForUser(ctx, authAccount, id)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevelsForUser failed")
-			return file.File{}, err
-		}
-	} else {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevels(ctx, authAccount, id)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevels failed")
-			return file.File{}, err
-		}
-	}
-
-	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
-		log.Warn().Msg("user does not have access")
-		return file.File{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
-	}
-
-	recipe, err := d.repo.GetRecipe(ctx, authAccount, id)
-	if err != nil {
-		log.Error().Err(err).Msg("repo.GetRecipe failed")
-		return file.File{}, err
-	}
-
-	f, err := d.imageGenerator.GenerateRecipeImage(ctx, recipe)
-	if err != nil {
-		log.Error().Err(err).Msg("imageGenerator.GenerateRecipeImage failed")
-		return file.File{}, err
-	}
-
-	return f, nil
 }
 
 // Helper methods

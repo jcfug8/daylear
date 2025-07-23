@@ -29,23 +29,10 @@ func (d *Domain) CreateRecipeAccess(ctx context.Context, authAccount model.AuthA
 		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "recipient is required"}
 	}
 
-	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, access.RecipeAccessParent.RecipeId)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevelsForCircle failed")
-			return model.RecipeAccess{}, err
-		}
-	} else {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevels(ctx, authAccount, access.RecipeAccessParent.RecipeId)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevels failed")
-			return model.RecipeAccess{}, err
-		}
-	}
-
-	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
-		log.Warn().Msg("user does not have access")
-		return model.RecipeAccess{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, access.RecipeAccessParent.RecipeId, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
+	if err != nil {
+		log.Error().Err(err).Msg("checkRecipeAccess failed")
+		return model.RecipeAccess{}, err
 	}
 
 	if authAccount.PermissionLevel < access.PermissionLevel {
@@ -97,25 +84,10 @@ func (d *Domain) DeleteRecipeAccess(ctx context.Context, authAccount model.AuthA
 		(access.Recipient.CircleId != 0 && access.Recipient.CircleId == authAccount.CircleId)
 
 	if !isRecipient {
-		// user is not the recipient, so they need management permissions
-		// get permission levels using same pattern as CreateRecipeAccess
-		if authAccount.CircleId != 0 {
-			authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, parent.RecipeId)
-			if err != nil {
-				log.Error().Err(err).Msg("getRecipeAccessLevelsForCircle failed")
-				return err
-			}
-		} else {
-			authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevels(ctx, authAccount, parent.RecipeId)
-			if err != nil {
-				log.Error().Err(err).Msg("getRecipeAccessLevels failed")
-				return err
-			}
-		}
-
-		if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
-			log.Warn().Msg("user does not have access to delete this recipe access")
-			return domain.ErrPermissionDenied{Msg: "user does not have access to delete this recipe access"}
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, parent.RecipeId, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
+		if err != nil {
+			log.Error().Err(err).Msg("checkRecipeAccess failed")
+			return err
 		}
 	}
 
@@ -162,25 +134,10 @@ func (d *Domain) GetRecipeAccess(ctx context.Context, authAccount model.AuthAcco
 		(access.Recipient.CircleId != 0 && access.Recipient.CircleId == authAccount.CircleId)
 
 	if !isRecipient {
-		// user is not the recipient, so they need management permissions to view
-		// get permission levels using same pattern as CreateRecipeAccess
-		if authAccount.CircleId != 0 {
-			authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, parent.RecipeId)
-			if err != nil {
-				log.Error().Err(err).Msg("getRecipeAccessLevelsForCircle failed")
-				return model.RecipeAccess{}, err
-			}
-		} else {
-			authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevels(ctx, authAccount, parent.RecipeId)
-			if err != nil {
-				log.Error().Err(err).Msg("getRecipeAccessLevels failed")
-				return model.RecipeAccess{}, err
-			}
-		}
-
-		if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
-			log.Warn().Msg("user does not have access to view this recipe access")
-			return model.RecipeAccess{}, domain.ErrPermissionDenied{Msg: "user does not have access to view this recipe access"}
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, parent.RecipeId, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
+		if err != nil {
+			log.Error().Err(err).Msg("checkRecipeAccess failed")
+			return model.RecipeAccess{}, err
 		}
 	}
 
@@ -197,23 +154,10 @@ func (d *Domain) ListRecipeAccesses(ctx context.Context, authAccount model.AuthA
 	}
 
 	if parent.RecipeId.RecipeId != 0 {
-		if authAccount.CircleId != 0 {
-			authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, parent.RecipeId)
-			if err != nil {
-				log.Error().Err(err).Msg("getRecipeAccessLevelsForCircle failed")
-				return nil, err
-			}
-		} else {
-			authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevels(ctx, authAccount, parent.RecipeId)
-			if err != nil {
-				log.Error().Err(err).Msg("getRecipeAccessLevels failed")
-				return nil, err
-			}
-		}
-
-		if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
-			log.Warn().Msg("user does not have access")
-			return nil, domain.ErrPermissionDenied{Msg: "user does not have access"}
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, parent.RecipeId, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
+		if err != nil {
+			log.Error().Err(err).Msg("checkRecipeAccess failed")
+			return nil, err
 		}
 	}
 
@@ -255,29 +199,14 @@ func (d *Domain) UpdateRecipeAccess(ctx context.Context, authAccount model.AuthA
 		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "access is not for the given recipe"}
 	}
 
-	// get requester's permission levels using same pattern as CreateRecipeAccess
-	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevelsForCircle(ctx, authAccount, access.RecipeAccessParent.RecipeId)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevelsForCircle failed")
-			return model.RecipeAccess{}, err
-		}
-	} else {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getRecipeAccessLevels(ctx, authAccount, access.RecipeAccessParent.RecipeId)
-		if err != nil {
-			log.Error().Err(err).Msg("getRecipeAccessLevels failed")
-			return model.RecipeAccess{}, err
-		}
-	}
-
-	// verify requester has WRITE access to manage recipe access
-	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
-		log.Warn().Msg("user does not have access to update recipe access")
-		return model.RecipeAccess{}, domain.ErrPermissionDenied{Msg: "user does not have access to update recipe access"}
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, access.RecipeAccessParent.RecipeId, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
+	if err != nil {
+		log.Error().Err(err).Msg("checkRecipeAccess failed")
+		return model.RecipeAccess{}, err
 	}
 
 	// if updating permission level, ensure it doesn't exceed the requester's level
-	if access.PermissionLevel > authAccount.PermissionLevel {
+	if authAccount.PermissionLevel < access.PermissionLevel {
 		log.Warn().Msg("cannot update access level to higher than your own level")
 		return model.RecipeAccess{}, domain.ErrPermissionDenied{Msg: "cannot update access level to higher than your own level"}
 	}

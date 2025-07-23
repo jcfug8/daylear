@@ -71,6 +71,9 @@
       <template #recipes="{ items, loading }">
         <RecipeGrid :recipes="items" :loading="loading" />
       </template>
+      <template #friends="{ items, loading }">
+        <UserGrid :users="items" :loading="loading" empty-text="No friends found." />
+      </template>
     </ListTabsPage>
     <!-- Speed Dial -->
     <v-fab location="bottom right" app color="primary"  icon @click="speedDialOpen = !speedDialOpen">
@@ -127,6 +130,7 @@ import type { DeleteAccessRequest } from '@/genapi/api/meals/recipe/v1alpha1'
 import type { CreateAccessRequest, Access, Access_User } from '@/genapi/api/users/user/v1alpha1'
 import type { PermissionLevel } from '@/genapi/api/types'
 import { useAlertStore } from '@/stores/alerts'
+import UserGrid from '@/components/UserGrid.vue'
 
 const usersStore = useUsersStore()
 const alertsStore = useAlertStore()
@@ -186,6 +190,9 @@ const selectedVisibilityLabel = computed(() => selectedVisibility.value?.label |
 const selectedVisibilityDescription = computed(() => selectedVisibility.value?.description || '')
 const selectedVisibilityIcon = computed(() => selectedVisibility.value?.icon || 'mdi-help-circle')
 
+const connections = ref<any[]>([])
+const loadingConnections = ref(false)
+
 const tabs = [
   {
     label: 'General',
@@ -199,6 +206,13 @@ const tabs = [
       // The parent resource for user recipes is the user's resource name
       await recipesStore.loadMyRecipes(user.value.name)
       return [...recipesStore.myRecipes]
+    },
+  },
+  {
+    label: 'Connections',
+    value: 'connections',
+    loader: async () => {
+    
     },
   },
 ]
