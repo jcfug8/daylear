@@ -56,6 +56,10 @@ export type User_Access = {
   //
   // Behaviors: OUTPUT_ONLY
   name: string | undefined;
+  // the requester of the access
+  //
+  // Behaviors: OUTPUT_ONLY
+  requester: string | undefined;
   // the permission of the access
   //
   // Behaviors: OUTPUT_ONLY

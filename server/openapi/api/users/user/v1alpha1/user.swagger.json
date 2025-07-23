@@ -333,6 +333,11 @@
           "title": "the name of the access",
           "readOnly": true
         },
+        "requester": {
+          "type": "string",
+          "title": "the requester of the access",
+          "readOnly": true
+        },
         "permissionLevel": {
           "$ref": "#/definitions/typesPermissionLevel",
           "title": "the permission of the access",

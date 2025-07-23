@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jcfug8/daylear/server/core/logutil"
 	model "github.com/jcfug8/daylear/server/core/model"
@@ -34,19 +35,41 @@ func (d *Domain) CreateUserAccess(ctx context.Context, authAccount model.AuthAcc
 		return model.UserAccess{}, err
 	}
 
-	access.State = types.AccessState_ACCESS_STATE_PENDING
-	access.Requester = model.UserId{
-		UserId: authAccount.AuthUserId,
+	// Prepare both A and B accesses
+	user1 := authAccount.AuthUserId
+	user2 := authAccount.UserId
+
+	userA := model.UserAccess{
+		UserAccessParent: model.UserAccessParent{UserId: model.UserId{UserId: user2}},
+		Level:            types.PermissionLevel_PERMISSION_LEVEL_WRITE,
+		State:            types.AccessState_ACCESS_STATE_PENDING,
+		Requester:        model.UserId{UserId: user1},
+		Recipient:        model.UserId{UserId: user1},
+	}
+	userB := model.UserAccess{
+		UserAccessParent: model.UserAccessParent{UserId: model.UserId{UserId: user1}},
+		Level:            types.PermissionLevel_PERMISSION_LEVEL_WRITE,
+		State:            types.AccessState_ACCESS_STATE_PENDING,
+		Requester:        model.UserId{UserId: user1},
+		Recipient:        model.UserId{UserId: user2},
 	}
 
-	dbUserAccess, err = d.repo.CreateUserAccess(ctx, access)
-	if err != nil {
-		log.Error().Err(err).Msg("repo.CreateUserAccess failed")
-		return model.UserAccess{}, err
+	// Create both accesses
+	dbUserAccessA, errA := d.repo.CreateUserAccess(ctx, userA)
+	if errA != nil {
+		log.Error().Err(errA).Msg("repo.CreateUserAccess (A) failed")
+		return model.UserAccess{}, errA
+	}
+	_, errB := d.repo.CreateUserAccess(ctx, userB)
+	if errB != nil {
+		log.Error().Err(errB).Msg("repo.CreateUserAccess (B) failed")
+		// Attempt to clean up A if B fails
+		_ = d.repo.DeleteUserAccess(ctx, userA.UserAccessParent, userA.UserAccessId)
+		return model.UserAccess{}, errB
 	}
 
-	log.Info().Msg("Domain CreateUserAccess returning successfully")
-	return dbUserAccess, nil
+	log.Info().Msg("Domain CreateUserAccess returning successfully (B)")
+	return dbUserAccessA, nil
 }
 
 // DeleteUserAccess -
@@ -67,15 +90,34 @@ func (d *Domain) DeleteUserAccess(ctx context.Context, authAccount model.AuthAcc
 		return err
 	}
 
-	if access.Recipient.UserId != authAccount.AuthUserId && access.Requester.UserId != authAccount.AuthUserId {
+	if access.Recipient.UserId != authAccount.AuthUserId && access.Requester.UserId != authAccount.AuthUserId && access.UserAccessParent.UserId.UserId != authAccount.AuthUserId {
 		log.Warn().Msg("user does not have access to delete this user access")
 		return domain.ErrPermissionDenied{Msg: "user does not have access to delete this user access"}
 	}
-	if err := d.repo.DeleteUserAccess(ctx, parent, id); err != nil {
+	// Delete the current access
+	err = d.repo.DeleteUserAccess(ctx, parent, id)
+	if err != nil {
 		log.Error().Err(err).Msg("repo.DeleteUserAccess failed")
 		return err
 	}
-	log.Info().Msg("Domain DeleteUserAccess returning successfully")
+	// Delete the sister access (swap UserId and Recipient)
+	sisterParent := model.UserAccessParent{UserId: access.Recipient}
+	sisterFilter := fmt.Sprintf("requester_user_id=%d AND recipient_user_id=%d", access.Requester.UserId, parent.UserId.UserId)
+	// Find the sister access id
+	accesses, err := d.repo.ListUserAccesses(ctx, authAccount, sisterParent, 1, 0, sisterFilter)
+	if err != nil {
+	}
+	if len(accesses) == 0 {
+		log.Warn().Msg("sister access not found on delete")
+	}
+
+	err = d.repo.DeleteUserAccess(ctx, sisterParent, accesses[0].UserAccessId)
+	if err != nil {
+		log.Error().Err(err).Msg("repo.DeleteUserAccess failed (sister)")
+		return err
+	}
+
+	log.Info().Msg("Domain DeleteUserAccess returning successfully (and deleted sister if found)")
 	return nil
 }
 
@@ -98,7 +140,7 @@ func (d *Domain) GetUserAccess(ctx context.Context, authAccount model.AuthAccoun
 		return model.UserAccess{}, err
 	}
 
-	if access.Recipient.UserId != authAccount.AuthUserId && access.Requester.UserId != authAccount.AuthUserId {
+	if access.Recipient.UserId != authAccount.AuthUserId && access.Requester.UserId != authAccount.AuthUserId && access.UserAccessParent.UserId.UserId != authAccount.AuthUserId {
 		log.Warn().Msg("user does not have access to view this user access")
 		return model.UserAccess{}, domain.ErrPermissionDenied{Msg: "user does not have access to view this user access"}
 	}
@@ -158,16 +200,36 @@ func (d *Domain) AcceptUserAccess(ctx context.Context, authAccount model.AuthAcc
 		log.Warn().Msg("access must be in pending state to be accepted")
 		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "access must be in pending state to be accepted"}
 	}
-	if access.Recipient.UserId != authAccount.AuthUserId {
-		log.Warn().Msg("only the recipient can accept this access")
-		return model.UserAccess{}, domain.ErrPermissionDenied{Msg: "only the recipient can accept this access"}
+	if access.Recipient.UserId != authAccount.AuthUserId || access.UserAccessParent.UserId.UserId == access.Recipient.UserId {
+		log.Warn().Msg("only the recipient (B) can accept this access")
+		return model.UserAccess{}, domain.ErrPermissionDenied{Msg: "only the recipient (B) can accept this access"}
 	}
+	// Accept B
 	access.State = types.AccessState_ACCESS_STATE_ACCEPTED
 	updated, err := d.repo.UpdateUserAccess(ctx, access)
 	if err != nil {
-		log.Error().Err(err).Msg("repo.UpdateUserAccess failed")
+		log.Error().Err(err).Msg("repo.UpdateUserAccess failed (B)")
 		return model.UserAccess{}, err
 	}
-	log.Info().Msg("Domain AcceptUserAccess returning successfully")
+	// Accept sister A (swap UserId and Recipient)
+	sisterParent := model.UserAccessParent{UserId: access.Recipient}
+	sisterFilter := fmt.Sprintf("requester_user_id=%d AND recipient_user_id=%d", access.Requester.UserId, parent.UserId.UserId)
+	accesses, err := d.repo.ListUserAccesses(ctx, authAccount, sisterParent, 1, 0, sisterFilter)
+	if err != nil {
+		log.Error().Err(err).Msg("repo.ListUserAccesses failed (sister)")
+		return model.UserAccess{}, err
+	}
+	if len(accesses) == 0 {
+		log.Warn().Msg("sister access not found on accept")
+	}
+
+	accesses[0].State = types.AccessState_ACCESS_STATE_ACCEPTED
+	_, err = d.repo.UpdateUserAccess(ctx, accesses[0])
+	if err != nil {
+		log.Error().Err(err).Msg("repo.UpdateUserAccess failed (sister)")
+		return model.UserAccess{}, err
+	}
+
+	log.Info().Msg("Domain AcceptUserAccess returning successfully (and accepted sister if found)")
 	return updated, nil
 }

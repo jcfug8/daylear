@@ -75,7 +75,7 @@ sequenceDiagram
 A user is the entity that represents a person who can log into the application. A user can be private or public:
 
 *   **Public**: The user is visible in the user list. Their actual username is shown on publicly accessed content.
-*   **Restricted**: The user is not visible in the user list. `Anonymous` should be shown as the username on publicly accessed content. They will show up in member and friend lists.
+*   **Restricted**: The user visible in the user list. `Anonymous` should be shown as the username on publicly accessed content. They will show up in member and friend lists.
 *   **Private**: The user is not visible in the user list. `Anonymous` should be shown as the username on publicly accessed content. They will show up in member and friend lists if the viewing user has access to the user
 *   **Hidden**: The user is not visible in the user list. `Anonymous` should be shown as the username on publicly accessed content. They will not show up in member and friend lists unless the viewing user has admin access to the circle or the user is looking at their own friends list.
 
@@ -86,11 +86,32 @@ A user can only edit, delete their own user.
 ## User Access
 The entities that represent the access to a user. A user can have access to another user. If a user has access to a user, they can view the public and restricted content they have.
 
-When an access is requested, it will create two records, one for both users. The permission level can only be set to `READ`. The state of both the accesses are set to `PENDING` when they are created. The states of the accesses can only be updated to `ACCEPTED` by the user that was requested.
+When an access is requested, it will create two records, one for both users. They can be referenced as sister UserAccesses.
+- A) for the user1 that is requesting access (Requester == Recipeient != UserId)
+  - UserId    : user2 
+  - Requester : user1 
+  - Recipient : user1
+- B) for the user2 that is being requested for access (Requester == UserId != Recipient)
+  - UserId    : user1 
+  - Requester : user1 
+  - Recipient : user2
+What identifies them as sister UserAccesses is:
+- the data only includes two users
+- the requester is the same on both
+- the UserId and Recipient are opposite.
+If you have one, to select/query for the other you just need to swap the UserId and Recipient.
+Here are some of the funtional rules:
+- On create, the domain should create both A and B.
+- The domian should only allow B to be accepted and if it is accepted then it's sister should be accepted as well.
+- If either A or B is deleted then the other one should be deleted as well.
+
+The permission level can only be set to `READ` or `WRITE`. The state of both the accesses are set to `PENDING` when they are created. The states of the accesses can only be updated to `ACCEPTED` by the user that was requested.
 
 *   `PERMISSION_LEVEL_UNSPECIFIED`: The user does not have access to the user.
 *   `PERMISSION_LEVEL_PUBLIC`: The user can view the user's public content. This indicates that the user is public but the viewing user does not explicitly have access.
 *   `PERMISSION_LEVEL_READ`: The user can view the user's public and restricted content.
+*   `PERMISSION_LEVEL_WRITE`: The user can view the user's public and restricted content and share their own content with the user.
+*   `PERMISSION_LEVEL_ADMIN`: The user can view, edit, manage access to the user, and delete the user. This is only available to the user themselves.
 
 ## Recipe
 A recipe is a collection of ingredients, instructions, and other information for preparing a dish. A recipe can be shared with a user or a circle. A recipe can be created by a user or a circle. A recipe can be public or private:

@@ -65,7 +65,6 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <!-- Removed Edit Settings button -->
           </v-card-actions>
         </v-card>
       </template>

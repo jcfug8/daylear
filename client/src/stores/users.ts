@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { userService, userSettingsService } from '@/api/api'
+import { userService, userSettingsService, userAccessService } from '@/api/api'
 import type { User, UserSettings } from '@/genapi/api/users/user/v1alpha1'
 
 export const useUsersStore = defineStore('users', () => {
@@ -111,6 +111,34 @@ export const useUsersStore = defineStore('users', () => {
     }
   }
 
+  async function acceptUserAccess(accessName: string) {
+    loading.value = true
+    try {
+      await userAccessService.AcceptAccess({ name: accessName })
+      // Optionally reload pending friends
+      await loadPendingFriends()
+    } catch (error) {
+      console.error('Failed to accept user access:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function declineUserAccess(accessName: string) {
+    loading.value = true
+    try {
+      await userAccessService.DeleteAccess({ name: accessName })
+      // Optionally reload pending friends
+      await loadPendingFriends()
+    } catch (error) {
+      console.error('Failed to decline user access:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     users,
     friends,
@@ -127,5 +155,7 @@ export const useUsersStore = defineStore('users', () => {
     loadUserSettings,
     updateUser,
     updateUserSettings,
+    acceptUserAccess,
+    declineUserAccess,
   }
 }) 

@@ -44,15 +44,23 @@ func UserToProto(userNamer namer.ReflectNamer, accessNamer namer.ReflectNamer, u
 	proto.Bio = user.Bio
 	proto.Visibility = user.Visibility
 
-	if (user.UserAccess != model.UserAccess{}) {
+	proto.Access = &pb.User_Access{
+		PermissionLevel: user.UserAccess.Level,
+		State:           user.UserAccess.State,
+	}
+	if user.UserAccess.UserAccessId.UserAccessId != 0 {
 		name, err := accessNamer.Format(user.UserAccess)
-		if err == nil {
-			proto.Access = &pb.User_Access{
-				Name:            name,
-				PermissionLevel: user.UserAccess.Level,
-				State:           user.UserAccess.State,
-			}
+		if err != nil {
+			return proto, err
 		}
+		proto.Access.Name = name
+	}
+	if user.UserAccess.Requester.UserId != 0 {
+		requesterName, err := userNamer.Format(user.UserAccess.Requester)
+		if err != nil {
+			return proto, err
+		}
+		proto.Access.Requester = requesterName
 	}
 
 	return proto, nil

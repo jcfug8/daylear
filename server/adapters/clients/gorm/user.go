@@ -61,9 +61,9 @@ func (repo *Client) GetUser(ctx context.Context, authAccount cmodel.AuthAccount,
 	gm := gmodel.User{}
 
 	err := repo.db.WithContext(ctx).
-		Select("daylear_user.*", "user_access.permission_level", "user_access.state", "user_access.user_access_id").
-		Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND (user_access.recipient_user_id = ? OR user_access.requester_user_id = ?)", authAccount.AuthUserId, authAccount.AuthUserId).
-		Where("daylear_user.user_id = ?", id.UserId).
+		Select("daylear_user.*", "user_access.permission_level", "user_access.state", "user_access.user_access_id", "user_access.requester_user_id").
+		Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?", authAccount.AuthUserId).
+		Where("daylear_user.user_id = ? AND (daylear_user.visibility = ? OR daylear_user.user_id = ? OR user_access.state = ?)", id.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId, types.AccessState_ACCESS_STATE_ACCEPTED).
 		First(&gm).Error
 	if err != nil {
 		log.Error().Err(err).Msg("db.First failed")
@@ -91,8 +91,8 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 	}}
 
 	tx := repo.db.WithContext(ctx).
-		Select("daylear_user.*", "user_access.permission_level", "user_access.state", "user_access.user_access_id").
-		Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.recipient_user_id AND user_access.recipient_user_id = ?", authAccount.AuthUserId).
+		Select("daylear_user.*", "user_access.permission_level", "user_access.state", "user_access.user_access_id", "user_access.requester_user_id").
+		Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?", authAccount.AuthUserId).
 		Where("daylear_user.visibility = ? OR user_access.recipient_user_id = ?", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId).
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).

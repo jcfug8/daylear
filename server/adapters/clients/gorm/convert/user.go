@@ -60,6 +60,9 @@ func UserToCoreModel(m gmodel.User) (cmodel.User, error) {
 			},
 			Level: m.PermissionLevel,
 			State: m.State,
+			Requester: cmodel.UserId{
+				UserId: m.RequesterUserId,
+			},
 		},
 	}
 

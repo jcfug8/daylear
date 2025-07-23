@@ -4,7 +4,15 @@
       <UserGrid :users="items" :loading="usersStore.loading" empty-text="No friends found." />
     </template>
     <template #pending="{ items, loading }">
-      <UserGrid :users="items" :loading="usersStore.loading" empty-text="No pending requests found." />
+      <UserGrid
+        :users="items"
+        :loading="usersStore.loading"
+        empty-text="No pending requests found."
+        show-actions
+        :acceptingUserId="acceptingUserId || undefined"
+        @accept="onAcceptUser"
+        @decline="onDeclineUser"
+      />
     </template>
     <template #explore="{ items, loading }">
       <UserGrid :users="items" :loading="usersStore.loading" empty-text="No users found." />
@@ -20,6 +28,7 @@ import UserGrid from '@/components/UserGrid.vue'
 
 const usersStore = useUsersStore()
 const tabsPage = ref()
+const acceptingUserId = ref<string | null>(null)
 
 const tabs = [
   {
@@ -50,6 +59,29 @@ const tabs = [
     },
   },
 ]
+
+async function onAcceptUser(user: any) {
+  if (!user.access?.name) return
+  acceptingUserId.value = user.name
+  try {
+    await usersStore.acceptUserAccess(user.access.name)
+    tabsPage.value?.reloadTab('pending')
+  } catch (err) {
+    // Optionally show a notification
+  } finally {
+    acceptingUserId.value = null
+  }
+}
+
+async function onDeclineUser(user: any) {
+  if (!user.access?.name) return
+  try {
+    await usersStore.declineUserAccess(user.access.name)
+    tabsPage.value?.reloadTab('pending')
+  } catch (err) {
+    // Optionally show a notification
+  }
+}
 </script>
 
 <style scoped>

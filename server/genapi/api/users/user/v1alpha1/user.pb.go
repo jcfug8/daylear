@@ -359,10 +359,12 @@ type User_Access struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// the name of the access
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// the requester of the access
+	Requester string `protobuf:"bytes,2,opt,name=requester,proto3" json:"requester,omitempty"`
 	// the permission of the access
-	PermissionLevel types.PermissionLevel `protobuf:"varint,2,opt,name=permission_level,json=permissionLevel,proto3,enum=api.types.PermissionLevel" json:"permission_level,omitempty"`
+	PermissionLevel types.PermissionLevel `protobuf:"varint,3,opt,name=permission_level,json=permissionLevel,proto3,enum=api.types.PermissionLevel" json:"permission_level,omitempty"`
 	// the access state of the user to the access
-	State         types.AccessState `protobuf:"varint,3,opt,name=state,proto3,enum=api.types.AccessState" json:"state,omitempty"`
+	State         types.AccessState `protobuf:"varint,4,opt,name=state,proto3,enum=api.types.AccessState" json:"state,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -404,6 +406,13 @@ func (x *User_Access) GetName() string {
 	return ""
 }
 
+func (x *User_Access) GetRequester() string {
+	if x != nil {
+		return x.Requester
+	}
+	return ""
+}
+
 func (x *User_Access) GetPermissionLevel() types.PermissionLevel {
 	if x != nil {
 		return x.PermissionLevel
@@ -422,7 +431,7 @@ var File_api_users_user_v1alpha1_user_proto protoreflect.FileDescriptor
 
 const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\n" +
-	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xa8\x04\n" +
+	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xcb\x04\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x1f\n" +
 	"\busername\x18\x03 \x01(\tB\x03\xe0A\x01R\busername\x12\"\n" +
@@ -435,11 +444,12 @@ const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\n" +
 	"visibility\x18\x06 \x01(\x0e2\x1a.api.types.VisibilityLevelB\x03\xe0A\x02R\n" +
 	"visibility\x12A\n" +
-	"\x06access\x18\a \x01(\v2$.api.users.user.v1alpha1.User.AccessB\x03\xe0A\x03R\x06access\x1a\xa0\x01\n" +
+	"\x06access\x18\a \x01(\v2$.api.users.user.v1alpha1.User.AccessB\x03\xe0A\x03R\x06access\x1a\xc3\x01\n" +
 	"\x06Access\x12\x17\n" +
-	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x03R\x04name\x12J\n" +
-	"\x10permission_level\x18\x02 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x03R\x0fpermissionLevel\x121\n" +
-	"\x05state\x18\x03 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state:<\xeaA9\n" +
+	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x03R\x04name\x12!\n" +
+	"\trequester\x18\x02 \x01(\tB\x03\xe0A\x03R\trequester\x12J\n" +
+	"\x10permission_level\x18\x03 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x03R\x0fpermissionLevel\x121\n" +
+	"\x05state\x18\x04 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state:<\xeaA9\n" +
 	"\x1capi.meals.user.v1alpha1/User\x12\fusers/{user}*\x05users2\x04user\"J\n" +
 	"\x0eGetUserRequest\x128\n" +
 	"\x04name\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x1e\n" +

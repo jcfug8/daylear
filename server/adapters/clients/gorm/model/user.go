@@ -129,6 +129,7 @@ type User struct {
 	UserAccessId    int64                 `gorm:"->;-:migration"` // only used for read from a join
 	PermissionLevel types.PermissionLevel `gorm:"->;-:migration"` // only used for read from a join
 	State           types.AccessState     `gorm:"->;-:migration"` // only used for read from a join
+	RequesterUserId int64                 `gorm:"->;-:migration"` // only used for read from a join
 }
 
 // TableName -

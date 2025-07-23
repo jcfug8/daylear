@@ -129,11 +129,14 @@ message User {
     // the name of the access
     string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
 
+    // the requester of the access
+    string requester = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
     // the permission of the access
-    api.types.PermissionLevel permission_level = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+    api.types.PermissionLevel permission_level = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 
     // the access state of the user to the access
-    api.types.AccessState state = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+    api.types.AccessState state = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
   }
 }
 
