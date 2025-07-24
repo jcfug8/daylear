@@ -59,6 +59,95 @@
             "type": "string"
           },
           {
+            "name": "parent",
+            "description": "the parent of the users",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/users/v1alpha1/{name_1}": {
+      "get": {
+        "summary": "Get a user",
+        "description": "Retrieves a single user by resource name.",
+        "operationId": "UserService_GetUser2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/userv1alpha1User"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "the name of the user to get",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/users/[^/]+"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/users/v1alpha1/{name_2}": {
+      "get": {
+        "summary": "Get a user",
+        "description": "Retrieves a single user by resource name.",
+        "operationId": "UserService_GetUser3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/userv1alpha1User"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_2",
+            "description": "the name of the user to get",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/users/[^/]+"
+          },
+          {
             "name": "X-Daylear-Circle",
             "description": "the name of the circle to act as",
             "in": "header",
@@ -98,6 +187,132 @@
             "required": true,
             "type": "string",
             "pattern": "users/[^/]+"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/users/v1alpha1/{parent_1}/users": {
+      "get": {
+        "summary": "List users",
+        "description": "Retrieves a paginated list of users. Supports filtering and pagination.",
+        "operationId": "UserService_ListUsers3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent_1",
+            "description": "the parent of the users",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+"
+          },
+          {
+            "name": "pageSize",
+            "description": "returned page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "used to specify the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/users/v1alpha1/{parent}/users": {
+      "get": {
+        "summary": "List users",
+        "description": "Retrieves a paginated list of users. Supports filtering and pagination.",
+        "operationId": "UserService_ListUsers2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the users",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "pageSize",
+            "description": "returned page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "used to specify the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
           },
           {
             "name": "X-Daylear-Circle",

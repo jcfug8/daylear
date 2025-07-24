@@ -29,9 +29,9 @@ func ProtoToUser(userNamer namer.ReflectNamer, accessNamer namer.ReflectNamer, p
 }
 
 // UserToProto converts a model User to a protobuf User
-func UserToProto(userNamer namer.ReflectNamer, accessNamer namer.ReflectNamer, user model.User) (*pb.User, error) {
+func UserToProto(userNamer namer.ReflectNamer, accessNamer namer.ReflectNamer, user model.User, options ...namer.FormatReflectNamerOption) (*pb.User, error) {
 	proto := &pb.User{}
-	name, err := userNamer.Format(user)
+	name, err := userNamer.Format(user, options...)
 	if err != nil {
 		return proto, err
 	}
@@ -64,31 +64,4 @@ func UserToProto(userNamer namer.ReflectNamer, accessNamer namer.ReflectNamer, u
 	}
 
 	return proto, nil
-}
-
-// UserListToProto converts a slice of model Users to a slice of protobuf OmniUsers
-func UserListToProto(userNamer namer.ReflectNamer, accessNamer namer.ReflectNamer, users []model.User) ([]*pb.User, error) {
-	protos := make([]*pb.User, len(users))
-	for i, user := range users {
-		proto := &pb.User{}
-		var err error
-		if proto, err = UserToProto(userNamer, accessNamer, user); err != nil {
-			return nil, err
-		}
-		protos[i] = proto
-	}
-	return protos, nil
-}
-
-// ProtosToUser converts a slice of protobuf OmniUsers to a slice of model Users
-func ProtosToUser(userNamer namer.ReflectNamer, accessNamer namer.ReflectNamer, protos []*pb.User) ([]model.User, error) {
-	res := make([]model.User, len(protos))
-	for i, proto := range protos {
-		user, err := ProtoToUser(userNamer, accessNamer, proto)
-		if err != nil {
-			return nil, err
-		}
-		res[i] = user
-	}
-	return res, nil
 }

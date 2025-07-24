@@ -8,6 +8,7 @@ import (
 // User defines the model for a user.
 type User struct {
 	Id         UserId
+	Parent     UserParent
 	Username   string
 	GivenName  string
 	FamilyName string
@@ -25,12 +26,18 @@ type User struct {
 	FacebookId string
 	GoogleId   string
 
-	UserAccess UserAccess
+	UserAccess   UserAccess
+	CircleAccess CircleAccess
 }
 
 // UserId defines the name for a user.
 type UserId struct {
 	UserId int64 `aip_pattern:"key=user,public_user"`
+}
+
+type UserParent struct {
+	CircleId int64 `aip_pattern:"key=circle"`
+	UserId   int64 `aip_pattern:"key=user"`
 }
 
 // ----------------------------------------------------------------------------

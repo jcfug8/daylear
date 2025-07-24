@@ -48,7 +48,40 @@ func (d *Domain) IdentifyUser(ctx context.Context, user model.User) (model.User,
 }
 
 // ListUsers lists users.
-func (d *Domain) ListUsers(ctx context.Context, authAccount model.AuthAccount, pageSize int32, pageOffset int64, filter string, fieldMask []string) (users []model.User, err error) {
+func (d *Domain) ListUsers(ctx context.Context, authAccount model.AuthAccount, parent model.UserParent, pageSize int32, pageOffset int64, filter string, fieldMask []string) (users []model.User, err error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	if authAccount.AuthUserId == 0 {
+		log.Warn().Msg("user_id required")
+		return nil, domain.ErrInvalidArgument{Msg: "user_id required"}
+	}
+
+	if parent.CircleId != 0 && authAccount.CircleId != 0 && parent.CircleId != authAccount.CircleId {
+		log.Warn().Msg("both circle ids set but do not match")
+		return nil, domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
+	}
+
+	if parent.CircleId != 0 {
+		authAccount.CircleId = parent.CircleId
+	} else if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
+	} else {
+		authAccount.UserId = authAccount.AuthUserId
+	}
+
+	if authAccount.CircleId != 0 {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
+		if err != nil {
+			log.Error().Err(err).Msg("getCircleAccessLevels failed")
+			return nil, err
+		}
+	} else if authAccount.UserId != 0 {
+		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevels(ctx, authAccount)
+		if err != nil {
+			log.Error().Err(err).Msg("getUserAccessLevels failed")
+			return nil, err
+		}
+	}
+
 	users, err = d.repo.ListUsers(ctx, authAccount, pageSize, pageOffset, filter, fieldMask)
 	if err != nil {
 		return nil, err
@@ -107,7 +140,7 @@ func (d *Domain) UpdateUser(ctx context.Context, authAccount model.AuthAccount, 
 }
 
 // GetUser gets a user.
-func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId, fieldMask []string) (dbUser model.User, err error) {
+func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, parent model.UserParent, id model.UserId, fieldMask []string) (dbUser model.User, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 
 	if id.UserId == 0 {
@@ -117,7 +150,15 @@ func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, id 
 
 	authAccount.UserId = id.UserId
 
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevels(ctx, authAccount)
+	if parent.CircleId != 0 {
+		authAccount.CircleId = parent.CircleId
+	} else if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
+	} else {
+		authAccount.UserId = authAccount.AuthUserId
+	}
+
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkUserAccess(ctx, authAccount, id, 0)
 	if err != nil {
 		log.Error().Err(err).Msg("getUserAccessLevels failed")
 		return model.User{}, err
@@ -161,6 +202,8 @@ func (d *Domain) GetOwnUser(ctx context.Context, authAccount model.AuthAccount, 
 		log.Warn().Msg("id does not match auth account")
 		return model.User{}, domain.ErrInvalidArgument{Msg: "id does not match auth account"}
 	}
+
+	authAccount.UserId = authAccount.AuthUserId
 
 	dbUser, err := d.repo.GetUser(ctx, authAccount, id)
 	if err != nil {

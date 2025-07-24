@@ -128,7 +128,6 @@ import { hasWritePermission, hasAdminPermission } from '@/utils/permissions'
 import { userAccessService } from '@/api/api'
 import type { DeleteAccessRequest } from '@/genapi/api/meals/recipe/v1alpha1'
 import type { CreateAccessRequest, Access, Access_User } from '@/genapi/api/users/user/v1alpha1'
-import type { PermissionLevel } from '@/genapi/api/types'
 import { useAlertStore } from '@/stores/alerts'
 import UserGrid from '@/components/UserGrid.vue'
 
@@ -190,9 +189,6 @@ const selectedVisibilityLabel = computed(() => selectedVisibility.value?.label |
 const selectedVisibilityDescription = computed(() => selectedVisibility.value?.description || '')
 const selectedVisibilityIcon = computed(() => selectedVisibility.value?.icon || 'mdi-help-circle')
 
-const connections = ref<any[]>([])
-const loadingConnections = ref(false)
-
 const tabs = [
   {
     label: 'General',
@@ -209,10 +205,12 @@ const tabs = [
     },
   },
   {
-    label: 'Connections',
-    value: 'connections',
+    label: 'Friends',
+    value: 'friends',
     loader: async () => {
-    
+      if (!user.value?.name) return []
+      await usersStore.loadFriends(user.value.name)
+      return [...usersStore.friends]
     },
   },
 ]

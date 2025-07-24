@@ -98,6 +98,9 @@
       <template #recipes-sharedRecipes="{ items, loading }">
         <RecipeGrid :recipes="items" :loading="loading" />
       </template>
+      <template #members="{ items, loading }">
+        <UserGrid :users="items" :loading="loading" empty-text="No members found." />
+      </template>
     </ListTabsPage>
 
     <!-- Speed Dial and Dialogs remain outside the tabbed area -->
@@ -174,6 +177,7 @@
 import type { apitypes_VisibilityLevel, Access, CreateAccessRequest, ListAccessesRequest, DeleteAccessRequest } from '@/genapi/api/circles/circle/v1alpha1'
 import type { PermissionLevel } from '@/genapi/api/types'
 import { useCirclesStore } from '@/stores/circles'
+import { useUsersStore } from '@/stores/users'
 import { storeToRefs } from 'pinia'
 import { onMounted,  watch, computed, ref } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
@@ -192,6 +196,7 @@ const breadcrumbStore = useBreadcrumbStore()
 const authStore = useAuthStore()
 const recipesStore = useRecipesStore()
 const circlesStore = useCirclesStore()
+const usersStore = useUsersStore()
 
 const { circle } = storeToRefs(circlesStore)
 const speedDialOpen = ref(false)
@@ -250,6 +255,15 @@ const tabs = [
         },
       },
     ],
+  },
+  {
+    label: 'Members',
+    value: 'members',
+    loader: async () => {
+      if (!circle.value?.name) return []
+      await usersStore.loadFriends(circle.value.name)
+      return [...usersStore.friends]
+    },
   },
 ]
 

@@ -66,7 +66,7 @@ func (s *UserService) UpdateUserSettings(ctx context.Context, req *pb.UpdateUser
 
 	// No updatable fields, so just return current settings
 	// TODO: add update mask and ability to update fields when there come
-	mUser, err = s.domain.GetUser(ctx, authAccount, mUser.Id, []string{"id", "email"})
+	mUser, err = s.domain.GetUser(ctx, authAccount, mUser.Parent, mUser.Id, []string{"id", "email"})
 	if err != nil {
 		log.Error().Err(err).Msg("domain.GetUser failed")
 		return nil, status.Error(codes.Internal, err.Error())

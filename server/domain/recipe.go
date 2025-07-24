@@ -41,8 +41,8 @@ func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount
 
 	if recipe.Parent.CircleId != 0 {
 		authAccount.CircleId = recipe.Parent.CircleId
-	} else if recipe.Parent.UserId.UserId != 0 {
-		authAccount.UserId = recipe.Parent.UserId.UserId
+	} else if recipe.Parent.UserId != 0 {
+		authAccount.UserId = recipe.Parent.UserId
 	}
 
 	recipe.Id.RecipeId = 0
@@ -135,8 +135,8 @@ func (d *Domain) DeleteRecipe(ctx context.Context, authAccount model.AuthAccount
 
 	if parent.CircleId != 0 {
 		authAccount.CircleId = parent.CircleId
-	} else if parent.UserId.UserId != 0 {
-		authAccount.UserId = parent.UserId.UserId
+	} else if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
 	}
 
 	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, id, types.PermissionLevel_PERMISSION_LEVEL_ADMIN)
@@ -200,11 +200,12 @@ func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, p
 
 	if parent.CircleId != 0 {
 		authAccount.CircleId = parent.CircleId
-	} else if parent.UserId.UserId != 0 {
-		authAccount.UserId = parent.UserId.UserId
+	} else if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
 	}
 
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, id, types.PermissionLevel_PERMISSION_LEVEL_ADMIN)
+	// TODO: need to change the why the perm check is done
+	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, id, 0)
 	if err != nil {
 		log.Error().Err(err).Msg("checkRecipeAccess failed")
 		return model.Recipe{}, err
@@ -244,8 +245,8 @@ func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount,
 
 	if parent.CircleId != 0 {
 		authAccount.CircleId = parent.CircleId
-	} else if parent.UserId.UserId != 0 {
-		authAccount.UserId = parent.UserId.UserId
+	} else if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
 	}
 
 	if authAccount.CircleId != 0 {
@@ -260,6 +261,8 @@ func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount,
 			log.Error().Err(err).Msg("getRecipeAccessLevelsForUser failed")
 			return nil, err
 		}
+	} else {
+		authAccount.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
 	}
 
 	recipes, err = d.repo.ListRecipes(ctx, authAccount, pageSize, pageOffset, filter)
@@ -298,8 +301,8 @@ func (d *Domain) UpdateRecipe(ctx context.Context, authAccount model.AuthAccount
 
 	if recipe.Parent.CircleId != 0 {
 		authAccount.CircleId = recipe.Parent.CircleId
-	} else if recipe.Parent.UserId.UserId != 0 {
-		authAccount.UserId = recipe.Parent.UserId.UserId
+	} else if recipe.Parent.UserId != 0 {
+		authAccount.UserId = recipe.Parent.UserId
 	}
 
 	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, recipe.Id, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
@@ -369,8 +372,8 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, authAccount model.AuthAc
 
 	if parent.CircleId != 0 {
 		authAccount.CircleId = parent.CircleId
-	} else if parent.UserId.UserId != 0 {
-		authAccount.UserId = parent.UserId.UserId
+	} else if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
 	}
 
 	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, id, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
@@ -420,8 +423,8 @@ func (d *Domain) GenerateRecipeImage(ctx context.Context, authAccount model.Auth
 
 	if parent.CircleId != 0 {
 		authAccount.CircleId = parent.CircleId
-	} else if parent.UserId.UserId != 0 {
-		authAccount.UserId = parent.UserId.UserId
+	} else if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
 	}
 
 	var err error

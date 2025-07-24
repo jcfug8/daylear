@@ -63,7 +63,7 @@ func (repo *Client) GetUser(ctx context.Context, authAccount cmodel.AuthAccount,
 	err := repo.db.WithContext(ctx).
 		Select("daylear_user.*", "user_access.permission_level", "user_access.state", "user_access.user_access_id", "user_access.requester_user_id").
 		Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?", authAccount.AuthUserId).
-		Where("daylear_user.user_id = ? AND (daylear_user.visibility = ? OR daylear_user.user_id = ? OR user_access.state = ?)", id.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId, types.AccessState_ACCESS_STATE_ACCEPTED).
+		Where("daylear_user.user_id = ? AND (daylear_user.visibility = ? OR daylear_user.user_id = ? OR user_access.state = ?)", id.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.UserId, types.AccessState_ACCESS_STATE_ACCEPTED).
 		First(&gm).Error
 	if err != nil {
 		log.Error().Err(err).Msg("db.First failed")
@@ -85,22 +85,56 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 	log.Info().Msg("GORM ListUsers called")
 	dbUsers := []gmodel.User{}
 
+	where := ""
+	whereParams := []any{}
+	columns := []string{"daylear_user.*"}
+	joins := []string{}
+	joinParams := [][]any{}
 	orders := []clause.OrderByColumn{{
 		Column: clause.Column{Name: "user_id"},
 		Desc:   true,
 	}}
 
+	switch {
+	case authAccount.CircleId != 0:
+		return nil, repository.ErrInvalidArgument{Msg: "circle access is not supported yet"}
+	case authAccount.AuthUserId != authAccount.UserId:
+		columns = append(columns, "user_access_auth.permission_level", "user_access_auth.state", "user_access_auth.user_access_id", "user_access_auth.requester_user_id")
+
+		joins = append(joins, "LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?")
+		joinParams = append(joinParams, []any{authAccount.UserId})
+
+		joins = append(joins, "LEFT JOIN user_access as user_access_auth ON daylear_user.user_id = user_access_auth.user_id AND user_access_auth.recipient_user_id = ?")
+		joinParams = append(joinParams, []any{authAccount.AuthUserId})
+
+		where = "(daylear_user.visibility < ? OR user_access.recipient_user_id = ?) OR (daylear_user.visibility >= ? OR (user_access_auth.recipient_user_id = ? AND user_access_auth.state = ?))"
+		whereParams = []any{types.VisibilityLevel_VISIBILITY_LEVEL_PRIVATE, authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PRIVATE, authAccount.AuthUserId, types.AccessState_ACCESS_STATE_ACCEPTED}
+	case authAccount.UserId == authAccount.AuthUserId && authAccount.AuthUserId != 0:
+		columns = append(columns, "user_access.permission_level", "user_access.state", "user_access.user_access_id", "user_access.requester_user_id")
+
+		joins = append(joins, "LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?")
+		joinParams = append(joinParams, []any{authAccount.UserId})
+
+		where = "daylear_user.visibility < ? OR user_access.recipient_user_id = ?"
+		whereParams = []any{types.VisibilityLevel_VISIBILITY_LEVEL_PRIVATE, authAccount.UserId}
+	}
+
 	tx := repo.db.WithContext(ctx).
-		Select("daylear_user.*", "user_access.permission_level", "user_access.state", "user_access.user_access_id", "user_access.requester_user_id").
-		Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?", authAccount.AuthUserId).
-		Where("daylear_user.visibility = ? OR user_access.recipient_user_id = ?", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId).
+		Select(columns).
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(pageOffset))
+	if where != "" {
+		tx = tx.Where(where, whereParams...)
+	}
+
+	for i, join := range joins {
+		tx = tx.Joins(join, joinParams[i]...)
+	}
 
 	conversion, err := repo.userSQLConverter.Convert(filter)
 	if err != nil {
-		log.Error().Err(err).Msg("userSQLConverter.Convert failed")
+		log.Error().Err(err).Msg("unable to convert list users filter")
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
 	}
 
@@ -110,7 +144,7 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 
 	err = tx.Find(&dbUsers).Error
 	if err != nil {
-		log.Error().Err(err).Msg("db.Find failed")
+		log.Error().Err(err).Msg("list users failed")
 		return nil, ConvertGormError(err)
 	}
 

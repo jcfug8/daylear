@@ -188,7 +188,9 @@ type ListUsersRequest struct {
 	// used to specify the page token
 	PageToken string `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
 	// used to specify the filter
-	Filter        string `protobuf:"bytes,3,opt,name=filter,proto3" json:"filter,omitempty"`
+	Filter string `protobuf:"bytes,3,opt,name=filter,proto3" json:"filter,omitempty"`
+	// the parent of the users
+	Parent        string `protobuf:"bytes,4,opt,name=parent,proto3" json:"parent,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -240,6 +242,13 @@ func (x *ListUsersRequest) GetPageToken() string {
 func (x *ListUsersRequest) GetFilter() string {
 	if x != nil {
 		return x.Filter
+	}
+	return ""
+}
+
+func (x *ListUsersRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
 	}
 	return ""
 }
@@ -431,7 +440,7 @@ var File_api_users_user_v1alpha1_user_proto protoreflect.FileDescriptor
 
 const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\n" +
-	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xcb\x04\n" +
+	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x85\x05\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x1f\n" +
 	"\busername\x18\x03 \x01(\tB\x03\xe0A\x01R\busername\x12\"\n" +
@@ -449,34 +458,36 @@ const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x03R\x04name\x12!\n" +
 	"\trequester\x18\x02 \x01(\tB\x03\xe0A\x03R\trequester\x12J\n" +
 	"\x10permission_level\x18\x03 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x03R\x0fpermissionLevel\x121\n" +
-	"\x05state\x18\x04 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state:<\xeaA9\n" +
-	"\x1capi.meals.user.v1alpha1/User\x12\fusers/{user}*\x05users2\x04user\"J\n" +
+	"\x05state\x18\x04 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state:v\xeaAs\n" +
+	"\x1capi.meals.user.v1alpha1/User\x12\fusers/{user}\x12\x1dcircles/{circle}/users/{user}\x12\x19users/{user}/users/{user}*\x05users2\x04user\"J\n" +
 	"\x0eGetUserRequest\x128\n" +
 	"\x04name\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x1e\n" +
-	"\x1capi.meals.user.v1alpha1/UserR\x04name\"u\n" +
+	"\x1capi.meals.user.v1alpha1/UserR\x04name\"\xb7\x01\n" +
 	"\x10ListUsersRequest\x12 \n" +
 	"\tpage_size\x18\x01 \x01(\x05B\x03\xe0A\x01R\bpageSize\x12\"\n" +
 	"\n" +
 	"page_token\x18\x02 \x01(\tB\x03\xe0A\x01R\tpageToken\x12\x1b\n" +
-	"\x06filter\x18\x03 \x01(\tB\x03\xe0A\x01R\x06filter\"p\n" +
+	"\x06filter\x18\x03 \x01(\tB\x03\xe0A\x01R\x06filter\x12@\n" +
+	"\x06parent\x18\x04 \x01(\tB(\xe0A\x01\xfaA\"\n" +
+	" api.meals.circle.v1alpha1/CircleR\x06parent\"p\n" +
 	"\x11ListUsersResponse\x123\n" +
 	"\x05users\x18\x01 \x03(\v2\x1d.api.users.user.v1alpha1.UserR\x05users\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x8d\x01\n" +
 	"\x11UpdateUserRequest\x126\n" +
 	"\x04user\x18\x01 \x01(\v2\x1d.api.users.user.v1alpha1.UserB\x03\xe0A\x02R\x04user\x12@\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x03\xe0A\x01R\n" +
-	"updateMask2\xd1\x06\n" +
-	"\vUserService\x12\x82\x02\n" +
-	"\aGetUser\x12'.api.users.user.v1alpha1.GetUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"\xae\x01\x92A~\n" +
+	"updateMask2\x86\b\n" +
+	"\vUserService\x12\xd8\x02\n" +
+	"\aGetUser\x12'.api.users.user.v1alpha1.GetUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"\x84\x02\x92A~\n" +
 	"\vUserService\x12\n" +
 	"Get a user\x1a)Retrieves a single user by resource name.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02 \x12\x1e/users/v1alpha1/{name=users/*}\x12\xa2\x02\n" +
-	"\tListUsers\x12).api.users.user.v1alpha1.ListUsersRequest\x1a*.api.users.user.v1alpha1.ListUsersResponse\"\xbd\x01\x92A\x9c\x01\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02vZ*\x12(/users/v1alpha1/{name=circles/*/users/*}Z(\x12&/users/v1alpha1/{name=users/*/users/*}\x12\x1e/users/v1alpha1/{name=users/*}\x12\x81\x03\n" +
+	"\tListUsers\x12).api.users.user.v1alpha1.ListUsersRequest\x1a*.api.users.user.v1alpha1.ListUsersResponse\"\x9c\x02\x92A\x9c\x01\n" +
 	"\vUserService\x12\n" +
 	"List users\x1aGRetrieves a paginated list of users. Supports filtering and pagination.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\x82\xd3\xe4\x93\x02\x17\x12\x15/users/v1alpha1/users\x12\x97\x02\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x06parent\x82\xd3\xe4\x93\x02mZ*\x12(/users/v1alpha1/{parent=circles/*}/usersZ(\x12&/users/v1alpha1/{parent=users/*}/users\x12\x15/users/v1alpha1/users\x12\x97\x02\n" +
 	"\n" +
 	"UpdateUser\x12*.api.users.user.v1alpha1.UpdateUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"\xbd\x01\x92Av\n" +
 	"\vUserService\x12\rUpdate a user\x1a\x1eUpdates the details of a user.r8\n" +

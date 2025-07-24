@@ -112,6 +112,10 @@ export type ListUsersRequest = {
   //
   // Behaviors: OPTIONAL
   filter: string | undefined;
+  // the parent of the users
+  //
+  // Behaviors: OPTIONAL
+  parent: string | undefined;
 };
 
 // the response to list users
@@ -216,6 +220,9 @@ export function createUserServiceClient(
       }
       if (request.filter) {
         queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
+      }
+      if (request.parent) {
+        queryParams.push(`parent=${encodeURIComponent(request.parent.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {

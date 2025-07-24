@@ -37,7 +37,11 @@ service UserService {
   // get a user
   rpc GetUser(GetUserRequest) returns (User) {
     option (google.api.method_signature) = "name";
-    option (google.api.http) = {get: "/users/v1alpha1/{name=users/*}"};
+    option (google.api.http) = {
+      get: "/users/v1alpha1/{name=users/*}"
+      additional_bindings: {get: "/users/v1alpha1/{name=circles/*/users/*}"}
+      additional_bindings: {get: "/users/v1alpha1/{name=users/*/users/*}"}
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Get a user"
       description: "Retrieves a single user by resource name."
@@ -54,7 +58,12 @@ service UserService {
 
   // list users
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
-    option (google.api.http) = {get: "/users/v1alpha1/users"};
+    option (google.api.method_signature) = "parent";
+    option (google.api.http) = {
+      get: "/users/v1alpha1/users"
+      additional_bindings: {get: "/users/v1alpha1/{parent=circles/*}/users"}
+      additional_bindings: {get: "/users/v1alpha1/{parent=users/*}/users"}
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "List users"
       description: "Retrieves a paginated list of users. Supports filtering and pagination."
@@ -96,6 +105,8 @@ message User {
   option (google.api.resource) = {
     type: "api.meals.user.v1alpha1/User"
     pattern: "users/{user}"
+    pattern: "circles/{circle}/users/{user}"
+    pattern: "users/{user}/users/{user}"
     plural: "users"
     singular: "user"
   };
@@ -157,6 +168,11 @@ message ListUsersRequest {
   string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
   // used to specify the filter
   string filter = 3 [(google.api.field_behavior) = OPTIONAL];
+  // the parent of the users
+  string parent = 4 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference).type = "api.meals.circle.v1alpha1/Circle"
+  ];
 }
 
 // the response to list users

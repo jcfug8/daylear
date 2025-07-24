@@ -12,10 +12,10 @@ export const useUsersStore = defineStore('users', () => {
   const currentUser = ref<User | null>(null)
   const currentUserSettings = ref<UserSettings | null>(null)
 
-  async function loadUsers(filter?: string) {
+  async function loadUsers(parent: string, filter?: string) {
     loading.value = true
     try {
-      const res = await userService.ListUsers({ pageSize: 100, pageToken: undefined, filter })
+      const res = await userService.ListUsers({ parent, pageSize: 100, pageToken: undefined, filter })
       users.value = res.users || []
       return users.value
     } catch (error) {
@@ -27,18 +27,18 @@ export const useUsersStore = defineStore('users', () => {
     }
   }
 
-  async function loadFriends() {
-    const result = await loadUsers('state = 200')
+  async function loadFriends(parent: string) {
+    const result = await loadUsers(parent, 'state = 200')
     friends.value = result
   }
 
-  async function loadPendingFriends() {
-    const result = await loadUsers('state = 100')
+  async function loadPendingFriends(parent: string) {
+    const result = await loadUsers(parent, 'state = 100')
     pendingFriends.value = result
   }
 
-  async function loadPublicUsers() {
-    const result = await loadUsers('visibility = 1')
+  async function loadPublicUsers(parent: string) {
+    const result = await loadUsers(parent, 'visibility = 1')
     publicUsers.value = result
   }
 
@@ -115,8 +115,6 @@ export const useUsersStore = defineStore('users', () => {
     loading.value = true
     try {
       await userAccessService.AcceptAccess({ name: accessName })
-      // Optionally reload pending friends
-      await loadPendingFriends()
     } catch (error) {
       console.error('Failed to accept user access:', error)
       throw error
@@ -129,8 +127,6 @@ export const useUsersStore = defineStore('users', () => {
     loading.value = true
     try {
       await userAccessService.DeleteAccess({ name: accessName })
-      // Optionally reload pending friends
-      await loadPendingFriends()
     } catch (error) {
       console.error('Failed to decline user access:', error)
       throw error

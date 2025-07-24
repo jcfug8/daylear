@@ -105,7 +105,7 @@ func determineParentPattern(patternsDetails map[int]patternDetails, parent strin
 	for i, parentPatternDetails := range patternsDetails {
 		// If there are no parent sections, check for a root pattern match
 		if len(parentPatternDetails.splitParentPattern) < 1 {
-			if resourcename.Match(parentPatternDetails.pattern, parent) || parent == "" {
+			if resourcename.Match(parentPatternDetails.parentPattern, parent) || parent == "" {
 				return parentPatternDetails, i, nil
 			}
 			continue

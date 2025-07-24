@@ -10,7 +10,7 @@ import (
 // NewFlags -
 func NewFlags(name string) *Flags {
 	flags := &Flags{}
-	flag.StringVar(&flags.level, name, "info", "log level")
+	flag.StringVar(&flags.level, name, "trace", "log level")
 	return flags
 }
 
