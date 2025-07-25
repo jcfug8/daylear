@@ -64,13 +64,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -121,13 +114,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -162,13 +148,6 @@
             "schema": {
               "$ref": "#/definitions/v1alpha1ScrapeRecipeRequest"
             }
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -203,13 +182,6 @@
             "required": true,
             "type": "string",
             "pattern": "circles/[^/]+/recipes/[^/]+"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -242,13 +214,6 @@
             "required": true,
             "type": "string",
             "pattern": "circles/[^/]+/recipes/[^/]+"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -283,13 +248,6 @@
             "required": true,
             "type": "string",
             "pattern": "users/[^/]+/recipes/[^/]+"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -322,13 +280,6 @@
             "required": true,
             "type": "string",
             "pattern": "users/[^/]+/recipes/[^/]+"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -363,13 +314,6 @@
             "required": true,
             "type": "string",
             "pattern": "recipes/[^/]+"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -402,13 +346,6 @@
             "required": true,
             "type": "string",
             "pattern": "recipes/[^/]+"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -463,13 +400,6 @@
             "name": "filter",
             "description": "used to specify the filter",
             "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
             "required": false,
             "type": "string"
           }
@@ -528,13 +458,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -585,13 +508,6 @@
             "description": "the id of the recipe",
             "in": "query",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
             "type": "string"
           }
         ],
@@ -731,13 +647,6 @@
                 "recipe"
               ]
             }
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -876,13 +785,6 @@
                 "recipe"
               ]
             }
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -1021,13 +923,6 @@
                 "recipe"
               ]
             }
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [

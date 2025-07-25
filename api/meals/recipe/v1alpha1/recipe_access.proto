@@ -57,13 +57,6 @@ service RecipeAccessService {
       summary: "Grant a user or circle access to a recipe"
       description: "Grants a user or circle a specific permission level to a recipe."
       tags: "RecipeAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -78,13 +71,6 @@ service RecipeAccessService {
       summary: "Delete a recipe access"
       description: "Removes a user's or circle's access to a recipe."
       tags: "RecipeAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -99,13 +85,6 @@ service RecipeAccessService {
       summary: "Get a recipe access"
       description: "Retrieves details about a specific recipe access."
       tags: "RecipeAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -120,13 +99,6 @@ service RecipeAccessService {
       summary: "List recipe accesses"
       description: "Lists all users and circles with access to a recipe. If no recipe is provided, the response will only return the accesses for the current user (or circle if the circle header is provided)."
       tags: "RecipeAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -145,13 +117,6 @@ service RecipeAccessService {
       summary: "Update a recipe access"
       description: "Updates the permission level or recipient for a recipe access."
       tags: "RecipeAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -170,13 +135,6 @@ service RecipeAccessService {
       summary: "Accept a recipe access"
       description: "Accepts a pending recipe access, changing its state from PENDING to ACCEPTED."
       tags: "RecipeAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 }

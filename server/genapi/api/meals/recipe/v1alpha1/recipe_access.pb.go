@@ -797,32 +797,20 @@ const file_api_meals_recipe_v1alpha1_recipe_access_proto_rawDesc = "" +
 	"\x19AcceptRecipeAccessRequest\x12<\n" +
 	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\"\n" +
 	" api.meals.recipe.v1alpha1/AccessR\x04name\"\x1c\n" +
-	"\x1aAcceptRecipeAccessResponse2\x85\x15\n" +
-	"\x13RecipeAccessService\x12\xb0\x03\n" +
-	"\fCreateAccess\x12..api.meals.recipe.v1alpha1.CreateAccessRequest\x1a!.api.meals.recipe.v1alpha1.Access\"\xcc\x02\x92A\xbc\x01\n" +
-	"\x13RecipeAccessService\x12)Grant a user or circle access to a recipe\x1a@Grants a user or circle a specific permission level to a recipe.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\rparent,access\x82\xd3\xe4\x93\x02v:\x06accessZ?:\x06access\"5/meals/v1alpha1/{parent=circles/*/recipes/*}/accesses\"+/meals/v1alpha1/{parent=recipes/*}/accesses\x12\xe9\x02\n" +
-	"\fDeleteAccess\x12..api.meals.recipe.v1alpha1.DeleteAccessRequest\x1a\x16.google.protobuf.Empty\"\x90\x02\x92A\x99\x01\n" +
-	"\x13RecipeAccessService\x12\x16Delete a recipe access\x1a0Removes a user's or circle's access to a recipe.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02fZ7*5/meals/v1alpha1/{name=circles/*/recipes/*/accesses/*}*+/meals/v1alpha1/{name=recipes/*/accesses/*}\x12\xec\x02\n" +
-	"\tGetAccess\x12+.api.meals.recipe.v1alpha1.GetAccessRequest\x1a!.api.meals.recipe.v1alpha1.Access\"\x8e\x02\x92A\x97\x01\n" +
-	"\x13RecipeAccessService\x12\x13Get a recipe access\x1a1Retrieves details about a specific recipe access.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02fZ7\x125/meals/v1alpha1/{name=circles/*/recipes/*/accesses/*}\x12+/meals/v1alpha1/{name=recipes/*/accesses/*}\x12\x8f\x04\n" +
-	"\fListAccesses\x12..api.meals.recipe.v1alpha1.ListAccessesRequest\x1a/.api.meals.recipe.v1alpha1.ListAccessesResponse\"\x9d\x03\x92A\xa4\x02\n" +
-	"\x13RecipeAccessService\x12\x14List recipe accesses\x1a\xbc\x01Lists all users and circles with access to a recipe. If no recipe is provided, the response will only return the accesses for the current user (or circle if the circle header is provided).r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x06parent\x82\xd3\xe4\x93\x02fZ7\x125/meals/v1alpha1/{parent=circles/*/recipes/*}/accesses\x12+/meals/v1alpha1/{parent=recipes/*}/accesses\x12\xaf\x03\n" +
-	"\fUpdateAccess\x12..api.meals.recipe.v1alpha1.UpdateAccessRequest\x1a!.api.meals.recipe.v1alpha1.Access\"\xcb\x02\x92A\xa7\x01\n" +
-	"\x13RecipeAccessService\x12\x16Update a recipe access\x1a>Updates the permission level or recipient for a recipe access.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x12access,update_mask\x82\xd3\xe4\x93\x02\x84\x01:\x06accessZF:\x06access2</meals/v1alpha1/{access.name=circles/*/recipes/*/accesses/*}22/meals/v1alpha1/{access.name=recipes/*/accesses/*}\x12\xc5\x03\n" +
-	"\x12AcceptRecipeAccess\x124.api.meals.recipe.v1alpha1.AcceptRecipeAccessRequest\x1a5.api.meals.recipe.v1alpha1.AcceptRecipeAccessResponse\"\xc1\x02\x92A\xb6\x01\n" +
-	"\x13RecipeAccessService\x12\x16Accept a recipe access\x1aMAccepts a pending recipe access, changing its state from PENDING to ACCEPTED.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02z:\x01*ZA:\x01*\"</meals/v1alpha1/{name=circles/*/recipes/*/accesses/*}:accept\"2/meals/v1alpha1/{name=recipes/*/accesses/*}:accept\x1aT\x92AQ\x12\x18Recipe Access management\x1a5\n" +
+	"\x1aAcceptRecipeAccessResponse2\xa5\x12\n" +
+	"\x13RecipeAccessService\x12\xf6\x02\n" +
+	"\fCreateAccess\x12..api.meals.recipe.v1alpha1.CreateAccessRequest\x1a!.api.meals.recipe.v1alpha1.Access\"\x92\x02\x92A\x82\x01\n" +
+	"\x13RecipeAccessService\x12)Grant a user or circle access to a recipe\x1a@Grants a user or circle a specific permission level to a recipe.\xdaA\rparent,access\x82\xd3\xe4\x93\x02v:\x06accessZ?:\x06access\"5/meals/v1alpha1/{parent=circles/*/recipes/*}/accesses\"+/meals/v1alpha1/{parent=recipes/*}/accesses\x12\xae\x02\n" +
+	"\fDeleteAccess\x12..api.meals.recipe.v1alpha1.DeleteAccessRequest\x1a\x16.google.protobuf.Empty\"\xd5\x01\x92A_\n" +
+	"\x13RecipeAccessService\x12\x16Delete a recipe access\x1a0Removes a user's or circle's access to a recipe.\xdaA\x04name\x82\xd3\xe4\x93\x02fZ7*5/meals/v1alpha1/{name=circles/*/recipes/*/accesses/*}*+/meals/v1alpha1/{name=recipes/*/accesses/*}\x12\xb1\x02\n" +
+	"\tGetAccess\x12+.api.meals.recipe.v1alpha1.GetAccessRequest\x1a!.api.meals.recipe.v1alpha1.Access\"\xd3\x01\x92A]\n" +
+	"\x13RecipeAccessService\x12\x13Get a recipe access\x1a1Retrieves details about a specific recipe access.\xdaA\x04name\x82\xd3\xe4\x93\x02fZ7\x125/meals/v1alpha1/{name=circles/*/recipes/*/accesses/*}\x12+/meals/v1alpha1/{name=recipes/*/accesses/*}\x12\xd5\x03\n" +
+	"\fListAccesses\x12..api.meals.recipe.v1alpha1.ListAccessesRequest\x1a/.api.meals.recipe.v1alpha1.ListAccessesResponse\"\xe3\x02\x92A\xea\x01\n" +
+	"\x13RecipeAccessService\x12\x14List recipe accesses\x1a\xbc\x01Lists all users and circles with access to a recipe. If no recipe is provided, the response will only return the accesses for the current user (or circle if the circle header is provided).\xdaA\x06parent\x82\xd3\xe4\x93\x02fZ7\x125/meals/v1alpha1/{parent=circles/*/recipes/*}/accesses\x12+/meals/v1alpha1/{parent=recipes/*}/accesses\x12\xf4\x02\n" +
+	"\fUpdateAccess\x12..api.meals.recipe.v1alpha1.UpdateAccessRequest\x1a!.api.meals.recipe.v1alpha1.Access\"\x90\x02\x92Am\n" +
+	"\x13RecipeAccessService\x12\x16Update a recipe access\x1a>Updates the permission level or recipient for a recipe access.\xdaA\x12access,update_mask\x82\xd3\xe4\x93\x02\x84\x01:\x06accessZF:\x06access2</meals/v1alpha1/{access.name=circles/*/recipes/*/accesses/*}22/meals/v1alpha1/{access.name=recipes/*/accesses/*}\x12\x8a\x03\n" +
+	"\x12AcceptRecipeAccess\x124.api.meals.recipe.v1alpha1.AcceptRecipeAccessRequest\x1a5.api.meals.recipe.v1alpha1.AcceptRecipeAccessResponse\"\x86\x02\x92A|\n" +
+	"\x13RecipeAccessService\x12\x16Accept a recipe access\x1aMAccepts a pending recipe access, changing its state from PENDING to ACCEPTED.\xdaA\x04name\x82\xd3\xe4\x93\x02z:\x01*ZA:\x01*\"</meals/v1alpha1/{name=circles/*/recipes/*/accesses/*}:accept\"2/meals/v1alpha1/{name=recipes/*/accesses/*}:accept\x1aT\x92AQ\x12\x18Recipe Access management\x1a5\n" +
 	"\x19Daylear API Documentation\x12\x18https://daylear.com/docsB\xe6\x02\x92AXZD\n" +
 	"B\n" +
 	"\n" +

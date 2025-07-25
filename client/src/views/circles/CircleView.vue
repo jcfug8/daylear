@@ -91,31 +91,44 @@
             </v-col>
           </v-row>
         </v-container>
+        <v-fab location="bottom right" app color="primary" icon @click="speedDialOpen = !speedDialOpen">
+          <v-icon>mdi-dots-vertical</v-icon>
+          <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
+            <v-btn key="edit" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
+            @click="router.push({ name: 'circle-edit', params: { circleId: circle.name } })" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
+            <v-btn key="remove-access" v-if="!hasAdminPermission(circle.circleAccess?.permissionLevel)" @click="showRemoveAccessDialog = true" color="warning"><v-icon>mdi-link-variant-off</v-icon>Remove</v-btn>
+            <v-btn key="delete" v-if="hasAdminPermission(circle.circleAccess?.permissionLevel)"
+              @click="showDeleteDialog = true" color="error"><v-icon>mdi-delete</v-icon>Delete</v-btn>
+          </v-speed-dial>
+        </v-fab>
       </template>
       <template #recipes-circleRecipes="{ items, loading }">
         <RecipeGrid :recipes="items" :loading="loading" />
+        <v-btn
+          color="primary"
+          icon="mdi-plus"
+          style="position: fixed; bottom: 16px; right: 16px"
+          :to="{ name: 'circleRecipeCreate', params: { circleId: circle.name } }"
+        ></v-btn>
       </template>
-      <template #recipes-sharedRecipes="{ items, loading }">
+      <template #recipes-pending="{ items, loading }">
+        <RecipeGrid :recipes="items" :loading="loading" />
+      </template>
+      <template #recipes="{ items, loading }">
         <RecipeGrid :recipes="items" :loading="loading" />
       </template>
       <template #members="{ items, loading }">
         <UserGrid :users="items" :loading="loading" empty-text="No members found." />
+        <v-btn
+          v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
+          color="primary"
+          icon="mdi-share-variant"
+          style="position: fixed; bottom: 16px; right: 16px"
+          @click="showShareDialog = true"
+        ></v-btn>
       </template>
     </ListTabsPage>
 
-    <!-- Speed Dial and Dialogs remain outside the tabbed area -->
-    <v-fab location="bottom right" app color="primary" icon @click="speedDialOpen = !speedDialOpen">
-      <v-icon>mdi-dots-vertical</v-icon>
-      <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
-        <v-btn key="edit" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
-        @click="router.push({ name: 'circle-edit', params: { circleId: circle.name } })" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
-        <v-btn key="share" v-if="hasWritePermission(circle.circleAccess?.permissionLevel) && circle.visibility !== 'VISIBILITY_LEVEL_HIDDEN'"
-          @click="showShareDialog = true" color="primary"><v-icon>mdi-share-variant</v-icon>Share</v-btn>
-        <v-btn key="remove-access" v-if="!hasAdminPermission(circle.circleAccess?.permissionLevel)" @click="showRemoveAccessDialog = true" color="warning"><v-icon>mdi-link-variant-off</v-icon>Remove</v-btn>
-        <v-btn key="delete" v-if="hasAdminPermission(circle.circleAccess?.permissionLevel)"
-          @click="showDeleteDialog = true" color="error"><v-icon>mdi-delete</v-icon>Delete</v-btn>
-      </v-speed-dial>
-    </v-fab>
     <!-- Remove Access Dialog -->
     <v-dialog v-model="showRemoveAccessDialog" max-width="500">
       <v-card>
@@ -200,6 +213,7 @@ const circlesStore = useCirclesStore()
 const usersStore = useUsersStore()
 
 const { circle } = storeToRefs(circlesStore)
+const { user } = storeToRefs(authStore)
 const speedDialOpen = ref(false)
 
 // *** Breadcrumbs ***
@@ -234,7 +248,13 @@ const tabs = [
   {
     label: 'Recipes',
     value: 'recipes',
-    subTabs: [
+    loader: async () => {
+      if (!circle.value?.name) return []
+      // Admin recipes for this circle
+      await recipesStore.loadMyRecipes(circle.value.name)
+      return [...recipesStore.myRecipes]
+    },
+    subTabs: hasWritePermission(circle.value?.circleAccess?.permissionLevel) ? [
       {
         label: 'Circle Recipes',
         value: 'circleRecipes',
@@ -246,8 +266,8 @@ const tabs = [
         },
       },
       {
-        label: 'Shared Recipes',
-        value: 'sharedRecipes',
+        label: 'Pending Recipes',
+        value: 'pending',
         loader: async () => {
           if (!circle.value?.name) return []
           // Non-admin, non-pending recipes for this circle
@@ -255,7 +275,7 @@ const tabs = [
           return [...recipesStore.sharedAcceptedRecipes]
         },
       },
-    ],
+    ] : undefined,
   },
   {
     label: 'Members',
@@ -327,7 +347,7 @@ const showRemoveAccessDialog = ref(false)
 const removingAccess = ref(false)
 
 async function handleRemoveAccess() {
-  if (!circle.value?.circleAccess?.name || !authStore.activeAccount?.name) return
+  if (!circle.value?.circleAccess?.name) return
 
   removingAccess.value = true
   try {
@@ -432,7 +452,7 @@ async function fetchCircleRecipients() {
     if (response.accesses) {
       currentShares.value = response.accesses.filter(access => {
         // Filter out the current user's own access to avoid showing it in the shares list
-        const isCurrentUser = access.recipient?.name === authStore.activeAccount?.name
+        const isCurrentUser = access.recipient?.name === user.value.name
         return !isCurrentUser
       }).map(access => ({
         name: access.name || '',

@@ -602,28 +602,18 @@ const file_api_users_user_v1alpha1_user_access_proto_rawDesc = "" +
 	"updateMask\"Q\n" +
 	"\x13AcceptAccessRequest\x12:\n" +
 	"\x04name\x18\x01 \x01(\tB&\xe0A\x02\xfaA \n" +
-	"\x1eapi.users.user.v1alpha1/AccessR\x04name2\xa4\x0e\n" +
-	"\x11UserAccessService\x12\xdb\x02\n" +
-	"\fCreateAccess\x12,.api.users.user.v1alpha1.CreateAccessRequest\x1a\x1f.api.users.user.v1alpha1.Access\"\xfb\x01\x92A\xae\x01\n" +
-	"\x11UserAccessService\x12%Grant a user or user access to a user\x1a<Grants a user or user a specific permission level to a user.r4\n" +
-	"2\n" +
-	"\x0eX-Daylear-User\x12\x1ethe name of the user to act as\x18\x01\xdaA\rparent,access\x82\xd3\xe4\x93\x023:\x06access\")/users/v1alpha1/{parent=users/*}/accesses\x12\xa0\x02\n" +
-	"\fDeleteAccess\x12,.api.users.user.v1alpha1.DeleteAccessRequest\x1a\x16.google.protobuf.Empty\"\xc9\x01\x92A\x8d\x01\n" +
-	"\x11UserAccessService\x12\x14Delete a user access\x1a,Removes a user's or user's access to a user.r4\n" +
-	"2\n" +
-	"\x0eX-Daylear-User\x12\x1ethe name of the user to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02+*)/users/v1alpha1/{name=users/*/accesses/*}\x12\xa3\x02\n" +
-	"\tGetAccess\x12).api.users.user.v1alpha1.GetAccessRequest\x1a\x1f.api.users.user.v1alpha1.Access\"\xc9\x01\x92A\x8d\x01\n" +
-	"\x11UserAccessService\x12\x11Get a user access\x1a/Retrieves details about a specific user access.r4\n" +
-	"2\n" +
-	"\x0eX-Daylear-User\x12\x1ethe name of the user to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02+\x12)/users/v1alpha1/{name=users/*/accesses/*}\x12\xbe\x03\n" +
-	"\fListAccesses\x12,.api.users.user.v1alpha1.ListAccessesRequest\x1a-.api.users.user.v1alpha1.ListAccessesResponse\"\xd0\x02\x92A\x92\x02\n" +
-	"\x11UserAccessService\x12\x12List user accesses\x1a\xb2\x01Lists all users and users with access to a user. If no user is provided, the response will only return the accesses for the current user (or user if the user header is provided).r4\n" +
-	"2\n" +
-	"\x0eX-Daylear-User\x12\x1ethe name of the user to act as\x18\x01\xdaA\x06parent\x82\xd3\xe4\x93\x02+\x12)/users/v1alpha1/{parent=users/*}/accesses\x12\xd2\x02\n" +
-	"\fAcceptAccess\x12,.api.users.user.v1alpha1.AcceptAccessRequest\x1a\x1f.api.users.user.v1alpha1.Access\"\xf2\x01\x92A\xac\x01\n" +
-	"\x11UserAccessService\x12\x14Accept a user access\x1aKAccepts a pending user access, changing its state from PENDING to ACCEPTED.r4\n" +
-	"2\n" +
-	"\x0eX-Daylear-User\x12\x1ethe name of the user to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x025:\x01*\"0/users/v1alpha1/{name=users/*/accesses/*}:accept\x1aR\x92AO\x12\x16User Access management\x1a5\n" +
+	"\x1eapi.users.user.v1alpha1/AccessR\x04name2\x92\f\n" +
+	"\x11UserAccessService\x12\xa4\x02\n" +
+	"\fCreateAccess\x12,.api.users.user.v1alpha1.CreateAccessRequest\x1a\x1f.api.users.user.v1alpha1.Access\"\xc4\x01\x92Ax\n" +
+	"\x11UserAccessService\x12%Grant a user or user access to a user\x1a<Grants a user or user a specific permission level to a user.\xdaA\rparent,access\x82\xd3\xe4\x93\x023:\x06access\")/users/v1alpha1/{parent=users/*}/accesses\x12\xe9\x01\n" +
+	"\fDeleteAccess\x12,.api.users.user.v1alpha1.DeleteAccessRequest\x1a\x16.google.protobuf.Empty\"\x92\x01\x92AW\n" +
+	"\x11UserAccessService\x12\x14Delete a user access\x1a,Removes a user's or user's access to a user.\xdaA\x04name\x82\xd3\xe4\x93\x02+*)/users/v1alpha1/{name=users/*/accesses/*}\x12\xec\x01\n" +
+	"\tGetAccess\x12).api.users.user.v1alpha1.GetAccessRequest\x1a\x1f.api.users.user.v1alpha1.Access\"\x92\x01\x92AW\n" +
+	"\x11UserAccessService\x12\x11Get a user access\x1a/Retrieves details about a specific user access.\xdaA\x04name\x82\xd3\xe4\x93\x02+\x12)/users/v1alpha1/{name=users/*/accesses/*}\x12\x88\x03\n" +
+	"\fListAccesses\x12,.api.users.user.v1alpha1.ListAccessesRequest\x1a-.api.users.user.v1alpha1.ListAccessesResponse\"\x9a\x02\x92A\xdc\x01\n" +
+	"\x11UserAccessService\x12\x12List user accesses\x1a\xb2\x01Lists all users and users with access to a user. If no user is provided, the response will only return the accesses for the current user (or user if the user header is provided).\xdaA\x06parent\x82\xd3\xe4\x93\x02+\x12)/users/v1alpha1/{parent=users/*}/accesses\x12\x9b\x02\n" +
+	"\fAcceptAccess\x12,.api.users.user.v1alpha1.AcceptAccessRequest\x1a\x1f.api.users.user.v1alpha1.Access\"\xbb\x01\x92Av\n" +
+	"\x11UserAccessService\x12\x14Accept a user access\x1aKAccepts a pending user access, changing its state from PENDING to ACCEPTED.\xdaA\x04name\x82\xd3\xe4\x93\x025:\x01*\"0/users/v1alpha1/{name=users/*/accesses/*}:accept\x1aR\x92AO\x12\x16User Access management\x1a5\n" +
 	"\x19Daylear API Documentation\x12\x18https://daylear.com/docsB\xd6\x02\x92AXZD\n" +
 	"B\n" +
 	"\n" +

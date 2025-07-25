@@ -39,10 +39,16 @@ func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateReci
 	// convert proto to model
 	pbRecipe := request.GetRecipe()
 	pbRecipe.Name = ""
-	nameIndex, mRecipe, err := convert.ProtoToRecipe(s.recipeNamer, pbRecipe)
+	_, mRecipe, err := convert.ProtoToRecipe(s.recipeNamer, pbRecipe)
 	if err != nil {
 		log.Warn().Err(err).Msg("unable to convert proto to model")
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
+	}
+
+	nameIndex, err := s.recipeNamer.ParseParent(request.GetParent(), &mRecipe.Parent)
+	if err != nil {
+		log.Warn().Err(err).Msg("invalid parent")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
 	}
 
 	// create recipe

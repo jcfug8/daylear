@@ -46,13 +46,6 @@ service UserService {
       summary: "Get a user"
       description: "Retrieves a single user by resource name."
       tags: "UserService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -68,13 +61,6 @@ service UserService {
       summary: "List users"
       description: "Retrieves a paginated list of users. Supports filtering and pagination."
       tags: "UserService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -89,13 +75,6 @@ service UserService {
       summary: "Update a user"
       description: "Updates the details of a user."
       tags: "UserService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 }

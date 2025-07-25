@@ -45,13 +45,6 @@ service CircleService {
       summary: "Create a circle"
       description: "Creates a new circle with the provided details."
       tags: "CircleService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -66,13 +59,6 @@ service CircleService {
       summary: "List circles"
       description: "Retrieves a paginated list of circles. Supports filtering and pagination."
       tags: "CircleService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -87,13 +73,6 @@ service CircleService {
       summary: "Update a circle"
       description: "Updates the details of an existing circle."
       tags: "CircleService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -105,13 +84,6 @@ service CircleService {
       summary: "Delete a circle"
       description: "Deletes a circle by resource name."
       tags: "CircleService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -123,13 +95,6 @@ service CircleService {
       summary: "Get a circle"
       description: "Retrieves a single circle by resource name."
       tags: "CircleService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 }

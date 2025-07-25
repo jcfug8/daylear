@@ -9,9 +9,8 @@
     </v-app-bar-title>
     <template #append>
       <v-btn rounded="0" width="100" icon @click.stop="toggleAccountDrawer" v-if="isLoggedIn" stacked>
-        <v-icon v-if="authStore.activeAccountType === AccountType.USER">mdi-account-circle</v-icon>
-        <v-icon v-if="authStore.activeAccountType === AccountType.CIRCLE">mdi-account-group</v-icon>
-        <span class="text-caption">{{ authStore.activeAccountTitle }}</span>
+        <v-icon>mdi-account-circle</v-icon>
+        <span class="text-caption">{{ user?.username }}</span>
       </v-btn>
     </template>
   </v-app-bar>
@@ -47,7 +46,6 @@
           :to="{ name: 'users' }"
         ></v-list-item>
         <v-list-item
-        v-if="authStore.activeAccountType === AccountType.USER"
         prepend-icon="mdi-account-group"
         title="Circles"
         value="circles"
@@ -64,37 +62,10 @@
   <v-navigation-drawer temporary location="right" v-model="accountDrawer" v-if="isLoggedIn">
     <v-list>
       <v-list-item
-        :active="user?.name === activeAccount?.name"
         prepend-icon="mdi-account-circle"
-        :title="user?.username"
-        @click="activateAccount(user)"
+        title="Profile"
+        :to="{ name: 'user', params: { userId: user?.name } }"
       >
-        <template #append>
-          <v-btn
-            icon="mdi-cog"
-            density="comfortable"
-            @click.stop
-            :to="{ name: 'user', params: { userId: user?.name } }"
-          ></v-btn>
-        </template>
-      </v-list-item>
-      <v-divider></v-divider>
-      <v-list-item
-        v-for="circle in circles"
-        :key="circle.name"
-        :active="circle.name === activeAccount?.name"
-        prepend-icon="mdi-account-group"
-        :title="circle.title"
-        @click="activateAccount(circle)"
-      >
-        <template #append>
-          <v-btn
-            icon="mdi-cog"
-            density="comfortable"
-            @click.stop
-            :to="{ name: 'circle', params: { circleId: circle.name } }"
-          ></v-btn>
-        </template>
       </v-list-item>
     </v-list>
     <template v-slot:append>
@@ -142,13 +113,7 @@ const toggleAccountDrawer = () => {
   navDrawer.value = false
 }
 
-const activateAccount = (account: User | Circle) => {
-  authStore.setActiveAccount(account)
-  toggleAccountDrawer()
-  router.push({ name: 'calendar' })
-}
-
-const { isLoggedIn, activeAccount, user, circles } = storeToRefs(authStore)
+const { isLoggedIn, user } = storeToRefs(authStore)
 const { breadcrumbs } = storeToRefs(breadcrumbStore)
 console.log('breadcrumbs', breadcrumbs.value)
 </script>

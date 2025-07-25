@@ -53,13 +53,6 @@ service CircleAccessService {
       summary: "Grant a user or circle access to a circle"
       description: "Grants a user or circle a specific permission level to a circle."
       tags: "CircleAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -71,13 +64,6 @@ service CircleAccessService {
       summary: "Delete a circle access"
       description: "Removes a user's or circle's access to a circle."
       tags: "CircleAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -89,13 +75,6 @@ service CircleAccessService {
       summary: "Get a circle access"
       description: "Retrieves details about a specific circle access."
       tags: "CircleAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -107,13 +86,6 @@ service CircleAccessService {
       summary: "List circle accesses"
       description: "Lists all users and circles with access to a circle. If no circle is provided, the response will only return the accesses for the current user (or circle if the circle header is provided)."
       tags: "CircleAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -128,13 +100,6 @@ service CircleAccessService {
       summary: "Update a circle access"
       description: "Updates the permission level or recipient for a circle access."
       tags: "CircleAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -149,13 +114,6 @@ service CircleAccessService {
       summary: "Accept a circle access"
       description: "Accepts a pending circle access, changing its state from PENDING to ACCEPTED."
       tags: "CircleAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 }

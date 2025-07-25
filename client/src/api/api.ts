@@ -21,9 +21,6 @@ export const authenticatedFetchHandler = function(contentType: string) {
       headers['Content-Type'] = contentType
     }
 
-    if (authStore.activeAccountType === AccountType.CIRCLE) {
-      headers["X-Daylear-Circle"] = authStore.activeAccount?.name ? authStore.activeAccount?.name : ""
-    }
     if (token) {
       headers['Authorization'] = `Bearer ${token}`
     }

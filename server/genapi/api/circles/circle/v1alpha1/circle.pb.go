@@ -561,28 +561,19 @@ const file_api_circles_circle_v1alpha1_circle_proto_rawDesc = "" +
 	"\"api.circles.circle.v1alpha1/CircleR\x04name\"R\n" +
 	"\x10GetCircleRequest\x12>\n" +
 	"\x04name\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\n" +
-	"\"api.circles.circle.v1alpha1/CircleR\x04name2\xb7\f\n" +
-	"\rCircleService\x12\xb3\x02\n" +
-	"\fCreateCircle\x120.api.circles.circle.v1alpha1.CreateCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"\xcb\x01\x92A\x8b\x01\n" +
-	"\rCircleService\x12\x0fCreate a circle\x1a/Creates a new circle with the provided details.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x10circle,circle_id\x82\xd3\xe4\x93\x02#:\x06circle\"\x19/circles/v1alpha1/circles\x12\xf1\x02\n" +
-	"\vListCircles\x12/.api.circles.circle.v1alpha1.ListCirclesRequest\x1a0.api.circles.circle.v1alpha1.ListCirclesResponse\"\xfe\x01\x92A\xa2\x01\n" +
-	"\rCircleService\x12\fList circles\x1aIRetrieves a paginated list of circles. Supports filtering and pagination.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x06parent\x82\xd3\xe4\x93\x02IZ,\x12*/circles/v1alpha1/{parent=users/*}/circles\x12\x19/circles/v1alpha1/circles\x12\xc0\x02\n" +
-	"\fUpdateCircle\x120.api.circles.circle.v1alpha1.UpdateCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"\xd8\x01\x92A\x86\x01\n" +
-	"\rCircleService\x12\x0fUpdate a circle\x1a*Updates the details of an existing circle.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x12circle,update_mask\x82\xd3\xe4\x93\x023:\x06circle2)/circles/v1alpha1/{circle.name=circles/*}\x12\x9a\x02\n" +
-	"\fDeleteCircle\x120.api.circles.circle.v1alpha1.DeleteCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"\xb2\x01\x92A~\n" +
-	"\rCircleService\x12\x0fDelete a circle\x1a\"Deletes a circle by resource name.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02$*\"/circles/v1alpha1/{name=circles/*}\x12\x9b\x02\n" +
-	"\tGetCircle\x12-.api.circles.circle.v1alpha1.GetCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"\xb9\x01\x92A\x84\x01\n" +
-	"\rCircleService\x12\fGet a circle\x1a+Retrieves a single circle by resource name.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02$\x12\"/circles/v1alpha1/{name=circles/*}B\xec\x02\x92AXZD\n" +
+	"\"api.circles.circle.v1alpha1/CircleR\x04name2\x8f\n" +
+	"\n" +
+	"\rCircleService\x12\xf8\x01\n" +
+	"\fCreateCircle\x120.api.circles.circle.v1alpha1.CreateCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"\x90\x01\x92AQ\n" +
+	"\rCircleService\x12\x0fCreate a circle\x1a/Creates a new circle with the provided details.\xdaA\x10circle,circle_id\x82\xd3\xe4\x93\x02#:\x06circle\"\x19/circles/v1alpha1/circles\x12\xb6\x02\n" +
+	"\vListCircles\x12/.api.circles.circle.v1alpha1.ListCirclesRequest\x1a0.api.circles.circle.v1alpha1.ListCirclesResponse\"\xc3\x01\x92Ah\n" +
+	"\rCircleService\x12\fList circles\x1aIRetrieves a paginated list of circles. Supports filtering and pagination.\xdaA\x06parent\x82\xd3\xe4\x93\x02IZ,\x12*/circles/v1alpha1/{parent=users/*}/circles\x12\x19/circles/v1alpha1/circles\x12\x85\x02\n" +
+	"\fUpdateCircle\x120.api.circles.circle.v1alpha1.UpdateCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"\x9d\x01\x92AL\n" +
+	"\rCircleService\x12\x0fUpdate a circle\x1a*Updates the details of an existing circle.\xdaA\x12circle,update_mask\x82\xd3\xe4\x93\x023:\x06circle2)/circles/v1alpha1/{circle.name=circles/*}\x12\xdf\x01\n" +
+	"\fDeleteCircle\x120.api.circles.circle.v1alpha1.DeleteCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"x\x92AD\n" +
+	"\rCircleService\x12\x0fDelete a circle\x1a\"Deletes a circle by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02$*\"/circles/v1alpha1/{name=circles/*}\x12\xdf\x01\n" +
+	"\tGetCircle\x12-.api.circles.circle.v1alpha1.GetCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"~\x92AJ\n" +
+	"\rCircleService\x12\fGet a circle\x1a+Retrieves a single circle by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02$\x12\"/circles/v1alpha1/{name=circles/*}B\xec\x02\x92AXZD\n" +
 	"B\n" +
 	"\n" +
 	"BearerAuth\x124\b\x02\x12\x1fBearer token for authentication\x1a\rAuthorization \x02b\x10\n" +

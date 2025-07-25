@@ -64,13 +64,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -105,13 +98,6 @@
             "required": true,
             "type": "string",
             "pattern": "circles/[^/]+/users/[^/]+"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -146,13 +132,6 @@
             "required": true,
             "type": "string",
             "pattern": "users/[^/]+/users/[^/]+"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -187,13 +166,6 @@
             "required": true,
             "type": "string",
             "pattern": "users/[^/]+"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -250,13 +222,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -311,13 +276,6 @@
             "name": "filter",
             "description": "used to specify the filter",
             "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
             "required": false,
             "type": "string"
           }
@@ -394,13 +352,6 @@
                 "user"
               ]
             }
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [

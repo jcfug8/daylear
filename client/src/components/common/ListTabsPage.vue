@@ -3,8 +3,10 @@
     <v-app-bar elevation="0" density="compact">
         <v-tabs v-model="activeTab" align-tabs="center" color="primary" grow>
           <v-tab density="compact" v-for="tab in tabs" :key="tab.value" :value="tab.value">
-            <v-icon v-if="tab.icon" left>{{ tab.icon }}</v-icon>
-            <span class="text-caption">{{ tab.label }}</span>
+            <template v-if="!tab.disabled">
+              <v-icon v-if="tab.icon" left>{{ tab.icon }}</v-icon>
+              <span class="text-caption">{{ tab.label }}</span>
+            </template>
           </v-tab>
         </v-tabs>
       </v-app-bar>
@@ -45,6 +47,7 @@ interface TabDef {
   loader?: () => Promise<any>
   subTabs?: Array<{ label: string; value: string; loader?: () => Promise<any> }>
   icon?: string
+  disabled?: boolean
 }
 
 const props = defineProps<{

@@ -11,7 +11,7 @@
 import { useRecipesStore } from '@/stores/recipes'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import RecipeForm from '@/views/meals/recipes/forms/RecipeForm.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useAlertStore } from '@/stores/alerts'
@@ -20,17 +20,22 @@ const recipesStore = useRecipesStore()
 const breadcrumbStore = useBreadcrumbStore()
 const authStore = useAuthStore()
 const alertStore = useAlertStore()
+const route = useRoute()
 
 function navigateBack() {
-  router.push({ name: 'recipes' })
+  if (route.params.circleId) {
+    router.push({ name: 'circle', params: { circleId: route.params.circleId } })
+  } else {
+    router.push({ name: 'recipes' })
+  }
 }
 
 async function saveRecipe() {
-  if (!authStore.user || !authStore.user.name) {
+  if (!authStore.user.name && !route.params.circleId) {
     throw new Error('User not authenticated')
   }
   try {
-    const recipe = await recipesStore.createRecipe(authStore.activeAccountName)
+    const recipe = await recipesStore.createRecipe(route.params.circleId ? route.params.circleId : authStore.user.name)
     router.push({ name: 'recipe', params: { recipeId: recipe.name } })
   } catch (err) {
     console.log("Error creating recipe:", err)

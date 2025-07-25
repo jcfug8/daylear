@@ -691,32 +691,20 @@ const file_api_circles_circle_v1alpha1_circle_access_proto_rawDesc = "" +
 	"updateMask\"U\n" +
 	"\x13AcceptAccessRequest\x12>\n" +
 	"\x04name\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\n" +
-	"\"api.circles.circle.v1alpha1/AccessR\x04name2\x8f\x12\n" +
-	"\x13CircleAccessService\x12\xf5\x02\n" +
-	"\fCreateAccess\x120.api.circles.circle.v1alpha1.CreateAccessRequest\x1a#.api.circles.circle.v1alpha1.Access\"\x8d\x02\x92A\xbc\x01\n" +
-	"\x13CircleAccessService\x12)Grant a user or circle access to a circle\x1a@Grants a user or circle a specific permission level to a circle.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\rparent,access\x82\xd3\xe4\x93\x027:\x06access\"-/circles/v1alpha1/{parent=circles/*}/accesses\x12\xb4\x02\n" +
-	"\fDeleteAccess\x120.api.circles.circle.v1alpha1.DeleteAccessRequest\x1a\x16.google.protobuf.Empty\"\xd9\x01\x92A\x99\x01\n" +
-	"\x13CircleAccessService\x12\x16Delete a circle access\x1a0Removes a user's or circle's access to a circle.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02/*-/circles/v1alpha1/{name=circles/*/accesses/*}\x12\xb9\x02\n" +
-	"\tGetAccess\x12-.api.circles.circle.v1alpha1.GetAccessRequest\x1a#.api.circles.circle.v1alpha1.Access\"\xd7\x01\x92A\x97\x01\n" +
-	"\x13CircleAccessService\x12\x13Get a circle access\x1a1Retrieves details about a specific circle access.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02/\x12-/circles/v1alpha1/{name=circles/*/accesses/*}\x12\xdc\x03\n" +
-	"\fListAccesses\x120.api.circles.circle.v1alpha1.ListAccessesRequest\x1a1.api.circles.circle.v1alpha1.ListAccessesResponse\"\xe6\x02\x92A\xa4\x02\n" +
-	"\x13CircleAccessService\x12\x14List circle accesses\x1a\xbc\x01Lists all users and circles with access to a circle. If no circle is provided, the response will only return the accesses for the current user (or circle if the circle header is provided).r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x06parent\x82\xd3\xe4\x93\x02/\x12-/circles/v1alpha1/{parent=circles/*}/accesses\x12\xec\x02\n" +
-	"\fUpdateAccess\x120.api.circles.circle.v1alpha1.UpdateAccessRequest\x1a#.api.circles.circle.v1alpha1.Access\"\x84\x02\x92A\xa7\x01\n" +
-	"\x13CircleAccessService\x12\x16Update a circle access\x1a>Updates the permission level or recipient for a circle access.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x12access,update_mask\x82\xd3\xe4\x93\x02>:\x06access24/circles/v1alpha1/{access.name=circles/*/accesses/*}\x12\xe8\x02\n" +
-	"\fAcceptAccess\x120.api.circles.circle.v1alpha1.AcceptAccessRequest\x1a#.api.circles.circle.v1alpha1.Access\"\x80\x02\x92A\xb6\x01\n" +
-	"\x13CircleAccessService\x12\x16Accept a circle access\x1aMAccepts a pending circle access, changing its state from PENDING to ACCEPTED.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x029:\x01*\"4/circles/v1alpha1/{name=circles/*/accesses/*}:accept\x1aT\x92AQ\x12\x18Circle Access management\x1a5\n" +
+	"\"api.circles.circle.v1alpha1/AccessR\x04name2\xaf\x0f\n" +
+	"\x13CircleAccessService\x12\xbb\x02\n" +
+	"\fCreateAccess\x120.api.circles.circle.v1alpha1.CreateAccessRequest\x1a#.api.circles.circle.v1alpha1.Access\"\xd3\x01\x92A\x82\x01\n" +
+	"\x13CircleAccessService\x12)Grant a user or circle access to a circle\x1a@Grants a user or circle a specific permission level to a circle.\xdaA\rparent,access\x82\xd3\xe4\x93\x027:\x06access\"-/circles/v1alpha1/{parent=circles/*}/accesses\x12\xf9\x01\n" +
+	"\fDeleteAccess\x120.api.circles.circle.v1alpha1.DeleteAccessRequest\x1a\x16.google.protobuf.Empty\"\x9e\x01\x92A_\n" +
+	"\x13CircleAccessService\x12\x16Delete a circle access\x1a0Removes a user's or circle's access to a circle.\xdaA\x04name\x82\xd3\xe4\x93\x02/*-/circles/v1alpha1/{name=circles/*/accesses/*}\x12\xfe\x01\n" +
+	"\tGetAccess\x12-.api.circles.circle.v1alpha1.GetAccessRequest\x1a#.api.circles.circle.v1alpha1.Access\"\x9c\x01\x92A]\n" +
+	"\x13CircleAccessService\x12\x13Get a circle access\x1a1Retrieves details about a specific circle access.\xdaA\x04name\x82\xd3\xe4\x93\x02/\x12-/circles/v1alpha1/{name=circles/*/accesses/*}\x12\xa2\x03\n" +
+	"\fListAccesses\x120.api.circles.circle.v1alpha1.ListAccessesRequest\x1a1.api.circles.circle.v1alpha1.ListAccessesResponse\"\xac\x02\x92A\xea\x01\n" +
+	"\x13CircleAccessService\x12\x14List circle accesses\x1a\xbc\x01Lists all users and circles with access to a circle. If no circle is provided, the response will only return the accesses for the current user (or circle if the circle header is provided).\xdaA\x06parent\x82\xd3\xe4\x93\x02/\x12-/circles/v1alpha1/{parent=circles/*}/accesses\x12\xb1\x02\n" +
+	"\fUpdateAccess\x120.api.circles.circle.v1alpha1.UpdateAccessRequest\x1a#.api.circles.circle.v1alpha1.Access\"\xc9\x01\x92Am\n" +
+	"\x13CircleAccessService\x12\x16Update a circle access\x1a>Updates the permission level or recipient for a circle access.\xdaA\x12access,update_mask\x82\xd3\xe4\x93\x02>:\x06access24/circles/v1alpha1/{access.name=circles/*/accesses/*}\x12\xad\x02\n" +
+	"\fAcceptAccess\x120.api.circles.circle.v1alpha1.AcceptAccessRequest\x1a#.api.circles.circle.v1alpha1.Access\"\xc5\x01\x92A|\n" +
+	"\x13CircleAccessService\x12\x16Accept a circle access\x1aMAccepts a pending circle access, changing its state from PENDING to ACCEPTED.\xdaA\x04name\x82\xd3\xe4\x93\x029:\x01*\"4/circles/v1alpha1/{name=circles/*/accesses/*}:accept\x1aT\x92AQ\x12\x18Circle Access management\x1a5\n" +
 	"\x19Daylear API Documentation\x12\x18https://daylear.com/docsB\xf2\x02\x92AXZD\n" +
 	"B\n" +
 	"\n" +

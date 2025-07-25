@@ -87,8 +87,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { storeToRefs } from 'pinia'
 const props = defineProps({
   users: { type: Array as () => any[], required: true },
   loading: { type: Boolean, default: false },
@@ -98,7 +98,7 @@ const props = defineProps({
 })
 
 const authStore = useAuthStore()
-const currentUserName = computed(() => authStore.activeAccount?.name)
+const { user } = storeToRefs(authStore)
 
 defineEmits(['accept', 'decline'])
 
@@ -111,7 +111,7 @@ function canNavigateToUser(user: any) {
 }
 
 function isRequester(user: any) {
-  return user.access?.requester === currentUserName.value
+  return user.access?.requester === user.value.name
 }
 </script>
 

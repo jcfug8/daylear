@@ -40,7 +40,7 @@ func (m *MiddlewareMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c = c.Append(cors.New(cors.Options{
 		AllowedOrigins:   m.origins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
-		AllowedHeaders:   []string{headers.AuthorizationHeaderKey, "Content-Type", headers.ActingAsCircleHeaderKey},
+		AllowedHeaders:   []string{headers.AuthorizationHeaderKey, "Content-Type"},
 		AllowCredentials: true,
 	}).Handler)
 

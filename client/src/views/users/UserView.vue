@@ -190,7 +190,7 @@ const showRemoveAccessDialog = ref(false)
 const removingAccess = ref(false)
 
 async function handleRemoveAccess() {
-  if (!user.value?.access?.name || !authStore.activeAccount?.name) return
+  if (!user.value?.access?.name) return
 
   removingAccess.value = true
   try {
@@ -215,7 +215,7 @@ async function handleRemoveAccess() {
 const connecting = ref(false)
 
 async function handleConnect() {
-  if (!user.value?.name || !authStore.activeAccount?.name) return
+  if (!user.value?.name) return
   connecting.value = true
   try {
     // Build the access object

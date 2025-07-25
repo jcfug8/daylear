@@ -48,13 +48,6 @@
             "required": true,
             "type": "string",
             "pattern": "users/[^/]+/accesses/[^/]+"
-          },
-          {
-            "name": "X-Daylear-User",
-            "description": "the name of the user to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -88,13 +81,6 @@
             "required": true,
             "type": "string",
             "pattern": "users/[^/]+/accesses/[^/]+"
-          },
-          {
-            "name": "X-Daylear-User",
-            "description": "the name of the user to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -137,13 +123,6 @@
             "schema": {
               "$ref": "#/definitions/v1alpha1UserAccessServiceAcceptAccessBody"
             }
-          },
-          {
-            "name": "X-Daylear-User",
-            "description": "the name of the user to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -200,13 +179,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "X-Daylear-User",
-            "description": "the name of the user to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -251,13 +223,6 @@
                 "access"
               ]
             }
-          },
-          {
-            "name": "X-Daylear-User",
-            "description": "the name of the user to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [

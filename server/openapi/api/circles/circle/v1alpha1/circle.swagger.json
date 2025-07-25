@@ -64,13 +64,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -113,13 +106,6 @@
             "description": "the id of the circle",
             "in": "query",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
             "type": "string"
           }
         ],
@@ -197,13 +183,6 @@
                 "circle"
               ]
             }
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -238,13 +217,6 @@
             "required": true,
             "type": "string",
             "pattern": "circles/[^/]+"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -277,13 +249,6 @@
             "required": true,
             "type": "string",
             "pattern": "circles/[^/]+"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -338,13 +303,6 @@
             "name": "filter",
             "description": "used to specify the filter",
             "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
             "required": false,
             "type": "string"
           }

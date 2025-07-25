@@ -52,13 +52,6 @@ service RecipeService {
       summary: "Create a recipe"
       description: "Creates a new recipe with the provided details."
       tags: "RecipeService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -74,13 +67,6 @@ service RecipeService {
       summary: "List recipes"
       description: "Retrieves a paginated list of recipes. Supports filtering and pagination."
       tags: "RecipeService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -103,13 +89,6 @@ service RecipeService {
       summary: "Update a recipe"
       description: "Updates the details of an existing recipe."
       tags: "RecipeService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -125,13 +104,6 @@ service RecipeService {
       summary: "Delete a recipe"
       description: "Deletes a recipe by resource name."
       tags: "RecipeService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -147,13 +119,6 @@ service RecipeService {
       summary: "Get a recipe"
       description: "Retrieves a single recipe by resource name."
       tags: "RecipeService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -168,13 +133,6 @@ service RecipeService {
       summary: "Scrape a recipe from a uri"
       description: "Scrapes a recipe from a uri."
       tags: "RecipeService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-Circle"
-          description: "the name of the circle to act as"
-          type: STRING
-        }
-      }
     };
   }
 }

@@ -53,13 +53,6 @@ service UserAccessService {
       summary: "Grant a user or user access to a user"
       description: "Grants a user or user a specific permission level to a user."
       tags: "UserAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-User"
-          description: "the name of the user to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -71,13 +64,6 @@ service UserAccessService {
       summary: "Delete a user access"
       description: "Removes a user's or user's access to a user."
       tags: "UserAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-User"
-          description: "the name of the user to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -89,13 +75,6 @@ service UserAccessService {
       summary: "Get a user access"
       description: "Retrieves details about a specific user access."
       tags: "UserAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-User"
-          description: "the name of the user to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -107,13 +86,6 @@ service UserAccessService {
       summary: "List user accesses"
       description: "Lists all users and users with access to a user. If no user is provided, the response will only return the accesses for the current user (or user if the user header is provided)."
       tags: "UserAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-User"
-          description: "the name of the user to act as"
-          type: STRING
-        }
-      }
     };
   }
 
@@ -128,13 +100,6 @@ service UserAccessService {
       summary: "Accept a user access"
       description: "Accepts a pending user access, changing its state from PENDING to ACCEPTED."
       tags: "UserAccessService"
-      parameters: {
-        headers: {
-          name: "X-Daylear-User"
-          description: "the name of the user to act as"
-          type: STRING
-        }
-      }
     };
   }
 }

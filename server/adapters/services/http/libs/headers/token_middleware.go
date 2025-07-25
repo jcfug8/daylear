@@ -27,10 +27,8 @@ var circleNamer namer.ReflectNamer
 type keyType string
 
 const UserKey keyType = "auth-token-user"
-const CircleNameKey keyType = "auth-circle-name"
 
 const AuthorizationHeaderKey = "Authorization"
-const ActingAsCircleHeaderKey = "X-Daylear-Circle"
 
 func NewAuthTokenMiddleware(domain domain.Domain) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -47,14 +45,8 @@ func NewAuthTokenMiddleware(domain domain.Domain) func(next http.Handler) http.H
 				return
 			}
 
-			// Get circle name if acting as a circle
-			circleName := GetCircleName(r)
-
 			ctx := r.Context()
 			ctx = context.WithValue(ctx, UserKey, user)
-			if circleName != "" {
-				ctx = context.WithValue(ctx, CircleNameKey, circleName)
-			}
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
@@ -74,32 +66,11 @@ func GetAuthToken(r *http.Request) (string, error) {
 	return authToken, nil
 }
 
-func GetCircleName(r *http.Request) string {
-	headers := r.Header[ActingAsCircleHeaderKey]
-	if len(headers) != 1 {
-		return ""
-	}
-	return headers[0]
-}
-
 func ParseAuthData(ctx context.Context) (model.AuthAccount, error) {
 	user, ok := ctx.Value(UserKey).(model.User)
 	if !ok {
 		return model.AuthAccount{}, status.Error(codes.Unauthenticated, "user not found")
 	}
 
-	var circleID model.CircleId
-	circleName := ctx.Value(CircleNameKey)
-	if circleName != nil {
-		circleNameStr, ok := circleName.(string)
-		if !ok {
-			return model.AuthAccount{}, status.Error(codes.InvalidArgument, "invalid circle name")
-		}
-		_, err := circleNamer.Parse(circleNameStr, &circleID)
-		if err != nil {
-			return model.AuthAccount{}, status.Errorf(codes.InvalidArgument, "invalid circle name: %v", err)
-		}
-	}
-
-	return model.AuthAccount{AuthUserId: user.Id.UserId, CircleId: circleID.CircleId}, nil
+	return model.AuthAccount{AuthUserId: user.Id.UserId}, nil
 }

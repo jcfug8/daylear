@@ -22,7 +22,7 @@ const router = createRouter({
       },
     },
     {
-      path: '/meals/recipes',
+      path: '/recipes',
       name: 'recipes',
       component: () => import('../views/meals/recipes/RecipesView.vue'),
       meta: {
@@ -30,7 +30,7 @@ const router = createRouter({
       },
     },
     {
-      path: '/meals/recipes/create',
+      path: '/recipes/create',
       name: 'recipeCreate',
       component: () => import('../views/meals/recipes/RecipeCreateView.vue'),
       meta: {
@@ -39,7 +39,16 @@ const router = createRouter({
       },
     },
     {
-      path: '/meals/recipes/:recipeId',
+      path: '/circles/:circleId/recipes/create',
+      name: 'circleRecipeCreate',
+      component: () => import('../views/meals/recipes/RecipeCreateView.vue'),
+      meta: {
+        requiresAuth: true,
+        breadcrumbs: true,
+      },
+    },
+    {
+      path: '/recipes/:recipeId',
       name: 'recipe',
       component: () => import('../views/meals/recipes/RecipeView.vue'),
       meta: {
@@ -57,7 +66,7 @@ const router = createRouter({
       },
     },
     {
-      path: '/meals/recipes/:recipeId/edit',
+      path: '/recipes/:recipeId/edit',
       name: 'recipeEdit',
       component: () => import('../views/meals/recipes/RecipeEditView.vue'),
       meta: {
@@ -75,7 +84,7 @@ const router = createRouter({
       },
     },
     {
-      path: '/meals/ingredients',
+      path: '/ingredients',
       name: 'ingredients',
       component: () => import('../views/meals/IngredientsView.vue'),
       meta: {
@@ -178,7 +187,7 @@ router.beforeEach(async (to, from, next) => {
   } else if (to.meta.requiresNoAuth) {
     if (authStore.isLoggedIn) {
       // User is authenticated, redirect to home
-      next('/meals/recipes')
+      next('/recipes')
     } else {
       // User is not authenticated, allow access
       next()

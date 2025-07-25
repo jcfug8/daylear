@@ -660,7 +660,7 @@ const showRemoveAccessDialog = ref(false)
 const removingAccess = ref(false)
 
 async function handleRemoveAccess() {
-  if (!recipe.value?.recipeAccess?.name || !authStore.activeAccount?.name) return
+  if (!recipe.value?.recipeAccess?.name) return
 
   removingAccess.value = true
   try {
@@ -916,9 +916,7 @@ async function fetchRecipeRecipients() {
     if (response.accesses) {
       currentShares.value = response.accesses.filter(access => {
         // Filter out the current user's own access to avoid showing it in the shares list
-        const isCurrentUser = (access.recipient?.user && access.recipient.user.name === authStore.activeAccount?.name) ||
-                             (access.recipient?.circle && access.recipient.circle.name === authStore.activeAccount?.name)
-        return !isCurrentUser
+        return access.recipient?.user && access.recipient.user.name === authStore.user.name
       }).map(access => ({
         name: access.name || '',
         level: access.level || 'PERMISSION_LEVEL_READ',

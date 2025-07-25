@@ -297,7 +297,7 @@ async function checkCircle(circleHandle: string) {
     }
     const response = await circleService.ListCircles(request)
 
-    if (response.circles?.length === 1 && response.circles[0].name !== authStore.activeAccount?.name) {
+    if (response.circles?.length === 1) {
       selectedCircle.value = response.circles[0]
       isValidCircle.value = true
     } else {
@@ -385,7 +385,7 @@ async function checkUsername(username: string) {
     }
     const response = await userService.ListUsers(request)
 
-    if (response.users?.length === 1 && response.users[0].name !== authStore.activeAccount?.name) {
+    if (response.users?.length === 1 && response.users[0].name !== authStore.user.name) {
       selectedUser.value = response.users[0]
       isValidUsername.value = true
     } else {

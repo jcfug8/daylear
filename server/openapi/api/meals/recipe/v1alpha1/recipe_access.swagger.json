@@ -83,13 +83,6 @@
                 "access"
               ]
             }
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -159,13 +152,6 @@
                 "access"
               ]
             }
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -200,13 +186,6 @@
             "required": true,
             "type": "string",
             "pattern": "circles/[^/]+/recipes/[^/]+/accesses/[^/]+"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -240,13 +219,6 @@
             "required": true,
             "type": "string",
             "pattern": "circles/[^/]+/recipes/[^/]+/accesses/[^/]+"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -289,13 +261,6 @@
             "schema": {
               "$ref": "#/definitions/RecipeAccessServiceAcceptRecipeAccessBody"
             }
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -330,13 +295,6 @@
             "required": true,
             "type": "string",
             "pattern": "recipes/[^/]+/accesses/[^/]+"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -370,13 +328,6 @@
             "required": true,
             "type": "string",
             "pattern": "recipes/[^/]+/accesses/[^/]+"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -419,13 +370,6 @@
             "schema": {
               "$ref": "#/definitions/RecipeAccessServiceAcceptRecipeAccessBody"
             }
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -482,13 +426,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -533,13 +470,6 @@
                 "access"
               ]
             }
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -596,13 +526,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -647,13 +570,6 @@
                 "access"
               ]
             }
-          },
-          {
-            "name": "X-Daylear-Circle",
-            "description": "the name of the circle to act as",
-            "in": "header",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [

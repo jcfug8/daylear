@@ -464,23 +464,17 @@ const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\x11UpdateUserRequest\x126\n" +
 	"\x04user\x18\x01 \x01(\v2\x1d.api.users.user.v1alpha1.UserB\x03\xe0A\x02R\x04user\x12@\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x03\xe0A\x01R\n" +
-	"updateMask2\x86\b\n" +
-	"\vUserService\x12\xd8\x02\n" +
-	"\aGetUser\x12'.api.users.user.v1alpha1.GetUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"\x84\x02\x92A~\n" +
+	"updateMask2\xd7\x06\n" +
+	"\vUserService\x12\x9e\x02\n" +
+	"\aGetUser\x12'.api.users.user.v1alpha1.GetUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"\xca\x01\x92AD\n" +
 	"\vUserService\x12\n" +
-	"Get a user\x1a)Retrieves a single user by resource name.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x04name\x82\xd3\xe4\x93\x02vZ*\x12(/users/v1alpha1/{name=circles/*/users/*}Z(\x12&/users/v1alpha1/{name=users/*/users/*}\x12\x1e/users/v1alpha1/{name=users/*}\x12\x81\x03\n" +
-	"\tListUsers\x12).api.users.user.v1alpha1.ListUsersRequest\x1a*.api.users.user.v1alpha1.ListUsersResponse\"\x9c\x02\x92A\x9c\x01\n" +
+	"Get a user\x1a)Retrieves a single user by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02vZ*\x12(/users/v1alpha1/{name=circles/*/users/*}Z(\x12&/users/v1alpha1/{name=users/*/users/*}\x12\x1e/users/v1alpha1/{name=users/*}\x12\xc6\x02\n" +
+	"\tListUsers\x12).api.users.user.v1alpha1.ListUsersRequest\x1a*.api.users.user.v1alpha1.ListUsersResponse\"\xe1\x01\x92Ab\n" +
 	"\vUserService\x12\n" +
-	"List users\x1aGRetrieves a paginated list of users. Supports filtering and pagination.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x06parent\x82\xd3\xe4\x93\x02mZ*\x12(/users/v1alpha1/{parent=circles/*}/usersZ(\x12&/users/v1alpha1/{parent=users/*}/users\x12\x15/users/v1alpha1/users\x12\x97\x02\n" +
+	"List users\x1aGRetrieves a paginated list of users. Supports filtering and pagination.\xdaA\x06parent\x82\xd3\xe4\x93\x02mZ*\x12(/users/v1alpha1/{parent=circles/*}/usersZ(\x12&/users/v1alpha1/{parent=users/*}/users\x12\x15/users/v1alpha1/users\x12\xdd\x01\n" +
 	"\n" +
-	"UpdateUser\x12*.api.users.user.v1alpha1.UpdateUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"\xbd\x01\x92Av\n" +
-	"\vUserService\x12\rUpdate a user\x1a\x1eUpdates the details of a user.r8\n" +
-	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x10user,update_mask\x82\xd3\xe4\x93\x02+:\x04user2#/users/v1alpha1/{user.name=users/*}B\xd0\x02\x92AXZD\n" +
+	"UpdateUser\x12*.api.users.user.v1alpha1.UpdateUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"\x83\x01\x92A<\n" +
+	"\vUserService\x12\rUpdate a user\x1a\x1eUpdates the details of a user.\xdaA\x10user,update_mask\x82\xd3\xe4\x93\x02+:\x04user2#/users/v1alpha1/{user.name=users/*}B\xd0\x02\x92AXZD\n" +
 	"B\n" +
 	"\n" +
 	"BearerAuth\x124\b\x02\x12\x1fBearer token for authentication\x1a\rAuthorization \x02b\x10\n" +
