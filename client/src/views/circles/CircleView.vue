@@ -187,6 +187,7 @@ import { useAuthStore } from '@/stores/auth'
 import { hasAdminPermission, hasWritePermission } from '@/utils/permissions'
 import ListTabsPage from '@/components/common/ListTabsPage.vue'
 import RecipeGrid from '@/components/RecipeGrid.vue'
+import UserGrid from '@/components/UserGrid.vue'
 import { useRecipesStore } from '@/stores/recipes'
 import ShareDialog from '@/components/common/ShareDialog.vue'
 

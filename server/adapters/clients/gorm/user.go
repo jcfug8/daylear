@@ -24,6 +24,16 @@ var UserMap = map[string]string{
 	"visibility":  gmodel.UserFields.Visibility,
 }
 
+var UserCircleMap = map[string]string{
+	"google_id":   gmodel.UserFields.GoogleId,
+	"facebook_id": gmodel.UserFields.FacebookId,
+	"amazon_id":   gmodel.UserFields.AmazonId,
+	"username":    gmodel.UserFields.Username,
+	"visibility":  gmodel.UserFields.Visibility,
+	"permission":  gmodel.CircleAccessFields.PermissionLevel,
+	"state":       gmodel.CircleAccessFields.State,
+}
+
 // CreateUser creates a new user.
 func (repo *Client) CreateUser(ctx context.Context, m cmodel.User) (cmodel.User, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
@@ -94,10 +104,21 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 		Column: clause.Column{Name: "user_id"},
 		Desc:   true,
 	}}
+	converter := repo.userSQLConverter
 
 	switch {
 	case authAccount.CircleId != 0:
-		return nil, repository.ErrInvalidArgument{Msg: "circle access is not supported yet"}
+		converter = repo.userCircleSQLConverter
+		columns = append(columns, "circle_access.permission_level", "circle_access.state", "circle_access.circle_access_id", "circle_access.requester_user_id")
+
+		joins = append(joins, "LEFT JOIN circle_access ON daylear_user.user_id = circle_access.recipient_user_id AND circle_access.circle_id = ?")
+		joinParams = append(joinParams, []any{authAccount.CircleId})
+
+		joins = append(joins, "LEFT JOIN user_access as user_access_auth ON daylear_user.user_id = user_access_auth.user_id AND user_access_auth.recipient_user_id = ?")
+		joinParams = append(joinParams, []any{authAccount.AuthUserId})
+
+		where = "(daylear_user.visibility < ? OR circle_access.circle_id = ?) OR (daylear_user.visibility >= ? OR (user_access_auth.recipient_user_id = ? AND user_access_auth.state = ?))"
+		whereParams = []any{types.VisibilityLevel_VISIBILITY_LEVEL_PRIVATE, authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PRIVATE, authAccount.AuthUserId, types.AccessState_ACCESS_STATE_ACCEPTED}
 	case authAccount.AuthUserId != authAccount.UserId:
 		columns = append(columns, "user_access_auth.permission_level", "user_access_auth.state", "user_access_auth.user_access_id", "user_access_auth.requester_user_id")
 
@@ -132,7 +153,7 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 		tx = tx.Joins(join, joinParams[i]...)
 	}
 
-	conversion, err := repo.userSQLConverter.Convert(filter)
+	conversion, err := converter.Convert(filter)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to convert list users filter")
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
@@ -155,6 +176,7 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 			log.Error().Err(err).Msg("unable to read user")
 			return nil, fmt.Errorf("unable to read user: %v", err)
 		}
+		res[i].Parent.CircleId = authAccount.CircleId
 	}
 
 	log.Info().Msg("GORM ListUsers returning successfully")
