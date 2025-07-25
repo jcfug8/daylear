@@ -51,16 +51,6 @@
                 <v-list-item-title>Username</v-list-item-title>
                 <v-list-item-subtitle>{{ user.username }}</v-list-item-subtitle>
               </v-list-item>
-
-              <v-list-item>
-                <template v-slot:prepend>
-                  <v-icon :icon="selectedVisibilityIcon"></v-icon>
-                </template>
-                <v-list-item-title>Visibility</v-list-item-title>
-                <v-list-item-subtitle>
-                  <strong>{{ selectedVisibilityLabel }}</strong>: {{ selectedVisibilityDescription }}
-                </v-list-item-subtitle>
-              </v-list-item>
             </v-list>
           </v-card-text>
           <v-card-actions>
@@ -73,6 +63,9 @@
       </template>
       <template #friends="{ items, loading }">
         <UserGrid :users="items" :loading="loading" empty-text="No friends found." />
+      </template>
+      <template #circles="{ items, loading }">
+        <CircleGrid :circles="items" :loading="loading" empty-text="No circles found." />
       </template>
     </ListTabsPage>
     <!-- Speed Dial -->
@@ -130,10 +123,13 @@ import type { DeleteAccessRequest } from '@/genapi/api/meals/recipe/v1alpha1'
 import type { CreateAccessRequest, Access, Access_User } from '@/genapi/api/users/user/v1alpha1'
 import { useAlertStore } from '@/stores/alerts'
 import UserGrid from '@/components/UserGrid.vue'
+import CircleGrid from '@/components/CircleGrid.vue'
+import { useCirclesStore } from '@/stores/circles'
 
 const usersStore = useUsersStore()
 const alertsStore = useAlertStore()
 const recipesStore = useRecipesStore()
+const circlesStore = useCirclesStore()
 const { currentUser: user } = storeToRefs(usersStore)
 const breadcrumbStore = useBreadcrumbStore()
 const route = useRoute()
@@ -150,44 +146,6 @@ onMounted(async () => {
     { title: 'User Settings', to: { name: 'user', params: { userId: userId.value } } },
   ])
 })
-
-const visibilityOptions = [
-  {
-    value: 'VISIBILITY_LEVEL_PUBLIC',
-    label: 'Public',
-    icon: 'mdi-earth',
-    color: 'success',
-    description: 'Everyone can see your profile.'
-  },
-  {
-    value: 'VISIBILITY_LEVEL_RESTRICTED',
-    label: 'Restricted',
-    icon: 'mdi-account-group',
-    color: 'warning',
-    description: 'Only shared users and their connections can see your profile.'
-  },
-  {
-    value: 'VISIBILITY_LEVEL_PRIVATE',
-    label: 'Private',
-    icon: 'mdi-lock',
-    color: 'info',
-    description: 'Only specifically shared users can see your profile.'
-  },
-  {
-    value: 'VISIBILITY_LEVEL_HIDDEN',
-    label: 'Hidden',
-    icon: 'mdi-eye-off',
-    color: 'secondary',
-    description: 'Only you can see your profile.'
-  }
-]
-
-const selectedVisibility = computed(() => {
-  return visibilityOptions.find(option => option.value === user.value?.visibility)
-})
-const selectedVisibilityLabel = computed(() => selectedVisibility.value?.label || '')
-const selectedVisibilityDescription = computed(() => selectedVisibility.value?.description || '')
-const selectedVisibilityIcon = computed(() => selectedVisibility.value?.icon || 'mdi-help-circle')
 
 const tabs = [
   {
@@ -211,6 +169,15 @@ const tabs = [
       if (!user.value?.name) return []
       await usersStore.loadFriends(user.value.name)
       return [...usersStore.friends]
+    },
+  },
+  {
+    label: 'Circles',
+    value: 'circles',
+    loader: async () => {
+      if (!user.value?.name) return []
+      await circlesStore.loadMyCircles(user.value.name)
+      return [...circlesStore.myCircles]
     },
   },
 ]

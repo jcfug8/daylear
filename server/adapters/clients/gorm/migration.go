@@ -66,6 +66,16 @@ var manualMigrations = []migrations.Migration{
 			return nil
 		},
 	},
+	{
+		Key:         "2",
+		Description: "Drop visibility column from user",
+		Run: func(ctx context.Context, tx *gorm.DB) error {
+			if err := tx.Exec(`ALTER TABLE daylear_user DROP COLUMN visibility`).Error; err != nil {
+				return fmt.Errorf("failed to add visibility column: %w", err)
+			}
+			return nil
+		},
+	},
 }
 
 // slugify is a helper to create a URL-friendly string

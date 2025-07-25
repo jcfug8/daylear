@@ -12,7 +12,6 @@ func UserFromCoreModel(m cmodel.User) (gmodel.User, error) {
 		Username:   m.Username,
 		GivenName:  m.GivenName,
 		FamilyName: m.FamilyName,
-		Visibility: m.Visibility,
 		ImageUri:   m.ImageUri,
 		Bio:        m.Bio,
 
@@ -43,7 +42,6 @@ func UserToCoreModel(m gmodel.User) (cmodel.User, error) {
 		Username:   m.Username,
 		GivenName:  m.GivenName,
 		FamilyName: m.FamilyName,
-		Visibility: m.Visibility,
 		ImageUri:   m.ImageUri,
 		Bio:        m.Bio,
 

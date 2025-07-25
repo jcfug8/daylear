@@ -104,33 +104,6 @@
             label="Username"
             required
           ></v-text-field>
-
-          <v-select
-            v-model="user.visibility"
-            :items="visibilityOptions"
-            item-title="label"
-            item-value="value"
-            label="Profile Visibility"
-            density="compact"
-            variant="outlined"
-          >
-            <template #selection="{ item }">
-              <div class="d-flex align-center">
-                <v-icon :icon="item.raw.icon" class="me-2" size="small"></v-icon>
-                {{ item.raw.label }}
-              </div>
-            </template>
-            <template #item="{ props, item }">
-              <v-list-item v-bind="props">
-                <template #prepend>
-                  <v-icon :icon="item.raw.icon" size="small"></v-icon>
-                </template>
-                <v-list-item-subtitle class="text-wrap">
-                  {{ item.raw.description }}
-                </v-list-item-subtitle>
-              </v-list-item>
-            </template>
-          </v-select>
         </v-form>
       </v-card-text>
       <v-card-actions>
@@ -157,10 +130,9 @@
 <script setup lang="ts">
 import { useUsersStore } from '@/stores/users'
 import { storeToRefs } from 'pinia'
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRouter, useRoute } from 'vue-router'
-import type { User, UserSettings, apitypes_VisibilityLevel } from '@/genapi/api/users/user/v1alpha1'
 import { useAlertStore } from '@/stores/alerts'
 import { fileService } from '@/api/api'
 
@@ -170,37 +142,6 @@ const { currentUser: user, currentUserSettings: userSettings } = storeToRefs(use
 const breadcrumbStore = useBreadcrumbStore()
 const alertStore = useAlertStore()
 const route = useRoute()
-
-const visibilityOptions = [
-  {
-    value: 'VISIBILITY_LEVEL_PUBLIC',
-    label: 'Public',
-    icon: 'mdi-earth',
-    color: 'success',
-    description: 'Everyone can see your profile.'
-  },
-  {
-    value: 'VISIBILITY_LEVEL_RESTRICTED',
-    label: 'Restricted',
-    icon: 'mdi-account-group',
-    color: 'warning',
-    description: 'Only shared users and their connections can see your profile.'
-  },
-  {
-    value: 'VISIBILITY_LEVEL_PRIVATE',
-    label: 'Private',
-    icon: 'mdi-lock',
-    color: 'info',
-    description: 'Only specifically shared users can see your profile.'
-  },
-  {
-    value: 'VISIBILITY_LEVEL_HIDDEN',
-    label: 'Hidden',
-    icon: 'mdi-eye-off',
-    color: 'secondary',
-    description: 'Only you can see your profile.'
-  }
-]
 
 const showImageDialog = ref(false)
 const imageFile = ref<File | null>(null)

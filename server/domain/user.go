@@ -75,7 +75,7 @@ func (d *Domain) ListUsers(ctx context.Context, authAccount model.AuthAccount, p
 			return nil, err
 		}
 	} else if authAccount.UserId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevels(ctx, authAccount)
+		authAccount.PermissionLevel, err = d.getUserAccessLevels(ctx, authAccount)
 		if err != nil {
 			log.Error().Err(err).Msg("getUserAccessLevels failed")
 			return nil, err
@@ -120,7 +120,7 @@ func (d *Domain) UpdateUser(ctx context.Context, authAccount model.AuthAccount, 
 
 	authAccount.UserId = user.Id.UserId
 
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevels(ctx, authAccount)
+	authAccount.PermissionLevel, err = d.getUserAccessLevels(ctx, authAccount)
 	if err != nil {
 		log.Error().Err(err).Msg("getUserAccessLevels failed")
 		return model.User{}, err
@@ -158,7 +158,7 @@ func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, par
 		authAccount.UserId = authAccount.AuthUserId
 	}
 
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkUserAccess(ctx, authAccount, id, 0)
+	authAccount.PermissionLevel, err = d.checkUserAccess(ctx, authAccount, id, 0)
 	if err != nil {
 		log.Error().Err(err).Msg("getUserAccessLevels failed")
 		return model.User{}, err
@@ -280,7 +280,7 @@ func (d *Domain) UploadUserImage(ctx context.Context, authAccount model.AuthAcco
 	if id.UserId == 0 {
 		return "", domain.ErrInvalidArgument{Msg: "id required"}
 	}
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevels(ctx, authAccount)
+	authAccount.PermissionLevel, err = d.getUserAccessLevels(ctx, authAccount)
 	if err != nil {
 		return "", err
 	}

@@ -37,6 +37,13 @@
         },
         "parameters": [
           {
+            "name": "parent",
+            "description": "the parent of the circles",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "pageSize",
             "description": "the page size",
             "in": "query",
@@ -270,6 +277,69 @@
             "required": true,
             "type": "string",
             "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "X-Daylear-Circle",
+            "description": "the name of the circle to act as",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CircleService"
+        ]
+      }
+    },
+    "/circles/v1alpha1/{parent}/circles": {
+      "get": {
+        "summary": "List circles",
+        "description": "Retrieves a paginated list of circles. Supports filtering and pagination.",
+        "operationId": "CircleService_ListCircles2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListCirclesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the circles",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+"
+          },
+          {
+            "name": "pageSize",
+            "description": "the page size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
           },
           {
             "name": "X-Daylear-Circle",

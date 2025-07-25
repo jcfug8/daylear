@@ -40,8 +40,6 @@ type User struct {
 	ImageUri string `protobuf:"bytes,8,opt,name=image_uri,json=imageUri,proto3" json:"image_uri,omitempty"`
 	// the bio for the user
 	Bio string `protobuf:"bytes,9,opt,name=bio,proto3" json:"bio,omitempty"`
-	// the visibility of the user
-	Visibility types.VisibilityLevel `protobuf:"varint,6,opt,name=visibility,proto3,enum=api.types.VisibilityLevel" json:"visibility,omitempty"`
 	// the user access details
 	Access        *User_Access `protobuf:"bytes,7,opt,name=access,proto3" json:"access,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -118,13 +116,6 @@ func (x *User) GetBio() string {
 		return x.Bio
 	}
 	return ""
-}
-
-func (x *User) GetVisibility() types.VisibilityLevel {
-	if x != nil {
-		return x.Visibility
-	}
-	return types.VisibilityLevel(0)
 }
 
 func (x *User) GetAccess() *User_Access {
@@ -440,7 +431,7 @@ var File_api_users_user_v1alpha1_user_proto protoreflect.FileDescriptor
 
 const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\n" +
-	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x85\x05\n" +
+	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xc4\x04\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x1f\n" +
 	"\busername\x18\x03 \x01(\tB\x03\xe0A\x01R\busername\x12\"\n" +
@@ -449,10 +440,7 @@ const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\vfamily_name\x18\x05 \x01(\tB\x03\xe0A\x01R\n" +
 	"familyName\x12 \n" +
 	"\timage_uri\x18\b \x01(\tB\x03\xe0A\x01R\bimageUri\x12\x15\n" +
-	"\x03bio\x18\t \x01(\tB\x03\xe0A\x01R\x03bio\x12?\n" +
-	"\n" +
-	"visibility\x18\x06 \x01(\x0e2\x1a.api.types.VisibilityLevelB\x03\xe0A\x02R\n" +
-	"visibility\x12A\n" +
+	"\x03bio\x18\t \x01(\tB\x03\xe0A\x01R\x03bio\x12A\n" +
 	"\x06access\x18\a \x01(\v2$.api.users.user.v1alpha1.User.AccessB\x03\xe0A\x03R\x06access\x1a\xc3\x01\n" +
 	"\x06Access\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x03R\x04name\x12!\n" +
@@ -521,30 +509,28 @@ var file_api_users_user_v1alpha1_user_proto_goTypes = []any{
 	(*ListUsersResponse)(nil),     // 3: api.users.user.v1alpha1.ListUsersResponse
 	(*UpdateUserRequest)(nil),     // 4: api.users.user.v1alpha1.UpdateUserRequest
 	(*User_Access)(nil),           // 5: api.users.user.v1alpha1.User.Access
-	(types.VisibilityLevel)(0),    // 6: api.types.VisibilityLevel
-	(*fieldmaskpb.FieldMask)(nil), // 7: google.protobuf.FieldMask
-	(types.PermissionLevel)(0),    // 8: api.types.PermissionLevel
-	(types.AccessState)(0),        // 9: api.types.AccessState
+	(*fieldmaskpb.FieldMask)(nil), // 6: google.protobuf.FieldMask
+	(types.PermissionLevel)(0),    // 7: api.types.PermissionLevel
+	(types.AccessState)(0),        // 8: api.types.AccessState
 }
 var file_api_users_user_v1alpha1_user_proto_depIdxs = []int32{
-	6,  // 0: api.users.user.v1alpha1.User.visibility:type_name -> api.types.VisibilityLevel
-	5,  // 1: api.users.user.v1alpha1.User.access:type_name -> api.users.user.v1alpha1.User.Access
-	0,  // 2: api.users.user.v1alpha1.ListUsersResponse.users:type_name -> api.users.user.v1alpha1.User
-	0,  // 3: api.users.user.v1alpha1.UpdateUserRequest.user:type_name -> api.users.user.v1alpha1.User
-	7,  // 4: api.users.user.v1alpha1.UpdateUserRequest.update_mask:type_name -> google.protobuf.FieldMask
-	8,  // 5: api.users.user.v1alpha1.User.Access.permission_level:type_name -> api.types.PermissionLevel
-	9,  // 6: api.users.user.v1alpha1.User.Access.state:type_name -> api.types.AccessState
-	1,  // 7: api.users.user.v1alpha1.UserService.GetUser:input_type -> api.users.user.v1alpha1.GetUserRequest
-	2,  // 8: api.users.user.v1alpha1.UserService.ListUsers:input_type -> api.users.user.v1alpha1.ListUsersRequest
-	4,  // 9: api.users.user.v1alpha1.UserService.UpdateUser:input_type -> api.users.user.v1alpha1.UpdateUserRequest
-	0,  // 10: api.users.user.v1alpha1.UserService.GetUser:output_type -> api.users.user.v1alpha1.User
-	3,  // 11: api.users.user.v1alpha1.UserService.ListUsers:output_type -> api.users.user.v1alpha1.ListUsersResponse
-	0,  // 12: api.users.user.v1alpha1.UserService.UpdateUser:output_type -> api.users.user.v1alpha1.User
-	10, // [10:13] is the sub-list for method output_type
-	7,  // [7:10] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	5, // 0: api.users.user.v1alpha1.User.access:type_name -> api.users.user.v1alpha1.User.Access
+	0, // 1: api.users.user.v1alpha1.ListUsersResponse.users:type_name -> api.users.user.v1alpha1.User
+	0, // 2: api.users.user.v1alpha1.UpdateUserRequest.user:type_name -> api.users.user.v1alpha1.User
+	6, // 3: api.users.user.v1alpha1.UpdateUserRequest.update_mask:type_name -> google.protobuf.FieldMask
+	7, // 4: api.users.user.v1alpha1.User.Access.permission_level:type_name -> api.types.PermissionLevel
+	8, // 5: api.users.user.v1alpha1.User.Access.state:type_name -> api.types.AccessState
+	1, // 6: api.users.user.v1alpha1.UserService.GetUser:input_type -> api.users.user.v1alpha1.GetUserRequest
+	2, // 7: api.users.user.v1alpha1.UserService.ListUsers:input_type -> api.users.user.v1alpha1.ListUsersRequest
+	4, // 8: api.users.user.v1alpha1.UserService.UpdateUser:input_type -> api.users.user.v1alpha1.UpdateUserRequest
+	0, // 9: api.users.user.v1alpha1.UserService.GetUser:output_type -> api.users.user.v1alpha1.User
+	3, // 10: api.users.user.v1alpha1.UserService.ListUsers:output_type -> api.users.user.v1alpha1.ListUsersResponse
+	0, // 11: api.users.user.v1alpha1.UserService.UpdateUser:output_type -> api.users.user.v1alpha1.User
+	9, // [9:12] is the sub-list for method output_type
+	6, // [6:9] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_api_users_user_v1alpha1_user_proto_init() }

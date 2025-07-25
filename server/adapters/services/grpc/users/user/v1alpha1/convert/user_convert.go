@@ -23,7 +23,6 @@ func ProtoToUser(userNamer namer.ReflectNamer, accessNamer namer.ReflectNamer, p
 	user.FamilyName = proto.FamilyName
 	user.ImageUri = proto.ImageUri
 	user.Bio = proto.Bio
-	user.Visibility = proto.Visibility
 
 	return user, nil
 }
@@ -42,7 +41,6 @@ func UserToProto(userNamer namer.ReflectNamer, accessNamer namer.ReflectNamer, u
 	proto.FamilyName = user.FamilyName
 	proto.ImageUri = user.ImageUri
 	proto.Bio = user.Bio
-	proto.Visibility = user.Visibility
 
 	proto.Access = &pb.User_Access{
 		PermissionLevel: user.UserAccess.Level,

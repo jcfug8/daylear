@@ -9,7 +9,6 @@ import (
 	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/masks"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
-	"github.com/jcfug8/daylear/server/genapi/api/types"
 	"github.com/jcfug8/daylear/server/ports/repository"
 	"gorm.io/gorm/clause"
 )
@@ -21,7 +20,6 @@ var UserMap = map[string]string{
 	"permission":  gmodel.UserFields.Permission,
 	"state":       gmodel.UserFields.State,
 	"username":    gmodel.UserFields.Username,
-	"visibility":  gmodel.UserFields.Visibility,
 }
 
 var UserCircleMap = map[string]string{
@@ -29,7 +27,6 @@ var UserCircleMap = map[string]string{
 	"facebook_id": gmodel.UserFields.FacebookId,
 	"amazon_id":   gmodel.UserFields.AmazonId,
 	"username":    gmodel.UserFields.Username,
-	"visibility":  gmodel.UserFields.Visibility,
 	"permission":  gmodel.CircleAccessFields.PermissionLevel,
 	"state":       gmodel.CircleAccessFields.State,
 }
@@ -73,7 +70,7 @@ func (repo *Client) GetUser(ctx context.Context, authAccount cmodel.AuthAccount,
 	err := repo.db.WithContext(ctx).
 		Select("daylear_user.*", "user_access.permission_level", "user_access.state", "user_access.user_access_id", "user_access.requester_user_id").
 		Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?", authAccount.AuthUserId).
-		Where("daylear_user.user_id = ? AND (daylear_user.visibility = ? OR daylear_user.user_id = ? OR user_access.state = ?)", id.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.UserId, types.AccessState_ACCESS_STATE_ACCEPTED).
+		Where("daylear_user.user_id = ?", id.UserId).
 		First(&gm).Error
 	if err != nil {
 		log.Error().Err(err).Msg("db.First failed")
@@ -95,8 +92,6 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 	log.Info().Msg("GORM ListUsers called")
 	dbUsers := []gmodel.User{}
 
-	where := ""
-	whereParams := []any{}
 	columns := []string{"daylear_user.*"}
 	joins := []string{}
 	joinParams := [][]any{}
@@ -116,9 +111,6 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 
 		joins = append(joins, "LEFT JOIN user_access as user_access_auth ON daylear_user.user_id = user_access_auth.user_id AND user_access_auth.recipient_user_id = ?")
 		joinParams = append(joinParams, []any{authAccount.AuthUserId})
-
-		where = "(daylear_user.visibility < ? OR circle_access.circle_id = ?) OR (daylear_user.visibility >= ? OR (user_access_auth.recipient_user_id = ? AND user_access_auth.state = ?))"
-		whereParams = []any{types.VisibilityLevel_VISIBILITY_LEVEL_PRIVATE, authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PRIVATE, authAccount.AuthUserId, types.AccessState_ACCESS_STATE_ACCEPTED}
 	case authAccount.AuthUserId != authAccount.UserId:
 		columns = append(columns, "user_access_auth.permission_level", "user_access_auth.state", "user_access_auth.user_access_id", "user_access_auth.requester_user_id")
 
@@ -127,17 +119,11 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 
 		joins = append(joins, "LEFT JOIN user_access as user_access_auth ON daylear_user.user_id = user_access_auth.user_id AND user_access_auth.recipient_user_id = ?")
 		joinParams = append(joinParams, []any{authAccount.AuthUserId})
-
-		where = "(daylear_user.visibility < ? OR user_access.recipient_user_id = ?) OR (daylear_user.visibility >= ? OR (user_access_auth.recipient_user_id = ? AND user_access_auth.state = ?))"
-		whereParams = []any{types.VisibilityLevel_VISIBILITY_LEVEL_PRIVATE, authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PRIVATE, authAccount.AuthUserId, types.AccessState_ACCESS_STATE_ACCEPTED}
 	case authAccount.UserId == authAccount.AuthUserId && authAccount.AuthUserId != 0:
 		columns = append(columns, "user_access.permission_level", "user_access.state", "user_access.user_access_id", "user_access.requester_user_id")
 
 		joins = append(joins, "LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?")
 		joinParams = append(joinParams, []any{authAccount.UserId})
-
-		where = "daylear_user.visibility < ? OR user_access.recipient_user_id = ?"
-		whereParams = []any{types.VisibilityLevel_VISIBILITY_LEVEL_PRIVATE, authAccount.UserId}
 	}
 
 	tx := repo.db.WithContext(ctx).
@@ -145,9 +131,6 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(pageOffset))
-	if where != "" {
-		tx = tx.Where(where, whereParams...)
-	}
 
 	for i, join := range joins {
 		tx = tx.Joins(join, joinParams[i]...)

@@ -8,6 +8,7 @@ import (
 // Circle defines the model for a circle.
 type Circle struct {
 	Id              CircleId
+	Parent          CircleParent
 	Title           string
 	Description     string
 	Handle          string
@@ -19,6 +20,10 @@ type Circle struct {
 // CircleId defines the identifier for a circle.
 type CircleId struct {
 	CircleId int64 `aip_pattern:"key=circle"`
+}
+
+type CircleParent struct {
+	UserId int64 `aip_pattern:"key=user"`
 }
 
 // ----------------------------------------------------------------------------

@@ -7,6 +7,7 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -109,19 +110,19 @@ func (s *CircleService) GetCircle(ctx context.Context, request *pb.GetCircleRequ
 	}
 
 	var mCircle model.Circle
-	_, err = s.circleNamer.Parse(request.GetName(), &mCircle)
+	nameIndex, err := s.circleNamer.Parse(request.GetName(), &mCircle)
 	if err != nil {
 		log.Warn().Err(err).Str("name", request.GetName()).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	mCircle, err = s.domain.GetCircle(ctx, authAccount, mCircle.Id)
+	mCircle, err = s.domain.GetCircle(ctx, authAccount, mCircle.Parent, mCircle.Id)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.GetCircle failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	circleProto, err := s.CircleToProto(mCircle)
+	circleProto, err := s.CircleToProto(mCircle, namer.AsPatternIndex(nameIndex))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -199,6 +200,13 @@ func (s *CircleService) ListCircles(ctx context.Context, request *pb.ListCircles
 		return nil, status.Error(codes.InvalidArgument, "invalid field mask")
 	}
 
+	mCircleParent := model.CircleParent{}
+	nameIndex, err := s.circleNamer.ParseParent(request.GetParent(), &mCircleParent)
+	if err != nil {
+		log.Warn().Err(err).Msg("invalid parent")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
+	}
+
 	pageToken, pageSize, err := grpc.SetupPagination(request, grpc.PaginationConfig{
 		DefaultPageSize: circleDefaultPageSize,
 		MaxPageSize:     circleMaxPageSize,
@@ -209,14 +217,21 @@ func (s *CircleService) ListCircles(ctx context.Context, request *pb.ListCircles
 	}
 	request.PageSize = pageSize
 
-	circles, err := s.domain.ListCircles(ctx, authAccount, request.GetPageSize(), pageToken.Offset, request.GetFilter(), readMask)
+	circles, err := s.domain.ListCircles(ctx, authAccount, mCircleParent, request.GetPageSize(), pageToken.Offset, request.GetFilter(), readMask)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.ListCircles failed")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// convert models to protos
-	circleProtos, err := s.CircleListToProto(circles)
+	circleProtos := make([]*pb.Circle, len(circles))
+	for i, circle := range circles {
+		circleProto, err := s.CircleToProto(circle, namer.AsPatternIndex(nameIndex))
+		if err != nil {
+			return nil, err
+		}
+		circleProtos[i] = circleProto
+	}
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -257,7 +272,7 @@ func (s *CircleService) ProtoToCircle(proto *pb.Circle) (model.Circle, error) {
 }
 
 // CircleToProto converts a model Circle to a protobuf Circle
-func (s *CircleService) CircleToProto(circle model.Circle) (*pb.Circle, error) {
+func (s *CircleService) CircleToProto(circle model.Circle, nameIndex ...namer.FormatReflectNamerOption) (*pb.Circle, error) {
 	proto := &pb.Circle{}
 	name, err := s.circleNamer.Format(circle)
 	if err != nil {
@@ -283,30 +298,4 @@ func (s *CircleService) CircleToProto(circle model.Circle) (*pb.Circle, error) {
 	}
 
 	return proto, nil
-}
-
-// CircleListToProto converts a slice of model Circles to a slice of protobuf Circles
-func (s *CircleService) CircleListToProto(circles []model.Circle) ([]*pb.Circle, error) {
-	protos := make([]*pb.Circle, len(circles))
-	for i, circle := range circles {
-		proto, err := s.CircleToProto(circle)
-		if err != nil {
-			return nil, err
-		}
-		protos[i] = proto
-	}
-	return protos, nil
-}
-
-// ProtosToCircle converts a slice of protobuf Circles to a slice of model Circles
-func (s *CircleService) ProtosToCircle(protos []*pb.Circle) ([]model.Circle, error) {
-	res := make([]model.Circle, len(protos))
-	for i, proto := range protos {
-		circle, err := s.ProtoToCircle(proto)
-		if err != nil {
-			return nil, err
-		}
-		res[i] = circle
-	}
-	return res, nil
 }

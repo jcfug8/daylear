@@ -136,7 +136,7 @@ func (d *Domain) DeleteCircle(ctx context.Context, authAccount model.AuthAccount
 }
 
 // GetCircle gets a circle.
-func (d *Domain) GetCircle(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (circle model.Circle, err error) {
+func (d *Domain) GetCircle(ctx context.Context, authAccount model.AuthAccount, parent model.CircleParent, id model.CircleId) (circle model.Circle, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	log.Info().Msg("Domain GetCircle called")
 	if authAccount.AuthUserId == 0 {
@@ -150,6 +150,10 @@ func (d *Domain) GetCircle(ctx context.Context, authAccount model.AuthAccount, i
 	}
 
 	authAccount.CircleId = id.CircleId
+
+	if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
+	}
 
 	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
 	if err != nil {
@@ -173,12 +177,16 @@ func (d *Domain) GetCircle(ctx context.Context, authAccount model.AuthAccount, i
 }
 
 // ListCircles lists circles for a parent.
-func (d *Domain) ListCircles(ctx context.Context, authAccount model.AuthAccount, pageSize int32, pageOffset int64, filter string, fieldMask []string) ([]model.Circle, error) {
+func (d *Domain) ListCircles(ctx context.Context, authAccount model.AuthAccount, parent model.CircleParent, pageSize int32, pageOffset int64, filter string, fieldMask []string) ([]model.Circle, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	log.Info().Msg("Domain ListCircles called")
 	if authAccount.AuthUserId == 0 {
 		log.Warn().Msg("parent required: missing user id")
 		return nil, domain.ErrInvalidArgument{Msg: "parent required"}
+	}
+
+	if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
 	}
 
 	circles, err := d.repo.ListCircles(ctx, authAccount, pageSize, pageOffset, filter, fieldMask)
@@ -387,7 +395,7 @@ func (d *Domain) uploadCircleImage(ctx context.Context, id model.CircleId, image
 }
 
 func (d *Domain) removeCircleImage(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (err error) {
-	circle, err := d.GetCircle(ctx, authAccount, id)
+	circle, err := d.GetCircle(ctx, authAccount, model.CircleParent{}, id)
 	if err != nil {
 		return err
 	}

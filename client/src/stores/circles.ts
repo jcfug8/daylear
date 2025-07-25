@@ -27,12 +27,13 @@ export const useCirclesStore = defineStore('circles', () => {
     }
   }
 
-  async function loadCircles(filter?: string): Promise<Circle[]> {
+  async function loadCircles(parent: string, filter?: string): Promise<Circle[]> {
     try {
       const result = await circleService.ListCircles({ 
         filter: filter || undefined,
         pageSize: 50,
-        pageToken: undefined
+        pageToken: undefined,
+        parent: parent,
       })
       return result.circles || []
     } catch (error) {
@@ -49,6 +50,7 @@ export const useCirclesStore = defineStore('circles', () => {
       imageUri: undefined,
       circleAccess: undefined,
       handle: '',
+      description: '',
     }
   }
 
@@ -93,20 +95,20 @@ export const useCirclesStore = defineStore('circles', () => {
   }
 
   // Load my circles (admin permission)
-  async function loadMyCircles() {
-    const circles = await loadCircles('state = 200')
+  async function loadMyCircles(parent: string) {
+    const circles = await loadCircles(parent,'state = 200')
     myCircles.value = circles
   }
 
   // Load shared circles (accepted or pending)
   async function loadPendingCircles() {
-    const circles = await loadCircles('state = 100')
+    const circles = await loadCircles('','state = 100')
     sharedPendingCircles.value = circles
   }
 
   // Load public circles
   async function loadPublicCircles() {
-    const circles = await loadCircles('visibility = 1')
+    const circles = await loadCircles('','visibility = 1')
     publicCircles.value = circles
   }
 

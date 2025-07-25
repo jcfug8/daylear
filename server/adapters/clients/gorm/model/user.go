@@ -19,8 +19,6 @@ var UserMap = masks.NewFieldMap().
 		UserFields.GivenName).
 	MapFieldToFields(model.UserFields.FamilyName,
 		UserFields.FamilyName).
-	MapFieldToFields(model.UserFields.Visibility,
-		UserFields.Visibility).
 	MapFieldToFields(model.UserFields.ImageUri,
 		UserFields.ImageUri).
 	MapFieldToFields(model.UserFields.Bio,
@@ -34,7 +32,6 @@ var UserFields = userFields{
 	FamilyName: "daylear_user.family_name",
 	ImageUri:   "daylear_user.image_uri",
 	Bio:        "daylear_user.bio",
-	Visibility: "daylear_user.visibility",
 
 	Email: "daylear_user.email",
 
@@ -53,7 +50,6 @@ type userFields struct {
 	FamilyName string
 	ImageUri   string
 	Bio        string
-	Visibility string
 
 	Email string
 
@@ -72,7 +68,6 @@ func (fields userFields) Map(m User) map[string]any {
 		fields.Username:   m.Username,
 		fields.GivenName:  m.GivenName,
 		fields.FamilyName: m.FamilyName,
-		fields.Visibility: m.Visibility,
 		fields.ImageUri:   m.ImageUri,
 		fields.Bio:        m.Bio,
 
@@ -96,7 +91,6 @@ func (fields userFields) Mask() []string {
 		fields.FamilyName,
 		fields.ImageUri,
 		fields.Bio,
-		fields.Visibility,
 
 		fields.Email,
 
@@ -111,11 +105,10 @@ func (fields userFields) Mask() []string {
 
 // User -
 type User struct {
-	UserId     int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
-	Username   string                `gorm:"size:50;not null;uniqueIndex"`
-	GivenName  string                `gorm:"size:100"`
-	FamilyName string                `gorm:"size:100"`
-	Visibility types.VisibilityLevel `gorm:"not null;default:1"`
+	UserId     int64  `gorm:"primaryKey;bigint;not null;<-:false"`
+	Username   string `gorm:"size:50;not null;uniqueIndex"`
+	GivenName  string `gorm:"size:100"`
+	FamilyName string `gorm:"size:100"`
 
 	Email string `gorm:"size:255;not null;uniqueIndex"`
 

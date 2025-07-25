@@ -29,7 +29,7 @@ func (d *Domain) CreateUserAccess(ctx context.Context, authAccount model.AuthAcc
 	}
 
 	authAccount.UserId = access.UserAccessParent.UserId.UserId
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevels(ctx, authAccount)
+	authAccount.PermissionLevel, err = d.getUserAccessLevels(ctx, authAccount)
 	if err != nil {
 		log.Error().Err(err).Msg("getUserAccessLevels failed")
 		return model.UserAccess{}, err
@@ -159,7 +159,7 @@ func (d *Domain) ListUserAccesses(ctx context.Context, authAccount model.AuthAcc
 	}
 
 	if parent.UserId.UserId != 0 {
-		perm, _, err := d.getUserAccessLevels(ctx, authAccount)
+		perm, err := d.getUserAccessLevels(ctx, authAccount)
 		if err != nil {
 			log.Error().Err(err).Msg("getUserAccessLevels failed")
 			return nil, err

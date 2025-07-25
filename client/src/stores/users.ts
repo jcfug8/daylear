@@ -38,7 +38,7 @@ export const useUsersStore = defineStore('users', () => {
   }
 
   async function loadPublicUsers(parent: string) {
-    const result = await loadUsers(parent, 'visibility = 1')
+    const result = await loadUsers(parent, '')
     publicUsers.value = result
   }
 
@@ -76,7 +76,6 @@ export const useUsersStore = defineStore('users', () => {
           username: editUser.username,
           givenName: editUser.givenName,
           familyName: editUser.familyName,
-          visibility: editUser.visibility,
           imageUri: editUser.imageUri,
           access: undefined,
           bio: editUser.bio,

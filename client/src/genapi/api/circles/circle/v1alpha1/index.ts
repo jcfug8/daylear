@@ -96,6 +96,10 @@ export type CreateCircleRequest = {
 
 // the request to list circles
 export type ListCirclesRequest = {
+  // the parent of the circles
+  //
+  // Behaviors: OPTIONAL
+  parent: string | undefined;
   // the page size
   //
   // Behaviors: OPTIONAL
@@ -224,6 +228,9 @@ export function createCircleServiceClient(
       const path = `circles/v1alpha1/circles`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
+      if (request.parent) {
+        queryParams.push(`parent=${encodeURIComponent(request.parent.toString())}`)
+      }
       if (request.pageSize) {
         queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
       }

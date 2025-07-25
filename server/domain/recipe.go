@@ -256,7 +256,7 @@ func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount,
 			return nil, err
 		}
 	} else if authAccount.UserId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getUserAccessLevels(ctx, authAccount)
+		authAccount.PermissionLevel, err = d.getUserAccessLevels(ctx, authAccount)
 		if err != nil {
 			log.Error().Err(err).Msg("getRecipeAccessLevelsForUser failed")
 			return nil, err

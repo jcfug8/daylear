@@ -17,6 +17,7 @@
 - included_paths:
     - 'api/meals/recipe/v1alpha1/recipe.proto'
     - 'api/users/user/v1alpha1/user.proto'
+    - 'api/circles/circle/v1alpha1/circle.proto'
   disabled_rules:
    - 'core::0132::http-uri-parent'
    - 'core::0133::http-uri-parent'

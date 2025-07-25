@@ -57,7 +57,11 @@ service CircleService {
 
   // list circles
   rpc ListCircles(ListCirclesRequest) returns (ListCirclesResponse) {
-    option (google.api.http) = {get: "/circles/v1alpha1/circles"};
+    option (google.api.method_signature) = "parent";
+    option (google.api.http) = {
+      get: "/circles/v1alpha1/circles"
+      additional_bindings: {get: "/circles/v1alpha1/{parent=users/*}/circles"}
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "List circles"
       description: "Retrieves a paginated list of circles. Supports filtering and pagination."
@@ -135,6 +139,7 @@ message Circle {
   option (google.api.resource) = {
     type: "api.circles.circle.v1alpha1/Circle"
     pattern: "circles/{circle}"
+    pattern: "users/{user}/circles/{circle}"
     plural: "circles"
     singular: "circle"
   };
@@ -184,6 +189,12 @@ message CreateCircleRequest {
 
 // the request to list circles
 message ListCirclesRequest {
+  // the parent of the circles
+  string parent = 1 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference).type = "api.users.user.v1alpha1/User"
+  ];
+
   // the page size
   int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
 

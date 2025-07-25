@@ -129,9 +129,6 @@ message User {
   // the bio for the user
   string bio = 9 [(google.api.field_behavior) = OPTIONAL];
 
-  // the visibility of the user
-  api.types.VisibilityLevel visibility = 6 [(google.api.field_behavior) = REQUIRED];
-
   // the user access details
   Access access = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
 

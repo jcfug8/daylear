@@ -383,10 +383,6 @@
                   "type": "string",
                   "title": "the bio for the user"
                 },
-                "visibility": {
-                  "$ref": "#/definitions/typesVisibilityLevel",
-                  "title": "the visibility of the user"
-                },
                 "access": {
                   "$ref": "#/definitions/v1alpha1UserAccess",
                   "title": "the user access details",
@@ -395,7 +391,6 @@
               },
               "title": "the user to update",
               "required": [
-                "visibility",
                 "user"
               ]
             }
@@ -467,19 +462,6 @@
       "description": "- PERMISSION_LEVEL_UNSPECIFIED: the permission is not specified\n - PERMISSION_LEVEL_PUBLIC: the permission is public\n - PERMISSION_LEVEL_READ: the permission is read\n - PERMISSION_LEVEL_WRITE: the permission is write\n - PERMISSION_LEVEL_ADMIN: the permission is admin",
       "title": "the permission levels"
     },
-    "typesVisibilityLevel": {
-      "type": "string",
-      "enum": [
-        "VISIBILITY_LEVEL_UNSPECIFIED",
-        "VISIBILITY_LEVEL_PUBLIC",
-        "VISIBILITY_LEVEL_RESTRICTED",
-        "VISIBILITY_LEVEL_PRIVATE",
-        "VISIBILITY_LEVEL_HIDDEN"
-      ],
-      "default": "VISIBILITY_LEVEL_UNSPECIFIED",
-      "description": "- VISIBILITY_LEVEL_UNSPECIFIED: the visibility is not specified\n - VISIBILITY_LEVEL_PUBLIC: the visibility is public\n - VISIBILITY_LEVEL_RESTRICTED: the visibility is restricted\n - VISIBILITY_LEVEL_PRIVATE: the visibility is private\n - VISIBILITY_LEVEL_HIDDEN: the visibility is hidden",
-      "title": "the visibility levels"
-    },
     "userv1alpha1User": {
       "type": "object",
       "properties": {
@@ -507,20 +489,13 @@
           "type": "string",
           "title": "the bio for the user"
         },
-        "visibility": {
-          "$ref": "#/definitions/typesVisibilityLevel",
-          "title": "the visibility of the user"
-        },
         "access": {
           "$ref": "#/definitions/v1alpha1UserAccess",
           "title": "the user access details",
           "readOnly": true
         }
       },
-      "title": "the main user object with public fields",
-      "required": [
-        "visibility"
-      ]
+      "title": "the main user object with public fields"
     },
     "v1alpha1ListUsersResponse": {
       "type": "object",

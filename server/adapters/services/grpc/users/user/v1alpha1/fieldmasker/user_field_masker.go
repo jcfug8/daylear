@@ -45,7 +45,6 @@ func NewUserFieldMasker() UserFieldMasker {
 	fm.mapFieldMaskPathToDomainMasks("family_name", model.UserFields.FamilyName)
 	fm.mapFieldMaskPathToDomainMasks("image_uri", model.UserFields.ImageUri)
 	fm.mapFieldMaskPathToDomainMasks("bio", model.UserFields.Bio)
-	fm.mapFieldMaskPathToDomainMasks("visibility", model.UserFields.Visibility)
 	fm.mapFieldMaskPathToDomainMasks("access.name", model.UserFields.AccessName)
 	fm.mapFieldMaskPathToDomainMasks("access.permission_level", model.UserFields.AccessPermissionLevel)
 	fm.mapFieldMaskPathToDomainMasks("access.state", model.UserFields.AccessState)

@@ -27,12 +27,12 @@ func (d *Domain) checkRecipeAccess(ctx context.Context, authAccount model.AuthAc
 	}
 
 	if authAccount.UserId != 0 {
-		userPermissionLevel, userVisibilityLevel, err := d.getUserAccessLevels(ctx, authAccount)
+		userPermissionLevel, err := d.getUserAccessLevels(ctx, authAccount)
 		if err != nil {
 			return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
 		}
 
-		permissionLevel, visibilityLevel, err = determineRecipeAccessLevels(userVisibilityLevel, userPermissionLevel, visibilityLevel, permissionLevel)
+		permissionLevel, visibilityLevel, err = determineRecipeAccessLevels(visibilityLevel, userPermissionLevel, visibilityLevel, permissionLevel)
 		if err != nil {
 			return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
 		}
@@ -46,65 +46,61 @@ func (d *Domain) checkRecipeAccess(ctx context.Context, authAccount model.AuthAc
 	return permissionLevel, visibilityLevel, nil
 }
 
-func (d *Domain) checkUserAccess(ctx context.Context, authAccount model.AuthAccount, userId model.UserId, minPermLevel types.PermissionLevel) (permissionLevel types.PermissionLevel, visibilityLevel types.VisibilityLevel, err error) {
-	permissionLevel, visibilityLevel, err = d.getUserAccessLevels(ctx, authAccount)
+func (d *Domain) checkUserAccess(ctx context.Context, authAccount model.AuthAccount, userId model.UserId, minPermLevel types.PermissionLevel) (permissionLevel types.PermissionLevel, err error) {
+	permissionLevel, err = d.getUserAccessLevels(ctx, authAccount)
 	if err != nil {
-		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, err
 	}
 
 	if authAccount.CircleId != 0 {
-		circlePermissionLevel, circleVisibilityLevel, err := d.getCircleAccessLevels(ctx, authAccount)
+		circlePermissionLevel, _, err := d.getCircleAccessLevels(ctx, authAccount)
 		if err != nil {
-			return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+			return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, err
 		}
 
-		permissionLevel, visibilityLevel, err = determineUserAccessLevels(circleVisibilityLevel, circlePermissionLevel, visibilityLevel, permissionLevel)
+		permissionLevel, err = determineUserAccessLevels(circlePermissionLevel, permissionLevel)
 		if err != nil {
-			return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+			return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, err
 		}
 	}
 
 	if authAccount.UserId != 0 {
-		userPermissionLevel, userVisibilityLevel, err := d.getUserAccessLevels(ctx, authAccount)
+		userPermissionLevel, err := d.getUserAccessLevels(ctx, authAccount)
 		if err != nil {
-			return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+			return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, err
 		}
 
-		permissionLevel, visibilityLevel, err = determineUserAccessLevels(userVisibilityLevel, userPermissionLevel, visibilityLevel, permissionLevel)
+		permissionLevel, err = determineUserAccessLevels(userPermissionLevel, permissionLevel)
 		if err != nil {
-			return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+			return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, err
 		}
 	}
 
-	return permissionLevel, visibilityLevel, nil
+	return permissionLevel, nil
 }
 
-func (d *Domain) getUserAccessLevels(ctx context.Context, authAccount model.AuthAccount) (types.PermissionLevel, types.VisibilityLevel, error) {
+func (d *Domain) getUserAccessLevels(ctx context.Context, authAccount model.AuthAccount) (types.PermissionLevel, error) {
 	// verify auth account is set
 	if authAccount.AuthUserId == 0 {
-		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "auth user is required"}
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "auth user is required"}
 	}
 
 	// verify user id is set
 	if authAccount.UserId == 0 {
-		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "user id is required"}
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, domain.ErrInvalidArgument{Msg: "user id is required"}
 	}
 
 	// verify user exists
 	user, err := d.repo.GetUser(ctx, authAccount, model.UserId{UserId: authAccount.UserId})
 	if err != nil {
-		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, err
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, err
 	}
 
 	if user.Id.UserId == authAccount.AuthUserId {
-		return types.PermissionLevel_PERMISSION_LEVEL_ADMIN, user.Visibility, nil
+		return types.PermissionLevel_PERMISSION_LEVEL_ADMIN, nil
 	}
 
-	if user.Visibility == types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED && user.UserAccess.Level == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
-		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user does not have access to user"}
-	}
-
-	return user.UserAccess.Level, user.Visibility, nil
+	return user.UserAccess.Level, nil
 }
 
 func (d *Domain) getCircleAccessLevels(ctx context.Context, authAccount model.AuthAccount) (types.PermissionLevel, types.VisibilityLevel, error) {
@@ -186,11 +182,11 @@ func determineRecipeAccessLevels(circleVisibilityLevel types.VisibilityLevel, ci
 	return effectivePermission, effectiveVisibility, nil
 }
 
-func determineUserAccessLevels(circleVisibilityLevel types.VisibilityLevel, circlePermissionLevel types.PermissionLevel, userVisibilityLevel types.VisibilityLevel, userPermissionLevel types.PermissionLevel) (types.PermissionLevel, types.VisibilityLevel, error) {
+func determineUserAccessLevels(circlePermissionLevel types.PermissionLevel, userPermissionLevel types.PermissionLevel) (types.PermissionLevel, error) {
 	// If either access level is unspecified, no access
 	if circlePermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED &&
 		userPermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
-		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user does not have access to user: access not set"}
+		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user does not have access to user: access not set"}
 	}
 
 	// Effective permission is minimum of circle and user permissions
@@ -201,14 +197,5 @@ func determineUserAccessLevels(circleVisibilityLevel types.VisibilityLevel, circ
 		effectivePermission = userPermissionLevel
 	}
 
-	// Determine effective visibility
-	effectiveVisibility := userVisibilityLevel
-
-	// If user only has PUBLIC permission, they can only see PUBLIC users
-	if effectivePermission == types.PermissionLevel_PERMISSION_LEVEL_PUBLIC &&
-		userVisibilityLevel != types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC {
-		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, types.VisibilityLevel_VISIBILITY_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user does not have access to user: public access not allowed"}
-	}
-
-	return effectivePermission, effectiveVisibility, nil
+	return effectivePermission, nil
 }

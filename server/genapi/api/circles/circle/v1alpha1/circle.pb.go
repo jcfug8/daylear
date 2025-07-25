@@ -183,6 +183,8 @@ func (x *CreateCircleRequest) GetCircleId() string {
 // the request to list circles
 type ListCirclesRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
+	// the parent of the circles
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// the page size
 	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	// the page token
@@ -221,6 +223,13 @@ func (x *ListCirclesRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ListCirclesRequest.ProtoReflect.Descriptor instead.
 func (*ListCirclesRequest) Descriptor() ([]byte, []int) {
 	return file_api_circles_circle_v1alpha1_circle_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ListCirclesRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
 }
 
 func (x *ListCirclesRequest) GetPageSize() int32 {
@@ -514,7 +523,7 @@ var File_api_circles_circle_v1alpha1_circle_proto protoreflect.FileDescriptor
 
 const file_api_circles_circle_v1alpha1_circle_proto_rawDesc = "" +
 	"\n" +
-	"(api/circles/circle/v1alpha1/circle.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xb4\x04\n" +
+	"(api/circles/circle/v1alpha1/circle.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xd3\x04\n" +
 	"\x06Circle\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
@@ -528,12 +537,14 @@ const file_api_circles_circle_v1alpha1_circle_proto_rawDesc = "" +
 	"\fCircleAccess\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x03R\x04name\x12J\n" +
 	"\x10permission_level\x18\x02 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x03R\x0fpermissionLevel\x121\n" +
-	"\x05state\x18\x03 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state:J\xeaAG\n" +
-	"\"api.circles.circle.v1alpha1/Circle\x12\x10circles/{circle}*\acircles2\x06circle\"y\n" +
+	"\x05state\x18\x03 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state:i\xeaAf\n" +
+	"\"api.circles.circle.v1alpha1/Circle\x12\x10circles/{circle}\x12\x1dusers/{user}/circles/{circle}*\acircles2\x06circle\"y\n" +
 	"\x13CreateCircleRequest\x12@\n" +
 	"\x06circle\x18\x02 \x01(\v2#.api.circles.circle.v1alpha1.CircleB\x03\xe0A\x02R\x06circle\x12 \n" +
-	"\tcircle_id\x18\x03 \x01(\tB\x03\xe0A\x02R\bcircleId\"w\n" +
-	"\x12ListCirclesRequest\x12 \n" +
+	"\tcircle_id\x18\x03 \x01(\tB\x03\xe0A\x02R\bcircleId\"\xb5\x01\n" +
+	"\x12ListCirclesRequest\x12<\n" +
+	"\x06parent\x18\x01 \x01(\tB$\xe0A\x01\xfaA\x1e\n" +
+	"\x1capi.users.user.v1alpha1/UserR\x06parent\x12 \n" +
 	"\tpage_size\x18\x02 \x01(\x05B\x03\xe0A\x01R\bpageSize\x12\"\n" +
 	"\n" +
 	"page_token\x18\x03 \x01(\tB\x03\xe0A\x01R\tpageToken\x12\x1b\n" +
@@ -550,16 +561,16 @@ const file_api_circles_circle_v1alpha1_circle_proto_rawDesc = "" +
 	"\"api.circles.circle.v1alpha1/CircleR\x04name\"R\n" +
 	"\x10GetCircleRequest\x12>\n" +
 	"\x04name\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\n" +
-	"\"api.circles.circle.v1alpha1/CircleR\x04name2\x80\f\n" +
+	"\"api.circles.circle.v1alpha1/CircleR\x04name2\xb7\f\n" +
 	"\rCircleService\x12\xb3\x02\n" +
 	"\fCreateCircle\x120.api.circles.circle.v1alpha1.CreateCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"\xcb\x01\x92A\x8b\x01\n" +
 	"\rCircleService\x12\x0fCreate a circle\x1a/Creates a new circle with the provided details.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x10circle,circle_id\x82\xd3\xe4\x93\x02#:\x06circle\"\x19/circles/v1alpha1/circles\x12\xba\x02\n" +
-	"\vListCircles\x12/.api.circles.circle.v1alpha1.ListCirclesRequest\x1a0.api.circles.circle.v1alpha1.ListCirclesResponse\"\xc7\x01\x92A\xa2\x01\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x10circle,circle_id\x82\xd3\xe4\x93\x02#:\x06circle\"\x19/circles/v1alpha1/circles\x12\xf1\x02\n" +
+	"\vListCircles\x12/.api.circles.circle.v1alpha1.ListCirclesRequest\x1a0.api.circles.circle.v1alpha1.ListCirclesResponse\"\xfe\x01\x92A\xa2\x01\n" +
 	"\rCircleService\x12\fList circles\x1aIRetrieves a paginated list of circles. Supports filtering and pagination.r8\n" +
 	"6\n" +
-	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\x82\xd3\xe4\x93\x02\x1b\x12\x19/circles/v1alpha1/circles\x12\xc0\x02\n" +
+	"\x10X-Daylear-Circle\x12 the name of the circle to act as\x18\x01\xdaA\x06parent\x82\xd3\xe4\x93\x02IZ,\x12*/circles/v1alpha1/{parent=users/*}/circles\x12\x19/circles/v1alpha1/circles\x12\xc0\x02\n" +
 	"\fUpdateCircle\x120.api.circles.circle.v1alpha1.UpdateCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"\xd8\x01\x92A\x86\x01\n" +
 	"\rCircleService\x12\x0fUpdate a circle\x1a*Updates the details of an existing circle.r8\n" +
 	"6\n" +

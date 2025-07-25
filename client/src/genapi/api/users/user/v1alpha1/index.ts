@@ -28,28 +28,12 @@ export type User = {
   //
   // Behaviors: OPTIONAL
   bio: string | undefined;
-  // the visibility of the user
-  //
-  // Behaviors: REQUIRED
-  visibility: apitypes_VisibilityLevel | undefined;
   // the user access details
   //
   // Behaviors: OUTPUT_ONLY
   access: User_Access | undefined;
 };
 
-// the visibility levels
-export type apitypes_VisibilityLevel =
-  // the visibility is not specified
-  | "VISIBILITY_LEVEL_UNSPECIFIED"
-  // the visibility is public
-  | "VISIBILITY_LEVEL_PUBLIC"
-  // the visibility is restricted
-  | "VISIBILITY_LEVEL_RESTRICTED"
-  // the visibility is private
-  | "VISIBILITY_LEVEL_PRIVATE"
-  // the visibility is hidden
-  | "VISIBILITY_LEVEL_HIDDEN";
 // the user access details
 export type User_Access = {
   // the name of the access

@@ -2,7 +2,6 @@ package model
 
 import (
 	"github.com/jcfug8/daylear/server/core/masks"
-	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
 // User defines the model for a user.
@@ -19,8 +18,7 @@ type User struct {
 	// the bio for the user
 	Bio string
 
-	Email      string
-	Visibility types.VisibilityLevel
+	Email string
 
 	AmazonId   string
 	FacebookId string
@@ -53,8 +51,7 @@ var UserFields = userFields{
 	ImageUri: "image_uri",
 	Bio:      "bio",
 
-	Email:      "email",
-	Visibility: "visibility",
+	Email: "email",
 
 	GoogleId:   "google_id",
 	FacebookId: "facebook_id",
@@ -74,8 +71,7 @@ type userFields struct {
 	ImageUri string
 	Bio      string
 
-	Email      string
-	Visibility string
+	Email string
 
 	GoogleId   string
 	FacebookId string
@@ -97,7 +93,6 @@ func (fields userFields) Mask() []string {
 		fields.Bio,
 
 		fields.Email,
-		fields.Visibility,
 
 		fields.GoogleId,
 		fields.FacebookId,
@@ -116,7 +111,6 @@ func (fields userFields) UpdateMask(mask []string) []string {
 		fields.GivenName,
 		fields.FamilyName,
 		fields.ImageUri,
-		fields.Visibility,
 		fields.Bio,
 	}
 
