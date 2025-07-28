@@ -1,5 +1,5 @@
 <template>
-  <v-container v-if="circle" max-width="600" class="pa-1">
+  <v-container v-if="circle" max-width="600" class="pa-1 pb-16">
     <v-row>
       <v-col class="pt-5">
         <div class="text-h4">
@@ -131,18 +131,24 @@
   <!-- Close FAB -->
   <v-btn
     color="error"
-    icon="mdi-close"
+    density="compact"
     style="position: fixed; bottom: 16px; left: 16px"
     @click="$emit('close')"
-  ></v-btn>
+  >
+    <v-icon>mdi-close</v-icon>
+    Cancel
+  </v-btn>
 
   <!-- Save FAB -->
   <v-btn
     color="success"
-    icon="mdi-content-save"
+    density="compact"
     style="position: fixed; bottom: 16px; right: 16px"
     @click="handleSave"
-  ></v-btn>
+  >
+    <v-icon>mdi-content-save</v-icon>
+    Save
+  </v-btn>
 
   <v-dialog v-model="showImageDialog" max-width="500">
     <v-card>

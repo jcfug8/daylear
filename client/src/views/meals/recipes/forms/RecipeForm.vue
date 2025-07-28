@@ -1,6 +1,6 @@
 <template>
   <v-form>
-    <v-container v-if="recipe">
+    <v-container v-if="recipe" class="pb-16">
       <v-app-bar>
         <v-tabs style="width: 100%" v-model="tab" center-active show-arrows fixed-tabs>
           <v-tab
@@ -31,18 +31,24 @@
     <!-- Close FAB -->
     <v-btn
       color="error"
-      icon="mdi-close"
+      density="compact"
       style="position: fixed; bottom: 16px; left: 16px"
       @click="$emit('close')"
-    ></v-btn>
+    >
+      <v-icon>mdi-close</v-icon>
+      Cancel
+    </v-btn>
 
     <!-- Save FAB -->
     <v-btn
       color="success"
-      icon="mdi-content-save"
+      density="compact"
       style="position: fixed; bottom: 16px; right: 16px"
       @click="handleSave"
-    ></v-btn>
+    >
+      <v-icon>mdi-content-save</v-icon>
+      Save
+    </v-btn>
   </v-form>
 </template>
 

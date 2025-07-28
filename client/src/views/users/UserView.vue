@@ -1,5 +1,5 @@
 <template>
-  <v-container v-if="user">
+  <v-container v-if="user" class="pb-16">
     <ListTabsPage :tabs="tabs" ref="tabsPage">
       <template #general>
          <!-- Access Request Section -->
@@ -88,23 +88,21 @@
             <v-spacer></v-spacer>
           </v-card-actions>
         </v-card>
-        <!-- General Tab FAB -->
-        <v-fab location="bottom right" app color="primary" icon @click="speedDialOpen = !speedDialOpen">
-          <v-icon>mdi-dots-vertical</v-icon>
-          <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
-            <v-btn key="edit" v-if="hasAdminPermission(user.access?.permissionLevel)"
-            :to="'/'+user.name+'/edit'" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
-
-            <v-btn key="friend-request" v-if="!hasWritePermission(user.access?.permissionLevel)"
-              @click="handleConnect" :loading="connecting" color="primary"><v-icon>mdi-account-plus</v-icon>Friend Request</v-btn>
-            
-            <v-btn key="cancel-request" v-if="user.access?.state === 'ACCESS_STATE_PENDING'"
-              @click="showCancelRequestDialog = true" color="warning"><v-icon>mdi-close</v-icon>Cancel Request</v-btn>
-            
-            <v-btn key="disconnect" v-if="hasWritePermission(user.access?.permissionLevel) && user.access?.state === 'ACCESS_STATE_ACCEPTED'"
-              @click="showRemoveAccessDialog = true" color="warning"><v-icon>mdi-account-remove</v-icon>Disconnect</v-btn>
-          </v-speed-dial>
-        </v-fab>
+        <!-- Floating action buttons container -->
+        <div class="fab-container">
+          <v-btn density="compact" v-if="hasAdminPermission(user.access?.permissionLevel)" color="primary" :to="'/'+user.name+'/edit'">
+            <v-icon>mdi-pencil</v-icon>Edit
+          </v-btn>
+          <v-btn density="compact" v-if="!hasWritePermission(user.access?.permissionLevel)" color="primary"  @click="handleConnect" :loading="connecting">
+            <v-icon>mdi-account-plus</v-icon>Friend Request
+          </v-btn>
+          <v-btn density="compact" v-if="user.access?.state === 'ACCESS_STATE_PENDING'" color="warning" @click="showCancelRequestDialog = true">
+            <v-icon>mdi-close</v-icon>Cancel Request
+          </v-btn>
+          <v-btn density="compact" v-if="hasWritePermission(user.access?.permissionLevel) && user.access?.state === 'ACCESS_STATE_ACCEPTED'" color="warning" @click="showRemoveAccessDialog = true">
+            <v-icon>mdi-account-remove</v-icon>Remove Access
+          </v-btn>
+        </div>
       </template>
       <template #recipes="{ items, loading }">
         <RecipeGrid :recipes="items" :loading="loading" />
@@ -112,10 +110,13 @@
         <v-btn
           v-if="hasAdminPermission(user.access?.permissionLevel)"
           color="primary"
-          icon="mdi-plus"
+          density="compact"
           style="position: fixed; bottom: 16px; right: 16px"
           :to="{ name: 'recipeCreate' }"
-        ></v-btn>
+        >
+          <v-icon>mdi-plus</v-icon>
+          Create Recipe
+        </v-btn>
       </template>
       <template #friends="{ items, loading }">
         <UserGrid :users="items" :loading="loading" empty-text="No friends found." />
@@ -123,10 +124,13 @@
         <v-btn
           v-if="hasAdminPermission(user.access?.permissionLevel)"
           color="primary"
-          icon="mdi-share-variant"
+          density="compact"
           style="position: fixed; bottom: 16px; right: 16px"
           @click="showShareDialog = true"
-        ></v-btn>
+        >
+          <v-icon>mdi-share-variant</v-icon>
+          Manage Friends
+        </v-btn>
       </template>
       <template #circles="{ items, loading }">
         <CircleGrid :circles="items" :loading="loading" empty-text="No circles found." />
@@ -134,10 +138,13 @@
         <v-btn
           v-if="hasAdminPermission(user.access?.permissionLevel)"
           color="primary"
-          icon="mdi-plus"
+          density="compact"
           style="position: fixed; bottom: 16px; right: 16px"
           :to="{ name: 'circleCreate' }"
-        ></v-btn>
+        >
+          <v-icon>mdi-plus</v-icon>
+          Create Circle
+        </v-btn>
       </template>
     </ListTabsPage>
 
@@ -320,7 +327,8 @@ async function handleRemoveAccess() {
     }
     
     await userAccessService.DeleteAccess(deleteRequest)
-    router.push({ name: 'users' })
+    await usersStore.loadUser(user.value.name!)
+    alertsStore.addAlert('Friend removed.', 'info')
   } catch (error) {
     const msg = `Error removing access: ${error instanceof Error ? 
     error.message : String(error)}`
@@ -569,4 +577,14 @@ async function shareWithUser({ userName, permission }: { userName: string, permi
 }
 </script>
 
-<style></style>
+<style scoped>
+.fab-container {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+}
+</style>

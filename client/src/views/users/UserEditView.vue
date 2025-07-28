@@ -1,5 +1,5 @@
 <template>
-  <v-container v-if="user && userSettings">
+  <v-container v-if="user && userSettings" class="pb-16">
     <v-card class="mx-auto" max-width="600">
       <v-card-title>Edit User Settings</v-card-title>
       <v-card-text>
@@ -115,16 +115,22 @@
   <!-- FABs for cancel and save -->
   <v-btn
     color="error"
-    icon="mdi-close"
+    density="compact"
     style="position: fixed; bottom: 16px; left: 16px; z-index: 10;"
     @click="navigateBack"
-  ></v-btn>
+  >
+    <v-icon>mdi-close</v-icon>
+    Cancel
+  </v-btn>
   <v-btn
     color="success"
-    icon="mdi-content-save"
+    density="compact"
     style="position: fixed; bottom: 16px; right: 16px; z-index: 10;"
     @click="saveSettings"
-  ></v-btn>
+  >
+    <v-icon>mdi-content-save</v-icon>
+    Save
+  </v-btn>
 </template>
 
 <script setup lang="ts">

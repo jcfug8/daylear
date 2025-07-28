@@ -1,5 +1,5 @@
 <template>
-  <div v-if="recipe">
+  <div v-if="recipe" class="pb-16">
     <v-app-bar>
       <v-tabs style="width: 100%" v-model="tab" center-active show-arrows fixed-tabs>
         <v-tab value="general">
@@ -239,22 +239,25 @@
     </v-tabs-window>
 
 
-    <!-- Speed Dial -->
-    <v-fab location="bottom right" app color="primary"  icon @click="speedDialOpen = !speedDialOpen">
-      <v-icon>mdi-dots-vertical</v-icon>
-      <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
-        <v-btn key="edit" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)"
-        :to="'/'+recipe.name+'/edit'" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
-
-        <v-btn key="share" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel) && recipe.visibility !== 'VISIBILITY_LEVEL_HIDDEN'"
-          @click="showShareDialog = true" color="primary"><v-icon>mdi-share-variant</v-icon>Share</v-btn>
-  
-        <v-btn key="remove-access" v-if="!hasAdminPermission(recipe.recipeAccess?.permissionLevel)" @click="showRemoveAccessDialog = true" color="warning"><v-icon>mdi-link-variant-off</v-icon>Remove</v-btn>
-  
-        <v-btn key="delete" v-if="hasAdminPermission(recipe.recipeAccess?.permissionLevel)"
-          @click="showDeleteDialog = true" color="error"><v-icon>mdi-delete</v-icon>Delete</v-btn>
-      </v-speed-dial>
-    </v-fab>
+    <!-- Floating action buttons container -->
+    <div class="fab-container">
+      <v-btn v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)" color="primary" density="compact" :to="'/'+recipe.name+'/edit'">
+        <v-icon>mdi-pencil</v-icon>
+        Edit
+      </v-btn>
+      <v-btn v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel) && recipe.visibility !== 'VISIBILITY_LEVEL_HIDDEN'" color="primary" density="compact" @click="showShareDialog = true">
+        <v-icon>mdi-share-variant</v-icon>
+        Manage Access
+      </v-btn>
+      <v-btn v-if="!hasAdminPermission(recipe.recipeAccess?.permissionLevel)" color="warning" density="compact" @click="showRemoveAccessDialog = true">
+        <v-icon>mdi-link-variant-off</v-icon>
+        Remove Access
+      </v-btn>
+      <v-btn v-if="hasAdminPermission(recipe.recipeAccess?.permissionLevel)" color="error" density="compact" @click="showDeleteDialog = true">
+        <v-icon>mdi-delete</v-icon>
+        Delete
+      </v-btn>
+    </div>
 
     <v-btn
       v-if="recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING'"
@@ -1071,5 +1074,15 @@ function parseDuration(duration: string): number {
 }
 .ingredient-item {
   min-height: auto;
+}
+
+.fab-container {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
 }
 </style>

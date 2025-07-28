@@ -1,5 +1,5 @@
 <template>
-  <v-container v-if="circle">
+  <v-container v-if="circle" class="pb-16">
     <ListTabsPage
       :tabs="tabs"
       ref="tabsPage"
@@ -91,26 +91,31 @@
             </v-col>
           </v-row>
         </v-container>
-        <v-fab location="bottom right" app color="primary" icon @click="speedDialOpen = !speedDialOpen">
-          <v-icon>mdi-dots-vertical</v-icon>
-          <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
-            <v-btn key="edit" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
-            :to="'/'+circle.name+'/edit'" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
-            <v-btn key="remove-access" v-if="!hasAdminPermission(circle.circleAccess?.permissionLevel) && circle.circleAccess?.state === 'ACCESS_STATE_ACCEPTED'" @click="showRemoveAccessDialog = true" color="warning"><v-icon>mdi-link-variant-off</v-icon>Remove</v-btn>
-            <v-btn key="delete" v-if="hasAdminPermission(circle.circleAccess?.permissionLevel)"
-              @click="showDeleteDialog = true" color="error"><v-icon>mdi-delete</v-icon>Delete</v-btn>
-          </v-speed-dial>
-        </v-fab>
+        <!-- Floating action buttons container -->
+        <div class="fab-container">
+          <v-btn density="compact" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)" color="primary" :to="'/'+circle.name+'/edit'">
+            <v-icon>mdi-pencil</v-icon>Edit
+          </v-btn>
+          <v-btn density="compact" v-if="!hasAdminPermission(circle.circleAccess?.permissionLevel) && circle.circleAccess?.state === 'ACCESS_STATE_ACCEPTED'" color="warning" @click="showRemoveAccessDialog = true">
+            <v-icon>mdi-link-variant-off</v-icon>Remove
+          </v-btn>
+          <v-btn density="compact" v-if="hasAdminPermission(circle.circleAccess?.permissionLevel)" color="error" @click="showDeleteDialog = true">
+            <v-icon>mdi-delete</v-icon>Delete
+          </v-btn>
+        </div>
       </template>
       <template #recipes-circleRecipes="{ items, loading }">
         <RecipeGrid :recipes="items" :loading="loading" />
         <v-btn
           v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
           color="primary"
-          icon="mdi-plus"
+          density="compact"
           style="position: fixed; bottom: 16px; right: 16px"
           :to="'/'+circle.name+'/recipes/create'"
-        ></v-btn>
+        >
+          <v-icon>mdi-plus</v-icon>
+          Create Recipe
+        </v-btn>
       </template>
       <template #recipes-pending="{ items, loading }">
         <RecipeGrid :recipes="items" :loading="loading" />
@@ -123,10 +128,13 @@
         <v-btn
           v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
           color="primary"
-          icon="mdi-share-variant"
+          density="compact"
           style="position: fixed; bottom: 16px; right: 16px"
           @click="showShareDialog = true"
-        ></v-btn>
+        >
+          <v-icon>mdi-share-variant</v-icon>
+          Manage Members
+        </v-btn>
       </template>
     </ListTabsPage>
 
@@ -566,5 +574,15 @@ async function shareWithUser({ userName, permission }: { userName: string, permi
 <style scoped>
 .image-container {
   position: relative;
+}
+
+.fab-container {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
 }
 </style>
