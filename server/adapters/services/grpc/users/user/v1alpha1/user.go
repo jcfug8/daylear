@@ -7,7 +7,6 @@ import (
 	convert "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1/convert"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/core/model"
-	"github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/users/user/v1alpha1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -32,7 +31,7 @@ func (s *UserService) GetUser(ctx context.Context, request *pb.GetUserRequest) (
 	}
 
 	mUser := model.User{}
-	nameIndex, err := s.userNamer.Parse(request.GetName(), &mUser)
+	_, err = s.userNamer.Parse(request.GetName(), &mUser)
 	if err != nil {
 		log.Warn().Err(err).Str("name", request.GetName()).Msg("invalid user name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
@@ -51,7 +50,7 @@ func (s *UserService) GetUser(ctx context.Context, request *pb.GetUserRequest) (
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	user, err := convert.UserToProto(s.userNamer, s.accessNamer, mUser, namer.AsPatternIndex(nameIndex))
+	user, err := convert.UserToProto(s.userNamer, s.accessNamer, mUser)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -126,7 +125,7 @@ func (s *UserService) ListUsers(ctx context.Context, request *pb.ListUsersReques
 	}
 
 	mUserParent := model.UserParent{}
-	nameIndex, err := s.userNamer.ParseParent(request.GetParent(), &mUserParent)
+	_, err = s.userNamer.ParseParent(request.GetParent(), &mUserParent)
 	if err != nil {
 		log.Warn().Err(err).Msg("invalid parent")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
@@ -150,7 +149,7 @@ func (s *UserService) ListUsers(ctx context.Context, request *pb.ListUsersReques
 
 	userProtos := make([]*pb.User, len(users))
 	for i, user := range users {
-		userProto, err := convert.UserToProto(s.userNamer, s.accessNamer, user, namer.AsPatternIndex(nameIndex))
+		userProto, err := convert.UserToProto(s.userNamer, s.accessNamer, user)
 		if err != nil {
 			log.Error().Err(err).Msg("unable to prepare response")
 			return nil, status.Error(codes.Internal, "unable to prepare response")

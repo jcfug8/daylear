@@ -375,7 +375,6 @@ async function scrapeRecipe() {
     }
   } catch (err: any) {
     if (err?.name !== 'AbortError') {
-      console.log('Error scraping recipe:', err)
       alertStore.addAlert(err instanceof Error ? "Unable to scrape recipe\n" + err.message : String(err), 'error')
     }
   } finally {
@@ -525,7 +524,6 @@ async function ocrRecipe() {
     }
   } catch (err: any) {
     if (err?.name !== 'AbortError') {
-      console.log('Error OCRing recipe:', err)
       alertStore.addAlert(err instanceof Error ? "Unable to OCR recipe\n" + err.message : String(err), 'error')
     }
   } finally {

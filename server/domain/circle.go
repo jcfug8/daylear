@@ -64,7 +64,9 @@ func (d *Domain) CreateCircle(ctx context.Context, authAccount model.AuthAccount
 		Requester: model.CircleRequester{
 			UserId: authAccount.AuthUserId,
 		},
-		Recipient:       authAccount.AuthUserId,
+		Recipient: model.UserId{
+			UserId: authAccount.AuthUserId,
+		},
 		PermissionLevel: types.PermissionLevel_PERMISSION_LEVEL_ADMIN,
 		State:           types.AccessState_ACCESS_STATE_ACCEPTED,
 	}
@@ -94,6 +96,8 @@ func (d *Domain) DeleteCircle(ctx context.Context, authAccount model.AuthAccount
 		log.Warn().Msg("parent and id required")
 		return model.Circle{}, domain.ErrInvalidArgument{Msg: "parent and id required"}
 	}
+
+	authAccount.CircleId = id.CircleId
 
 	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
 	if err != nil {

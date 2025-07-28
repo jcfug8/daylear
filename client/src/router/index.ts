@@ -57,6 +57,15 @@ const router = createRouter({
       },
     },
     {
+      path: '/users/:userId/recipes/:recipeId',
+      name: 'userRecipe',
+      component: () => import('../views/meals/recipes/RecipeView.vue'),
+      meta: {
+        requiresAuth: true,
+        breadcrumbs: true,
+      },
+    },
+    {
       path: '/circles/:circleId/recipes/:recipeId',
       name: 'circleRecipe',
       component: () => import('../views/meals/recipes/RecipeView.vue'),
@@ -100,7 +109,7 @@ const router = createRouter({
       },
     },
     {
-      path: '/user/:userId/edit',
+      path: '/users/:userId/edit',
       name: 'user-edit',
       component: () => import('../views/users/UserEditView.vue'),
       meta: {
@@ -109,8 +118,16 @@ const router = createRouter({
       },
     },
     {
-      path: '/user/:userId',
+      path: '/users/:userId',
       name: 'user',
+      component: () => import('../views/users/UserView.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/users/:userId/users/:friendUserId',
+      name: 'userFriend',
       component: () => import('../views/users/UserView.vue'),
       meta: {
         requiresAuth: true,
@@ -125,7 +142,7 @@ const router = createRouter({
       },
     },
     {
-      path: '/circle/:circleId/edit',
+      path: '/circles/:circleId/edit',
       name: 'circle-edit',
       component: () => import('../views/circles/CircleEditView.vue'),
       meta: {
@@ -151,7 +168,7 @@ const router = createRouter({
       },
     },
     {
-      path: '/circle/:circleId',
+      path: '/circles/:circleId',
       name: 'circle',
       component: () => import('../views/circles/CircleView.vue'),
       meta: {

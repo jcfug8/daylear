@@ -41,7 +41,7 @@ func (repo *Client) CreateCircleAccess(ctx context.Context, access model.CircleA
 	db := repo.db.WithContext(ctx)
 
 	// Validate that exactly one recipient type is set
-	if access.Recipient == 0 {
+	if access.Recipient.UserId == 0 {
 		log.Error().Msg("recipient is required")
 		return model.CircleAccess{}, repository.ErrInvalidArgument{Msg: "recipient is required"}
 	}

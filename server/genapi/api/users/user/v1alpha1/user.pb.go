@@ -464,11 +464,11 @@ const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\x11UpdateUserRequest\x126\n" +
 	"\x04user\x18\x01 \x01(\v2\x1d.api.users.user.v1alpha1.UserB\x03\xe0A\x02R\x04user\x12@\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x03\xe0A\x01R\n" +
-	"updateMask2\xd7\x06\n" +
-	"\vUserService\x12\x9e\x02\n" +
-	"\aGetUser\x12'.api.users.user.v1alpha1.GetUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"\xca\x01\x92AD\n" +
+	"updateMask2\x80\x06\n" +
+	"\vUserService\x12\xc7\x01\n" +
+	"\aGetUser\x12'.api.users.user.v1alpha1.GetUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"t\x92AD\n" +
 	"\vUserService\x12\n" +
-	"Get a user\x1a)Retrieves a single user by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02vZ*\x12(/users/v1alpha1/{name=circles/*/users/*}Z(\x12&/users/v1alpha1/{name=users/*/users/*}\x12\x1e/users/v1alpha1/{name=users/*}\x12\xc6\x02\n" +
+	"Get a user\x1a)Retrieves a single user by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02 \x12\x1e/users/v1alpha1/{name=users/*}\x12\xc6\x02\n" +
 	"\tListUsers\x12).api.users.user.v1alpha1.ListUsersRequest\x1a*.api.users.user.v1alpha1.ListUsersResponse\"\xe1\x01\x92Ab\n" +
 	"\vUserService\x12\n" +
 	"List users\x1aGRetrieves a paginated list of users. Supports filtering and pagination.\xdaA\x06parent\x82\xd3\xe4\x93\x02mZ*\x12(/users/v1alpha1/{parent=circles/*}/usersZ(\x12&/users/v1alpha1/{parent=users/*}/users\x12\x15/users/v1alpha1/users\x12\xdd\x01\n" +

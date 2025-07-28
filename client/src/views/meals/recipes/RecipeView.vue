@@ -244,7 +244,7 @@
       <v-icon>mdi-dots-vertical</v-icon>
       <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
         <v-btn key="edit" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)"
-        :to="getRecipeEditRoute()" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
+        :to="'/'+recipe.name+'/edit'" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
 
         <v-btn key="share" v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel) && recipe.visibility !== 'VISIBILITY_LEVEL_HIDDEN'"
           @click="showShareDialog = true" color="primary"><v-icon>mdi-share-variant</v-icon>Share</v-btn>
@@ -303,7 +303,7 @@
     v-model="showShareDialog"
     title="Share Recipe"
     :allowCircleShare="true"
-    :currentShares="currentShares"
+    :currentAccesses="currentAccesses"
     :sharing="sharing"
     :sharePermissionLoading="updatingPermission"
     :hasWritePermission="hasWritePermission"
@@ -383,6 +383,7 @@ import { useAuthStore } from '@/stores/auth'
 import { hasWritePermission, hasAdminPermission } from '@/utils/permissions'
 import ShareDialog from '@/components/common/ShareDialog.vue'
 import { MEASUREMENT_TYPE_TO_STRING } from '@/constants/measurements'
+import { useAlertStore } from '@/stores/alerts'
 
 const authStore = useAuthStore()
 const breadcrumbStore = useBreadcrumbStore()
@@ -391,6 +392,7 @@ const circlesStore = useCirclesStore()
 const recipeFormStore = useRecipeFormStore()
 const route = useRoute()
 const router = useRouter()
+const alertsStore = useAlertStore()
 
 const { recipe } = storeToRefs(recipesStore)
 const { circle } = storeToRefs(circlesStore)
@@ -520,12 +522,7 @@ function initializeCheckedState() {
 
 watch(recipe, initializeCheckedState, { immediate: true })
 
-function getRecipeEditRoute() {
-  if (route.params.circleId) {
-    return { name: 'circleRecipeEdit', params: { circleId: route.params.circleId, recipeId: recipe.value?.name } }
-  }
-  return { name: 'recipeEdit', params: { recipeId: recipe.value?.name } }
-}
+const recipeName = route.path
 
 // *** Breadcrumbs ***
 
@@ -536,17 +533,18 @@ onMounted(async () => {
     tab.value = hashToTab[currentHash]
   }
 
-  // Load the recipe based on the route parameter
-  const recipeId = route.params.recipeId as string
-  await recipesStore.loadRecipe(recipeId)
+  await recipesStore.loadRecipe(recipeName)
 
   let firstCrumbs
 
   if (route.params.circleId) {
-    await circlesStore.loadCircle(route.params.circleId as string)
+    const circlePath = route.path.indexOf('/recipes') !== -1 
+      ? route.path.substring(0, route.path.indexOf('/recipes'))
+      : null
+    await circlesStore.loadCircle(circlePath)
     firstCrumbs = [
       { title: 'Circles', to: { name: 'circles' } },
-      { title: circle.value?.title || '', to: { name: 'circle', params: { circleId: route.params.circleId } } },
+      { title: circle.value?.title || '', to: circlePath },
     ]
   } else {
     firstCrumbs = [{ title: 'Recipes', to: { name: 'recipes' } }]
@@ -556,7 +554,6 @@ onMounted(async () => {
     ...firstCrumbs,
     {
       title: recipe.value?.title || '',
-      to: { name: 'recipe', params: { recipeId: recipe.value?.name } },
     },
   ])
 })
@@ -671,8 +668,10 @@ async function handleRemoveAccess() {
     await recipeAccessService.DeleteAccess(deleteRequest)
     router.push(route.params.circleId ? { name: 'circle', params: { circleId: route.params.circleId } } : { name: 'recipes' })
   } catch (error) {
-    console.error('Error removing access:', error)
-    alert(error instanceof Error ? error.message : String(error))
+    alertsStore.addAlert({
+      message: error.message ? error.message : String(error),
+      type: 'error',
+    })
   } finally {
     removingAccess.value = false
     showRemoveAccessDialog.value = false
@@ -694,8 +693,10 @@ async function handleDelete() {
     })
     router.push({ name: 'recipes' })
   } catch (error) {
-    console.error('Error deleting recipe:', error)
-    alert(error instanceof Error ? error.message : String(error))
+    alertsStore.addAlert({
+      message: error.message ? error.message : String(error),
+      type: 'error',
+    })
   } finally {
     deleting.value = false
     showDeleteDialog.value = false
@@ -725,7 +726,7 @@ async function declineRecipe() {
   decliningRecipe.value = true
   try {
     await recipesStore.deleteRecipeAccess(recipe.value.recipeAccess.name)
-    router.push({ name: 'recipes' })
+    router.push(route.params.circleId ? { name: 'circle', params: { circleId: route.params.circleId } } : { name: 'recipes' })
   } catch (error) {
     // Optionally show a notification
   } finally {
@@ -886,7 +887,7 @@ async function updateRecipeImage() {
 // *** Recipe Sharing ***
 
 const showShareDialog = ref(false)
-const currentShares = ref<Access[]>([])
+const currentAccesses = ref<Access[]>([])
 const sharing = ref(false)
 const updatingPermission = ref<Record<string, boolean>>({})
 const unsharing = ref<Record<string, boolean>>({})
@@ -914,7 +915,7 @@ async function fetchRecipeRecipients() {
     const response = await recipeAccessService.ListAccesses(request)
 
     if (response.accesses) {
-      currentShares.value = response.accesses.filter(access => {
+      currentAccesses.value = response.accesses.filter(access => {
         // Filter out the current user's own access to avoid showing it in the shares list
         return access.recipient?.user && access.recipient.user.name === authStore.user.name
       }).map(access => ({

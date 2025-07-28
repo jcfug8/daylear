@@ -11,7 +11,7 @@
           class="user-card"
           hover
           style="aspect-ratio: 8/6"
-          :to="canNavigateToUser(user) ? { name: 'user', params: { userId: user.name } } : undefined"
+          :to="'/'+user.name"
         >
         <v-card-title class="pt-4 pb-1">
             <div>
@@ -101,14 +101,6 @@ const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
 
 defineEmits(['accept', 'decline'])
-
-function canNavigateToUser(user: any) {
-  return (
-    user.visibility === 'VISIBILITY_LEVEL_PUBLIC' ||
-    user.visibility === 'VISIBILITY_LEVEL_RESTRICTED' ||
-    user.access?.state === 'ACCESS_STATE_ACCEPTED'
-  )
-}
 
 function isRequester(user: any) {
   return user.access?.requester === user.value.name

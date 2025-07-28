@@ -11,7 +11,7 @@
     <v-row v-if="!loading && circles.length > 0">
       <v-col lg="3" md="4" sm="6" cols="12" v-for="circle in circles" :key="circle.name">
         <v-card
-          :to="{ name: 'circle', params: { circleId: circle.name } }"
+          :to="'/'+circle.name"
           :title="circle.title"
           style="aspect-ratio: 8/6"
           hover

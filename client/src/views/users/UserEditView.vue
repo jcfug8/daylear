@@ -130,11 +130,12 @@
 <script setup lang="ts">
 import { useUsersStore } from '@/stores/users'
 import { storeToRefs } from 'pinia'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRouter, useRoute } from 'vue-router'
 import { useAlertStore } from '@/stores/alerts'
 import { fileService } from '@/api/api'
+import { computed } from 'vue'
 
 const router = useRouter()
 const usersStore = useUsersStore()
@@ -148,6 +149,17 @@ const imageFile = ref<File | null>(null)
 const previewImage = ref<string | null>(null)
 const imageCleared = ref(false)
 const originalImageUri = ref<string | null>(null)
+
+const userName = computed(() => route.path.replace('/edit', ''))
+
+watch(
+  () => route.path,
+  async (newUserName) => {
+    if (newUserName) {
+      await loadUser()
+    }
+  }
+)
 
 function handleFileSelect(files: File | File[] | null) {
   if (files instanceof File) {
@@ -189,7 +201,7 @@ function undoClearImage() {
 }
 
 function navigateBack() {
-  router.push({ name: 'user', params: { userId: user.value?.name } })
+  router.push(userName.value)
 }
 
 async function saveSettings() {
@@ -211,21 +223,23 @@ async function saveSettings() {
     }
     navigateBack()
   } catch (err) {
-    console.log('Error saving settings:', err)
     alertStore.addAlert(err instanceof Error ? "Unable to save settings\n" + err.message : String(err), 'error')
   }
 }
 
-onMounted(async () => {
-  const userId = String(route.params.userId || '')
+async function loadUser() {
   await Promise.all([
-    usersStore.loadUser(userId),
-    usersStore.loadUserSettings(userId)
+    usersStore.loadUser(userName.value),
+    usersStore.loadUserSettings(userName.value)
   ])
   breadcrumbStore.setBreadcrumbs([
-    { title: 'User Settings', to: { name: 'user', params: { userId } } },
-    { title: 'Edit', to: { name: 'user-edit', params: { userId } } },
+    { title: 'User Settings', to: userName.value },
+    { title: 'Edit'},
   ])
+}
+
+onMounted(async () => {
+  await loadUser()
 })
 </script>
 

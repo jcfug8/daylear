@@ -18,7 +18,7 @@ func (d *Domain) CreateCircleAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// verify recipient is set
-	if access.Recipient == 0 {
+	if access.Recipient.UserId == 0 {
 		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "recipient is required"}
 	}
 
@@ -89,7 +89,7 @@ func (d *Domain) DeleteCircleAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// check if the access is for the given user (they can delete their own access)
-	if access.Recipient != authAccount.AuthUserId {
+	if access.Recipient.UserId != authAccount.AuthUserId {
 		// user is not the recipient, so they need management permissions
 		// get permission levels for the circle
 		tempAuthAccount := authAccount
@@ -138,7 +138,7 @@ func (d *Domain) GetCircleAccess(ctx context.Context, authAccount model.AuthAcco
 		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "access is not for the given circle"}
 	}
 
-	if access.Recipient != authAccount.AuthUserId {
+	if access.Recipient.UserId != authAccount.AuthUserId {
 		// user is not the recipient, so they need management permissions to view
 		// get permission levels for the circle
 		tempAuthAccount := authAccount
@@ -271,7 +271,7 @@ func (d *Domain) AcceptCircleAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// verify the user is the recipient of this access
-	if access.Recipient != authAccount.AuthUserId {
+	if access.Recipient.UserId != authAccount.AuthUserId {
 		return model.CircleAccess{}, domain.ErrPermissionDenied{Msg: "only the recipient can accept this access"}
 	}
 

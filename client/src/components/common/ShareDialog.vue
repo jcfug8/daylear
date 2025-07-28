@@ -5,11 +5,11 @@
         {{ title }}
       </v-card-title>
       <v-card-text>
-        <v-tabs v-if="allowCircleShare" v-model="shareTab" class="mb-4">
+        <v-tabs v-if="allowCircleShare" v-model="accessTab" class="mb-4">
           <v-tab value="users">Share with User</v-tab>
           <v-tab value="circles">Share with Circle</v-tab>
         </v-tabs>
-        <v-window v-if="allowCircleShare" v-model="shareTab">
+        <v-window v-if="allowCircleShare" v-model="accessTab">
           <v-window-item value="users">
             <v-text-field v-model="usernameInput" label="Enter Username" :rules="[validateUsername]"
               clearable
@@ -58,14 +58,14 @@
           </v-btn>
         </template>
         <v-divider class="my-4"></v-divider>
-        <div v-if="currentShares.length > 0">
+        <div v-if="currentAccesses.length > 0">
           <div class="text-subtitle-1 mb-2">Current Shares</div>
           <v-list>
-            <v-list-item v-for="share in currentShares as any[]" :key="share.name || ''" :title="shareTitle(share)" :prependIcon="getShareIcon(share)" :subtitle="shareSubtitle(share)">
+            <v-list-item v-for="access in currentAccesses as any[]" :key="access.name || ''" :title="accessTitle(access)" :prependIcon="getAccessIcon(access)" :subtitle="accessSubtitle(access)">
               <template #append>
                 <div class="d-flex align-center gap-2">
                   <v-menu
-                    v-model="shareMenuOpen[share.name || '']"
+                    v-model="accessMenuOpen[access.name || '']"
                     :close-on-content-click="false"
                     location="bottom"
                     offset-y
@@ -74,15 +74,15 @@
                       <v-chip
                         v-bind="props"
                         size="small"
-                        :color="hasWritePermission(share.level) ? 'primary' : 'grey'"
+                        :color="hasWritePermission(access.level) ? 'primary' : 'grey'"
                         class="permission-chip d-flex align-center"
-                        :disabled="sharePermissionLoading[share.name || '']"
+                        :disabled="accessPermissionLoading[access.name || '']"
                         style="cursor: pointer; min-width: 120px;"
                       >
-                        <span>{{ hasWritePermission(share.level) ? 'Read & Write' : 'Read Only' }}</span>
+                        <span>{{ hasWritePermission(access.level) ? 'Read & Write' : 'Read Only' }}</span>
                         <v-icon end size="18" class="ml-1">mdi-chevron-down</v-icon>
                         <v-progress-circular
-                          v-if="sharePermissionLoading[share.name || '']"
+                          v-if="accessPermissionLoading[access.name || '']"
                           indeterminate
                           size="16"
                           color="primary"
@@ -95,17 +95,17 @@
                         v-for="option in permissionOptions as any[]"
                         :key="option.value"
                         :value="option.value"
-                        @click="emitPermissionChange(share, option.value); shareMenuOpen[share.name || ''] = false"
-                        :disabled="share.level === option.value"
+                        @click="emitPermissionChange(access, option.value); accessMenuOpen[access.name || ''] = false"
+                        :disabled="access.level === option.value"
                       >
                         <v-list-item-title>{{ option.title }}</v-list-item-title>
                       </v-list-item>
                     </v-list>
                   </v-menu>
-                  <v-chip v-if="share.state === 'ACCESS_STATE_PENDING'" size="small" color="warning" variant="outlined">
+                  <v-chip v-if="access.state === 'ACCESS_STATE_PENDING'" size="small" color="warning" variant="outlined">
                     Pending
                   </v-chip>
-                  <v-btn icon="mdi-delete" variant="text" @click="emitRemoveShare(share.name || '')"></v-btn>
+                  <v-btn icon="mdi-delete" variant="text" @click="emitRemoveAccess(access.name || '')"></v-btn>
                 </div>
               </template>
             </v-list-item>
@@ -140,9 +140,9 @@ const props = defineProps({
   modelValue: Boolean,
   title: { type: String, default: 'Share' },
   allowCircleShare: { type: Boolean, default: false },
-  currentShares: { type: Array, required: true },
+  currentAccesses: { type: Array, required: true },
   sharing: Boolean,
-  sharePermissionLoading: { type: Object, default: () => ({}) },
+  accessPermissionLoading: { type: Object, default: () => ({}) },
   hasWritePermission: { type: Function, required: true },
 })
 
@@ -150,76 +150,76 @@ const emit = defineEmits([
   'update:modelValue',
   'share-user',
   'share-circle',
-  'remove-share',
+  'remove-access',
   'permission-change',
   'close',
 ])
 
-const shareTab = ref('users')
+const accessTab = ref('users')
 const selectedPermission = ref<PermissionLevel>('PERMISSION_LEVEL_READ')
-const shareMenuOpen = ref<Record<string, boolean>>({})
+const accessMenuOpen = ref<Record<string, boolean>>({})
 const permissionOptions = [
   { title: 'Read Only', value: 'PERMISSION_LEVEL_READ' as PermissionLevel },
   { title: 'Read & Write', value: 'PERMISSION_LEVEL_WRITE' as PermissionLevel },
 ]
 
-function emitRemoveShare(name: string) {
-  emit('remove-share', name)
+function emitRemoveAccess(name: string) {
+  emit('remove-access', name)
 }
-function emitPermissionChange(share: any, newLevel: string) {
-  emit('permission-change', { share, newLevel })
+function emitPermissionChange(access: any, newLevel: string) {
+  emit('permission-change', { access, newLevel })
 }
 function emitClose() {
   emit('update:modelValue', false)
   emit('close')
 }
-function getShareIcon(share: any) {
-  if (share.recipient?.user || share.recipient?.username) { // user
+function getAccessIcon(access: any) {
+  if (access.recipient?.user || access.recipient?.username) { // user
     return 'mdi-account'
-  } else if (share.recipient?.circle) { // circle
+  } else if (access.recipient?.circle) { // circle
     return 'mdi-account-group'
   }
   return ''
 }
-function shareTitle(share: any) {
+function accessTitle(access: any) {
     let title = ''
 
-    if (share.recipient?.user) { // user
-      if (share.recipient.user.givenName || share.recipient.user.familyName) { // user full name
-        title = share.recipient.user.givenName + ' ' + share.recipient.user.familyName
+    if (access.recipient?.user) { // user
+      if (access.recipient.user.givenName || access.recipient.user.familyName) { // user full name
+        title = access.recipient.user.givenName + ' ' + access.recipient.user.familyName
         title = title.trim()
-      } else if (share.recipient.user.username) { // user username
-        title = share.recipient.user.username
+      } else if (access.recipient.user.username) { // user username
+        title = access.recipient.user.username
       } 
-    } else if (share.recipient?.circle) { // circle
-        title = share.recipient.circle.title || share.recipient.circle.handle || ''
-    } else if (share.recipient) {
-      if (share.recipient.givenName || share.recipient.familyName) { // user full name
-        title = share.recipient.givenName + ' ' + share.recipient.familyName
+    } else if (access.recipient?.circle) { // circle
+        title = access.recipient.circle.title || access.recipient.circle.handle || ''
+    } else if (access.recipient) {
+      if (access.recipient.givenName || access.recipient.familyName) { // user full name
+        title = access.recipient.givenName + ' ' + access.recipient.familyName
         title = title.trim()
-      } else if (share.recipient.username) { // user username
-        title = share.recipient.username
-      } else if (share.recipient.title) { // circle title or handle
-        title = share.recipient.title || share.recipient.handle || ''
+      } else if (access.recipient.username) { // user username
+        title = access.recipient.username
+      } else if (access.recipient.title) { // circle title or handle
+        title = access.recipient.title || access.recipient.handle || ''
       }
     }
   return title
 }
-function shareSubtitle(share: any) {
+function accessSubtitle(access: any) {
   // if it is user but there is a given/family name use the username else empty string
   // if it is a circle use the handle
   let subtitle = ''
-  if (share.recipient?.user) { // user
-    if (share.recipient.user.givenName || share.recipient.user.familyName) { // user username
-      subtitle = share.recipient.user.username || ''
+  if (access.recipient?.user) { // user
+    if (access.recipient.user.givenName || access.recipient.user.familyName) { // user username
+      subtitle = access.recipient.user.username || ''
     }
-  } else if (share.recipient?.circle) { // circle
-      subtitle = share.recipient.circle.handle || ''
-  } else if (share.recipient) {
-    if (share.recipient.givenName || share.recipient.familyName) { // user full name
-      subtitle = share.recipient.username || ''
-    } else if (share.recipient.handle) { // circle title or handle
-      subtitle = share.recipient.handle || ''
+  } else if (access.recipient?.circle) { // circle
+      subtitle = access.recipient.circle.handle || ''
+  } else if (access.recipient) {
+    if (access.recipient.givenName || access.recipient.familyName) { // user full name
+      subtitle = access.recipient.username || ''
+    } else if (access.recipient.handle) { // circle title or handle
+      subtitle = access.recipient.handle || ''
     }
   }
   
@@ -305,7 +305,6 @@ async function checkCircle(circleHandle: string) {
       isValidCircle.value = false
     }
   } catch (error) {
-    console.log('Error checking circle:', error)
     alertStore.addAlert(error instanceof Error ? "Unable to check circle\n" + error.message : String(error), 'error')
     selectedCircle.value = null
     isValidCircle.value = false
@@ -393,7 +392,6 @@ async function checkUsername(username: string) {
       isValidUsername.value = false
     }
   } catch (error) {
-    console.log('Error checking username:', error)
     alertStore.addAlert(error instanceof Error ? "Unable to check username\n" + error.message : String(error), 'error')
     selectedUser.value = null
     isValidUsername.value = false

@@ -73,7 +73,7 @@
       <v-icon>mdi-dots-vertical</v-icon>
       <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
         <v-btn key="edit" v-if="hasAdminPermission(user.access?.permissionLevel)"
-        :to="{ name: 'user-edit', params: { userId: user.name } }" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
+        :to="'/'+user.name+'/edit'" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
 
         <v-btn key="share" v-if="!hasWritePermission(user.access?.permissionLevel)"
           @click="handleConnect" :loading="connecting" color="primary"><v-icon>mdi-share-variant</v-icon>Connect</v-btn>
@@ -110,7 +110,7 @@
 import { useUsersStore } from '@/stores/users'
 import { useRecipesStore } from '@/stores/recipes'
 import { storeToRefs } from 'pinia'
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRoute } from 'vue-router'
 import ListTabsPage from '@/components/common/ListTabsPage.vue'
@@ -136,16 +136,28 @@ const route = useRoute()
 const tabsPage = ref()
 const speedDialOpen = ref(false)
 
-const userId = computed(() => String(route.params.userId || ''))
-
-onMounted(async () => {
+async function loadUser() {
   await Promise.all([
-    usersStore.loadUser(userId.value),
+    usersStore.loadUser(route.path),
   ])
   breadcrumbStore.setBreadcrumbs([
-    { title: 'User Settings', to: { name: 'user', params: { userId: userId.value } } },
+    { title: 'User Settings', to: route.path },
   ])
+  tabsPage.value.activeTab = 'general'
+}
+
+onMounted(async () => {
+  await loadUser()
 })
+
+watch(
+  () => route.path,
+  async (newUserName) => {
+    if (newUserName) {
+      await loadUser()
+    }
+  }
+)
 
 const tabs = [
   {

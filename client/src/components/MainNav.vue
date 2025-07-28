@@ -64,7 +64,7 @@
       <v-list-item
         prepend-icon="mdi-account-circle"
         title="Profile"
-        :to="{ name: 'user', params: { userId: user?.name } }"
+        :to="'/'+user?.name"
       >
       </v-list-item>
     </v-list>

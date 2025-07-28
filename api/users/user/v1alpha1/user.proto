@@ -37,11 +37,7 @@ service UserService {
   // get a user
   rpc GetUser(GetUserRequest) returns (User) {
     option (google.api.method_signature) = "name";
-    option (google.api.http) = {
-      get: "/users/v1alpha1/{name=users/*}"
-      additional_bindings: {get: "/users/v1alpha1/{name=circles/*/users/*}"}
-      additional_bindings: {get: "/users/v1alpha1/{name=users/*/users/*}"}
-    };
+    option (google.api.http) = {get: "/users/v1alpha1/{name=users/*}"};
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Get a user"
       description: "Retrieves a single user by resource name."

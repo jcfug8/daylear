@@ -18,11 +18,13 @@ import { useAuthStore } from '@/stores/auth'
 import CircleForm from '@/views/circles/forms/CircleForm.vue'
 import { fileService } from '@/api/api'
 import type { Circle, apitypes_VisibilityLevel, apitypes_PermissionLevel, apitypes_AccessState } from '@/genapi/api/circles/circle/v1alpha1'
+import { useAlertStore } from '@/stores/alerts'
 
 const router = useRouter()
 const circlesStore = useCirclesStore()
 const breadcrumbStore = useBreadcrumbStore()
 const authStore = useAuthStore()
+const alertsStore = useAlertStore()
 
 const pendingImageFile = ref<File | null>(null)
 
@@ -44,10 +46,12 @@ async function saveCircle() {
       })
       circlesStore.circle.imageUri = response.imageUri
     }
-    authStore.loadAuthCircles()
-    router.push({ name: 'circle', params: { circleId: circle.name } })
+    router.push('/'+circle.name)
   } catch (err) {
-    alert(err instanceof Error ? err.message : String(err))
+    alertsStore.addAlert({
+      message: err instanceof Error ? err.message : String(err),
+      type: 'error',
+    })
   }
 }
 

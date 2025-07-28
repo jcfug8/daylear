@@ -17,6 +17,7 @@ import RecipeForm from '@/views/meals/recipes/forms/RecipeForm.vue'
 import { fileService } from '@/api/api'
 import { useCirclesStore } from '@/stores/circles'
 import { useAlertStore } from '@/stores/alerts'
+import { computed } from 'vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -27,12 +28,18 @@ const alertStore = useAlertStore()
 
 const { circle } = storeToRefs(circlesStore)
 
+const recipeName = computed(() => {
+  return route.path.replace('/edit', '')
+})
+
+const circleName = computed(() => {
+  return route.path.indexOf('/recipes') !== -1 
+    ? route.path.substring(0, route.path.indexOf('/recipes'))
+    : null
+})
+
 function navigateBack() {
-  if (route.params.circleId) {
-    router.push({ name: 'circleRecipe', params: { circleId: route.params.circleId, recipeId: route.params.recipeId } })
-  } else {
-    router.push({ name: 'recipe', params: { recipeId: route.params.recipeId } })
-  }
+  router.push(recipeName.value)
 }
 
 async function saveRecipe(pendingImageFile: File | null) {
@@ -51,35 +58,33 @@ async function saveRecipe(pendingImageFile: File | null) {
     
     navigateBack()
   } catch (err) {
-    console.log("Error saving recipe:", err)
     alertStore.addAlert(err instanceof Error ? "Unable to save recipe\n" + err.message : String(err), 'error')
   }
 }
 
 onMounted(async () => {
   // Load the recipe based on the route parameter
-  const recipeId = route.params.recipeId as string
-  await recipesStore.loadRecipe(recipeId)
+  await recipesStore.loadRecipe(recipeName.value)
 
   let firstCrumbs
 
   if (route.params.circleId) {
-    await circlesStore.loadCircle(route.params.circleId as string)
+    await circlesStore.loadCircle(circleName.value)
     firstCrumbs = [
       { title: 'Circles', to: { name: 'circles' } },
-      { title: circle.value?.title || '', to: { name: 'circle', params: { circleId: route.params.circleId } } },
-      { title: recipesStore.recipe?.title ? recipesStore.recipe.title : '', to: { name: 'circleRecipe', params: { circleId: route.params.circleId, recipeId: recipeId } } }
+      { title: circle.value?.title || '', to: circleName.value },
+      { title: recipesStore.recipe?.title ? recipesStore.recipe.title : '', to: recipeName.value }
     ]
   } else {
     firstCrumbs = [
       { title: 'Recipes', to: { name: 'recipes' } },
-      { title: recipesStore.recipe?.title ? recipesStore.recipe.title : '', to: { name: 'recipe', params: { recipeId: recipeId } } }
+      { title: recipesStore.recipe?.title ? recipesStore.recipe.title : '', to: recipeName.value }
     ]
   }
 
   breadcrumbStore.setBreadcrumbs([
     ...firstCrumbs,
-    { title: 'Edit', to: { name: 'recipeEdit', params: { recipeId: recipeId } } },
+    { title: 'Edit'},
   ])
 })
 </script>

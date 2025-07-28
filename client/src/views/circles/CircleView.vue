@@ -95,7 +95,7 @@
           <v-icon>mdi-dots-vertical</v-icon>
           <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
             <v-btn key="edit" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
-            @click="router.push({ name: 'circle-edit', params: { circleId: circle.name } })" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
+            :to="'/'+circle.name+'/edit'" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
             <v-btn key="remove-access" v-if="!hasAdminPermission(circle.circleAccess?.permissionLevel)" @click="showRemoveAccessDialog = true" color="warning"><v-icon>mdi-link-variant-off</v-icon>Remove</v-btn>
             <v-btn key="delete" v-if="hasAdminPermission(circle.circleAccess?.permissionLevel)"
               @click="showDeleteDialog = true" color="error"><v-icon>mdi-delete</v-icon>Delete</v-btn>
@@ -108,7 +108,7 @@
           color="primary"
           icon="mdi-plus"
           style="position: fixed; bottom: 16px; right: 16px"
-          :to="{ name: 'circleRecipeCreate', params: { circleId: circle.name } }"
+          :to="'/'+circle.name+'/recipes/create'"
         ></v-btn>
       </template>
       <template #recipes-pending="{ items, loading }">
@@ -154,12 +154,12 @@
       v-model="showShareDialog"
       title="Share Circle"
       :allowCircleShare="false"
-      :currentShares="currentShares"
+      :currentAccesses="currentAccesses"
       :sharing="sharing"
       :sharePermissionLoading="updatingPermission"
       :hasWritePermission="hasWritePermission"
       @share-user="shareWithUser"
-      @remove-share="unshareCircle"
+      @remove-access="unshareCircle"
       @permission-change="updatePermission"
     />
     <!-- Delete Dialog -->
@@ -203,6 +203,7 @@ import RecipeGrid from '@/components/RecipeGrid.vue'
 import UserGrid from '@/components/UserGrid.vue'
 import { useRecipesStore } from '@/stores/recipes'
 import ShareDialog from '@/components/common/ShareDialog.vue'
+import { useAlertStore } from '@/stores/alerts'
 
 const route = useRoute()
 const router = useRouter()
@@ -211,6 +212,7 @@ const authStore = useAuthStore()
 const recipesStore = useRecipesStore()
 const circlesStore = useCirclesStore()
 const usersStore = useUsersStore()
+const alertsStore = useAlertStore()
 
 const { circle } = storeToRefs(circlesStore)
 const { user } = storeToRefs(authStore)
@@ -218,22 +220,22 @@ const speedDialOpen = ref(false)
 
 // *** Breadcrumbs ***
 
-async function loadAndSetBreadcrumbs(circleId: string | string[]) {
-  await circlesStore.loadCircle(circleId as string)
+async function loadAndSetBreadcrumbs(circleName: string) {
+  await circlesStore.loadCircle(circleName)
   breadcrumbStore.setBreadcrumbs([
     { title: 'Circles', to: { name: 'circles' } },
-    { title: circle.value?.title || 'Circle', to: { name: 'circle', params: { circleId: circle.value?.name } } },
+    { title: circle.value?.title || 'Circle' },
   ])
 }
 
 onMounted(() => {
-  loadAndSetBreadcrumbs(route.params.circleId)
+  loadAndSetBreadcrumbs(route.path)
 })
 
 watch(
-  () => route.params.circleId,
-  (newId) => {
-    loadAndSetBreadcrumbs(newId)
+  () => route.path,
+  () => {
+    loadAndSetBreadcrumbs(route.path)
   }
 )
 
@@ -358,8 +360,10 @@ async function handleRemoveAccess() {
     await circleAccessService.DeleteAccess(deleteRequest)
     router.push({ name: 'circles' })
   } catch (error) {
-    console.error('Error removing access:', error)
-    alert(error instanceof Error ? error.message : String(error))
+    alertsStore.addAlert({
+      message: error instanceof Error ? error.message : String(error),
+      type: 'error',
+    })
   } finally {
     removingAccess.value = false
     showRemoveAccessDialog.value = false
@@ -381,8 +385,10 @@ async function handleDelete() {
     })
     router.push({ name: 'circles' })
   } catch (error) {
-    console.error('Error deleting circle:', error)
-    alert(error instanceof Error ? error.message : String(error))
+    alertsStore.addAlert({
+      message: error.message ? error.message : String(error),
+      type: 'error',
+    })
   } finally {
     deleting.value = false
     showDeleteDialog.value = false
@@ -423,7 +429,7 @@ async function declineCircle() {
 // *** Circle Sharing ***
 
 const showShareDialog = ref(false)
-const currentShares = ref<Access[]>([]) 
+const currentAccesses = ref<Access[]>([]) 
 const sharing = ref(false)
 const updatingPermission = ref<Record<string, boolean>>({})
 const unsharing = ref<Record<string, boolean>>({})
@@ -450,7 +456,7 @@ async function fetchCircleRecipients() {
     const response = await circleAccessService.ListAccesses(request)
 
     if (response.accesses) {
-      currentShares.value = response.accesses.filter(access => {
+      currentAccesses.value = response.accesses.filter(access => {
         // Filter out the current user's own access to avoid showing it in the shares list
         const isCurrentUser = access.recipient?.name === user.value.name
         return !isCurrentUser
@@ -463,11 +469,14 @@ async function fetchCircleRecipients() {
       }))
     }
   } catch (error) {
-    console.error('Error fetching circle recipients:', error)
+    alertsStore.addAlert({
+      message: error instanceof Error ? error.message : String(error),
+      type: 'error',
+    })
   }
 }
 
-async function updatePermission({ access, newLevel }: { access: Access, newLevel: PermissionLevel }) {
+async function updatePermission({ access, newLevel }: { access: any, newLevel: PermissionLevel }) {
   if (access.level === newLevel) return
   if (!access.name) return
   updatingPermission.value[access.name] = true
@@ -485,7 +494,10 @@ async function updatePermission({ access, newLevel }: { access: Access, newLevel
     // Update local state
     access.level = newLevel
   } catch (error) {
-    console.error('Error updating permission:', error)
+    alertsStore.addAlert({
+      message: error instanceof Error ? error.message : String(error),
+      type: 'error',
+    })
   } finally {
     updatingPermission.value[access.name] = false
   }
@@ -502,7 +514,10 @@ async function unshareCircle(accessName: string) {
     await circleAccessService.DeleteAccess(request)
     await fetchCircleRecipients()
   } catch (error) {
-    console.error('Error removing share:', error)
+    alertsStore.addAlert({
+      message: error instanceof Error ? error.message : String(error),
+      type: 'error',
+    })
   } finally {
     unsharing.value[accessName] = false
   }
@@ -535,7 +550,10 @@ async function shareWithUser({ userName, permission }: { userName: string, permi
     await circleAccessService.CreateAccess(request)
     await fetchCircleRecipients()
   } catch (error) {
-    console.error('Error sharing circle:', error)
+    alertsStore.addAlert({
+      message: error instanceof Error ? error.message : String(error),
+      type: 'error',
+    })
   } finally {
     sharing.value = false
   }

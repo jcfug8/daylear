@@ -11,7 +11,7 @@
     <v-row v-if="!loading && recipes.length > 0">
       <v-col lg="3" md="4" sm="6" cols="12" v-for="recipe in recipes" :key="recipe.name">
         <v-card
-          :to="getRecipeRoute(recipe)"
+          :to="'/'+recipe.name"
           :title="recipe.title"
           style="aspect-ratio: 8/6"
           hover
@@ -84,13 +84,6 @@ interface Props {
 
 defineProps<Props>()
 const emit = defineEmits(['accept', 'decline'])
-
-function getRecipeRoute(recipe: Recipe) {
-  if (route.params.circleId) {
-    return { name: 'circleRecipe', params: { circleId: route.params.circleId, recipeId: recipe.name } }
-  }
-  return { name: 'recipe', params: { recipeId: recipe.name } }
-}
 
 function getPermissionColor(permission: string) {
   switch (permission) {

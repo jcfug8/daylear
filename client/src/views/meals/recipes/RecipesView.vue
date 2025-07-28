@@ -348,7 +348,6 @@ async function onAcceptRecipe(recipe: Recipe) {
     await recipesStore.acceptRecipe(recipe.recipeAccess.name)
     tabsPage.value?.reloadTab('pending')
   } catch (err) {
-    console.log("Error accepting recipe:", err)
     alertStore.addAlert(err instanceof Error ? "Unable to accept recipe\n" + err.message : String(err), 'error')
   } finally {
     acceptingRecipeId.value = null
@@ -362,7 +361,6 @@ async function onDeclineRecipe(recipe: Recipe) {
     // Reload only the pending subtab
     tabsPage.value?.reloadTab('pending')
   } catch (err) {
-    console.log("Error declining recipe:", err)
     alertStore.addAlert(err instanceof Error ? "Unable to decline recipe\n" + err.message : String(err), 'error')
   }
 }

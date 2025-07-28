@@ -28,7 +28,7 @@ type CircleAccess struct {
 
 	Requester CircleRequester
 
-	Recipient           int64  `aip_pattern:"key=user"`
+	Recipient           UserId
 	RecipientUsername   string // username of the recipient
 	RecipientGivenName  string // given name of the recipient
 	RecipientFamilyName string // family name of the recipient

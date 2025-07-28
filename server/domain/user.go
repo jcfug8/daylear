@@ -154,8 +154,6 @@ func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, par
 		authAccount.CircleId = parent.CircleId
 	} else if parent.UserId != 0 {
 		authAccount.UserId = parent.UserId
-	} else {
-		authAccount.UserId = authAccount.AuthUserId
 	}
 
 	authAccount.PermissionLevel, err = d.checkUserAccess(ctx, authAccount, id, 0)

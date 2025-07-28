@@ -19,6 +19,8 @@ import type { Circle, apitypes_VisibilityLevel, apitypes_PermissionLevel, apityp
 import { useAuthStore } from '@/stores/auth'
 import CircleForm from '@/views/circles/forms/CircleForm.vue'
 import { fileService } from '@/api/api'
+import { computed } from 'vue'
+import { useAlertStore } from '@/stores/alerts'
 
 const router = useRouter()
 const route = useRoute()
@@ -26,6 +28,7 @@ const circlesStore = useCirclesStore()
 const { circle } = storeToRefs(circlesStore)
 const breadcrumbStore = useBreadcrumbStore()
 const authStore = useAuthStore()
+const alertsStore = useAlertStore()
 
 const editedCircle = ref<Circle>({
   name: '',
@@ -39,7 +42,7 @@ const editedCircle = ref<Circle>({
 const pendingImageFile = ref<File | null>(null)
 
 function navigateBack() {
-  router.push({ name: 'circle', params: { circleId: editedCircle.value.name } })
+  router.push(circleName.value)
 }
 
 async function saveSettings() {
@@ -54,11 +57,12 @@ async function saveSettings() {
       })
       circlesStore.circle.imageUri = response.imageUri
     }
-    authStore.loadAuthCircles()
     navigateBack()
   } catch (error) {
-    console.error('Error saving settings:', error)
-    alert('Failed to save settings')
+    alertsStore.addAlert({
+      message: error.message ? error.message : String(error),
+      type: 'error',
+    })
   }
 }
 
@@ -69,16 +73,24 @@ function handleImageSelected(file: File | null, url: string | null) {
   }
 }
 
-onMounted(async () => {
-  await circlesStore.loadCircle(route.params.circleId as string)
+const circleName = computed(() => {
+  return route.path.replace('/edit', '')
+})
+
+async function loadCircle() {
+  await circlesStore.loadCircle(circleName.value)
   if (circle.value) {
     editedCircle.value = { ...circle.value }
   }
   breadcrumbStore.setBreadcrumbs([
     { title: 'Circles', to: { name: 'circles' } },
-    { title: circle.value?.title || 'Circle', to: { name: 'circle', params: { circleId: circle.value?.name } } },
-    { title: 'Edit', to: { name: 'circle-edit', params: { circleId: circle.value?.name } } },
+    { title: circle.value?.title || 'Circle', to: circleName.value },
+    { title: 'Edit' },
   ])
+}
+
+onMounted(async () => {
+  await loadCircle()
 })
 
 watch(circle, (newVal) => {
@@ -86,6 +98,15 @@ watch(circle, (newVal) => {
     editedCircle.value = { ...newVal }
   }
 })
+
+watch(
+  () => route.path,
+  async (newCircleName) => {
+    if (newCircleName) {
+      await loadCircle()
+    }
+  }
+)
 </script>
 
 <style></style>

@@ -12,7 +12,7 @@ func CoreCircleAccessToCircleAccess(access coreModel.CircleAccess) dbModel.Circl
 		CircleId:          access.CircleAccessParent.CircleId.CircleId,
 		RequesterUserId:   access.Requester.UserId,
 		RequesterCircleId: access.Requester.CircleId,
-		RecipientUserId:   access.Recipient,
+		RecipientUserId:   access.Recipient.UserId,
 		PermissionLevel:   access.PermissionLevel,
 		State:             access.State,
 	}
@@ -33,7 +33,9 @@ func CircleAccessToCoreCircleAccess(dbAccess dbModel.CircleAccess) coreModel.Cir
 			UserId:   dbAccess.RequesterUserId,
 			CircleId: dbAccess.RequesterCircleId,
 		},
-		Recipient:           dbAccess.RecipientUserId,
+		Recipient: coreModel.UserId{
+			UserId: dbAccess.RecipientUserId,
+		},
 		PermissionLevel:     dbAccess.PermissionLevel,
 		State:               dbAccess.State,
 		RecipientUsername:   dbAccess.RecipientUsername,
