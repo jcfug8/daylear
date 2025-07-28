@@ -47,7 +47,7 @@
           </v-chip>
         </v-card>
         <v-btn
-          v-if="circle.circleAccess?.state === 'ACCESS_STATE_PENDING'"
+          v-if="acceptingCircleId !== undefined && circle.circleAccess?.state === 'ACCESS_STATE_PENDING'"
           color="success"
           class="accept-btn"
           @click.stop.prevent="$emit('accept', circle)"
@@ -57,7 +57,7 @@
           Accept
         </v-btn>
         <v-btn
-          v-if="circle.circleAccess?.state === 'ACCESS_STATE_PENDING'"
+          v-if="acceptingCircleId !== undefined && circle.circleAccess?.state === 'ACCESS_STATE_PENDING'"
           color="error"
           class="decline-btn"
           @click.stop.prevent="$emit('decline', circle)"

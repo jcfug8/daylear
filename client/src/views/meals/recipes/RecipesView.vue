@@ -36,7 +36,7 @@
           <div
             class="active-account-title clickable text-center"
             style="cursor: pointer; user-select: none; font-weight: 500; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; gap: 4px;"
-            @click="openFilterDialogAndFocusAccountSelect"
+            @click="showFilterModal = true"
           >
             <v-icon size="18">{{ selectedAccount?.icon || 'mdi-account-circle' }}</v-icon>
             <span class="account-title-ellipsis">{{ selectedAccount?.label || 'My Recipes' }}</span>
@@ -92,7 +92,15 @@
             class="mb-4"
             :prepend-inner-icon="selectedAccount?.icon"
             :menu-props="{ maxHeight: '300px' }"
-          />
+          >
+            <template #item="{ props, item }">
+              <v-list-item v-bind="props">
+                <template #prepend>
+                  <v-icon :icon="item.raw.icon" size="small" class="mr-2"></v-icon>
+                </template>
+              </v-list-item>
+            </template>
+          </v-autocomplete>
         </div>
         <div class="mb-4">
           <div class="font-weight-bold mb-2">Cuisines</div>
@@ -140,11 +148,13 @@ import type { Recipe } from '@/genapi/api/meals/recipe/v1alpha1'
 import { useAlertStore } from '@/stores/alerts'
 import Fuse from 'fuse.js'
 import { useCirclesStore } from '@/stores/circles'
+import { useUsersStore } from '@/stores/users'
 
 const circlesStore = useCirclesStore()
 const authStore = useAuthStore()
 const recipesStore = useRecipesStore()
 const alertStore = useAlertStore()
+const usersStore = useUsersStore()
 
 const acceptingRecipeId = ref<string | null>(null)
 const tabsPage = ref()
@@ -155,14 +165,6 @@ const searchInput = ref<HTMLInputElement | null>(null)
 
 // Dropdown for account/circle selection
 const selectedAccount = ref<any>(null)
-const accountSelectRef = ref()
-
-function openFilterDialogAndFocusAccountSelect() {
-  showFilterModal.value = true
-  nextTick(() => {
-    accountSelectRef.value?.focus && accountSelectRef.value.focus()
-  })
-}
 
 function onSearchEnter() {
   searchExpanded.value = false
@@ -170,6 +172,7 @@ function onSearchEnter() {
 
 onMounted(() => {
   circlesStore.loadMyCircles()
+  usersStore.loadFriends()
 })
 
 const accountOptions = computed(() => {
@@ -188,6 +191,23 @@ const accountOptions = computed(() => {
           value: circle.name,
           account: circle,
           icon: 'mdi-account-group',
+        })
+      }
+    }
+    if (Array.isArray(usersStore.friends)) {
+      for (const user of usersStore.friends) {
+        let label = ''
+        if (user.givenName || user.familyName) { // user full name
+          label = user.givenName + ' ' + user.familyName
+          label = label.trim()
+        } else if (user.username) { // user username
+          label = user.username
+        } 
+        options.push({
+          label: label,
+          value: user.name,
+          account: user,
+          icon: 'mdi-account-circle',
         })
       }
     }

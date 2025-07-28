@@ -85,13 +85,17 @@ func (repo *Client) GetCircle(ctx context.Context, authAccount cmodel.AuthAccoun
 	gm := gmodel.Circle{}
 
 	tx := repo.db.WithContext(ctx).
-		Select("circle.*", "circle_access.permission_level", "circle_access.state", "circle_access.circle_access_id").
-		Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.AuthUserId).
-		Where("circle.circle_id = ? AND (circle.visibility_level = ? OR circle_access.recipient_user_id = ?)", id.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
+		Where("circle.circle_id = ?", id.CircleId)
 
 	if authAccount.UserId != 0 {
-		tx = tx.Joins("LEFT JOIN circle_access as ca ON circle.circle_id = ca.circle_id AND ca.recipient_user_id = ?", authAccount.UserId)
-		tx = tx.Where("ca.recipient_user_id = ?", authAccount.UserId)
+		tx = tx.Select("circle.*", "ca.permission_level", "ca.state", "ca.circle_access_id").
+			Joins("LEFT JOIN circle_access as ca ON circle.circle_id = ca.circle_id AND ca.recipient_user_id = ?", authAccount.UserId).
+			Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.AuthUserId).
+			Where("(circle.visibility_level = ? OR ca.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.UserId)
+	} else {
+		tx = tx.Select("circle.*", "circle_access.permission_level", "circle_access.state", "circle_access.circle_access_id").
+			Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.AuthUserId).
+			Where("(circle.visibility_level = ? OR circle_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
 	}
 
 	err := tx.First(&gm).Error

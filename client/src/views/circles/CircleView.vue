@@ -68,7 +68,7 @@
             </v-col>
           </v-row>
           <!-- Accept/Decline Buttons for Pending Access -->
-          <v-row v-if="circle.circleAccess?.state === 'ACCESS_STATE_PENDING'">
+          <v-row v-if="acceptCircle && circle.circleAccess?.state === 'ACCESS_STATE_PENDING'">
             <v-col cols="12">
               <v-btn
                 color="success"
@@ -96,7 +96,7 @@
           <v-speed-dial location="top" v-model="speedDialOpen" transition="slide-y-reverse-transition" activator="parent">
             <v-btn key="edit" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
             :to="'/'+circle.name+'/edit'" color="primary"><v-icon>mdi-pencil</v-icon>Edit</v-btn>
-            <v-btn key="remove-access" v-if="!hasAdminPermission(circle.circleAccess?.permissionLevel)" @click="showRemoveAccessDialog = true" color="warning"><v-icon>mdi-link-variant-off</v-icon>Remove</v-btn>
+            <v-btn key="remove-access" v-if="!hasAdminPermission(circle.circleAccess?.permissionLevel) && circle.circleAccess?.state === 'ACCESS_STATE_ACCEPTED'" @click="showRemoveAccessDialog = true" color="warning"><v-icon>mdi-link-variant-off</v-icon>Remove</v-btn>
             <v-btn key="delete" v-if="hasAdminPermission(circle.circleAccess?.permissionLevel)"
               @click="showDeleteDialog = true" color="error"><v-icon>mdi-delete</v-icon>Delete</v-btn>
           </v-speed-dial>
@@ -105,6 +105,7 @@
       <template #recipes-circleRecipes="{ items, loading }">
         <RecipeGrid :recipes="items" :loading="loading" />
         <v-btn
+          v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
           color="primary"
           icon="mdi-plus"
           style="position: fixed; bottom: 16px; right: 16px"

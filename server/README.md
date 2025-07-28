@@ -72,16 +72,9 @@ sequenceDiagram
 # Entities
 
 ## User
-A user is the entity that represents a person who can log into the application. A user can be private or public:
+A user can only get and list other users
 
-*   **Public**: The user is visible in the user list. Their actual username is shown on publicly accessed content.
-*   **Restricted**: The user visible in the user list. `Anonymous` should be shown as the username on publicly accessed content. They will show up in member and friend lists.
-*   **Private**: The user is not visible in the user list. `Anonymous` should be shown as the username on publicly accessed content. They will show up in member and friend lists if the viewing user has access to the user
-*   **Hidden**: The user is not visible in the user list. `Anonymous` should be shown as the username on publicly accessed content. They will not show up in member and friend lists unless the viewing user has admin access to the circle or the user is looking at their own friends list.
-
-A user can only get, list other users that they have access to or users that are public.
-
-A user can only edit, delete their own user.
+A user can only edit, delete their own user or a user they have Admin access to.
 
 ## User Access
 The entities that represent the access to a user. A user can have access to another user. If a user has access to a user, they can view the public and restricted content they have.
