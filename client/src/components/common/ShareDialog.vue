@@ -11,11 +11,30 @@
         </v-tabs>
         <v-window v-if="allowCircleShare" v-model="accessTab">
           <v-window-item value="users">
-            <v-text-field v-model="usernameInput" label="Enter Username" :rules="[validateUsername]"
+            <v-autocomplete
+              v-model="selectedUser"
+              :items="userSuggestions"
+              :loading="isLoadingUsers"
+              :search-input.sync="usernameInput"
+              label="Search Users"
+              item-title="displayName"
+              item-value="name"
+              :rules="[validateUsername]"
               clearable
               :input-attrs="{ autocapitalize: 'off', autocomplete: 'off', spellcheck: 'false' }"
-              :prepend-inner-icon="getUsernameIcon" :color="getUsernameColor" :loading="isLoadingUsername"
-              @update:model-value="handleUsernameInput"></v-text-field>
+              :prepend-inner-icon="getUsernameIcon"
+              :color="getUsernameColor"
+              @update:search="handleUserSearch"
+              @update:model-value="handleUserSelection"
+            >
+              <template #item="{ props, item }">
+                <v-list-item v-bind="props">
+                  <v-list-item-subtitle>
+                    @{{ item.raw.username }}
+                  </v-list-item-subtitle>
+                </v-list-item>
+              </template>
+            </v-autocomplete>
             <v-select
               v-model="selectedPermission"
               :items="permissionOptions"
@@ -27,11 +46,30 @@
             </v-btn>
           </v-window-item>
           <v-window-item value="circles">
-            <v-text-field v-model="circleInput" label="Enter Circle Handle" :rules="[validateCircle]"
+            <v-autocomplete
+              v-model="selectedCircle"
+              :items="circleSuggestions"
+              :loading="isLoadingCircles"
+              :search-input.sync="circleInput"
+              label="Search Circles"
+              item-title="displayName"
+              item-value="name"
+              :rules="[validateCircle]"
               clearable
               :input-attrs="{ autocapitalize: 'off', autocomplete: 'off', spellcheck: 'false' }"
-              :prepend-inner-icon="getCircleIcon" :color="getCircleColor" :loading="isLoadingCircle"
-              @update:model-value="handleCircleInput"></v-text-field>
+              :prepend-inner-icon="getCircleIcon"
+              :color="getCircleColor"
+              @update:search="handleCircleSearch"
+              @update:model-value="handleCircleSelection"
+            >
+              <template #item="{ props, item }">
+                <v-list-item v-bind="props">
+                  <v-list-item-subtitle>
+                    @{{ item.raw.handle }}
+                  </v-list-item-subtitle>
+                </v-list-item>
+              </template>
+            </v-autocomplete>
             <v-select
               v-model="selectedPermission"
               :items="permissionOptions"
@@ -44,9 +82,30 @@
           </v-window-item>
         </v-window>
         <template v-else>
-          <v-text-field v-model="usernameInput" label="Enter Username" :rules="[validateUsername]"
-            :prepend-inner-icon="getUsernameIcon" :color="getUsernameColor" :loading="isLoadingUsername"
-            @update:model-value="handleUsernameInput"></v-text-field>
+          <v-autocomplete
+            v-model="selectedUser"
+            :items="userSuggestions"
+            :loading="isLoadingUsers"
+            :search-input.sync="usernameInput"
+            label="Search Users"
+            item-title="displayName"
+            item-value="name"
+            :rules="[validateUsername]"
+            clearable
+            :input-attrs="{ autocapitalize: 'off', autocomplete: 'off', spellcheck: 'false' }"
+            :prepend-inner-icon="getUsernameIcon"
+            :color="getUsernameColor"
+            @update:search="handleUserSearch"
+            @update:model-value="handleUserSelection"
+          >
+            <template #item="{ props, item }">
+              <v-list-item v-bind="props">
+                <v-list-item-subtitle>
+                  @{{ item.raw.username }}
+                </v-list-item-subtitle>
+              </v-list-item>
+            </template>
+          </v-autocomplete>
           <v-select
             v-model="selectedPermission"
             :items="permissionOptions"
@@ -123,7 +182,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import type { User } from '@/genapi/api/users/user/v1alpha1'
 import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
 import type { ListUsersRequest } from '@/genapi/api/users/user/v1alpha1'
@@ -132,6 +191,7 @@ import { userService, circleService } from '@/api/api'
 import { useAuthStore } from '@/stores/auth'
 import type { PermissionLevel } from '@/genapi/api/types'
 import { useAlertStore } from '@/stores/alerts'
+import Fuse from 'fuse.js'
 
 const authStore = useAuthStore()
 const alertStore = useAlertStore()
@@ -162,6 +222,25 @@ const permissionOptions = [
   { title: 'Read Only', value: 'PERMISSION_LEVEL_READ' as PermissionLevel },
   { title: 'Read & Write', value: 'PERMISSION_LEVEL_WRITE' as PermissionLevel },
 ]
+
+// Autocomplete state
+const allUsers = ref<User[]>([])
+const allCircles = ref<Circle[]>([])
+const userSuggestions = ref<User[]>([])
+const circleSuggestions = ref<Circle[]>([])
+const isLoadingUsers = ref(false)
+const isLoadingCircles = ref(false)
+const userFuse = ref<Fuse<User> | null>(null)
+const circleFuse = ref<Fuse<Circle> | null>(null)
+
+// Selection state
+const selectedUser = ref<User | null>(null)
+const selectedCircle = ref<Circle | null>(null)
+const usernameInput = ref('')
+const circleInput = ref('')
+
+let isValidUsername = ref(false)
+let isValidCircle = ref(false)
 
 function emitRemoveAccess(name: string) {
   emit('remove-access', name)
@@ -226,178 +305,211 @@ function accessSubtitle(access: any) {
   return subtitle
 }
 
-// *** Circle Sharing ***
+// Format display names for autocomplete
+function formatUserDisplay(user: User): User & { displayName: string } {
+  const fullName = [user.givenName, user.familyName].filter(Boolean).join(' ')
+  const displayName = fullName || user.username || 'Unknown User'
+  return { ...user, displayName }
+}
 
-const selectedCircle = ref<Circle | null>(null)
-const circleInput = ref('')
+function formatCircleDisplay(circle: Circle): Circle & { displayName: string } {
+  const displayName = circle.title || circle.handle || 'Unknown Circle'
+  return { ...circle, displayName }
+}
 
-var isValidCircle = ref(false)
-var isLoadingCircle = ref(false)
+// Initialize Fuse instances
+function initializeFuseInstances() {
+  // User search configuration
+  const userSearchKeys = [
+    { name: 'username', weight: 0.4 },
+    { name: 'givenName', weight: 0.3 },
+    { name: 'familyName', weight: 0.3 }
+  ]
 
-let circleDebounceTimer: number | null = null
+  // Circle search configuration
+  const circleSearchKeys = [
+    { name: 'handle', weight: 0.5 },
+    { name: 'title', weight: 0.5 }
+  ]
 
-onBeforeUnmount(() => {
-  if (circleDebounceTimer) {
-    clearTimeout(circleDebounceTimer)
+  const fuseOptions = {
+    threshold: 0.3,
+    includeScore: true,
+    minMatchCharLength: 2,
+    shouldSort: true
   }
-})
 
-const getCircleIcon = computed(() => {
-  if (isLoadingCircle.value) return 'mdi-loading'
-  if (!circleInput.value) return undefined
-  return isValidCircle.value ? 'mdi-check-circle' : 'mdi-close-circle'
-})
+  userFuse.value = new Fuse(allUsers.value, {
+    ...fuseOptions,
+    keys: userSearchKeys
+  })
 
-const getCircleColor = computed(() => {
-  if (isLoadingCircle.value) return undefined
-  if (!circleInput.value) return undefined
-  return isValidCircle.value ? 'success' : 'error'
-})
+  circleFuse.value = new Fuse(allCircles.value, {
+    ...fuseOptions,
+    keys: circleSearchKeys
+  })
+}
+
+// Fetch all users and circles
+async function fetchUsers() {
+  isLoadingUsers.value = true
+  try {
+    const request: ListUsersRequest = {
+      pageSize: 1000,
+      pageToken: undefined,
+      filter: 'state = 200'
+    }
+    const response = await userService.ListUsers(request)
+    
+    if (response.users) {
+      // Filter out current user and format for display
+      allUsers.value = response.users
+        .filter(user => user.name !== authStore.user.name)
+        .map(formatUserDisplay)
+    }
+  } catch (error) {
+    alertStore.addAlert(error instanceof Error ? "Unable to fetch users\n" + error.message : String(error), 'error')
+  } finally {
+    isLoadingUsers.value = false
+  }
+}
+
+async function fetchCircles() {
+  isLoadingCircles.value = true
+  try {
+    const request: ListCirclesRequest = {
+      pageSize: 1000,
+      pageToken: undefined,
+      filter: 'state = 200'
+    }
+    const response = await circleService.ListCircles(request)
+    
+    if (response.circles) {
+      allCircles.value = response.circles.map(formatCircleDisplay)
+    }
+  } catch (error) {
+    alertStore.addAlert(error instanceof Error ? "Unable to fetch circles\n" + error.message : String(error), 'error')
+  } finally {
+    isLoadingCircles.value = false
+  }
+}
+
+// Search functions
+function searchUsers(query: string) {
+  if (!userFuse.value || !query.trim()) {
+    userSuggestions.value = allUsers.value.slice(0, 15)
+    return
+  }
+
+  const results = userFuse.value.search(query.trim())
+  userSuggestions.value = results
+    .slice(0, 15)
+    .map(result => result.item)
+}
+
+function searchCircles(query: string) {
+  if (!circleFuse.value || !query.trim()) {
+    circleSuggestions.value = allCircles.value.slice(0, 15)
+    return
+  }
+
+  const results = circleFuse.value.search(query.trim())
+  circleSuggestions.value = results
+    .slice(0, 15)
+    .map(result => result.item)
+}
+
+// Input handlers
+function handleUserSearch(query: string) {
+  searchUsers(query)
+}
+
+function handleCircleSearch(query: string) {
+  searchCircles(query)
+}
+
+function handleUserSelection(user: User | null) {
+  selectedUser.value = user
+  isValidUsername.value = !!user
+  if (user) {
+    usernameInput.value = user.displayName
+  }
+}
+
+function handleCircleSelection(circle: Circle | null) {
+  selectedCircle.value = circle
+  isValidCircle.value = !!circle
+  if (circle) {
+    circleInput.value = circle.displayName
+  }
+}
+
+// Validation functions
+function validateUsername(value: string): boolean | string {
+  return true
+}
 
 function validateCircle(value: string): boolean | string {
   return true
 }
 
-function emitShareCircle() {
-    circleInput.value = circleInput.value
-    selectedPermission.value = selectedPermission.value
-    checkCircle(circleInput.value).then(() => {
-        if (isValidCircle.value) {
-            emit('share-circle', { circleName: selectedCircle.value?.name || '', permission: selectedPermission.value })
-            selectedCircle.value = null
-            circleInput.value = ''
-            isValidCircle.value = false
-            isLoadingCircle.value = false
-        }
-    })
-}
-
-function handleCircleInput(value: string) {
-    if (circleDebounceTimer) {
-    clearTimeout(circleDebounceTimer)
-  }
-  circleDebounceTimer = window.setTimeout(() => {
-    checkCircle(value)
-  }, 300)
-}
-
-async function checkCircle(circleHandle: string) {
-  if (!circleHandle) {
-    isValidCircle.value = false
-    selectedCircle.value = null
-    return
-  }
-
-  isLoadingCircle.value = true
-  try {
-    const request: ListCirclesRequest = {
-      filter: `handle = "${circleHandle}"`,
-      pageSize: 1,
-      pageToken: undefined
-    }
-    const response = await circleService.ListCircles(request)
-
-    if (response.circles?.length === 1) {
-      selectedCircle.value = response.circles[0]
-      isValidCircle.value = true
-    } else {
-      selectedCircle.value = null
-      isValidCircle.value = false
-    }
-  } catch (error) {
-    alertStore.addAlert(error instanceof Error ? "Unable to check circle\n" + error.message : String(error), 'error')
-    selectedCircle.value = null
-    isValidCircle.value = false
-  } finally {
-    isLoadingCircle.value = false
-  }
-}
-
-// *** User Sharing ***
-
-const selectedUser = ref<User | null>(null)
-const usernameInput = ref('')
-
-let isValidUsername = ref(false)
-let isLoadingUsername = ref(false)
-
-let usernameDebounceTimer: number | null = null
-
-onBeforeUnmount(() => {
-  if (usernameDebounceTimer) {
-    clearTimeout(usernameDebounceTimer)
-  }
-})
-
+// Computed properties for icons and colors
 const getUsernameIcon = computed(() => {
-  if (isLoadingUsername.value) return 'mdi-loading'
+  if (isLoadingUsers.value) return 'mdi-loading'
   if (!usernameInput.value) return undefined
   return isValidUsername.value ? 'mdi-check-circle' : 'mdi-close-circle'
 })
 
 const getUsernameColor = computed(() => {
-  if (isLoadingUsername.value) return undefined
+  if (isLoadingUsers.value) return undefined
   if (!usernameInput.value) return undefined
   return isValidUsername.value ? 'success' : 'error'
 })
 
-function validateUsername(value: string): boolean | string {
-  return true
-}
+const getCircleIcon = computed(() => {
+  if (isLoadingCircles.value) return 'mdi-loading'
+  if (!circleInput.value) return undefined
+  return isValidCircle.value ? 'mdi-check-circle' : 'mdi-close-circle'
+})
 
+const getCircleColor = computed(() => {
+  if (isLoadingCircles.value) return undefined
+  if (!circleInput.value) return undefined
+  return isValidCircle.value ? 'success' : 'error'
+})
+
+// Share functions
 function emitShareUser() {
-    usernameInput.value = usernameInput.value
-    selectedPermission.value = selectedPermission.value
-    checkUsername(usernameInput.value).then(() => {
-        if (isValidUsername.value) {
-            emit('share-user', { userName: selectedUser.value?.name || '', permission: selectedPermission.value })
-            selectedUser.value = null
-            usernameInput.value = ''
-            isValidUsername.value = false
-            isLoadingUsername.value = false
-        }
-    })
-}
-
-function handleUsernameInput(value: string) {
-  if (usernameDebounceTimer) {
-    clearTimeout(usernameDebounceTimer)
-  }
-  usernameDebounceTimer = window.setTimeout(() => {
-    checkUsername(value)
-  }, 300)
-}
-
-async function checkUsername(username: string) {
-  if (!username) {
-    isValidUsername.value = false
+  if (selectedUser.value) {
+    emit('share-user', { userName: selectedUser.value.name || '', permission: selectedPermission.value })
     selectedUser.value = null
-    return
-  }
-
-  isLoadingUsername.value = true
-  try {
-    const request: ListUsersRequest = {
-      filter: `username = "${username}"`,
-      pageSize: 1,
-      pageToken: undefined
-    }
-    const response = await userService.ListUsers(request)
-
-    if (response.users?.length === 1 && response.users[0].name !== authStore.user.name) {
-      selectedUser.value = response.users[0]
-      isValidUsername.value = true
-    } else {
-      selectedUser.value = null
-      isValidUsername.value = false
-    }
-  } catch (error) {
-    alertStore.addAlert(error instanceof Error ? "Unable to check username\n" + error.message : String(error), 'error')
-    selectedUser.value = null
+    usernameInput.value = ''
     isValidUsername.value = false
-  } finally {
-    isLoadingUsername.value = false
   }
 }
+
+function emitShareCircle() {
+  if (selectedCircle.value) {
+    emit('share-circle', { circleName: selectedCircle.value.name || '', permission: selectedPermission.value })
+    selectedCircle.value = null
+    circleInput.value = ''
+    isValidCircle.value = false
+  }
+}
+
+// Initialize data on mount
+onMounted(async () => {
+  await Promise.all([
+    fetchUsers(),
+    props.allowCircleShare ? fetchCircles() : Promise.resolve()
+  ])
+  initializeFuseInstances()
+  
+  // Set initial suggestions
+  userSuggestions.value = allUsers.value.slice(0, 15)
+  if (props.allowCircleShare) {
+    circleSuggestions.value = allCircles.value.slice(0, 15)
+  }
+})
 
 </script> 

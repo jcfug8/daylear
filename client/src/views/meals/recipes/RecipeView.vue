@@ -923,7 +923,7 @@ async function fetchRecipeRecipients() {
     if (response.accesses) {
       currentAccesses.value = response.accesses.filter(access => {
         // Filter out the current user's own access to avoid showing it in the shares list
-        return access.recipient?.user && access.recipient.user.name === authStore.user.name
+        return access.recipient?.user?.name !== authStore.user.name
       }).map(access => ({
         name: access.name || '',
         level: access.level || 'PERMISSION_LEVEL_READ',

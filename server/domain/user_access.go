@@ -159,6 +159,7 @@ func (d *Domain) ListUserAccesses(ctx context.Context, authAccount model.AuthAcc
 	}
 
 	if parent.UserId.UserId != 0 {
+		authAccount.UserId = parent.UserId.UserId
 		perm, err := d.getUserAccessLevels(ctx, authAccount)
 		if err != nil {
 			log.Error().Err(err).Msg("getUserAccessLevels failed")

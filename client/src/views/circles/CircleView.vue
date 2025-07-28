@@ -467,8 +467,7 @@ async function fetchCircleRecipients() {
     if (response.accesses) {
       currentAccesses.value = response.accesses.filter(access => {
         // Filter out the current user's own access to avoid showing it in the shares list
-        const isCurrentUser = access.recipient?.name === user.value.name
-        return !isCurrentUser
+        return access.recipient?.name !== user.value.name
       }).map(access => ({
         name: access.name || '',
         recipient: access.recipient,
