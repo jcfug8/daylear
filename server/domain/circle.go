@@ -230,6 +230,11 @@ func (d *Domain) UpdateCircle(ctx context.Context, authAccount model.AuthAccount
 		return model.Circle{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
 	}
 
+	// Generate a handle if not provided
+	if circle.Handle == "" {
+		circle.Handle, _ = d.generateUniqueCircleHandle(ctx, circle.Title)
+	}
+
 	previousDbCircle, err := d.repo.GetCircle(ctx, authAccount, circle.Id)
 	if err != nil {
 		log.Error().Err(err).Msg("GetCircle in repo failed")

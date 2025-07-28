@@ -34,6 +34,13 @@
               @move-up="moveNestedArrayItem(recipe.ingredientGroups, i, 'ingredients', j, 'up')"
               @move-down="moveNestedArrayItem(recipe.ingredientGroups, i, 'ingredients', j, 'down')"
             />
+            <move-buttons
+              size="x-small"
+              :show-up="i > 0"
+              :show-down="i < (recipe.ingredientGroups?.length || 0) - 1"
+              @move-up="moveIngredientBetweenGroups(i, j, 'up')"
+              @move-down="moveIngredientBetweenGroups(i, j, 'down')"
+            />
             <div class="flex-grow-1">
               <v-row dense>
                 <v-col cols="4" >
@@ -215,6 +222,40 @@ function toggleSecondMeasurement(groupIdx: number, ingredientIdx: number) {
       ingredient.secondMeasurementType = undefined
     }
   }
+}
+
+function moveIngredientBetweenGroups(currentGroupIdx: number, ingredientIdx: number, direction: 'up' | 'down') {
+  const targetGroupIdx = direction === 'up' ? currentGroupIdx - 1 : currentGroupIdx + 1
+  
+  // Validate target group exists
+  if (targetGroupIdx < 0 || targetGroupIdx >= (recipe.value.ingredientGroups?.length || 0)) {
+    return
+  }
+
+  const currentGroup = recipe.value.ingredientGroups?.[currentGroupIdx]
+  const targetGroup = recipe.value.ingredientGroups?.[targetGroupIdx]
+  
+  if (!currentGroup?.ingredients || !targetGroup) {
+    return
+  }
+
+  // Get the ingredient to move
+  const ingredientToMove = currentGroup.ingredients[ingredientIdx]
+  if (!ingredientToMove) {
+    return
+  }
+
+  // Remove from current group
+  currentGroup.ingredients.splice(ingredientIdx, 1)
+
+  // Add to target group
+  if (!targetGroup.ingredients) {
+    targetGroup.ingredients = []
+  }
+  targetGroup.ingredients.push(ingredientToMove)
+
+  // Update the showSecondMeasurementMap
+  initializeShowSecondMeasurementMap()
 }
 
 const MEASUREMENT_CONJUNCTIONS = [

@@ -9,56 +9,34 @@
     </v-row>
 
     <v-row>
-      <v-col cols="12">
-        <v-card class="mx-auto" max-width="600">
-          <v-card-text>
-            <v-form @submit.prevent="handleSave">
-              <v-text-field
-                v-model="circle.title"
-                label="Circle Title"
-                required
-              ></v-text-field>
-              <v-textarea
-                v-model="circle.description"
-                label="Description"
-                placeholder="Describe this circle..."
-                rows="3"
-                auto-grow
-                class="mb-4"
-              ></v-textarea>
-              <v-text-field
-                v-model="circle.handle"
-                label="Handle (unique, for sharing)"
-                hint="Optional. If left blank, one will be generated. Must be unique."
-                persistent-hint
-                :rules="[handleRule]"
-              ></v-text-field>
-
-              <v-select
-                v-model="circle.visibility"
-                :items="visibilityOptions"
-                item-title="label"
-                item-value="value"
-                label="Visibility"
-                required
-              />
-
-              <!-- Visibility Description -->
-              <div v-if="selectedVisibilityDescription" class="mt-2">
-                <v-alert
-                  :icon="selectedVisibilityIcon"
-                  density="compact"
-                  variant="tonal"
-                  :color="selectedVisibilityColor"
-                >
-                  <div class="text-body-2">
-                    <strong>{{ selectedVisibilityLabel }}:</strong> {{ selectedVisibilityDescription }}
-                  </div>
-                </v-alert>
-              </div>
-            </v-form>
-          </v-card-text>
-        </v-card>
+      <v-col class="pt-5">
+        <div class="text-body-1">
+          <v-text-field
+            density="compact"
+            v-model="circle.title"
+            placeholder="Circle Title"
+            required
+          ></v-text-field>
+        </div>
+        <div class="text-body-1">
+          <v-textarea
+            density="compact"
+            v-model="circle.description"
+            placeholder="Describe this circle..."
+            rows="3"
+            auto-grow
+          ></v-textarea>
+        </div>
+        <div class="text-body-1">
+          <v-text-field
+            density="compact"
+            v-model="circle.handle"
+            placeholder="Handle (unique, for sharing)"
+            hint="Optional. If left blank, one will be generated. Must be unique."
+            persistent-hint
+            :rules="[handleRule]"
+          ></v-text-field>
+        </div>
       </v-col>
     </v-row>
 
@@ -98,6 +76,55 @@
         </div>
       </v-col>
       <v-spacer></v-spacer>
+    </v-row>
+
+    <!-- Visibility Section -->
+    <v-row>
+      <v-col cols="12">
+        <div class="mt-4">
+          <v-select
+            v-model="circle.visibility"
+            :items="visibilityOptions"
+            item-title="label"
+            item-value="value"
+            label="Circle Visibility"
+            density="compact"
+            variant="outlined"
+            required
+          >
+            <template #selection="{ item }">
+              <div class="d-flex align-center">
+                <v-icon :icon="item.raw.icon" class="me-2" size="small"></v-icon>
+                {{ item.raw.label }}
+              </div>
+            </template>
+            <template #item="{ props, item }">
+              <v-list-item v-bind="props">
+                <template #prepend>
+                  <v-icon :icon="item.raw.icon" size="small"></v-icon>
+                </template>
+                <v-list-item-subtitle class="text-wrap">
+                  {{ item.raw.description }}
+                </v-list-item-subtitle>
+              </v-list-item>
+            </template>
+          </v-select>
+          
+          <!-- Current selection description -->
+          <div v-if="selectedVisibilityDescription" class="mt-2">
+            <v-alert
+              :icon="selectedVisibilityIcon"
+              density="compact"
+              variant="tonal"
+              :color="selectedVisibilityColor"
+            >
+              <div class="text-body-2">
+                <strong>{{ selectedVisibilityLabel }}:</strong> {{ selectedVisibilityDescription }}
+              </div>
+            </v-alert>
+          </div>
+        </div>
+      </v-col>
     </v-row>
   </v-container>
 
