@@ -64,14 +64,6 @@
           </template>
           <template v-else>
             <v-btn
-              color="warning"
-              class="pending-btn"
-              block
-              disabled
-            >
-              Pending
-            </v-btn>
-            <v-btn
               color="error"
               class="decline-btn"
               @click.stop.prevent="$emit('decline', user)"
@@ -98,12 +90,12 @@ const props = defineProps({
 })
 
 const authStore = useAuthStore()
-const { user } = storeToRefs(authStore)
+const { user: currentUser } = storeToRefs(authStore)
 
 defineEmits(['accept', 'decline'])
 
 function isRequester(user: any) {
-  return user.access?.requester === user.value.name
+  return user.access?.requester === currentUser.value?.name
 }
 </script>
 

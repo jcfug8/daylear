@@ -162,11 +162,6 @@ func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, par
 		return model.User{}, err
 	}
 
-	if authAccount.VisibilityLevel != types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC && authAccount.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
-		log.Warn().Msg("user does not have write permission")
-		return model.User{}, domain.ErrPermissionDenied{Msg: "user does not have write permission"}
-	}
-
 	dbUser, err = d.repo.GetUser(ctx, authAccount, id)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.GetUser failed")

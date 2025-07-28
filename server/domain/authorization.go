@@ -183,11 +183,11 @@ func determineRecipeAccessLevels(circleVisibilityLevel types.VisibilityLevel, ci
 }
 
 func determineUserAccessLevels(circlePermissionLevel types.PermissionLevel, userPermissionLevel types.PermissionLevel) (types.PermissionLevel, error) {
-	// If either access level is unspecified, no access
-	if circlePermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED &&
-		userPermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
-		return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user does not have access to user: access not set"}
-	}
+	// // If either access level is unspecified, no access
+	// if circlePermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED &&
+	// 	userPermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+	// 	return types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED, domain.ErrPermissionDenied{Msg: "user does not have access to user: access not set"}
+	// }
 
 	// Effective permission is minimum of circle and user permissions
 	// User cannot have higher access to user than either their circle access allows
