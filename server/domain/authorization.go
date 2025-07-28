@@ -100,6 +100,10 @@ func (d *Domain) getUserAccessLevels(ctx context.Context, authAccount model.Auth
 		return types.PermissionLevel_PERMISSION_LEVEL_ADMIN, nil
 	}
 
+	if user.UserAccess.Level == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
+		return types.PermissionLevel_PERMISSION_LEVEL_READ, nil
+	}
+
 	return user.UserAccess.Level, nil
 }
 

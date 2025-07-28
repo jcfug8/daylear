@@ -32,23 +32,27 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 	}}
 
 	tx := repo.db.WithContext(ctx).
-		Select("recipe.*, recipe_access.permission_level, recipe_access.state, recipe_access.recipe_access_id").
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(offset))
 
 	if authAccount.CircleId != 0 {
-		tx = tx.Where("(recipe_access.recipient_circle_id = ? OR recipe.visibility_level = ?) AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?)",
-			authAccount.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
-			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ?", authAccount.CircleId)
+		tx = tx.Select("recipe.*, ra.permission_level, ra.state, ra.recipe_access_id").
+			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ?", authAccount.CircleId).
+			Joins("LEFT JOIN recipe_access as ra ON recipe.recipe_id = ra.recipe_id AND ra.recipient_user_id = ?", authAccount.AuthUserId).
+			Where("(recipe_access.recipient_circle_id = ? OR recipe.visibility_level = ?) AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?) ",
+				authAccount.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN)
 	} else if authAccount.UserId != 0 {
-		tx = tx.Where("(recipe_access.recipient_user_id = ? OR recipe.visibility_level = ?) AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?)",
-			authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
-			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId)
+		tx = tx.Select("recipe.*, ra.permission_level, ra.state, ra.recipe_access_id").
+			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId).
+			Joins("LEFT JOIN recipe_access as ra ON recipe.recipe_id = ra.recipe_id AND ra.recipient_user_id = ?", authAccount.AuthUserId).
+			Where("(recipe_access.recipient_user_id = ? OR recipe.visibility_level = ?) AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?)",
+				authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN)
 	} else {
-		tx = tx.Where("(recipe_access.recipient_user_id = ? OR recipe.visibility_level = ?) AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?)",
-			authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
-			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.AuthUserId)
+		tx = tx.Select("recipe.*, recipe_access.permission_level, recipe_access.state, recipe_access.recipe_access_id").
+			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.AuthUserId).
+			Where("(recipe_access.recipient_user_id = ? OR recipe.visibility_level = ?) AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?)",
+				authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN)
 	}
 
 	conversion, err := repo.recipeSQLConverter.Convert(filter)
@@ -139,17 +143,21 @@ func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccoun
 	gm := gmodel.Recipe{}
 
 	tx := repo.db.WithContext(ctx).
-		Select("recipe.*, recipe_access.permission_level, recipe_access.state, recipe_access.recipe_access_id").
 		Where("recipe.recipe_id = ?", id.RecipeId)
 
 	if authAccount.CircleId != 0 {
-		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ?", authAccount.CircleId).
+		tx = tx.Select("recipe.*, ra.permission_level, ra.state, ra.recipe_access_id").
+			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ?", authAccount.CircleId).
+			Joins("LEFT JOIN recipe_access as ra ON recipe.recipe_id = ra.recipe_id AND ra.recipient_user_id = ?", authAccount.AuthUserId).
 			Where("(recipe.visibility_level = ? OR recipe_access.recipient_circle_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.CircleId)
 	} else if authAccount.UserId != 0 {
-		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId).
+		tx = tx.Select("recipe.*, ra.permission_level, ra.state, ra.recipe_access_id").
+			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId).
+			Joins("LEFT JOIN recipe_access as ra ON recipe.recipe_id = ra.recipe_id AND ra.recipient_user_id = ?", authAccount.AuthUserId).
 			Where("(recipe.visibility_level = ? OR recipe_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.UserId)
 	} else {
-		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.AuthUserId).
+		tx = tx.Select("recipe.*, recipe_access.permission_level, recipe_access.state, recipe_access.recipe_access_id").
+			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.AuthUserId).
 			Where("(recipe.visibility_level = ? OR recipe_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
 	}
 

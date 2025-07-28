@@ -84,6 +84,15 @@ const router = createRouter({
       },
     },
     {
+      path: '/users/:userId/recipes/:recipeId/edit',
+      name: 'userRecipeEdit',
+      component: () => import('../views/meals/recipes/RecipeEditView.vue'),
+      meta: {
+        requiresAuth: true,
+        breadcrumbs: true,
+      },
+    },
+    {
       path: '/circles/:circleId/recipes/:recipeId/edit',
       name: 'circleRecipeEdit',
       component: () => import('../views/meals/recipes/RecipeEditView.vue'),

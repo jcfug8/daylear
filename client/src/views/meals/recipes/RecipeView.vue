@@ -393,6 +393,9 @@ const recipeFormStore = useRecipeFormStore()
 const route = useRoute()
 const router = useRouter()
 const alertsStore = useAlertStore()
+const trimmedRecipeName = computed(() => {
+  return route.path.substring(route.path.indexOf('/recipes/'))
+})
 
 const { recipe } = storeToRefs(recipesStore)
 const { circle } = storeToRefs(circlesStore)
@@ -906,7 +909,7 @@ async function fetchRecipeRecipients() {
 
   try {
     const request: ListAccessesRequest = {
-      parent: recipe.value.name,
+      parent: trimmedRecipeName.value,
       filter: undefined,
       pageSize: undefined,
       pageToken: undefined
@@ -993,7 +996,7 @@ async function shareWithUser({ userName, permission }: { userName: string, permi
     }
 
     const request: CreateAccessRequest = {
-      parent: recipe.value.name,
+      parent: trimmedRecipeName.value,
       access
     }
 

@@ -32,6 +32,10 @@ const recipeName = computed(() => {
   return route.path.replace('/edit', '')
 })
 
+const trimmedRecipeName = computed(() => {
+  return recipeName.value.substring(recipeName.value.indexOf('/recipes/'))
+})
+
 const circleName = computed(() => {
   return route.path.indexOf('/recipes') !== -1 
     ? route.path.substring(0, route.path.indexOf('/recipes'))
@@ -49,7 +53,7 @@ async function saveRecipe(pendingImageFile: File | null) {
     // Upload image if there's a pending file
     if (pendingImageFile && recipesStore.recipe?.name) {
       const response = await fileService.UploadRecipeImage({
-        name: recipesStore.recipe.name,
+        name: trimmedRecipeName,
         file: pendingImageFile,
       })
       
