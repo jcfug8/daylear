@@ -158,6 +158,10 @@ const originalImageUri = ref<string | null>(null)
 
 const userName = computed(() => route.path.replace('/edit', ''))
 
+const trimmedUserName = computed(() => {
+  return userName.value.substring(userName.value.indexOf('users/'))
+})
+
 watch(
   () => route.path,
   async (newUserName) => {
@@ -235,8 +239,8 @@ async function saveSettings() {
 
 async function loadUser() {
   await Promise.all([
-    usersStore.loadUser(userName.value),
-    usersStore.loadUserSettings(userName.value)
+    usersStore.loadUser(trimmedUserName.value),
+    usersStore.loadUserSettings(trimmedUserName.value)
   ])
   breadcrumbStore.setBreadcrumbs([
     { title: 'User Settings', to: userName.value },
