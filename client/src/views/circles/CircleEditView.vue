@@ -74,7 +74,7 @@ function handleImageSelected(file: File | null, url: string | null) {
 }
 
 const circleName = computed(() => {
-  return route.path.replace('/edit', '')
+  return route.path.replace('/edit', '').substring(1)
 })
 
 async function loadCircle() {

@@ -29,16 +29,16 @@ const alertStore = useAlertStore()
 const { circle } = storeToRefs(circlesStore)
 
 const recipeName = computed(() => {
-  return route.path.replace('/edit', '')
+  return route.path.replace('/edit', '').substring(1)
 })
 
 const trimmedRecipeName = computed(() => {
-  return recipeName.value.substring(recipeName.value.indexOf('/recipes/'))
+  return recipeName.value.substring(recipeName.value.indexOf('recipes/'))
 })
 
 const circleName = computed(() => {
-  return route.path.indexOf('/recipes') !== -1 
-    ? route.path.substring(0, route.path.indexOf('/recipes'))
+  return route.path.indexOf('/recipes/') !== -1 
+    ? route.path.substring(0, route.path.indexOf('/recipes/'))
     : null
 })
 
