@@ -273,6 +273,9 @@ func (d *Domain) UploadUserImage(ctx context.Context, authAccount model.AuthAcco
 	if id.UserId == 0 {
 		return "", domain.ErrInvalidArgument{Msg: "id required"}
 	}
+
+	authAccount.UserId = id.UserId
+
 	authAccount.PermissionLevel, err = d.getUserAccessLevels(ctx, authAccount)
 	if err != nil {
 		return "", err
