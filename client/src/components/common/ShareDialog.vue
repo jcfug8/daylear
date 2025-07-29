@@ -221,7 +221,7 @@ const props = defineProps({
   title: { type: String, default: 'Share' },
   allowCircleShare: { type: Boolean, default: false },
   currentAccesses: { type: Array, required: true },
-  userPermissionLevel: { type: String, required: true },
+  userPermissionLevel: { type: String },
   sharing: Boolean,
   accessPermissionLoading: { type: Object, default: () => ({}) },
   allowPermissionOptions: { type: Array, required: true },

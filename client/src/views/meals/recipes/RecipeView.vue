@@ -250,7 +250,7 @@
         <v-icon>mdi-share-variant</v-icon>
         Manage Access
       </v-btn>
-      <v-btn v-if="!hasAdminPermission(recipe.recipeAccess?.permissionLevel)" color="warning" density="compact" @click="showRemoveAccessDialog = true">
+      <v-btn v-if="hasReadPermission(recipe.recipeAccess?.permissionLevel)" color="warning" density="compact" @click="showRemoveAccessDialog = true">
         <v-icon>mdi-link-variant-off</v-icon>
         Remove Access
       </v-btn>
@@ -385,7 +385,7 @@ import { onMounted, onBeforeUnmount, watch, computed, ref, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { recipeService, recipeAccessService, fileService } from '@/api/api'
 import { useAuthStore } from '@/stores/auth'
-import { hasWritePermission, hasAdminPermission } from '@/utils/permissions'
+import { hasWritePermission, hasAdminPermission, hasReadPermission } from '@/utils/permissions'
 import ShareDialog from '@/components/common/ShareDialog.vue'
 import { MEASUREMENT_TYPE_TO_STRING } from '@/constants/measurements'
 import { useAlertStore } from '@/stores/alerts'
