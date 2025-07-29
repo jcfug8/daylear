@@ -207,7 +207,7 @@ func (s *RecipeService) UpdateAccess(ctx context.Context, request *pb.UpdateAcce
 	}
 
 	// check field behavior
-	err = grpc.ProcessRequestFieldBehavior(request)
+	err = grpc.ProcessUpdateRequestFieldBehavior(request)
 	if err != nil {
 		log.Warn().Err(err).Msg("invalid request data")
 		return nil, err

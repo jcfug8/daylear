@@ -17,6 +17,11 @@ func ProcessRequestFieldBehavior(request proto.Message) error {
 	return nil
 }
 
+func ProcessUpdateRequestFieldBehavior(request proto.Message) error {
+	fieldbehavior.ClearFields(request, annotations.FieldBehavior_OUTPUT_ONLY)
+	return nil
+}
+
 func ProcessResponseFieldBehavior(response proto.Message) {
 	fieldbehavior.ClearFields(response, annotations.FieldBehavior_INPUT_ONLY)
 }

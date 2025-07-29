@@ -279,6 +279,22 @@
     >
       Decline
     </v-btn>
+
+    <!-- Share Dialog -->
+    <ShareDialog
+      v-model="showShareDialog"
+      title="Share Recipe"
+      :allowCircleShare="true"
+      :currentAccesses="currentAccesses"
+      :sharing="sharing"
+      :sharePermissionLoading="updatingPermission"
+      :userPermissionLevel="recipe.recipeAccess?.permissionLevel"
+      :allowPermissionOptions="allowPermissionOptions"
+      @share-user="shareWithUser"
+      @share-circle="shareWithCircle"
+      @remove-share="unshareCircle"
+      @permission-change="updatePermission"
+    />
   </div>
   <!-- Remove Access Dialog -->
   <v-dialog v-model="showRemoveAccessDialog" max-width="500">
@@ -300,21 +316,6 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-
-  <!-- Share Dialog -->
-  <ShareDialog
-    v-model="showShareDialog"
-    title="Share Recipe"
-    :allowCircleShare="true"
-    :currentAccesses="currentAccesses"
-    :sharing="sharing"
-    :sharePermissionLoading="updatingPermission"
-    :hasWritePermission="hasWritePermission"
-    @share-user="shareWithUser"
-    @share-circle="shareWithCircle"
-    @remove-share="unshareCircle"
-    @permission-change="updatePermission"
-  />
 
   <!-- Delete Dialog -->
   <v-dialog v-model="showDeleteDialog" max-width="500">
@@ -397,7 +398,7 @@ const route = useRoute()
 const router = useRouter()
 const alertsStore = useAlertStore()
 const trimmedRecipeName = computed(() => {
-  return route.path.substring(route.path.indexOf('/recipes/'))
+  return route.path.substring(route.path.indexOf('recipes/'))
 })
 
 const { recipe } = storeToRefs(recipesStore)
@@ -892,6 +893,11 @@ async function updateRecipeImage() {
 
 // *** Recipe Sharing ***
 
+const allowPermissionOptions: PermissionLevel[] = [
+  'PERMISSION_LEVEL_READ',
+  'PERMISSION_LEVEL_WRITE',
+  'PERMISSION_LEVEL_ADMIN',
+]
 const showShareDialog = ref(false)
 const currentAccesses = ref<Access[]>([])
 const sharing = ref(false)
@@ -937,14 +943,14 @@ async function fetchRecipeRecipients() {
   }
 }
 
-async function updatePermission({ share, newLevel }: { share: Access, newLevel: PermissionLevel }) {
-  if (share.level === newLevel) return
-  if (!share.name) return
-  updatingPermission.value[share.name] = true
+async function updatePermission({ access, newLevel }: { access: Access, newLevel: PermissionLevel }) {
+  if (access.level === newLevel) return
+  if (!access.name) return
+  updatingPermission.value[access.name] = true
   try {
     await recipeAccessService.UpdateAccess({
       access: {
-        name: share.name,
+        name: access.name,
         level: newLevel,
         state: undefined,
         recipient: undefined,
@@ -953,11 +959,11 @@ async function updatePermission({ share, newLevel }: { share: Access, newLevel: 
       updateMask: 'level',
     })
     // Update local state
-    share.level = newLevel
+    access.level = newLevel
   } catch (error) {
     console.error('Error updating permission:', error)
   } finally {
-    updatingPermission.value[share.name] = false
+    updatingPermission.value[access.name] = false
   }
 }
 

@@ -166,7 +166,8 @@
       :currentAccesses="currentAccesses"
       :sharing="sharing"
       :sharePermissionLoading="updatingPermission"
-      :hasWritePermission="hasWritePermission"
+      :userPermissionLevel="circle.circleAccess?.permissionLevel"
+      :allowPermissionOptions="allowPermissionOptions"
       @share-user="shareWithUser"
       @remove-access="unshareCircle"
       @permission-change="updatePermission"
@@ -437,6 +438,11 @@ async function declineCircle() {
 
 // *** Circle Sharing ***
 
+const allowPermissionOptions: PermissionLevel[] = [
+  'PERMISSION_LEVEL_READ',
+  'PERMISSION_LEVEL_WRITE',
+  'PERMISSION_LEVEL_ADMIN',
+]
 const showShareDialog = ref(false)
 const currentAccesses = ref<Access[]>([]) 
 const sharing = ref(false)

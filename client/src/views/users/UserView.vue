@@ -198,7 +198,9 @@
     :currentAccesses="currentAccesses"
     :sharing="sharing"
     :sharePermissionLoading="updatingPermission"
-    :hasWritePermission="hasWritePermission"
+    :userPermissionLevel="user.access?.level"
+    :allowPermissionOptions="allowPermissionOptions"
+    :disableCreateShare="true"
     @share-user="shareWithUser"
     @remove-access="unshareUser"
     @permission-change="updatePermission"
@@ -445,6 +447,10 @@ async function handleConnect() {
 }
 
 // *** User Sharing ***
+const allowPermissionOptions: PermissionLevel[] = [
+  'PERMISSION_LEVEL_WRITE',
+]
+
 const showShareDialog = ref(false)
 const currentAccesses = ref<Access[]>([]) 
 const sharing = ref(false)

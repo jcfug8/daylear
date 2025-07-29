@@ -1,17 +1,97 @@
 <template>
   <v-dialog :model-value="modelValue" @update:model-value="emitClose" max-width="500">
-    <v-card>
+    <v-card style="max-height: 80vh; display: flex; flex-direction: column;">
       <v-card-title class="text-h5">
         {{ title }}
       </v-card-title>
-      <v-card-text>
-        <v-tabs v-if="allowCircleShare" v-model="accessTab" class="mb-4">
-          <v-tab value="users">Share with User</v-tab>
-          <v-tab value="circles">Share with Circle</v-tab>
-        </v-tabs>
-        <v-window v-if="allowCircleShare" v-model="accessTab">
-          <v-window-item value="users">
+      <v-card-text style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+        <!-- Fixed input section -->
+        <div v-if="!disableCreateShare" style="flex-shrink: 0;">
+          <v-tabs v-if="allowCircleShare" v-model="accessTab" class="mb-4">
+            <v-tab value="users">Share with User</v-tab>
+            <v-tab value="circles">Share with Circle</v-tab>
+          </v-tabs>
+          <v-window v-if="allowCircleShare" v-model="accessTab">
+            <v-window-item value="users">
+              <v-autocomplete
+                density="compact"
+                v-model="selectedUser"
+                :items="userSuggestions"
+                :loading="isLoadingUsers"
+                :search-input.sync="usernameInput"
+                label="Search Users"
+                item-title="displayName"
+                item-value="name"
+                :rules="[validateUsername]"
+                clearable
+                :input-attrs="{ autocapitalize: 'off', autocomplete: 'off', spellcheck: 'false' }"
+                :prepend-inner-icon="getUsernameIcon"
+                :color="getUsernameColor"
+                @update:search="handleUserSearch"
+                @update:model-value="handleUserSelection"
+                no-data-text="No friends found"
+              >
+                <template #item="{ props, item }">
+                  <v-list-item v-bind="props">
+                    <v-list-item-subtitle>
+                      @{{ item.raw.username }}
+                    </v-list-item-subtitle>
+                  </v-list-item>
+                </template>
+              </v-autocomplete>
+              <v-select
+                density="compact"
+                v-model="selectedPermission"
+                :items="permissionOptions"
+                label="Permission Level"
+                class="mt-2"
+              ></v-select>
+              <v-btn block color="primary" @click="emitShareUser" :loading="sharing" :disabled="!isValidUsername" class="mt-2">
+                Share with User
+              </v-btn>
+            </v-window-item>
+            <v-window-item value="circles">
+              <v-autocomplete
+                density="compact"
+                v-model="selectedCircle"
+                :items="circleSuggestions"
+                :loading="isLoadingCircles"
+                :search-input.sync="circleInput"
+                label="Search Circles"
+                item-title="displayName"
+                item-value="name"
+                :rules="[validateCircle]"
+                clearable
+                :input-attrs="{ autocapitalize: 'off', autocomplete: 'off', spellcheck: 'false' }"
+                :prepend-inner-icon="getCircleIcon"
+                :color="getCircleColor"
+                @update:search="handleCircleSearch"
+                @update:model-value="handleCircleSelection"
+                no-data-text="No circles found"
+              >
+                <template #item="{ props, item }">
+                  <v-list-item v-bind="props">
+                    <v-list-item-subtitle>
+                      @{{ item.raw.handle }}
+                    </v-list-item-subtitle>
+                  </v-list-item>
+                </template>
+              </v-autocomplete>
+              <v-select
+                density="compact"
+                v-model="selectedPermission"
+                :items="permissionOptions"
+                label="Permission Level"
+                class="mt-2"
+              ></v-select>
+              <v-btn block color="primary" @click="emitShareCircle" :loading="sharing" :disabled="!isValidCircle" class="mt-2">
+                Share with Circle
+              </v-btn>
+            </v-window-item>
+          </v-window>
+          <template v-else>
             <v-autocomplete
+              density="compact"
               v-model="selectedUser"
               :items="userSuggestions"
               :loading="isLoadingUsers"
@@ -26,6 +106,7 @@
               :color="getUsernameColor"
               @update:search="handleUserSearch"
               @update:model-value="handleUserSelection"
+              no-data-text="No friends found"
             >
               <template #item="{ props, item }">
                 <v-list-item v-bind="props">
@@ -36,6 +117,7 @@
               </template>
             </v-autocomplete>
             <v-select
+              density="compact"
               v-model="selectedPermission"
               :items="permissionOptions"
               label="Permission Level"
@@ -44,80 +126,11 @@
             <v-btn block color="primary" @click="emitShareUser" :loading="sharing" :disabled="!isValidUsername" class="mt-2">
               Share with User
             </v-btn>
-          </v-window-item>
-          <v-window-item value="circles">
-            <v-autocomplete
-              v-model="selectedCircle"
-              :items="circleSuggestions"
-              :loading="isLoadingCircles"
-              :search-input.sync="circleInput"
-              label="Search Circles"
-              item-title="displayName"
-              item-value="name"
-              :rules="[validateCircle]"
-              clearable
-              :input-attrs="{ autocapitalize: 'off', autocomplete: 'off', spellcheck: 'false' }"
-              :prepend-inner-icon="getCircleIcon"
-              :color="getCircleColor"
-              @update:search="handleCircleSearch"
-              @update:model-value="handleCircleSelection"
-            >
-              <template #item="{ props, item }">
-                <v-list-item v-bind="props">
-                  <v-list-item-subtitle>
-                    @{{ item.raw.handle }}
-                  </v-list-item-subtitle>
-                </v-list-item>
-              </template>
-            </v-autocomplete>
-            <v-select
-              v-model="selectedPermission"
-              :items="permissionOptions"
-              label="Permission Level"
-              class="mt-2"
-            ></v-select>
-            <v-btn block color="primary" @click="emitShareCircle" :loading="sharing" :disabled="!isValidCircle" class="mt-2">
-              Share with Circle
-            </v-btn>
-          </v-window-item>
-        </v-window>
-        <template v-else>
-          <v-autocomplete
-            v-model="selectedUser"
-            :items="userSuggestions"
-            :loading="isLoadingUsers"
-            :search-input.sync="usernameInput"
-            label="Search Users"
-            item-title="displayName"
-            item-value="name"
-            :rules="[validateUsername]"
-            clearable
-            :input-attrs="{ autocapitalize: 'off', autocomplete: 'off', spellcheck: 'false' }"
-            :prepend-inner-icon="getUsernameIcon"
-            :color="getUsernameColor"
-            @update:search="handleUserSearch"
-            @update:model-value="handleUserSelection"
-          >
-            <template #item="{ props, item }">
-              <v-list-item v-bind="props">
-                <v-list-item-subtitle>
-                  @{{ item.raw.username }}
-                </v-list-item-subtitle>
-              </v-list-item>
-            </template>
-          </v-autocomplete>
-          <v-select
-            v-model="selectedPermission"
-            :items="permissionOptions"
-            label="Permission Level"
-            class="mt-2"
-          ></v-select>
-          <v-btn block color="primary" @click="emitShareUser" :loading="sharing" :disabled="!isValidUsername" class="mt-2">
-            Share with User
-          </v-btn>
-        </template>
-        <v-divider class="my-4"></v-divider>
-        <div v-if="currentAccesses.length > 0">
+          </template>
+          <v-divider class="my-4"></v-divider>
+        </div>
+        <!-- Scrollable current shares section -->
+        <div v-if="currentAccesses.length > 0" style="flex: 1; overflow-y: auto; min-height: 0;">
           <div class="text-subtitle-1 mb-2">Current Shares</div>
           <v-list>
             <v-list-item v-for="access in currentAccesses as any[]" :key="access.name || ''" :title="accessTitle(access)" :prependIcon="getAccessIcon(access)" :subtitle="accessSubtitle(access)">
@@ -128,18 +141,19 @@
                     :close-on-content-click="false"
                     location="bottom"
                     offset-y
+                    :disabled="!isAccessEditable(access)"
                   >
                     <template #activator="{ props }">
                       <v-chip
                         v-bind="props"
                         size="small"
-                        :color="hasWritePermission(access.level) ? 'primary' : 'grey'"
+                        :color="getPermissionDetails(access.level)?.color"
                         class="permission-chip d-flex align-center"
-                        :disabled="accessPermissionLoading[access.name || '']"
+                        :disabled="accessPermissionLoading[access.name || ''] || !isAccessEditable(access)"
                         style="cursor: pointer; min-width: 120px;"
                       >
-                        <span>{{ hasWritePermission(access.level) ? 'Read & Write' : 'Read Only' }}</span>
-                        <v-icon end size="18" class="ml-1">mdi-chevron-down</v-icon>
+                        <span>{{ getPermissionDetails(access.level)?.title }}</span>
+                        <v-icon end size="18" class="ml-1" v-if="isAccessEditable(access)">mdi-chevron-down</v-icon>
                         <v-progress-circular
                           v-if="accessPermissionLoading[access.name || '']"
                           indeterminate
@@ -164,7 +178,12 @@
                   <v-chip v-if="access.state === 'ACCESS_STATE_PENDING'" size="small" color="warning" variant="outlined">
                     Pending
                   </v-chip>
-                  <v-btn icon="mdi-delete" variant="text" @click="emitRemoveAccess(access.name || '')"></v-btn>
+                  <v-btn 
+                    icon="mdi-delete" 
+                    variant="text" 
+                    @click="emitRemoveAccess(access.name || '')"
+                    :disabled="!isAccessEditable(access)"
+                  ></v-btn>
                 </div>
               </template>
             </v-list-item>
@@ -191,6 +210,7 @@ import { userService, circleService } from '@/api/api'
 import { useAuthStore } from '@/stores/auth'
 import type { PermissionLevel } from '@/genapi/api/types'
 import { useAlertStore } from '@/stores/alerts'
+import { getPermissionValue } from '@/utils/permissions'
 import Fuse from 'fuse.js'
 
 const authStore = useAuthStore()
@@ -201,9 +221,11 @@ const props = defineProps({
   title: { type: String, default: 'Share' },
   allowCircleShare: { type: Boolean, default: false },
   currentAccesses: { type: Array, required: true },
+  userPermissionLevel: { type: String, required: true },
   sharing: Boolean,
   accessPermissionLoading: { type: Object, default: () => ({}) },
-  hasWritePermission: { type: Function, required: true },
+  allowPermissionOptions: { type: Array, required: true },
+  disableCreateShare: { type: Boolean, default: false },
 })
 
 const emit = defineEmits([
@@ -218,10 +240,41 @@ const emit = defineEmits([
 const accessTab = ref('users')
 const selectedPermission = ref<PermissionLevel>('PERMISSION_LEVEL_READ')
 const accessMenuOpen = ref<Record<string, boolean>>({})
-const permissionOptions = [
-  { title: 'Read Only', value: 'PERMISSION_LEVEL_READ' as PermissionLevel },
-  { title: 'Read & Write', value: 'PERMISSION_LEVEL_WRITE' as PermissionLevel },
+const permissions = [
+  { title: 'Read Only', value: 'PERMISSION_LEVEL_READ' as PermissionLevel, color: 'grey' },
+  { title: 'Read & Write', value: 'PERMISSION_LEVEL_WRITE' as PermissionLevel, color: 'primary' },
+  { title: 'Admin', value: 'PERMISSION_LEVEL_ADMIN' as PermissionLevel, color: 'warning' },
 ]
+
+const permissionOptions = computed(() => {
+  // First filter by allowed permissions, then by user's permission level
+  return props.allowPermissionOptions
+    .filter(permission => getPermissionValue(permission) <= getPermissionValue(props.userPermissionLevel))
+    .map(permission => {
+      for (const p of permissions) {
+        if (p.value === permission) {
+          return p
+        }
+      }
+      return null
+    })
+    .filter(Boolean)
+})
+
+function getPermissionDetails(permission: PermissionLevel) {
+  for (const p of permissions) {
+    if (p.value === permission) {
+      return p
+    }
+  }
+}
+
+// Check if an access entry is editable based on permission levels
+function isAccessEditable(access: any): boolean {
+  const accessLevel = access.level
+  const userLevel = props.userPermissionLevel
+  return getPermissionValue(accessLevel) <= getPermissionValue(userLevel)
+}
 
 // Autocomplete state
 const allUsers = ref<User[]>([])
@@ -481,7 +534,7 @@ const getCircleColor = computed(() => {
 // Share functions
 function emitShareUser() {
   if (selectedUser.value) {
-    emit('share-user', { userName: selectedUser.value.name || '', permission: selectedPermission.value })
+    emit('share-user', { userName: selectedUser.value || '', permission: selectedPermission.value })
     selectedUser.value = null
     usernameInput.value = ''
     isValidUsername.value = false
@@ -490,7 +543,7 @@ function emitShareUser() {
 
 function emitShareCircle() {
   if (selectedCircle.value) {
-    emit('share-circle', { circleName: selectedCircle.value.name || '', permission: selectedPermission.value })
+    emit('share-circle', { circleName: selectedCircle.value || '', permission: selectedPermission.value })
     selectedCircle.value = null
     circleInput.value = ''
     isValidCircle.value = false
