@@ -1,5 +1,5 @@
 <template>
-  <div v-if="recipe" class="pb-16">
+  <div v-if="recipe" style="padding-bottom: 84px;">
     <v-app-bar density="compact">
       <v-tabs style="width: 100%" v-model="tab" center-active show-arrows fixed-tabs>
         <v-tab value="general">
