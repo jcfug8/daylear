@@ -20,6 +20,7 @@
             :show-scrape-ocr-dialog="props.showImportDialog"
             :import-tab="props.importTab"
             @close-scrape-ocr-dialog="handleCloseImportDialog"
+            @save="handleSave"
           />
         </v-tabs-window-item>
         <v-tabs-window-item value="ingredients">
