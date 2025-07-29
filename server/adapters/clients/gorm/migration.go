@@ -70,8 +70,8 @@ var manualMigrations = []migrations.Migration{
 		Key:         "2",
 		Description: "Drop visibility column from user",
 		Run: func(ctx context.Context, tx *gorm.DB) error {
-			if err := tx.Exec(`ALTER TABLE daylear_user DROP COLUMN visibility`).Error; err != nil {
-				return fmt.Errorf("failed to add visibility column: %w", err)
+			if err := tx.Exec(`ALTER TABLE daylear_user DROP COLUMN IF EXISTS visibility`).Error; err != nil {
+				return fmt.Errorf("failed to drop visibility column: %w", err)
 			}
 			return nil
 		},
