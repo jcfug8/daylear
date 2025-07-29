@@ -256,7 +256,7 @@ watch(
 // *** Tabs ***
 
 const tabsPage = ref()
-const tabs = [
+const tabs = computed(() => [
   {
     label: 'General',
     value: 'general',
@@ -302,7 +302,7 @@ const tabs = [
       return [...usersStore.friends]
     },
   },
-]
+])
 
 // *** Visibility ***
 
