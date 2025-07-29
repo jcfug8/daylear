@@ -20,10 +20,13 @@
     <template #fab>
       <v-btn
         color="primary"
-        icon="mdi-plus"
+        density="compact"
         style="position: fixed; bottom: 16px; right: 16px"
         :to="{ name: 'circleCreate' }"
-      ></v-btn>
+      >
+        <v-icon>mdi-plus</v-icon>
+        <span>Create Circle</span>
+      </v-btn>
     </template>
   </ListTabsPage>
 </template>

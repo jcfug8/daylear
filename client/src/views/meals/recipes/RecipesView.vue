@@ -66,10 +66,13 @@
         <v-btn
           v-if="selectedAccount?.value === authStore.user.name"
           color="primary"
-          icon="mdi-plus"
+          density="compact"
           style="position: fixed; bottom: 16px; right: 16px"
           :to="{ name: 'recipeCreate' }"
-        ></v-btn>
+        >
+          <v-icon>mdi-plus</v-icon>
+          <span>Create Recipe</span>
+        </v-btn>
       </template>
     </ListTabsPage>
   </div>

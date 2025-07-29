@@ -12,8 +12,6 @@
           <v-icon left>mdi-format-list-numbered</v-icon>
         </v-tab>
       </v-tabs>
-      <template #append>
-      </template>
     </v-app-bar>
     <v-tabs-window v-model="tab">
       <v-tabs-window-item value="general">
@@ -172,7 +170,7 @@
                             }}
                           </span>
                           <span
-                            :style="'cursor: pointer; text-decoration: underline dotted; margin-left: 2px;'"
+                            :style="'cursor: pointer; text-decoration: underline dotted; -webkit-text-decoration: underline dotted; margin-left: 2px;'"
                             @click="handleUnitClick(i, j, ingredient.measurementType)"
                             title="Click to change unit"
                           >
