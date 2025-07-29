@@ -547,7 +547,7 @@ onMounted(async () => {
 
   if (route.params.circleId) {
     const circlePath = route.path.indexOf('/recipes') !== -1 
-      ? route.path.substring(0, route.path.indexOf('/recipes'))
+      ? route.path.substring(0, route.path.indexOf('/recipes')).substring(1)
       : null
     await circlesStore.loadCircle(circlePath)
     firstCrumbs = [
