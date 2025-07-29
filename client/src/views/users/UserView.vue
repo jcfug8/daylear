@@ -240,9 +240,13 @@ const route = useRoute()
 const tabsPage = ref()
 const speedDialOpen = ref(false)
 
+const trimmedUserName = computed(() => {
+  return route.path.substring(route.path.indexOf('users/'))
+})
+
 async function loadUser() {
   await Promise.all([
-    usersStore.loadUser(route.path),
+    usersStore.loadUser(trimmedUserName.value),
   ])
   breadcrumbStore.setBreadcrumbs([
     { title: 'User Settings', to: route.path },

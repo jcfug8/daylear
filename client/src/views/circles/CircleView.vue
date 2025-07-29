@@ -230,8 +230,12 @@ const speedDialOpen = ref(false)
 
 // *** Breadcrumbs ***
 
+const trimmedCircleName = computed(() => {
+  return route.path.substring(route.path.indexOf('circles/'))
+})
+
 async function loadAndSetBreadcrumbs(circleName: string) {
-  await circlesStore.loadCircle(circleName)
+  await circlesStore.loadCircle(trimmedCircleName.value)
   breadcrumbStore.setBreadcrumbs([
     { title: 'Circles', to: { name: 'circles' } },
     { title: circle.value?.title || 'Circle' },
