@@ -540,7 +540,7 @@ onMounted(async () => {
     tab.value = hashToTab[currentHash]
   }
 
-  await recipesStore.loadRecipe(recipeName)
+  await recipesStore.loadRecipe(trimmedRecipeName.value)
 
   let firstCrumbs
 
