@@ -1,15 +1,18 @@
 <template>
   <div v-if="recipe" class="pb-16">
-    <v-app-bar>
+    <v-app-bar density="compact">
       <v-tabs style="width: 100%" v-model="tab" center-active show-arrows fixed-tabs>
         <v-tab value="general">
           <v-icon left>mdi-information-outline</v-icon>
+          <span class="text-caption">General</span>
         </v-tab>
         <v-tab value="ingredients">
-          <v-icon left>mdi-food-apple-outline</v-icon>
+          <v-icon>mdi-food-apple-outline</v-icon>
+          <span class="text-caption">Ingredients</span>
         </v-tab>
         <v-tab value="directions">
-          <v-icon left>mdi-format-list-numbered</v-icon>
+          <v-icon>mdi-format-list-numbered</v-icon>
+          <span class="text-caption">Directions</span>
         </v-tab>
       </v-tabs>
     </v-app-bar>

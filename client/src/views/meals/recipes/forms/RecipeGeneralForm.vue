@@ -335,7 +335,8 @@ import { useAlertStore } from '@/stores/alerts'
 const props = defineProps<{
   modelValue: Recipe,
   isCreate?: boolean,
-  showScrapeOcrDialog?: boolean
+  showScrapeOcrDialog?: boolean,
+  importTab?: string
 }>()
 
 const isCreate = computed(() => props.isCreate ?? false)
@@ -348,8 +349,28 @@ const emit = defineEmits<{
   (e: 'save', pendingImageFile: File | null): void
 }>()
 
-const showScrapeOcrDialog = ref(false)
-const importTab = ref('scrape')
+const showScrapeOcrDialog = ref(props.showScrapeOcrDialog ?? false)
+const importTab = ref(props.importTab ?? 'scrape')
+
+// Watch for prop changes
+watch(() => props.showScrapeOcrDialog, (newValue) => {
+  if (newValue !== undefined) {
+    showScrapeOcrDialog.value = newValue
+  }
+})
+
+watch(() => props.importTab, (newValue) => {
+  if (newValue !== undefined) {
+    importTab.value = newValue
+  }
+})
+
+// Watch for local changes and emit events
+watch(showScrapeOcrDialog, (newValue) => {
+  if (!newValue) {
+    emit('close-scrape-ocr-dialog')
+  }
+})
 
 // Scrape logic
 const scrapeUrl = ref('')
@@ -369,6 +390,7 @@ async function scrapeRecipe() {
       }
       emit('update:modelValue', resp.recipe)
       showScrapeOcrDialog.value = false
+      emit('close-scrape-ocr-dialog')
       showPostImportDialog.value = true // <-- show modal
     } else {
       alertStore.addAlert('No recipe found at that URL.', 'error')
@@ -518,6 +540,7 @@ async function ocrRecipe() {
       }
       emit('update:modelValue', resp.recipe)
       showScrapeOcrDialog.value = false
+      emit('close-scrape-ocr-dialog')
       showPostImportDialog.value = true // <-- show modal
     } else {
       alertStore.addAlert('No recipe found in image.', 'error')

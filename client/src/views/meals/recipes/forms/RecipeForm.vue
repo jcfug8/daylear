@@ -17,6 +17,9 @@
             v-model="recipe" 
             @image-selected="handleImageSelected"
             :is-create="isCreate"
+            :show-scrape-ocr-dialog="props.showImportDialog"
+            :import-tab="props.importTab"
+            @close-scrape-ocr-dialog="handleCloseImportDialog"
           />
         </v-tabs-window-item>
         <v-tabs-window-item value="ingredients">
@@ -65,12 +68,15 @@ import { fileService } from '@/api/api'
 
 const props = defineProps<{
   modelValue: Recipe
+  showImportDialog?: boolean
+  importTab?: string
 }>()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: Recipe): void
   (e: 'save', pendingImageFile: File | null): void
   (e: 'close'): void
+  (e: 'close-import-dialog'): void
 }>()
 
 const recipe = computed({
@@ -120,6 +126,10 @@ async function handleSave() {
   // Emit save with the pending image file
   emit('save', pendingImageFile.value)
   pendingImageFile.value = null
+}
+
+function handleCloseImportDialog() {
+  emit('close-import-dialog')
 }
 
 onMounted(() => {
