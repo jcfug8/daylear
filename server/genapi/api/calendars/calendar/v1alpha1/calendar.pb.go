@@ -33,11 +33,7 @@ type Calendar struct {
 	// the title of the calendar
 	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
 	// the description of the calendar
-	Description string `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
-	// the unique handle for the calendar (like a username, must be unique, user-friendly, and can be used for sharing)
-	Handle string `protobuf:"bytes,6,opt,name=handle,proto3" json:"handle,omitempty"`
-	// the image url for the calendar
-	ImageUri string `protobuf:"bytes,3,opt,name=image_uri,json=imageUri,proto3" json:"image_uri,omitempty"`
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	// the visibility of the calendar
 	Visibility types.VisibilityLevel `protobuf:"varint,4,opt,name=visibility,proto3,enum=api.types.VisibilityLevel" json:"visibility,omitempty"`
 	// calendar access data
@@ -97,20 +93,6 @@ func (x *Calendar) GetDescription() string {
 	return ""
 }
 
-func (x *Calendar) GetHandle() string {
-	if x != nil {
-		return x.Handle
-	}
-	return ""
-}
-
-func (x *Calendar) GetImageUri() string {
-	if x != nil {
-		return x.ImageUri
-	}
-	return ""
-}
-
 func (x *Calendar) GetVisibility() types.VisibilityLevel {
 	if x != nil {
 		return x.Visibility
@@ -128,10 +110,10 @@ func (x *Calendar) GetCalendarAccess() *Calendar_CalendarAccess {
 // the request to create a calendar
 type CreateCalendarRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
+	// the parent of the calendar
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// the calendar to create
-	Calendar *Calendar `protobuf:"bytes,2,opt,name=calendar,proto3" json:"calendar,omitempty"`
-	// the id of the calendar
-	CalendarId    string `protobuf:"bytes,3,opt,name=calendar_id,json=calendarId,proto3" json:"calendar_id,omitempty"`
+	Calendar      *Calendar `protobuf:"bytes,2,opt,name=calendar,proto3" json:"calendar,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -166,18 +148,18 @@ func (*CreateCalendarRequest) Descriptor() ([]byte, []int) {
 	return file_api_calendars_calendar_v1alpha1_calendar_proto_rawDescGZIP(), []int{1}
 }
 
+func (x *CreateCalendarRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
 func (x *CreateCalendarRequest) GetCalendar() *Calendar {
 	if x != nil {
 		return x.Calendar
 	}
 	return nil
-}
-
-func (x *CreateCalendarRequest) GetCalendarId() string {
-	if x != nil {
-		return x.CalendarId
-	}
-	return ""
 }
 
 // the request to list calendars
@@ -523,13 +505,11 @@ var File_api_calendars_calendar_v1alpha1_calendar_proto protoreflect.FileDescrip
 
 const file_api_calendars_calendar_v1alpha1_calendar_proto_rawDesc = "" +
 	"\n" +
-	".api/calendars/calendar/v1alpha1/calendar.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xf5\x04\n" +
+	".api/calendars/calendar/v1alpha1/calendar.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xdf\x04\n" +
 	"\bCalendar\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
-	"\vdescription\x18\a \x01(\tB\x03\xe0A\x01R\vdescription\x12\x1b\n" +
-	"\x06handle\x18\x06 \x01(\tB\x03\xe0A\x01R\x06handle\x12 \n" +
-	"\timage_uri\x18\x03 \x01(\tB\x03\xe0A\x01R\bimageUri\x12?\n" +
+	"\vdescription\x18\x03 \x01(\tB\x03\xe0A\x01R\vdescription\x12?\n" +
 	"\n" +
 	"visibility\x18\x04 \x01(\x0e2\x1a.api.types.VisibilityLevelB\x03\xe0A\x02R\n" +
 	"visibility\x12f\n" +
@@ -537,14 +517,14 @@ const file_api_calendars_calendar_v1alpha1_calendar_proto_rawDesc = "" +
 	"\x0eCalendarAccess\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x03R\x04name\x12J\n" +
 	"\x10permission_level\x18\x02 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x03R\x0fpermissionLevel\x121\n" +
-	"\x05state\x18\x03 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state:{\xeaAx\n" +
-	"(api.calendars.calendar.v1alpha1/Calendar\x12\x14calendars/{calendar}\x12!users/{user}/calendars/{calendar}*\tcalendars2\bcalendar\"\x89\x01\n" +
-	"\x15CreateCalendarRequest\x12J\n" +
-	"\bcalendar\x18\x02 \x01(\v2).api.calendars.calendar.v1alpha1.CalendarB\x03\xe0A\x02R\bcalendar\x12$\n" +
-	"\vcalendar_id\x18\x03 \x01(\tB\x03\xe0A\x02R\n" +
-	"calendarId\"\xb7\x01\n" +
-	"\x14ListCalendarsRequest\x12<\n" +
+	"\x05state\x18\x03 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state:\xa3\x01\xeaA\x9f\x01\n" +
+	"(api.calendars.calendar.v1alpha1/Calendar\x12\x14calendars/{calendar}\x12!users/{user}/calendars/{calendar}\x12%circles/{circle}/calendars/{calendar}*\tcalendars2\bcalendar\"\xa1\x01\n" +
+	"\x15CreateCalendarRequest\x12<\n" +
 	"\x06parent\x18\x01 \x01(\tB$\xe0A\x01\xfaA\x1e\n" +
+	"\x1capi.users.user.v1alpha1/UserR\x06parent\x12J\n" +
+	"\bcalendar\x18\x02 \x01(\v2).api.calendars.calendar.v1alpha1.CalendarB\x03\xe0A\x02R\bcalendar\"\xb7\x01\n" +
+	"\x14ListCalendarsRequest\x12<\n" +
+	"\x06parent\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x1e\n" +
 	"\x1capi.users.user.v1alpha1/UserR\x06parent\x12 \n" +
 	"\tpage_size\x18\x02 \x01(\x05B\x03\xe0A\x01R\bpageSize\x12\"\n" +
 	"\n" +
@@ -562,18 +542,18 @@ const file_api_calendars_calendar_v1alpha1_calendar_proto_rawDesc = "" +
 	"(api.calendars.calendar.v1alpha1/CalendarR\x04name\"Z\n" +
 	"\x12GetCalendarRequest\x12D\n" +
 	"\x04name\x18\x01 \x01(\tB0\xe0A\x02\xfaA*\n" +
-	"(api.calendars.calendar.v1alpha1/CalendarR\x04name2\x9b\v\n" +
-	"\x0fCalendarService\x12\x96\x02\n" +
-	"\x0eCreateCalendar\x126.api.calendars.calendar.v1alpha1.CreateCalendarRequest\x1a).api.calendars.calendar.v1alpha1.Calendar\"\xa0\x01\x92AW\n" +
-	"\x0fCalendarService\x12\x11Create a calendar\x1a1Creates a new calendar with the provided details.\xdaA\x14calendar,calendar_id\x82\xd3\xe4\x93\x02):\bcalendar\"\x1d/calendars/v1alpha1/calendars\x12\xd2\x02\n" +
-	"\rListCalendars\x125.api.calendars.calendar.v1alpha1.ListCalendarsRequest\x1a6.api.calendars.calendar.v1alpha1.ListCalendarsResponse\"\xd1\x01\x92An\n" +
-	"\x0fCalendarService\x12\x0eList calendars\x1aKRetrieves a paginated list of calendars. Supports filtering and pagination.\xdaA\x06parent\x82\xd3\xe4\x93\x02QZ0\x12./calendars/v1alpha1/{parent=users/*}/calendars\x12\x1d/calendars/v1alpha1/calendars\x12\xa3\x02\n" +
-	"\x0eUpdateCalendar\x126.api.calendars.calendar.v1alpha1.UpdateCalendarRequest\x1a).api.calendars.calendar.v1alpha1.Calendar\"\xad\x01\x92AR\n" +
-	"\x0fCalendarService\x12\x11Update a calendar\x1a,Updates the details of an existing calendar.\xdaA\x14calendar,update_mask\x82\xd3\xe4\x93\x02;:\bcalendar2//calendars/v1alpha1/{calendar.name=calendars/*}\x12\xf8\x01\n" +
-	"\x0eDeleteCalendar\x126.api.calendars.calendar.v1alpha1.DeleteCalendarRequest\x1a).api.calendars.calendar.v1alpha1.Calendar\"\x82\x01\x92AJ\n" +
-	"\x0fCalendarService\x12\x11Delete a calendar\x1a$Deletes a calendar by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02(*&/calendars/v1alpha1/{name=calendars/*}\x12\xf8\x01\n" +
-	"\vGetCalendar\x123.api.calendars.calendar.v1alpha1.GetCalendarRequest\x1a).api.calendars.calendar.v1alpha1.Calendar\"\x88\x01\x92AP\n" +
-	"\x0fCalendarService\x12\x0eGet a calendar\x1a-Retrieves a single calendar by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02(\x12&/calendars/v1alpha1/{name=calendars/*}B\x88\x03\x92AXZD\n" +
+	"(api.calendars.calendar.v1alpha1/CalendarR\x04name2\xf0\x0e\n" +
+	"\x0fCalendarService\x12\xdb\x02\n" +
+	"\x0eCreateCalendar\x126.api.calendars.calendar.v1alpha1.CreateCalendarRequest\x1a).api.calendars.calendar.v1alpha1.Calendar\"\xe5\x01\x92AW\n" +
+	"\x0fCalendarService\x12\x11Create a calendar\x1a1Creates a new calendar with the provided details.\xdaA\x1bparent,calendar,calendar_id\x82\xd3\xe4\x93\x02g:\bcalendarZ<:\bcalendar\"0/calendars/v1alpha1/{parent=circles/*}/calendars\"\x1d/calendars/v1alpha1/calendars\x12\x87\x03\n" +
+	"\rListCalendars\x125.api.calendars.calendar.v1alpha1.ListCalendarsRequest\x1a6.api.calendars.calendar.v1alpha1.ListCalendarsResponse\"\x86\x02\x92An\n" +
+	"\x0fCalendarService\x12\x0eList calendars\x1aKRetrieves a paginated list of calendars. Supports filtering and pagination.\xdaA\x06parent\x82\xd3\xe4\x93\x02\x85\x01Z0\x12./calendars/v1alpha1/{parent=users/*}/calendarsZ2\x120/calendars/v1alpha1/{parent=circles/*}/calendars\x12\x1d/calendars/v1alpha1/calendars\x12\xb0\x03\n" +
+	"\x0eUpdateCalendar\x126.api.calendars.calendar.v1alpha1.UpdateCalendarRequest\x1a).api.calendars.calendar.v1alpha1.Calendar\"\xba\x02\x92AR\n" +
+	"\x0fCalendarService\x12\x11Update a calendar\x1a,Updates the details of an existing calendar.\xdaA\x14calendar,update_mask\x82\xd3\xe4\x93\x02\xc7\x01:\bcalendarZE:\bcalendar29/calendars/v1alpha1/{calendar.name=circles/*/calendars/*}ZC:\bcalendar27/calendars/v1alpha1/{calendar.name=users/*/calendars/*}2//calendars/v1alpha1/{calendar.name=calendars/*}\x12\xdf\x02\n" +
+	"\x0eDeleteCalendar\x126.api.calendars.calendar.v1alpha1.DeleteCalendarRequest\x1a).api.calendars.calendar.v1alpha1.Calendar\"\xe9\x01\x92AJ\n" +
+	"\x0fCalendarService\x12\x11Delete a calendar\x1a$Deletes a calendar by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02\x8e\x01Z2*0/calendars/v1alpha1/{name=circles/*/calendars/*}Z0*./calendars/v1alpha1/{name=users/*/calendars/*}*&/calendars/v1alpha1/{name=calendars/*}\x12\xdf\x02\n" +
+	"\vGetCalendar\x123.api.calendars.calendar.v1alpha1.GetCalendarRequest\x1a).api.calendars.calendar.v1alpha1.Calendar\"\xef\x01\x92AP\n" +
+	"\x0fCalendarService\x12\x0eGet a calendar\x1a-Retrieves a single calendar by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02\x8e\x01Z2\x120/calendars/v1alpha1/{name=circles/*/calendars/*}Z0\x12./calendars/v1alpha1/{name=users/*/calendars/*}\x12&/calendars/v1alpha1/{name=calendars/*}B\x88\x03\x92AXZD\n" +
 	"B\n" +
 	"\n" +
 	"BearerAuth\x124\b\x02\x12\x1fBearer token for authentication\x1a\rAuthorization \x02b\x10\n" +

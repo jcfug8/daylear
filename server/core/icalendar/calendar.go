@@ -12,7 +12,7 @@ import (
 )
 
 // ToICalendar converts a Calendar model to iCalendar format
-func ToICalendar(cal *model.Calendar, eventSets []model.EventSet, eventInstances []model.EventInstance) string {
+func ToICalendar(cal *model.Calendar, events []model.Event) string {
 	icalCal := ical.NewCalendar()
 	icalCal.SetMethod(ical.MethodPublish)
 	icalCal.SetProductId("-//Daylear//Calendar//EN")
@@ -27,42 +27,36 @@ func ToICalendar(cal *model.Calendar, eventSets []model.EventSet, eventInstances
 	}
 
 	// Add events
-	for _, eventSet := range eventSets {
-		icalEvent := toICalEvent(eventSet.Id, eventSet.EventData)
+	for _, event := range events {
+		icalEvent := toICalEvent(event)
 
-		// Set recurrence rule
-		if eventSet.RecurrenceRule != nil {
-			icalEvent.AddRrule(*eventSet.RecurrenceRule)
-		}
-
-		// Set excluded dates
-		for _, date := range eventSet.ExcludedDates {
-			icalEvent.AddExdate(date.Format("20060102T150405Z"))
-		}
-
-		// Set additional dates
-		for _, date := range eventSet.AdditionalDates {
-			icalEvent.AddRdate(date.Format("20060102T150405Z"))
-		}
-
-		icalCal.AddVEvent(icalEvent)
-	}
-
-	// Add event instances
-	for _, eventInstance := range eventInstances {
-		icalEvent := toICalEvent(eventInstance.Parent.EventSetId, eventInstance.EventData)
-		// Set recurrence ID
-		if eventInstance.RecurrenceId != nil {
-			icalEvent.SetProperty(ical.ComponentProperty(ical.PropertyRecurrenceId), eventInstance.RecurrenceId.Format("20060102T150405Z"))
-		}
 		icalCal.AddVEvent(icalEvent)
 	}
 
 	return icalCal.Serialize()
 }
 
-func toICalEvent(eventId int64, event model.EventData) *ical.VEvent {
-	icalEvent := ical.NewEvent(fmt.Sprintf("%d", eventId))
+func toICalEvent(event model.Event) *ical.VEvent {
+	icalEvent := ical.NewEvent(fmt.Sprintf("%d", event.Id.EventId))
+
+	// Set recurrence rule
+	if event.RecurrenceRule != nil {
+		icalEvent.AddRrule(*event.RecurrenceRule)
+	}
+
+	// Set excluded dates
+	for _, date := range event.ExcludedDates {
+		icalEvent.AddExdate(date.Format("20060102T150405Z"))
+	}
+
+	// Set additional dates
+	for _, date := range event.AdditionalDates {
+		icalEvent.AddRdate(date.Format("20060102T150405Z"))
+	}
+
+	if event.RecurrenceTime != nil {
+		icalEvent.SetProperty(ical.ComponentProperty(ical.PropertyRecurrenceId), event.RecurrenceTime.Format("20060102T150405Z"))
+	}
 
 	// Set creation time
 	if event.CreateTime != nil {
@@ -153,15 +147,14 @@ func toICalEvent(eventId int64, event model.EventData) *ical.VEvent {
 }
 
 // FromICalendar converts iCalendar format to a Calendar model
-func FromICalendar(icalString string) (model.Calendar, []model.EventSet, []model.EventInstance, error) {
+func FromICalendar(icalString string) (model.Calendar, []model.Event, error) {
 	cal, err := ical.ParseCalendar(strings.NewReader(icalString))
 	if err != nil {
-		return model.Calendar{}, nil, nil, err
+		return model.Calendar{}, nil, err
 	}
 
 	result := model.Calendar{}
-	eventSets := []model.EventSet{}
-	eventInstances := []model.EventInstance{}
+	events := []model.Event{}
 
 	// Parse calendar properties
 	for _, prop := range cal.CalendarProperties {
@@ -175,14 +168,14 @@ func FromICalendar(icalString string) (model.Calendar, []model.EventSet, []model
 
 	// Parse events
 	for _, icalEvent := range cal.Events() {
-		event := model.EventData{}
+		event := model.Event{}
 
 		// Parse UID
 		uidId := icalEvent.GetProperty(ical.ComponentProperty(ical.PropertyUid))
 		if uidId == nil {
 			continue
 		}
-		eventSetId, err := strconv.ParseInt(uidId.Value, 10, 64)
+		event.Id.EventId, err = strconv.ParseInt(uidId.Value, 10, 64)
 		if err != nil {
 			continue
 		}
@@ -244,39 +237,30 @@ func FromICalendar(icalString string) (model.Calendar, []model.EventSet, []model
 
 		// Parse recurrence ID
 		if rid := icalEvent.GetProperty(ical.ComponentProperty(ical.PropertyRecurrenceId)); rid != nil {
-			eventInstance := model.EventInstance{
-				Parent: model.EventInstanceParent{
-					EventSetId: eventSetId,
-				},
-				EventData: event,
-			}
 			if t, err := time.Parse("20060102T150405Z", rid.Value); err == nil {
-				eventInstance.RecurrenceId = &t
+				event.RecurrenceTime = &t
 			}
-			eventInstances = append(eventInstances, eventInstance)
+			events = append(events, event)
 		} else {
-			eventSet := model.EventSet{
-				Id: eventSetId,
-			}
 			// Parse recurrence rule
 			if rrule := icalEvent.GetProperty(ical.ComponentProperty(ical.PropertyRrule)); rrule != nil {
-				eventSet.RecurrenceRule = &rrule.Value
+				event.RecurrenceRule = &rrule.Value
 			}
 
 			// Parse excluded dates
 			for _, exdate := range icalEvent.GetProperties(ical.ComponentProperty(ical.PropertyExdate)) {
 				if t, err := time.Parse("20060102T150405Z", exdate.Value); err == nil {
-					eventSet.ExcludedDates = append(eventSet.ExcludedDates, t)
+					event.ExcludedDates = append(event.ExcludedDates, t)
 				}
 			}
 
 			// Parse additional dates
 			for _, rdate := range icalEvent.GetProperties(ical.ComponentProperty(ical.PropertyRdate)) {
 				if t, err := time.Parse("20060102T150405Z", rdate.Value); err == nil {
-					eventSet.AdditionalDates = append(eventSet.AdditionalDates, t)
+					event.AdditionalDates = append(event.AdditionalDates, t)
 				}
 			}
-			eventSets = append(eventSets, eventSet)
+			events = append(events, event)
 		}
 
 		// Parse alarms
@@ -330,7 +314,7 @@ func FromICalendar(icalString string) (model.Calendar, []model.EventSet, []model
 		}
 	}
 
-	return result, eventSets, eventInstances, nil
+	return result, events, nil
 }
 
 // Helper function to parse duration string (e.g., "-PT15M")

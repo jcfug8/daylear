@@ -9,6 +9,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
+	calendarV1alpha1 "github.com/jcfug8/daylear/server/genapi/api/calendars/calendar/v1alpha1"
 	circleV1alpha1 "github.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1"
 	recipesV1alpha1 "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	userV1alpha1 "github.com/jcfug8/daylear/server/genapi/api/users/user/v1alpha1"
@@ -23,6 +24,7 @@ type Service struct {
 	recipeAccessService         recipesV1alpha1.RecipeAccessServiceServer
 	circleV1alpha1Service       circleV1alpha1.CircleServiceServer
 	circleAccessService         circleV1alpha1.CircleAccessServiceServer
+	calendarV1alpha1Service     calendarV1alpha1.CalendarServiceServer
 	domain                      domain.Domain
 }
 
@@ -36,6 +38,7 @@ type NewServiceParams struct {
 	RecipeAccessService         recipesV1alpha1.RecipeAccessServiceServer
 	CircleV1alpha1Service       circleV1alpha1.CircleServiceServer
 	CircleAccessService         circleV1alpha1.CircleAccessServiceServer
+	CalendarV1alpha1Service     calendarV1alpha1.CalendarServiceServer
 	Domain                      domain.Domain
 }
 
@@ -48,6 +51,7 @@ func NewService(params NewServiceParams) *Service {
 		recipeAccessService:         params.RecipeAccessService,
 		circleV1alpha1Service:       params.CircleV1alpha1Service,
 		circleAccessService:         params.CircleAccessService,
+		calendarV1alpha1Service:     params.CalendarV1alpha1Service,
 		domain:                      params.Domain,
 	}
 }
@@ -86,6 +90,10 @@ func (s *Service) Register(m *http.ServeMux) error {
 		log.Printf("Failed to register gRPC gateway: %v", err)
 	}
 	err = circleV1alpha1.RegisterCircleAccessServiceHandlerServer(ctx, mux, s.circleAccessService)
+	if err != nil {
+		log.Printf("Failed to register gRPC gateway: %v", err)
+	}
+	err = calendarV1alpha1.RegisterCalendarServiceHandlerServer(ctx, mux, s.calendarV1alpha1Service)
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
 	}

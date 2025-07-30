@@ -16,14 +16,6 @@ export type Calendar = {
   //
   // Behaviors: OPTIONAL
   description: string | undefined;
-  // the unique handle for the calendar (like a username, must be unique, user-friendly, and can be used for sharing)
-  //
-  // Behaviors: OPTIONAL
-  handle: string | undefined;
-  // the image url for the calendar
-  //
-  // Behaviors: OPTIONAL
-  imageUri: string | undefined;
   // the visibility of the calendar
   //
   // Behaviors: REQUIRED
@@ -84,21 +76,21 @@ export type apitypes_AccessState =
   | "ACCESS_STATE_ACCEPTED";
 // the request to create a calendar
 export type CreateCalendarRequest = {
+  // the parent of the calendar
+  //
+  // Behaviors: OPTIONAL
+  parent: string | undefined;
   // the calendar to create
   //
   // Behaviors: REQUIRED
   calendar: Calendar | undefined;
-  // the id of the calendar
-  //
-  // Behaviors: REQUIRED
-  calendarId: string | undefined;
 };
 
 // the request to list calendars
 export type ListCalendarsRequest = {
   // the parent of the calendars
   //
-  // Behaviors: OPTIONAL
+  // Behaviors: REQUIRED
   parent: string | undefined;
   // the page size
   //
@@ -208,8 +200,8 @@ export function createCalendarServiceClient(
       const path = `calendars/v1alpha1/calendars`; // eslint-disable-line quotes
       const body = JSON.stringify(request?.calendar ?? {});
       const queryParams: string[] = [];
-      if (request.calendarId) {
-        queryParams.push(`calendarId=${encodeURIComponent(request.calendarId.toString())}`)
+      if (request.parent) {
+        queryParams.push(`parent=${encodeURIComponent(request.parent.toString())}`)
       }
       let uri = path;
       if (queryParams.length > 0) {
@@ -613,18 +605,77 @@ export type Event = {
   //
   // Behaviors: REQUIRED
   title: string | undefined;
+  // the start time of the event
+  //
+  // Behaviors: REQUIRED
+  startTime: wellKnownTimestamp | undefined;
+  // the end time of the event
+  //
+  // Behaviors: REQUIRED
+  endTime: wellKnownTimestamp | undefined;
+  // the description of the event
+  //
+  // Behaviors: OPTIONAL
+  description: string | undefined;
+  // the location of the event
+  //
+  // Behaviors: OPTIONAL
+  location: googletype_LatLng | undefined;
+  // the state of the event
+  //
+  // Behaviors: OUTPUT_ONLY
+  state: Event_State | undefined;
+  // the class of the event
+  //
+  // Behaviors: REQUIRED
+  eventClass: Event_Class | undefined;
+  // the url of the event
+  //
+  // Behaviors: OPTIONAL
+  uri: string | undefined;
+  // the recurrence rule of the event
+  //
+  // Behaviors: OPTIONAL
+  recurrenceRule: string | undefined;
+  // the recurrence time of the event
+  //
+  // Behaviors: OPTIONAL
+  recurrenceTime: wellKnownTimestamp | undefined;
+  // the excluded dates of the event
+  //
+  // Behaviors: OPTIONAL
+  excludedTimes: wellKnownTimestamp[] | undefined;
+  // the additional dates of the event
+  //
+  // Behaviors: OPTIONAL
+  additionalTimes: wellKnownTimestamp[] | undefined;
+  // the parent event id of the event
+  //
+  // Behaviors: OPTIONAL
+  recurringEventId: number | undefined;
+  // the alarms of the event
+  //
+  // Behaviors: OPTIONAL
+  alarms: Event_Alarm[] | undefined;
 };
 
-// the class of the event
-export type Event_Class =
-  // the class is unspecified
-  | "CLASS_UNSPECIFIED"
-  // the class is public
-  | "CLASS_PUBLIC"
-  // the class is private
-  | "CLASS_PRIVATE"
-  // the class is confidential
-  | "CLASS_CONFIDENTIAL";
+// Encoded using RFC 3339, where generated output will always be Z-normalized
+// and uses 0, 3, 6 or 9 fractional digits.
+// Offsets other than "Z" are also accepted.
+type wellKnownTimestamp = string;
+
+// An object that represents a latitude/longitude pair. This is expressed as a
+// pair of doubles to represent degrees latitude and degrees longitude. Unless
+// specified otherwise, this must conform to the
+// <a href="http://www.unoosa.org/pdf/icg/2012/template/WGS_84.pdf">WGS84
+// standard</a>. Values must be within normalized ranges.
+export type googletype_LatLng = {
+  // The latitude in degrees. It must be in the range [-90.0, +90.0].
+  latitude: number | undefined;
+  // The longitude in degrees. It must be in the range [-180.0, +180.0].
+  longitude: number | undefined;
+};
+
 // the state of the event
 export type Event_State =
   // the state is unspecified
@@ -635,6 +686,42 @@ export type Event_State =
   | "STATE_TENTATIVE"
   // the state is cancelled
   | "STATE_CANCELLED";
+// the class of the event
+export type Event_Class =
+  // the class is unspecified
+  | "CLASS_UNSPECIFIED"
+  // the class is public
+  | "CLASS_PUBLIC"
+  // the class is private
+  | "CLASS_PRIVATE"
+  // the class is confidential
+  | "CLASS_CONFIDENTIAL";
+// the alarms of the event
+export type Event_Alarm = {
+  // the alarm id
+  //
+  // Behaviors: REQUIRED
+  alarmId: string | undefined;
+  // the trigger of the alarm
+  //
+  // Behaviors: REQUIRED
+  trigger: Event_Alarm_Trigger | undefined;
+};
+
+// the trigger of the alarm
+export type Event_Alarm_Trigger = {
+  // the duration of the alarm
+  duration?: wellKnownDuration;
+  // the date time of the alarm
+  dateTime?: wellKnownTimestamp;
+};
+
+// Generated output always contains 0, 3, 6, or 9 fractional digits,
+// depending on required precision, followed by the suffix "s".
+// Accepted are any fractional digits (also none) as long as they fit
+// into nano-seconds precision and the suffix "s" is required.
+type wellKnownDuration = string;
+
 // the event service
 export interface EventService {
 }

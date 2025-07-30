@@ -9,5 +9,9 @@ func AllModels() []interface{} {
 		&UserAccess{},
 		&Circle{},
 		&CircleAccess{},
+		&Calendar{},
+		&CalendarAccess{},
+		&Event{},
+		&EventData{},
 	}
 }

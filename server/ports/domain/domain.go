@@ -6,4 +6,5 @@ type Domain interface {
 	recipeDomain
 	userDomain
 	tokenDomain
+	calendarDomain
 }

@@ -9,7 +9,10 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
 import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+import "google/type/latlng.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
@@ -39,8 +42,9 @@ service EventService {}
 message Event {
   option (google.api.resource) = {
     type: "api.events.event.v1alpha1/Event"
-    pattern: "events/{event}"
-    pattern: "users/{user}/events/{event}"
+    pattern: "calendars/{calendar}/events/{event}"
+    pattern: "users/{user}/calendars/{calendar}/events/{event}"
+    pattern: "circles/{circle}/calendars/{calendar}/events/{event}"
     plural: "events"
     singular: "event"
   };
@@ -50,6 +54,45 @@ message Event {
 
   // the title of the event
   string title = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // the start time of the event
+  google.protobuf.Timestamp start_time = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // the end time of the event
+  google.protobuf.Timestamp end_time = 4 [(google.api.field_behavior) = REQUIRED];
+
+  // the description of the event
+  string description = 5 [(google.api.field_behavior) = OPTIONAL];
+
+  // the location of the event
+  google.type.LatLng location = 6 [(google.api.field_behavior) = OPTIONAL];
+
+  // the state of the event
+  State state = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the class of the event
+  Class event_class = 8 [(google.api.field_behavior) = REQUIRED];
+
+  // the url of the event
+  string uri = 9 [(google.api.field_behavior) = OPTIONAL];
+
+  // the recurrence rule of the event
+  string recurrence_rule = 10 [(google.api.field_behavior) = OPTIONAL];
+
+  // the recurrence time of the event
+  google.protobuf.Timestamp recurrence_time = 11 [(google.api.field_behavior) = OPTIONAL];
+
+  // the excluded dates of the event
+  repeated google.protobuf.Timestamp excluded_times = 12 [(google.api.field_behavior) = OPTIONAL];
+
+  // the additional dates of the event
+  repeated google.protobuf.Timestamp additional_times = 13 [(google.api.field_behavior) = OPTIONAL];
+
+  // the parent event id of the event
+  int64 recurring_event_id = 14 [(google.api.field_behavior) = OPTIONAL];
+
+  // the alarms of the event
+  repeated Alarm alarms = 15 [(google.api.field_behavior) = OPTIONAL];
 
   // the class of the event
   enum Class {
@@ -73,5 +116,25 @@ message Event {
     STATE_TENTATIVE = 2;
     // the state is cancelled
     STATE_CANCELLED = 3;
+  }
+
+  // the alarms of the event
+  message Alarm {
+    // the alarm id
+    string alarm_id = 1 [(google.api.field_behavior) = REQUIRED];
+
+    // the trigger of the alarm
+    Trigger trigger = 2 [(google.api.field_behavior) = REQUIRED];
+
+    // the trigger of the alarm
+    message Trigger {
+      oneof trigger {
+        // the duration of the alarm
+        google.protobuf.Duration duration = 1;
+
+        // the date time of the alarm
+        google.protobuf.Timestamp date_time = 2;
+      }
+    }
   }
 }

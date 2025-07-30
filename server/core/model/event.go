@@ -10,88 +10,68 @@ import (
 
 // Event represents a VEVENT component in iCalendar.
 // This can be either a single event or a recurring event with exceptions.
-type EventSet struct {
-	Parent EventSetParent
-	Id     int64 `aip_pattern:"event_set"`
+type Event struct {
+	Parent EventParent
+	Id     EventId
 
-	// RecurrenceRule defines how this event repeats (if recurring)
+	// these are set if the event is part of a recurring event set
+	// if they are set, and the RecurringEventId is not set, then
+	// you treat this as the parent event of a recurring event set
+	// and you should get the instances or generate the instances
+	// from the recurrence rule
 	RecurrenceRule  *string
 	ExcludedDates   []time.Time
 	AdditionalDates []time.Time
+	// this is set if the event is an instance of a recurring event set
+	// it points to the parent event id of the recurring event set
+	RecurringEventId int64
 
-	EventData
-}
+	// this is set if the event is an override of an event in
+	// the recurring event set
+	RecurrenceTime *time.Time
 
-type EventSetParent struct {
-	UserId   int64 `aip_pattern:"user"`
-	CircleId int64 `aip_pattern:"circle"`
-}
-
-type EventInstance struct {
-	Parent EventInstanceParent
-	Id     int64 `aip_pattern:"event_instance"`
-
-	// RecurrenceId indicates this is an exception instance of a recurring event
-	// If set, this event overrides the regular instance at this date/time
-	RecurrenceId *time.Time
-
-	EventData
-}
-
-type EventInstanceParent struct {
-	EventSetParent
-	EventSetId int64 `aip_pattern:"event_set"`
-}
-
-type EventData struct {
-	// DTStamp is the creation timestamp of the event
-	CreateTime *time.Time
-	// UpdateTime is the last update timestamp of the event
-	UpdateTime *time.Time
-	// DTStart is the start date/time of the event
-	// Required for all events
-	StartTime time.Time
-	// EndTime is the end date/time of the event
-	// Optional - if not specified, event is assumed to be all-day
-	EndTime *time.Time
-	// IsAllDay indicates if this is an all-day event
-	IsAllDay bool
-	// Title is the title/summary of the event
-	Title *string
-	// Description is the detailed description of the event
+	CreateTime  *time.Time
+	UpdateTime  *time.Time
+	StartTime   time.Time
+	EndTime     *time.Time
+	IsAllDay    bool
+	Title       *string
 	Description *string
-	// Location is the location of the event
-	Location *string
-	// Status indicates the status of the event
-	Status pb.Event_State
-	// Class indicates the classification of the event
-	Class pb.Event_Class
-	// URL is a URL associated with the event
-	URL *string
+	Location    *string
+	Status      pb.Event_State
+	Class       pb.Event_Class
+	URL         *string
 
-	// Alarms are the VALARM components associated with this event
 	Alarms []*Alarm
+}
+
+type EventParent struct {
+	UserId     int64 `aip_pattern:"user"`
+	CircleId   int64 `aip_pattern:"circle"`
+	CalendarId int64 `aip_pattern:"calendar"`
+}
+
+type EventId struct {
+	// the event id
+	EventId int64 `aip_pattern:"event"`
 }
 
 // GenerateInstances generates a list of event instances based on the event's RecurrenceRule ExcludedDates AdditionalDates.
 // It should generate instance within now and now + duration.
-func (r EventSet) GenerateInstances(startingTime, endingTime time.Time) ([]EventInstance, error) {
+func (r Event) GenerateInstances(startingTime, endingTime time.Time) ([]Event, error) {
 	var eventDuration time.Duration
 	if r.EndTime != nil {
 		eventDuration = r.EndTime.Sub(r.StartTime)
 	}
-	var instances []EventInstance
+	var instances []Event
 
 	// If no recurrence rule, this is a single event
 	if r.RecurrenceRule == nil || *r.RecurrenceRule == "" {
 		// Check if the event falls within the specified duration
 		if r.StartTime.After(startingTime) && r.StartTime.Before(endingTime) {
-			instance := EventInstance{
-				Parent: EventInstanceParent{
-					EventSetParent: r.Parent,
-					EventSetId:     r.Id,
-				},
-				EventData: r.EventData,
+			instance := Event{
+				Parent: r.Parent,
+				Id:     r.Id,
 			}
 			instances = append(instances, instance)
 		}
@@ -114,12 +94,9 @@ func (r EventSet) GenerateInstances(startingTime, endingTime time.Time) ([]Event
 
 	// Process each occurrence
 	for _, occurrence := range occurrences {
-		instance := EventInstance{
-			Parent: EventInstanceParent{
-				EventSetParent: r.Parent,
-				EventSetId:     r.Id,
-			},
-			EventData: r.EventData,
+		instance := Event{
+			Parent:           r.Parent,
+			RecurringEventId: r.RecurringEventId,
 		}
 		instance.StartTime = occurrence
 		if r.EndTime != nil {

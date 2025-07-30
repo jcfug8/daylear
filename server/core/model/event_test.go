@@ -10,10 +10,8 @@ import (
 func TestEvent_GenerateInstances(t *testing.T) {
 	now := time.Now()
 
-	event := model.EventSet{
-		EventData: model.EventData{
-			StartTime: now.Add(12 * time.Hour),
-		},
+	event := model.Event{
+		StartTime: now.Add(12 * time.Hour),
 	}
 
 	instances, err := event.GenerateInstances(now, now.Add(24*time.Hour))

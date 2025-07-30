@@ -36,10 +36,14 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 service CalendarService {
   // create a calendar
   rpc CreateCalendar(CreateCalendarRequest) returns (Calendar) {
-    option (google.api.method_signature) = "calendar,calendar_id";
+    option (google.api.method_signature) = "parent,calendar,calendar_id";
     option (google.api.http) = {
       post: "/calendars/v1alpha1/calendars"
       body: "calendar"
+      additional_bindings: {
+        post: "/calendars/v1alpha1/{parent=circles/*}/calendars"
+        body: "calendar"
+      }
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Create a calendar"
@@ -54,6 +58,7 @@ service CalendarService {
     option (google.api.http) = {
       get: "/calendars/v1alpha1/calendars"
       additional_bindings: {get: "/calendars/v1alpha1/{parent=users/*}/calendars"}
+      additional_bindings: {get: "/calendars/v1alpha1/{parent=circles/*}/calendars"}
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "List calendars"
@@ -68,6 +73,14 @@ service CalendarService {
     option (google.api.http) = {
       patch: "/calendars/v1alpha1/{calendar.name=calendars/*}"
       body: "calendar"
+      additional_bindings: {
+        patch: "/calendars/v1alpha1/{calendar.name=circles/*/calendars/*}"
+        body: "calendar"
+      }
+      additional_bindings: {
+        patch: "/calendars/v1alpha1/{calendar.name=users/*/calendars/*}"
+        body: "calendar"
+      }
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Update a calendar"
@@ -79,7 +92,11 @@ service CalendarService {
   // delete` a calendar
   rpc DeleteCalendar(DeleteCalendarRequest) returns (Calendar) {
     option (google.api.method_signature) = "name";
-    option (google.api.http) = {delete: "/calendars/v1alpha1/{name=calendars/*}"};
+    option (google.api.http) = {
+      delete: "/calendars/v1alpha1/{name=calendars/*}"
+      additional_bindings: {delete: "/calendars/v1alpha1/{name=circles/*/calendars/*}"}
+      additional_bindings: {delete: "/calendars/v1alpha1/{name=users/*/calendars/*}"}
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Delete a calendar"
       description: "Deletes a calendar by resource name."
@@ -90,7 +107,11 @@ service CalendarService {
   // get a calendar
   rpc GetCalendar(GetCalendarRequest) returns (Calendar) {
     option (google.api.method_signature) = "name";
-    option (google.api.http) = {get: "/calendars/v1alpha1/{name=calendars/*}"};
+    option (google.api.http) = {
+      get: "/calendars/v1alpha1/{name=calendars/*}"
+      additional_bindings: {get: "/calendars/v1alpha1/{name=circles/*/calendars/*}"}
+      additional_bindings: {get: "/calendars/v1alpha1/{name=users/*/calendars/*}"}
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Get a calendar"
       description: "Retrieves a single calendar by resource name."
@@ -105,6 +126,7 @@ message Calendar {
     type: "api.calendars.calendar.v1alpha1/Calendar"
     pattern: "calendars/{calendar}"
     pattern: "users/{user}/calendars/{calendar}"
+    pattern: "circles/{circle}/calendars/{calendar}"
     plural: "calendars"
     singular: "calendar"
   };
@@ -116,13 +138,7 @@ message Calendar {
   string title = 2 [(google.api.field_behavior) = REQUIRED];
 
   // the description of the calendar
-  string description = 7 [(google.api.field_behavior) = OPTIONAL];
-
-  // the unique handle for the calendar (like a username, must be unique, user-friendly, and can be used for sharing)
-  string handle = 6 [(google.api.field_behavior) = OPTIONAL];
-
-  // the image url for the calendar
-  string image_uri = 3 [(google.api.field_behavior) = OPTIONAL];
+  string description = 3 [(google.api.field_behavior) = OPTIONAL];
 
   // the visibility of the calendar
   api.types.VisibilityLevel visibility = 4 [(google.api.field_behavior) = REQUIRED];
@@ -145,18 +161,21 @@ message Calendar {
 
 // the request to create a calendar
 message CreateCalendarRequest {
+  // the parent of the calendar
+  string parent = 1 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference).type = "api.users.user.v1alpha1/User"
+  ];
+
   // the calendar to create
   Calendar calendar = 2 [(google.api.field_behavior) = REQUIRED];
-
-  // the id of the calendar
-  string calendar_id = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 // the request to list calendars
 message ListCalendarsRequest {
   // the parent of the calendars
   string parent = 1 [
-    (google.api.field_behavior) = OPTIONAL,
+    (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference).type = "api.users.user.v1alpha1/User"
   ];
 

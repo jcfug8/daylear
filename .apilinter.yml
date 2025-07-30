@@ -2,6 +2,7 @@
     - 'api/meals/recipe/v1alpha1/recipe_access.proto'
     - 'api/users/user/v1alpha1/user_access.proto'
     - 'api/circles/circle/v1alpha1/circle_access.proto'
+    - 'api/calendars/calendar/v1alpha1/calendar_access.proto'
   disabled_rules:
     - 'core::0133::request-id-field'
 - included_paths:
@@ -18,6 +19,8 @@
     - 'api/meals/recipe/v1alpha1/recipe.proto'
     - 'api/users/user/v1alpha1/user.proto'
     - 'api/circles/circle/v1alpha1/circle.proto'
+    - 'api/calendars/calendar/v1alpha1/calendar.proto'
+    - 'api/calendars/calendar/v1alpha1/event.proto'
   disabled_rules:
    - 'core::0132::http-uri-parent'
    - 'core::0133::http-uri-parent'

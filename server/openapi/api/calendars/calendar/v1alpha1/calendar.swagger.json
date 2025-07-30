@@ -40,7 +40,7 @@
             "name": "parent",
             "description": "the parent of the calendars",
             "in": "query",
-            "required": false,
+            "required": true,
             "type": "string"
           },
           {
@@ -102,11 +102,147 @@
             }
           },
           {
-            "name": "calendarId",
-            "description": "the id of the calendar",
+            "name": "parent",
+            "description": "the parent of the calendar",
             "in": "query",
-            "required": true,
+            "required": false,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{calendar.name_1}": {
+      "patch": {
+        "summary": "Update a calendar",
+        "description": "Updates the details of an existing calendar.",
+        "operationId": "CalendarService_UpdateCalendar2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Calendar"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "calendar.name_1",
+            "description": "the name of the calendar",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/calendars/[^/]+"
+          },
+          {
+            "name": "calendar",
+            "description": "the calendar to update",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "title": "the title of the calendar"
+                },
+                "description": {
+                  "type": "string",
+                  "title": "the description of the calendar"
+                },
+                "visibility": {
+                  "$ref": "#/definitions/typesVisibilityLevel",
+                  "title": "the visibility of the calendar"
+                },
+                "calendarAccess": {
+                  "$ref": "#/definitions/CalendarCalendarAccess",
+                  "title": "calendar access data",
+                  "readOnly": true
+                }
+              },
+              "title": "the calendar to update",
+              "required": [
+                "title",
+                "visibility",
+                "calendar"
+              ]
+            }
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{calendar.name_2}": {
+      "patch": {
+        "summary": "Update a calendar",
+        "description": "Updates the details of an existing calendar.",
+        "operationId": "CalendarService_UpdateCalendar3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Calendar"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "calendar.name_2",
+            "description": "the name of the calendar",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/calendars/[^/]+"
+          },
+          {
+            "name": "calendar",
+            "description": "the calendar to update",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "title": "the title of the calendar"
+                },
+                "description": {
+                  "type": "string",
+                  "title": "the description of the calendar"
+                },
+                "visibility": {
+                  "$ref": "#/definitions/typesVisibilityLevel",
+                  "title": "the visibility of the calendar"
+                },
+                "calendarAccess": {
+                  "$ref": "#/definitions/CalendarCalendarAccess",
+                  "title": "calendar access data",
+                  "readOnly": true
+                }
+              },
+              "title": "the calendar to update",
+              "required": [
+                "title",
+                "visibility",
+                "calendar"
+              ]
+            }
           }
         ],
         "tags": [
@@ -158,14 +294,6 @@
                   "type": "string",
                   "title": "the description of the calendar"
                 },
-                "handle": {
-                  "type": "string",
-                  "title": "the unique handle for the calendar (like a username, must be unique, user-friendly, and can be used for sharing)"
-                },
-                "imageUri": {
-                  "type": "string",
-                  "title": "the image url for the calendar"
-                },
                 "visibility": {
                   "$ref": "#/definitions/typesVisibilityLevel",
                   "title": "the visibility of the calendar"
@@ -183,6 +311,138 @@
                 "calendar"
               ]
             }
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{name_1}": {
+      "get": {
+        "summary": "Get a calendar",
+        "description": "Retrieves a single calendar by resource name.",
+        "operationId": "CalendarService_GetCalendar2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Calendar"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "the name of the calendar",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/calendars/[^/]+"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a calendar",
+        "description": "Deletes a calendar by resource name.",
+        "operationId": "CalendarService_DeleteCalendar2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Calendar"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "the name of the calendar",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/calendars/[^/]+"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{name_2}": {
+      "get": {
+        "summary": "Get a calendar",
+        "description": "Retrieves a single calendar by resource name.",
+        "operationId": "CalendarService_GetCalendar3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Calendar"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_2",
+            "description": "the name of the calendar",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/calendars/[^/]+"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a calendar",
+        "description": "Deletes a calendar by resource name.",
+        "operationId": "CalendarService_DeleteCalendar3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Calendar"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_2",
+            "description": "the name of the calendar",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/calendars/[^/]+"
           }
         ],
         "tags": [
@@ -256,6 +516,62 @@
         ]
       }
     },
+    "/calendars/v1alpha1/{parent_1}/calendars": {
+      "get": {
+        "summary": "List calendars",
+        "description": "Retrieves a paginated list of calendars. Supports filtering and pagination.",
+        "operationId": "CalendarService_ListCalendars3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListCalendarsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent_1",
+            "description": "the parent of the calendars",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "pageSize",
+            "description": "the page size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
     "/calendars/v1alpha1/{parent}/calendars": {
       "get": {
         "summary": "List calendars",
@@ -305,6 +621,50 @@
             "in": "query",
             "required": false,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      },
+      "post": {
+        "summary": "Create a calendar",
+        "description": "Creates a new calendar with the provided details.",
+        "operationId": "CalendarService_CreateCalendar2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Calendar"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the calendar",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "calendar",
+            "description": "the calendar to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Calendar",
+              "required": [
+                "calendar"
+              ]
+            }
           }
         ],
         "tags": [
@@ -414,14 +774,6 @@
         "description": {
           "type": "string",
           "title": "the description of the calendar"
-        },
-        "handle": {
-          "type": "string",
-          "title": "the unique handle for the calendar (like a username, must be unique, user-friendly, and can be used for sharing)"
-        },
-        "imageUri": {
-          "type": "string",
-          "title": "the image url for the calendar"
         },
         "visibility": {
           "$ref": "#/definitions/typesVisibilityLevel",

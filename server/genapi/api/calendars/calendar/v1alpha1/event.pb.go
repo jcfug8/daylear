@@ -10,9 +10,12 @@ import (
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "github.com/jcfug8/daylear/server/genapi/api/types"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	latlng "google.golang.org/genproto/googleapis/type/latlng"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	_ "google.golang.org/protobuf/types/known/fieldmaskpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -145,7 +148,33 @@ type Event struct {
 	// the name of the event
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// the title of the event
-	Title         string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	// the start time of the event
+	StartTime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	// the end time of the event
+	EndTime *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	// the description of the event
+	Description string `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
+	// the location of the event
+	Location *latlng.LatLng `protobuf:"bytes,6,opt,name=location,proto3" json:"location,omitempty"`
+	// the state of the event
+	State Event_State `protobuf:"varint,7,opt,name=state,proto3,enum=api.calendars.calendar.v1alpha1.Event_State" json:"state,omitempty"`
+	// the class of the event
+	EventClass Event_Class `protobuf:"varint,8,opt,name=event_class,json=eventClass,proto3,enum=api.calendars.calendar.v1alpha1.Event_Class" json:"event_class,omitempty"`
+	// the url of the event
+	Uri string `protobuf:"bytes,9,opt,name=uri,proto3" json:"uri,omitempty"`
+	// the recurrence rule of the event
+	RecurrenceRule string `protobuf:"bytes,10,opt,name=recurrence_rule,json=recurrenceRule,proto3" json:"recurrence_rule,omitempty"`
+	// the recurrence time of the event
+	RecurrenceTime *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=recurrence_time,json=recurrenceTime,proto3" json:"recurrence_time,omitempty"`
+	// the excluded dates of the event
+	ExcludedTimes []*timestamppb.Timestamp `protobuf:"bytes,12,rep,name=excluded_times,json=excludedTimes,proto3" json:"excluded_times,omitempty"`
+	// the additional dates of the event
+	AdditionalTimes []*timestamppb.Timestamp `protobuf:"bytes,13,rep,name=additional_times,json=additionalTimes,proto3" json:"additional_times,omitempty"`
+	// the parent event id of the event
+	RecurringEventId int64 `protobuf:"varint,14,opt,name=recurring_event_id,json=recurringEventId,proto3" json:"recurring_event_id,omitempty"`
+	// the alarms of the event
+	Alarms        []*Event_Alarm `protobuf:"bytes,15,rep,name=alarms,proto3" json:"alarms,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -194,14 +223,269 @@ func (x *Event) GetTitle() string {
 	return ""
 }
 
+func (x *Event) GetStartTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.StartTime
+	}
+	return nil
+}
+
+func (x *Event) GetEndTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.EndTime
+	}
+	return nil
+}
+
+func (x *Event) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *Event) GetLocation() *latlng.LatLng {
+	if x != nil {
+		return x.Location
+	}
+	return nil
+}
+
+func (x *Event) GetState() Event_State {
+	if x != nil {
+		return x.State
+	}
+	return Event_STATE_UNSPECIFIED
+}
+
+func (x *Event) GetEventClass() Event_Class {
+	if x != nil {
+		return x.EventClass
+	}
+	return Event_CLASS_UNSPECIFIED
+}
+
+func (x *Event) GetUri() string {
+	if x != nil {
+		return x.Uri
+	}
+	return ""
+}
+
+func (x *Event) GetRecurrenceRule() string {
+	if x != nil {
+		return x.RecurrenceRule
+	}
+	return ""
+}
+
+func (x *Event) GetRecurrenceTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RecurrenceTime
+	}
+	return nil
+}
+
+func (x *Event) GetExcludedTimes() []*timestamppb.Timestamp {
+	if x != nil {
+		return x.ExcludedTimes
+	}
+	return nil
+}
+
+func (x *Event) GetAdditionalTimes() []*timestamppb.Timestamp {
+	if x != nil {
+		return x.AdditionalTimes
+	}
+	return nil
+}
+
+func (x *Event) GetRecurringEventId() int64 {
+	if x != nil {
+		return x.RecurringEventId
+	}
+	return 0
+}
+
+func (x *Event) GetAlarms() []*Event_Alarm {
+	if x != nil {
+		return x.Alarms
+	}
+	return nil
+}
+
+// the alarms of the event
+type Event_Alarm struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// the alarm id
+	AlarmId string `protobuf:"bytes,1,opt,name=alarm_id,json=alarmId,proto3" json:"alarm_id,omitempty"`
+	// the trigger of the alarm
+	Trigger       *Event_Alarm_Trigger `protobuf:"bytes,2,opt,name=trigger,proto3" json:"trigger,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Event_Alarm) Reset() {
+	*x = Event_Alarm{}
+	mi := &file_api_calendars_calendar_v1alpha1_event_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Event_Alarm) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Event_Alarm) ProtoMessage() {}
+
+func (x *Event_Alarm) ProtoReflect() protoreflect.Message {
+	mi := &file_api_calendars_calendar_v1alpha1_event_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Event_Alarm.ProtoReflect.Descriptor instead.
+func (*Event_Alarm) Descriptor() ([]byte, []int) {
+	return file_api_calendars_calendar_v1alpha1_event_proto_rawDescGZIP(), []int{0, 0}
+}
+
+func (x *Event_Alarm) GetAlarmId() string {
+	if x != nil {
+		return x.AlarmId
+	}
+	return ""
+}
+
+func (x *Event_Alarm) GetTrigger() *Event_Alarm_Trigger {
+	if x != nil {
+		return x.Trigger
+	}
+	return nil
+}
+
+// the trigger of the alarm
+type Event_Alarm_Trigger struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Trigger:
+	//
+	//	*Event_Alarm_Trigger_Duration
+	//	*Event_Alarm_Trigger_DateTime
+	Trigger       isEvent_Alarm_Trigger_Trigger `protobuf_oneof:"trigger"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Event_Alarm_Trigger) Reset() {
+	*x = Event_Alarm_Trigger{}
+	mi := &file_api_calendars_calendar_v1alpha1_event_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Event_Alarm_Trigger) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Event_Alarm_Trigger) ProtoMessage() {}
+
+func (x *Event_Alarm_Trigger) ProtoReflect() protoreflect.Message {
+	mi := &file_api_calendars_calendar_v1alpha1_event_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Event_Alarm_Trigger.ProtoReflect.Descriptor instead.
+func (*Event_Alarm_Trigger) Descriptor() ([]byte, []int) {
+	return file_api_calendars_calendar_v1alpha1_event_proto_rawDescGZIP(), []int{0, 0, 0}
+}
+
+func (x *Event_Alarm_Trigger) GetTrigger() isEvent_Alarm_Trigger_Trigger {
+	if x != nil {
+		return x.Trigger
+	}
+	return nil
+}
+
+func (x *Event_Alarm_Trigger) GetDuration() *durationpb.Duration {
+	if x != nil {
+		if x, ok := x.Trigger.(*Event_Alarm_Trigger_Duration); ok {
+			return x.Duration
+		}
+	}
+	return nil
+}
+
+func (x *Event_Alarm_Trigger) GetDateTime() *timestamppb.Timestamp {
+	if x != nil {
+		if x, ok := x.Trigger.(*Event_Alarm_Trigger_DateTime); ok {
+			return x.DateTime
+		}
+	}
+	return nil
+}
+
+type isEvent_Alarm_Trigger_Trigger interface {
+	isEvent_Alarm_Trigger_Trigger()
+}
+
+type Event_Alarm_Trigger_Duration struct {
+	// the duration of the alarm
+	Duration *durationpb.Duration `protobuf:"bytes,1,opt,name=duration,proto3,oneof"`
+}
+
+type Event_Alarm_Trigger_DateTime struct {
+	// the date time of the alarm
+	DateTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=date_time,json=dateTime,proto3,oneof"`
+}
+
+func (*Event_Alarm_Trigger_Duration) isEvent_Alarm_Trigger_Trigger() {}
+
+func (*Event_Alarm_Trigger_DateTime) isEvent_Alarm_Trigger_Trigger() {}
+
 var File_api_calendars_calendar_v1alpha1_event_proto protoreflect.FileDescriptor
 
 const file_api_calendars_calendar_v1alpha1_event_proto_rawDesc = "" +
 	"\n" +
-	"+api/calendars/calendar/v1alpha1/event.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xd9\x02\n" +
+	"+api/calendars/calendar/v1alpha1/event.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18google/type/latlng.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xfa\n" +
+	"\n" +
 	"\x05Event\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
-	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\"[\n" +
+	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12>\n" +
+	"\n" +
+	"start_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x02R\tstartTime\x12:\n" +
+	"\bend_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x02R\aendTime\x12%\n" +
+	"\vdescription\x18\x05 \x01(\tB\x03\xe0A\x01R\vdescription\x124\n" +
+	"\blocation\x18\x06 \x01(\v2\x13.google.type.LatLngB\x03\xe0A\x01R\blocation\x12G\n" +
+	"\x05state\x18\a \x01(\x0e2,.api.calendars.calendar.v1alpha1.Event.StateB\x03\xe0A\x03R\x05state\x12R\n" +
+	"\vevent_class\x18\b \x01(\x0e2,.api.calendars.calendar.v1alpha1.Event.ClassB\x03\xe0A\x02R\n" +
+	"eventClass\x12\x15\n" +
+	"\x03uri\x18\t \x01(\tB\x03\xe0A\x01R\x03uri\x12,\n" +
+	"\x0frecurrence_rule\x18\n" +
+	" \x01(\tB\x03\xe0A\x01R\x0erecurrenceRule\x12H\n" +
+	"\x0frecurrence_time\x18\v \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x01R\x0erecurrenceTime\x12F\n" +
+	"\x0eexcluded_times\x18\f \x03(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x01R\rexcludedTimes\x12J\n" +
+	"\x10additional_times\x18\r \x03(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x01R\x0fadditionalTimes\x121\n" +
+	"\x12recurring_event_id\x18\x0e \x01(\x03B\x03\xe0A\x01R\x10recurringEventId\x12I\n" +
+	"\x06alarms\x18\x0f \x03(\v2,.api.calendars.calendar.v1alpha1.Event.AlarmB\x03\xe0A\x01R\x06alarms\x1a\x87\x02\n" +
+	"\x05Alarm\x12\x1e\n" +
+	"\balarm_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aalarmId\x12S\n" +
+	"\atrigger\x18\x02 \x01(\v24.api.calendars.calendar.v1alpha1.Event.Alarm.TriggerB\x03\xe0A\x02R\atrigger\x1a\x88\x01\n" +
+	"\aTrigger\x127\n" +
+	"\bduration\x18\x01 \x01(\v2\x19.google.protobuf.DurationH\x00R\bduration\x129\n" +
+	"\tdate_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\bdateTimeB\t\n" +
+	"\atrigger\"[\n" +
 	"\x05Class\x12\x15\n" +
 	"\x11CLASS_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fCLASS_PUBLIC\x10\x01\x12\x11\n" +
@@ -236,18 +520,35 @@ func file_api_calendars_calendar_v1alpha1_event_proto_rawDescGZIP() []byte {
 }
 
 var file_api_calendars_calendar_v1alpha1_event_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_api_calendars_calendar_v1alpha1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_api_calendars_calendar_v1alpha1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_api_calendars_calendar_v1alpha1_event_proto_goTypes = []any{
-	(Event_Class)(0), // 0: api.calendars.calendar.v1alpha1.Event.Class
-	(Event_State)(0), // 1: api.calendars.calendar.v1alpha1.Event.State
-	(*Event)(nil),    // 2: api.calendars.calendar.v1alpha1.Event
+	(Event_Class)(0),              // 0: api.calendars.calendar.v1alpha1.Event.Class
+	(Event_State)(0),              // 1: api.calendars.calendar.v1alpha1.Event.State
+	(*Event)(nil),                 // 2: api.calendars.calendar.v1alpha1.Event
+	(*Event_Alarm)(nil),           // 3: api.calendars.calendar.v1alpha1.Event.Alarm
+	(*Event_Alarm_Trigger)(nil),   // 4: api.calendars.calendar.v1alpha1.Event.Alarm.Trigger
+	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
+	(*latlng.LatLng)(nil),         // 6: google.type.LatLng
+	(*durationpb.Duration)(nil),   // 7: google.protobuf.Duration
 }
 var file_api_calendars_calendar_v1alpha1_event_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	5,  // 0: api.calendars.calendar.v1alpha1.Event.start_time:type_name -> google.protobuf.Timestamp
+	5,  // 1: api.calendars.calendar.v1alpha1.Event.end_time:type_name -> google.protobuf.Timestamp
+	6,  // 2: api.calendars.calendar.v1alpha1.Event.location:type_name -> google.type.LatLng
+	1,  // 3: api.calendars.calendar.v1alpha1.Event.state:type_name -> api.calendars.calendar.v1alpha1.Event.State
+	0,  // 4: api.calendars.calendar.v1alpha1.Event.event_class:type_name -> api.calendars.calendar.v1alpha1.Event.Class
+	5,  // 5: api.calendars.calendar.v1alpha1.Event.recurrence_time:type_name -> google.protobuf.Timestamp
+	5,  // 6: api.calendars.calendar.v1alpha1.Event.excluded_times:type_name -> google.protobuf.Timestamp
+	5,  // 7: api.calendars.calendar.v1alpha1.Event.additional_times:type_name -> google.protobuf.Timestamp
+	3,  // 8: api.calendars.calendar.v1alpha1.Event.alarms:type_name -> api.calendars.calendar.v1alpha1.Event.Alarm
+	4,  // 9: api.calendars.calendar.v1alpha1.Event.Alarm.trigger:type_name -> api.calendars.calendar.v1alpha1.Event.Alarm.Trigger
+	7,  // 10: api.calendars.calendar.v1alpha1.Event.Alarm.Trigger.duration:type_name -> google.protobuf.Duration
+	5,  // 11: api.calendars.calendar.v1alpha1.Event.Alarm.Trigger.date_time:type_name -> google.protobuf.Timestamp
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_api_calendars_calendar_v1alpha1_event_proto_init() }
@@ -255,13 +556,17 @@ func file_api_calendars_calendar_v1alpha1_event_proto_init() {
 	if File_api_calendars_calendar_v1alpha1_event_proto != nil {
 		return
 	}
+	file_api_calendars_calendar_v1alpha1_event_proto_msgTypes[2].OneofWrappers = []any{
+		(*Event_Alarm_Trigger_Duration)(nil),
+		(*Event_Alarm_Trigger_DateTime)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_calendars_calendar_v1alpha1_event_proto_rawDesc), len(file_api_calendars_calendar_v1alpha1_event_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   1,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

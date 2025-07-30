@@ -12,8 +12,6 @@ Calendars (collection)
       - title
       - description
       - visibility
-      - create_time
-      - update_time
   - Core Models
     - calendar
       - calendar_id
@@ -93,8 +91,6 @@ Events (collection)
   - GRPC Messages
     - event
       - name
-      - create_time
-      - update_time
       - start_time
       - end_time
       - is_all_day
@@ -114,26 +110,18 @@ Events (collection)
       - trigger
         - duration
         - date_time
-      - description
-      - summary
-      - create_time
-      - update_time
   - Core Models
-    - 
+    - event
   - DB Tables
-    - event_set
-    - event_instance
+    - event
     - event_data
 
 - UI
   - get event
   - list events
-  - !! delete event
-  - !! create event
-  - !! update event
-  - get event instances
-  - !! list event instances
-  - !! update event instance
+  - delete event
+  - create event
+  - update event
 
 
 - Create the above endpoints and update the client to manage calendars and events.

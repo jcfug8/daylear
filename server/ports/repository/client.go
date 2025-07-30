@@ -9,6 +9,7 @@ type Client interface {
 	circleClient
 	recipeClient
 	userClient
+	calendarClient
 
 	Begin(context.Context) (TxClient, error)
 	Migrate() error
@@ -19,6 +20,7 @@ type TxClient interface {
 	circleClient
 	recipeClient
 	userClient
+	calendarClient
 
 	Commit() error
 	Rollback()
