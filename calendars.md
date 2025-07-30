@@ -1,0 +1,144 @@
+Calendars (collection)
+  - GRPC endpoints
+    - Get
+    - Create
+    - Update
+    - Delete
+    - List
+  - HTTP endpoints
+  - GRPC Messages
+    - calendar
+      - name
+      - title
+      - description
+      - visibility
+      - create_time
+      - update_time
+  - Core Models
+    - calendar
+      - calendar_id
+      - parent_id
+      - title
+      - description
+      - visibility
+      - create_time
+      - update_time
+    - calendar_parent
+      - user_id
+      - circle_id
+  - DB Tables
+    - calendar
+      - calendar_id
+      - title
+      - description
+      - visibility
+      - create_time
+      - update_time
+
+CalendarAccess (collection)
+  - GRPC endpoints
+    - Get
+    - Create
+    - Update
+    - Delete
+      - delete all events in the calendar.
+    - List
+  - GRPC Messages
+    - access
+      - name
+      - requester
+      - recipient
+      - level
+      - state
+  - Core Models
+    - calendar_access
+      - calendar_access_parent
+      - calendar_access_id
+      - permission_level
+      - state
+      - requester
+      - recipient
+      - recipient_username
+      - recipient_given_name
+      - recipient_family_name
+      - recipient_circle_title
+      - recipient_circle_handle
+  - DB Tables
+    - calendar_access
+      - calendar_access_id
+      - calendar_id
+      - requester_user_id
+      - requester_circle_id
+      - recipient_user_id
+      - recipient_circle_id
+      - permission_level
+      - state
+
+Events (collection)
+  - GRPC endpoints
+    - Get
+    - Create
+      - needs to detect if its a recurring event
+        - if it is we should create 12 months worth of event instances.
+        - if it is not recurring we should create the event and the one instance.
+    - Update
+      - needs to detect if its a recurring event
+        - if it is we should return an error/response indicating that the event is recurring and cannot be updated unless the force flag is set.
+        - if it is not recurring we should update the event.
+    - Delete
+      - needs to detect if its a recurring event
+        - if it is we should return an error/response indicating that the event is recurring and cannot be deleted unless the force flag is set. Or update the event's recurrence rule(s) to add an excluded date for the event to be deleted or add "Until" to the recurrence rule to stop the recurrence.
+        - if it is not recurring we should delete the event.
+    - List
+  - GRPC Messages
+    - event
+      - name
+      - create_time
+      - update_time
+      - start_time
+      - end_time
+      - is_all_day
+      - title
+      - description
+      - location - google.LatLng
+      - status
+      - class
+      - url
+      - recurrence_rule
+      - recurrence_id
+      - excluded_dates
+      - additional_dates
+      - alarms
+    - alarm
+      - alarm_id
+      - trigger
+        - duration
+        - date_time
+      - description
+      - summary
+      - create_time
+      - update_time
+  - Core Models
+    - 
+  - DB Tables
+    - event_set
+    - event_instance
+    - event_data
+
+- UI
+  - get event
+  - list events
+  - !! delete event
+  - !! create event
+  - !! update event
+  - get event instances
+  - !! list event instances
+  - !! update event instance
+
+
+- Create the above endpoints and update the client to manage calendars and events.
+  - really need to make sure i have permission and access set up correctly.
+  - users and circle can have multiple calendars.
+- create a "username" and "password" for the user to use to connect their phones with.
+- create ability to manage what calendars are synced to the phone.
+- create caldav endpoints

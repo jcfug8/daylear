@@ -1,0 +1,474 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/calendars/calendar/v1alpha1/calendar.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "CalendarService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/calendars/v1alpha1/calendars": {
+      "get": {
+        "summary": "List calendars",
+        "description": "Retrieves a paginated list of calendars. Supports filtering and pagination.",
+        "operationId": "CalendarService_ListCalendars",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListCalendarsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the calendars",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "description": "the page size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      },
+      "post": {
+        "summary": "Create a calendar",
+        "description": "Creates a new calendar with the provided details.",
+        "operationId": "CalendarService_CreateCalendar",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Calendar"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "calendar",
+            "description": "the calendar to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Calendar",
+              "required": [
+                "calendar"
+              ]
+            }
+          },
+          {
+            "name": "calendarId",
+            "description": "the id of the calendar",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{calendar.name}": {
+      "patch": {
+        "summary": "Update a calendar",
+        "description": "Updates the details of an existing calendar.",
+        "operationId": "CalendarService_UpdateCalendar",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Calendar"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "calendar.name",
+            "description": "the name of the calendar",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "calendars/[^/]+"
+          },
+          {
+            "name": "calendar",
+            "description": "the calendar to update",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "title": "the title of the calendar"
+                },
+                "description": {
+                  "type": "string",
+                  "title": "the description of the calendar"
+                },
+                "handle": {
+                  "type": "string",
+                  "title": "the unique handle for the calendar (like a username, must be unique, user-friendly, and can be used for sharing)"
+                },
+                "imageUri": {
+                  "type": "string",
+                  "title": "the image url for the calendar"
+                },
+                "visibility": {
+                  "$ref": "#/definitions/typesVisibilityLevel",
+                  "title": "the visibility of the calendar"
+                },
+                "calendarAccess": {
+                  "$ref": "#/definitions/CalendarCalendarAccess",
+                  "title": "calendar access data",
+                  "readOnly": true
+                }
+              },
+              "title": "the calendar to update",
+              "required": [
+                "title",
+                "visibility",
+                "calendar"
+              ]
+            }
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{name}": {
+      "get": {
+        "summary": "Get a calendar",
+        "description": "Retrieves a single calendar by resource name.",
+        "operationId": "CalendarService_GetCalendar",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Calendar"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the calendar",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "calendars/[^/]+"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a calendar",
+        "description": "Deletes a calendar by resource name.",
+        "operationId": "CalendarService_DeleteCalendar",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Calendar"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the calendar",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "calendars/[^/]+"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{parent}/calendars": {
+      "get": {
+        "summary": "List calendars",
+        "description": "Retrieves a paginated list of calendars. Supports filtering and pagination.",
+        "operationId": "CalendarService_ListCalendars2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListCalendarsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the calendars",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+"
+          },
+          {
+            "name": "pageSize",
+            "description": "the page size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "CalendarCalendarAccess": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the calendar access",
+          "readOnly": true
+        },
+        "permissionLevel": {
+          "$ref": "#/definitions/typesPermissionLevel",
+          "title": "the permission of the calendar",
+          "readOnly": true
+        },
+        "state": {
+          "$ref": "#/definitions/typesAccessState",
+          "title": "the access state of the user to the calendar",
+          "readOnly": true
+        }
+      },
+      "title": "the calendar access details"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "typesAccessState": {
+      "type": "string",
+      "enum": [
+        "ACCESS_STATE_UNSPECIFIED",
+        "ACCESS_STATE_PENDING",
+        "ACCESS_STATE_ACCEPTED"
+      ],
+      "default": "ACCESS_STATE_UNSPECIFIED",
+      "description": "- ACCESS_STATE_UNSPECIFIED: This status should never get used.\n - ACCESS_STATE_PENDING: The access is pending and can either be accepted or deleted.\n - ACCESS_STATE_ACCEPTED: The access is accepted and can be deleted.",
+      "title": "the visibility levels"
+    },
+    "typesPermissionLevel": {
+      "type": "string",
+      "enum": [
+        "PERMISSION_LEVEL_UNSPECIFIED",
+        "PERMISSION_LEVEL_PUBLIC",
+        "PERMISSION_LEVEL_READ",
+        "PERMISSION_LEVEL_WRITE",
+        "PERMISSION_LEVEL_ADMIN"
+      ],
+      "default": "PERMISSION_LEVEL_UNSPECIFIED",
+      "description": "- PERMISSION_LEVEL_UNSPECIFIED: the permission is not specified\n - PERMISSION_LEVEL_PUBLIC: the permission is public\n - PERMISSION_LEVEL_READ: the permission is read\n - PERMISSION_LEVEL_WRITE: the permission is write\n - PERMISSION_LEVEL_ADMIN: the permission is admin",
+      "title": "the permission levels"
+    },
+    "typesVisibilityLevel": {
+      "type": "string",
+      "enum": [
+        "VISIBILITY_LEVEL_UNSPECIFIED",
+        "VISIBILITY_LEVEL_PUBLIC",
+        "VISIBILITY_LEVEL_RESTRICTED",
+        "VISIBILITY_LEVEL_PRIVATE",
+        "VISIBILITY_LEVEL_HIDDEN"
+      ],
+      "default": "VISIBILITY_LEVEL_UNSPECIFIED",
+      "description": "- VISIBILITY_LEVEL_UNSPECIFIED: the visibility is not specified\n - VISIBILITY_LEVEL_PUBLIC: the visibility is public\n - VISIBILITY_LEVEL_RESTRICTED: the visibility is restricted\n - VISIBILITY_LEVEL_PRIVATE: the visibility is private\n - VISIBILITY_LEVEL_HIDDEN: the visibility is hidden",
+      "title": "the visibility levels"
+    },
+    "v1alpha1Calendar": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the calendar"
+        },
+        "title": {
+          "type": "string",
+          "title": "the title of the calendar"
+        },
+        "description": {
+          "type": "string",
+          "title": "the description of the calendar"
+        },
+        "handle": {
+          "type": "string",
+          "title": "the unique handle for the calendar (like a username, must be unique, user-friendly, and can be used for sharing)"
+        },
+        "imageUri": {
+          "type": "string",
+          "title": "the image url for the calendar"
+        },
+        "visibility": {
+          "$ref": "#/definitions/typesVisibilityLevel",
+          "title": "the visibility of the calendar"
+        },
+        "calendarAccess": {
+          "$ref": "#/definitions/CalendarCalendarAccess",
+          "title": "calendar access data",
+          "readOnly": true
+        }
+      },
+      "title": "the main user calendar",
+      "required": [
+        "title",
+        "visibility"
+      ]
+    },
+    "v1alpha1ListCalendarsResponse": {
+      "type": "object",
+      "properties": {
+        "calendars": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1Calendar"
+          },
+          "title": "the calendars"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "title": "the next page token"
+        }
+      },
+      "title": "the response to list calendars"
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "description": "Bearer token for authentication",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

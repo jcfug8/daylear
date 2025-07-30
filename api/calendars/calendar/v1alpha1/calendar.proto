@@ -1,0 +1,207 @@
+syntax = "proto3";
+
+package api.calendars.calendar.v1alpha1;
+
+import "api/types/access_state.proto";
+import "api/types/permission_level.proto";
+import "api/types/visibility_level.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  security_definitions: {
+    security: {
+      key: "BearerAuth"
+      value: {
+        type: TYPE_API_KEY
+        in: IN_HEADER
+        name: "Authorization"
+        description: "Bearer token for authentication"
+      }
+    }
+  }
+  security: {
+    security_requirement: {
+      key: "BearerAuth"
+      value: {}
+    }
+  }
+};
+
+// the calendar service
+service CalendarService {
+  // create a calendar
+  rpc CreateCalendar(CreateCalendarRequest) returns (Calendar) {
+    option (google.api.method_signature) = "calendar,calendar_id";
+    option (google.api.http) = {
+      post: "/calendars/v1alpha1/calendars"
+      body: "calendar"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Create a calendar"
+      description: "Creates a new calendar with the provided details."
+      tags: "CalendarService"
+    };
+  }
+
+  // list calendars
+  rpc ListCalendars(ListCalendarsRequest) returns (ListCalendarsResponse) {
+    option (google.api.method_signature) = "parent";
+    option (google.api.http) = {
+      get: "/calendars/v1alpha1/calendars"
+      additional_bindings: {get: "/calendars/v1alpha1/{parent=users/*}/calendars"}
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "List calendars"
+      description: "Retrieves a paginated list of calendars. Supports filtering and pagination."
+      tags: "CalendarService"
+    };
+  }
+
+  // update a calendar
+  rpc UpdateCalendar(UpdateCalendarRequest) returns (Calendar) {
+    option (google.api.method_signature) = "calendar,update_mask";
+    option (google.api.http) = {
+      patch: "/calendars/v1alpha1/{calendar.name=calendars/*}"
+      body: "calendar"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Update a calendar"
+      description: "Updates the details of an existing calendar."
+      tags: "CalendarService"
+    };
+  }
+
+  // delete` a calendar
+  rpc DeleteCalendar(DeleteCalendarRequest) returns (Calendar) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {delete: "/calendars/v1alpha1/{name=calendars/*}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Delete a calendar"
+      description: "Deletes a calendar by resource name."
+      tags: "CalendarService"
+    };
+  }
+
+  // get a calendar
+  rpc GetCalendar(GetCalendarRequest) returns (Calendar) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {get: "/calendars/v1alpha1/{name=calendars/*}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get a calendar"
+      description: "Retrieves a single calendar by resource name."
+      tags: "CalendarService"
+    };
+  }
+}
+
+// the main user calendar
+message Calendar {
+  option (google.api.resource) = {
+    type: "api.calendars.calendar.v1alpha1/Calendar"
+    pattern: "calendars/{calendar}"
+    pattern: "users/{user}/calendars/{calendar}"
+    plural: "calendars"
+    singular: "calendar"
+  };
+
+  // the name of the calendar
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // the title of the calendar
+  string title = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // the description of the calendar
+  string description = 7 [(google.api.field_behavior) = OPTIONAL];
+
+  // the unique handle for the calendar (like a username, must be unique, user-friendly, and can be used for sharing)
+  string handle = 6 [(google.api.field_behavior) = OPTIONAL];
+
+  // the image url for the calendar
+  string image_uri = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // the visibility of the calendar
+  api.types.VisibilityLevel visibility = 4 [(google.api.field_behavior) = REQUIRED];
+
+  // calendar access data
+  CalendarAccess calendar_access = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the calendar access details
+  message CalendarAccess {
+    // the name of the calendar access
+    string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the permission of the calendar
+    api.types.PermissionLevel permission_level = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the access state of the user to the calendar
+    api.types.AccessState state = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+}
+
+// the request to create a calendar
+message CreateCalendarRequest {
+  // the calendar to create
+  Calendar calendar = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // the id of the calendar
+  string calendar_id = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// the request to list calendars
+message ListCalendarsRequest {
+  // the parent of the calendars
+  string parent = 1 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference).type = "api.users.user.v1alpha1/User"
+  ];
+
+  // the page size
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // the page token
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // used to specify the filter
+  string filter = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// the response to list calendars
+message ListCalendarsResponse {
+  // the calendars
+  repeated Calendar calendars = 1;
+
+  // the next page token
+  string next_page_token = 2;
+}
+
+// the request to update a calendar
+message UpdateCalendarRequest {
+  // the calendar to update
+  Calendar calendar = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // the fields to update
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// the request to delete a calendar
+message DeleteCalendarRequest {
+  // the name of the calendar
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.calendars.calendar.v1alpha1/Calendar"
+  ];
+}
+
+// the request to get a calendar
+message GetCalendarRequest {
+  // the name of the calendar
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.calendars.calendar.v1alpha1/Calendar"
+  ];
+}

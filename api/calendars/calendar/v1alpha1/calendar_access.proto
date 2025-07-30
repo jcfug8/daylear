@@ -1,0 +1,244 @@
+syntax = "proto3";
+
+package api.calendars.calendar.v1alpha1;
+
+import "api/types/access_state.proto";
+import "api/types/permission_level.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  security_definitions: {
+    security: {
+      key: "BearerAuth"
+      value: {
+        type: TYPE_API_KEY
+        in: IN_HEADER
+        name: "Authorization"
+        description: "Bearer token for authentication"
+      }
+    }
+  }
+  security: {
+    security_requirement: {
+      key: "BearerAuth"
+      value: {}
+    }
+  }
+};
+
+// The calendar recipient list service
+service CalendarAccessService {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    description: "Calendar Access management"
+    external_docs: {
+      url: "https://daylear.com/docs"
+      description: "Daylear API Documentation"
+    }
+  };
+
+  // Create an access to a calendar
+  rpc CreateAccess(CreateAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "parent,access";
+    option (google.api.http) = {
+      post: "/calendars/v1alpha1/{parent=calendars/*}/accesses"
+      body: "access"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Grant a user or calendar access to a calendar"
+      description: "Grants a user or calendar a specific permission level to a calendar."
+      tags: "CalendarAccessService"
+    };
+  }
+
+  // Delete an access to a calendar
+  rpc DeleteAccess(DeleteAccessRequest) returns (google.protobuf.Empty) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {delete: "/calendars/v1alpha1/{name=calendars/*/accesses/*}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Delete a calendar access"
+      description: "Removes a user's or calendar's access to a calendar."
+      tags: "CalendarAccessService"
+    };
+  }
+
+  // Get an access to a calendar
+  rpc GetAccess(GetAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {get: "/calendars/v1alpha1/{name=calendars/*/accesses/*}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get a calendar access"
+      description: "Retrieves details about a specific calendar access."
+      tags: "CalendarAccessService"
+    };
+  }
+
+  // List accesses to a calendar
+  rpc ListAccesses(ListAccessesRequest) returns (ListAccessesResponse) {
+    option (google.api.method_signature) = "parent";
+    option (google.api.http) = {get: "/calendars/v1alpha1/{parent=calendars/*}/accesses"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "List calendar accesses"
+      description: "Lists all users and calendars with access to a calendar. If no calendar is provided, the response will only return the accesses for the current user (or calendar if the calendar header is provided)."
+      tags: "CalendarAccessService"
+    };
+  }
+
+  // Update an access to a calendar
+  rpc UpdateAccess(UpdateAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "access,update_mask";
+    option (google.api.http) = {
+      patch: "/calendars/v1alpha1/{access.name=calendars/*/accesses/*}"
+      body: "access"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Update a calendar access"
+      description: "Updates the permission level or recipient for a calendar access."
+      tags: "CalendarAccessService"
+    };
+  }
+
+  // Accept a calendar access
+  rpc AcceptAccess(AcceptAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {
+      post: "/calendars/v1alpha1/{name=calendars/*/accesses/*}:accept"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Accept a calendar access"
+      description: "Accepts a pending calendar access, changing its state from PENDING to ACCEPTED."
+      tags: "CalendarAccessService"
+    };
+  }
+}
+
+// This represents the data about a user's access to a calendar
+message Access {
+  option (google.api.resource) = {
+    type: "api.calendars.calendar.v1alpha1/Access"
+    pattern: "calendars/{calendar}/accesses/{access}"
+    plural: "accesses"
+    singular: "access"
+  };
+
+  // The name of the access
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // the name of the requesting user
+  Requester requester = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the name of the receiving user
+  User recipient = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // the permission level of the access
+  api.types.PermissionLevel level = 4 [(google.api.field_behavior) = REQUIRED];
+
+  // the status of the access
+  api.types.AccessState state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the requester of the access
+  message Requester {
+    oneof name {
+      // the name of the user
+      string user = 1;
+      // the name of the calendar
+      string calendar = 2;
+    }
+  }
+
+  // user data
+  message User {
+    // the name of the user
+    string name = 1 [(google.api.field_behavior) = REQUIRED];
+
+    // the username of the user
+    string username = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the full name of the user
+    string given_name = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the last name of the user
+    string family_name = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+}
+
+// The request to create an access to a calendar
+message CreateAccessRequest {
+  // parent
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.calendars.calendar.v1alpha1/Calendar"
+  ];
+
+  // The access to create
+  Access access = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request to delete an access to a calendar
+message DeleteAccessRequest {
+  // name
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.calendars.calendar.v1alpha1/Access"
+  ];
+}
+
+// The request to get an access to a calendar
+message GetAccessRequest {
+  // name
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.calendars.calendar.v1alpha1/Access"
+  ];
+}
+
+// The request to list accesses to a calendar
+message ListAccessesRequest {
+  // parent
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.calendars.calendar.v1alpha1/Calendar"
+  ];
+
+  // The filter to apply to the list
+  string filter = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // The page size to apply to the list
+  int32 page_size = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // The page token to apply to the list
+  string page_token = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The response to list accesses to a calendar
+message ListAccessesResponse {
+  // The list of accesses
+  repeated Access accesses = 1;
+
+  // The next page token
+  string next_page_token = 2;
+}
+
+// The request to update an access to a calendar
+message UpdateAccessRequest {
+  // access
+  Access access = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // update mask
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The request to accept an access to a calendar
+message AcceptAccessRequest {
+  // name
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.calendars.calendar.v1alpha1/Access"
+  ];
+}
