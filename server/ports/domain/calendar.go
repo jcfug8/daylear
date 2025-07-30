@@ -8,8 +8,8 @@ import (
 
 type calendarDomain interface {
 	CreateCalendar(ctx context.Context, authAccount model.AuthAccount, calendar model.Calendar) (model.Calendar, error)
-	DeleteCalendar(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarParent, id int64) (model.Calendar, error)
-	GetCalendar(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarParent, id int64) (model.Calendar, error)
+	DeleteCalendar(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarParent, id model.CalendarId) (model.Calendar, error)
+	GetCalendar(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarParent, id model.CalendarId) (model.Calendar, error)
 	ListCalendars(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarParent, pageSize int32, offset int64, filter string, fieldMask []string) ([]model.Calendar, error)
 	UpdateCalendar(ctx context.Context, authAccount model.AuthAccount, calendar model.Calendar, updateMask []string) (model.Calendar, error)
 

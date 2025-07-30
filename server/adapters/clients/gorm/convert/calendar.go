@@ -2,68 +2,37 @@ package convert
 
 import (
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
-	"github.com/jcfug8/daylear/server/core/model"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 )
 
-// CalendarToGorm converts a core Calendar to a GORM Calendar
-func CalendarToGorm(calendar cmodel.Calendar) gmodel.Calendar {
+// CalendarFromCoreModel converts a core Calendar to a GORM Calendar
+func CalendarFromCoreModel(calendar cmodel.Calendar) (gmodel.Calendar, error) {
 	return gmodel.Calendar{
-		CalendarId:      calendar.CalendarId,
+		CalendarId:      calendar.CalendarId.CalendarId,
 		Title:           calendar.Title,
 		Description:     calendar.Description,
 		VisibilityLevel: calendar.VisibilityLevel,
 		CreateTime:      calendar.CreateTime,
 		UpdateTime:      calendar.UpdateTime,
-	}
+	}, nil
 }
 
-// CalendarFromGorm converts a GORM Calendar to a core Calendar
-func CalendarFromGorm(gormCalendar gmodel.Calendar) cmodel.Calendar {
+// CalendarToCoreModel converts a GORM Calendar to a core Calendar
+func CalendarToCoreModel(gormCalendar gmodel.Calendar) (cmodel.Calendar, error) {
 	calendar := cmodel.Calendar{
-		CalendarId:      gormCalendar.CalendarId,
+		CalendarId:      cmodel.CalendarId{CalendarId: gormCalendar.CalendarId},
 		Title:           gormCalendar.Title,
 		Description:     gormCalendar.Description,
 		VisibilityLevel: gormCalendar.VisibilityLevel,
 		CreateTime:      gormCalendar.CreateTime,
 		UpdateTime:      gormCalendar.UpdateTime,
+		CalendarAccess: cmodel.CalendarAccess{
+			CalendarAccessParent: cmodel.CalendarAccessParent{CalendarId: gormCalendar.CalendarId},
+			CalendarAccessId:     cmodel.CalendarAccessId{CalendarAccessId: gormCalendar.CalendarAccessId},
+			PermissionLevel:      gormCalendar.PermissionLevel,
+			State:                gormCalendar.State,
+		},
 	}
 
-	return calendar
-}
-
-// CalendarAccessToGorm converts a core CalendarAccess to a GORM CalendarAccess
-func CalendarAccessToGorm(access cmodel.CalendarAccess) gmodel.CalendarAccess {
-	return gmodel.CalendarAccess{
-		CalendarAccessId:  access.CalendarAccessId.CalendarAccessId,
-		CalendarId:        access.CalendarId,
-		RequesterUserId:   access.Requester.UserId,
-		RequesterCircleId: access.Requester.CircleId,
-		RecipientUserId:   access.Recipient.UserId,
-		RecipientCircleId: access.Recipient.CircleId,
-		PermissionLevel:   access.PermissionLevel,
-		State:             access.State,
-	}
-}
-
-// CalendarAccessFromGorm converts a GORM CalendarAccess to a core CalendarAccess
-func CalendarAccessFromGorm(gormAccess gmodel.CalendarAccess) cmodel.CalendarAccess {
-	return model.CalendarAccess{
-		CalendarAccessParent: model.CalendarAccessParent{
-			CalendarId: gormAccess.CalendarId,
-		},
-		CalendarAccessId: model.CalendarAccessId{
-			CalendarAccessId: gormAccess.CalendarAccessId,
-		},
-		Requester: model.CalendarRecipientOrRequester{
-			UserId:   gormAccess.RequesterUserId,
-			CircleId: gormAccess.RequesterCircleId,
-		},
-		Recipient: model.CalendarRecipientOrRequester{
-			UserId:   gormAccess.RecipientUserId,
-			CircleId: gormAccess.RecipientCircleId,
-		},
-		PermissionLevel: gormAccess.PermissionLevel,
-		State:           gormAccess.State,
-	}
+	return calendar, nil
 }

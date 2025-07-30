@@ -47,7 +47,7 @@ func (repo *Client) CreateRecipeAccess(ctx context.Context, access model.RecipeA
 	}
 
 	recipeAccess := convert.CoreRecipeAccessToRecipeAccess(access)
-	res := db.Create(&recipeAccess)
+	res := db.Clauses(clause.Returning{}).Create(&recipeAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrDuplicatedKey) {
 			log.Error().Err(res.Error).Msg("duplicate key error")

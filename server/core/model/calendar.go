@@ -13,7 +13,7 @@ type Calendar struct {
 	// Parent is the parent of the calendar
 	Parent CalendarParent
 	// CalendarId is the unique identifier for the calendar
-	CalendarId int64 `aip_pattern:"calendar"`
+	CalendarId CalendarId
 	// Title is the title of the calendar
 	Title string
 	// Description is the description of the calendar
@@ -29,8 +29,12 @@ type Calendar struct {
 }
 
 type CalendarParent struct {
-	UserId   int64 `aip_pattern:"user"`
-	CircleId int64 `aip_pattern:"circle"`
+	UserId   int64 `aip_pattern:"key=user"`
+	CircleId int64 `aip_pattern:"key=circle"`
+}
+
+type CalendarId struct {
+	CalendarId int64 `aip_pattern:"key=calendar"`
 }
 
 // ----------------------------------------------------------------------------

@@ -19,6 +19,7 @@ type NewCalendarServiceParams struct {
 	Domain                    domain.Domain
 	Log                       zerolog.Logger
 	CalendarNamer             namer.ReflectNamer    `name:"v1alpha1CalendarNamer"`
+	CalendarAccessNamer       namer.ReflectNamer    `name:"v1alpha1CalendarAccessNamer"`
 	CalendarFieldMasker       fieldmask.FieldMasker `name:"v1alpha1CalendarFieldMasker"`
 	CalendarAccessFieldMasker fieldmask.FieldMasker `name:"v1alpha1CalendarAccessFieldMasker"`
 }
@@ -29,6 +30,7 @@ func NewCalendarService(params NewCalendarServiceParams) (*CalendarService, erro
 		domain:                    params.Domain,
 		log:                       params.Log,
 		calendarNamer:             params.CalendarNamer,
+		calendarAccessNamer:       params.CalendarAccessNamer,
 		calendarFieldMasker:       params.CalendarFieldMasker,
 		calendarAccessFieldMasker: params.CalendarAccessFieldMasker,
 	}, nil
@@ -40,6 +42,7 @@ type CalendarService struct {
 	domain                    domain.Domain
 	log                       zerolog.Logger
 	calendarNamer             namer.ReflectNamer
+	calendarAccessNamer       namer.ReflectNamer
 	calendarFieldMasker       fieldmask.FieldMasker
 	calendarAccessFieldMasker fieldmask.FieldMasker
 }
@@ -51,9 +54,8 @@ func (s *CalendarService) Register(server *grpc.Server) error {
 }
 
 // ProtoToCalendar converts a proto Calendar to a model Calendar
-func (s *CalendarService) ProtoToCalendar(proto *pb.Calendar) (model.Calendar, error) {
-	calendar := model.Calendar{
-		CalendarId:      0, // Will be set by the database
+func (s *CalendarService) ProtoToCalendar(proto *pb.Calendar) (nameIndex int, calendar model.Calendar, err error) {
+	calendar = model.Calendar{
 		Title:           proto.GetTitle(),
 		Description:     proto.GetDescription(),
 		VisibilityLevel: proto.GetVisibility(),
@@ -61,17 +63,17 @@ func (s *CalendarService) ProtoToCalendar(proto *pb.Calendar) (model.Calendar, e
 
 	// Parse parent from name if provided
 	if proto.GetName() != "" {
-		_, err := s.calendarNamer.Parse(proto.GetName(), &calendar)
+		nameIndex, err = s.calendarNamer.Parse(proto.GetName(), &calendar)
 		if err != nil {
-			return model.Calendar{}, err
+			return 0, model.Calendar{}, err
 		}
 	}
 
-	return calendar, nil
+	return nameIndex, calendar, nil
 }
 
 // CalendarToProto converts a model Calendar to a proto Calendar
-func (s *CalendarService) CalendarToProto(calendar model.Calendar, nameIndex ...namer.FormatReflectNamerOption) (*pb.Calendar, error) {
+func (s *CalendarService) CalendarToProto(calendar model.Calendar, options ...namer.FormatReflectNamerOption) (*pb.Calendar, error) {
 	proto := &pb.Calendar{
 		Title:       calendar.Title,
 		Description: calendar.Description,
@@ -79,18 +81,23 @@ func (s *CalendarService) CalendarToProto(calendar model.Calendar, nameIndex ...
 	}
 
 	// Generate name
-	name, err := s.calendarNamer.Format(calendar, nameIndex...)
-	if err != nil {
-		return nil, err
+	if calendar.CalendarId.CalendarId != 0 {
+		name, err := s.calendarNamer.Format(calendar, options...)
+		if err != nil {
+			return nil, err
+		}
+		proto.Name = name
 	}
-	proto.Name = name
 
 	// Add calendar access data if available
 	if calendar.CalendarAccess.CalendarAccessId.CalendarAccessId != 0 {
-		proto.CalendarAccess = &pb.Calendar_CalendarAccess{
-			Name:            "", // TODO: Generate access name
-			PermissionLevel: calendar.CalendarAccess.PermissionLevel,
-			State:           calendar.CalendarAccess.State,
+		name, err := s.calendarAccessNamer.Format(calendar.CalendarAccess)
+		if err == nil {
+			proto.CalendarAccess = &pb.Calendar_CalendarAccess{
+				Name:            name,
+				PermissionLevel: calendar.CalendarAccess.PermissionLevel,
+				State:           calendar.CalendarAccess.State,
+			}
 		}
 	}
 

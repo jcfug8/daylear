@@ -28,14 +28,16 @@ type ClientParams struct {
 // NewClient creates a new GORM client.
 func NewClient(p ClientParams) (*Client, error) {
 	return &Client{
-		db:                       p.DB,
-		log:                      p.Log,
-		recipeAccessSQLConverter: filter.NewSQLConverter(RecipeAccessMap, true),
-		recipeSQLConverter:       filter.NewSQLConverter(RecipeMap, true),
-		circleSQLConverter:       filter.NewSQLConverter(CircleMap, true),
-		circleAccessSQLConverter: filter.NewSQLConverter(CircleAccessMap, true),
-		userSQLConverter:         filter.NewSQLConverter(UserMap, true),
-		userCircleSQLConverter:   filter.NewSQLConverter(UserCircleMap, true),
+		db:                         p.DB,
+		log:                        p.Log,
+		recipeAccessSQLConverter:   filter.NewSQLConverter(RecipeAccessMap, true),
+		recipeSQLConverter:         filter.NewSQLConverter(RecipeMap, true),
+		circleSQLConverter:         filter.NewSQLConverter(CircleMap, true),
+		circleAccessSQLConverter:   filter.NewSQLConverter(CircleAccessMap, true),
+		userSQLConverter:           filter.NewSQLConverter(UserMap, true),
+		userCircleSQLConverter:     filter.NewSQLConverter(UserCircleMap, true),
+		calendarSQLConverter:       filter.NewSQLConverter(CalendarMap, true),
+		calendarAccessSQLConverter: filter.NewSQLConverter(CalendarAccessMap, true),
 	}, nil
 }
 
@@ -45,12 +47,14 @@ type Client struct {
 	level int
 	log   zerolog.Logger
 
-	recipeAccessSQLConverter *filter.SQLConverter
-	recipeSQLConverter       *filter.SQLConverter
-	circleSQLConverter       *filter.SQLConverter
-	circleAccessSQLConverter *filter.SQLConverter
-	userSQLConverter         *filter.SQLConverter
-	userCircleSQLConverter   *filter.SQLConverter
+	recipeAccessSQLConverter   *filter.SQLConverter
+	recipeSQLConverter         *filter.SQLConverter
+	circleSQLConverter         *filter.SQLConverter
+	circleAccessSQLConverter   *filter.SQLConverter
+	userSQLConverter           *filter.SQLConverter
+	userCircleSQLConverter     *filter.SQLConverter
+	calendarSQLConverter       *filter.SQLConverter
+	calendarAccessSQLConverter *filter.SQLConverter
 }
 
 // Migrate migrates the database.

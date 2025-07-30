@@ -16,5 +16,9 @@ var Module = fx.Module(
 			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.Calendar]() },
 			fx.ResultTags(`name:"v1alpha1CalendarNamer"`),
 		),
+		fx.Annotate(
+			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.Access]() },
+			fx.ResultTags(`name:"v1alpha1CalendarAccessNamer"`),
+		),
 	),
 )

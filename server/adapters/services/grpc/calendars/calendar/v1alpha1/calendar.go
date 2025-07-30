@@ -7,6 +7,7 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/calendars/calendar/v1alpha1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -37,10 +38,16 @@ func (s *CalendarService) CreateCalendar(ctx context.Context, request *pb.Create
 	// convert proto to model
 	calendarProto := request.GetCalendar()
 	calendarProto.Name = ""
-	mCalendar, err := s.ProtoToCalendar(calendarProto)
+	_, mCalendar, err := s.ProtoToCalendar(calendarProto)
 	if err != nil {
 		log.Warn().Err(err).Msg("unable to convert proto to model")
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
+	}
+
+	nameIndex, err := s.calendarNamer.ParseParent(request.GetParent(), &mCalendar.Parent)
+	if err != nil {
+		log.Warn().Err(err).Msg("invalid parent")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
 	}
 
 	// create calendar
@@ -51,7 +58,7 @@ func (s *CalendarService) CreateCalendar(ctx context.Context, request *pb.Create
 	}
 
 	// convert model to proto
-	calendarProto, err = s.CalendarToProto(mCalendar)
+	calendarProto, err = s.CalendarToProto(mCalendar, namer.AsPatternIndex(nameIndex))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -74,7 +81,7 @@ func (s *CalendarService) DeleteCalendar(ctx context.Context, request *pb.Delete
 	}
 
 	var mCalendar model.Calendar
-	_, err = s.calendarNamer.Parse(request.GetName(), &mCalendar)
+	nameIndex, err := s.calendarNamer.Parse(request.GetName(), &mCalendar)
 	if err != nil {
 		log.Warn().Err(err).Str("name", request.GetName()).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
@@ -86,7 +93,7 @@ func (s *CalendarService) DeleteCalendar(ctx context.Context, request *pb.Delete
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	calendarProto, err := s.CalendarToProto(mCalendar)
+	calendarProto, err := s.CalendarToProto(mCalendar, namer.AsPatternIndex(nameIndex))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -109,7 +116,7 @@ func (s *CalendarService) GetCalendar(ctx context.Context, request *pb.GetCalend
 	}
 
 	var mCalendar model.Calendar
-	_, err = s.calendarNamer.Parse(request.GetName(), &mCalendar)
+	nameIndex, err := s.calendarNamer.Parse(request.GetName(), &mCalendar)
 	if err != nil {
 		log.Warn().Err(err).Str("name", request.GetName()).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
@@ -121,7 +128,7 @@ func (s *CalendarService) GetCalendar(ctx context.Context, request *pb.GetCalend
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	calendarProto, err := s.CalendarToProto(mCalendar)
+	calendarProto, err := s.CalendarToProto(mCalendar, namer.AsPatternIndex(nameIndex))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -152,7 +159,7 @@ func (s *CalendarService) UpdateCalendar(ctx context.Context, request *pb.Update
 
 	// convert proto to model
 	calendarProto := request.GetCalendar()
-	mCalendar, err := s.ProtoToCalendar(calendarProto)
+	nameIndex, mCalendar, err := s.ProtoToCalendar(calendarProto)
 	if err != nil {
 		log.Warn().Err(err).Msg("unable to convert proto to model")
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
@@ -170,7 +177,7 @@ func (s *CalendarService) UpdateCalendar(ctx context.Context, request *pb.Update
 	}
 
 	// convert model to proto
-	calendarProto, err = s.CalendarToProto(mCalendar)
+	calendarProto, err = s.CalendarToProto(mCalendar, namer.AsPatternIndex(nameIndex))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -194,7 +201,7 @@ func (s *CalendarService) ListCalendars(ctx context.Context, request *pb.ListCal
 
 	// parse parent
 	var mCalendar model.Calendar
-	_, err = s.calendarNamer.ParseParent(request.GetParent(), &mCalendar)
+	nameIndex, err := s.calendarNamer.ParseParent(request.GetParent(), &mCalendar)
 	if err != nil {
 		log.Warn().Err(err).Str("parent", request.GetParent()).Msg("invalid parent")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
@@ -219,7 +226,7 @@ func (s *CalendarService) ListCalendars(ctx context.Context, request *pb.ListCal
 	// convert models to protos
 	calendarProtos := make([]*pb.Calendar, len(mCalendars))
 	for i, mCalendar := range mCalendars {
-		calendarProto, err := s.CalendarToProto(mCalendar)
+		calendarProto, err := s.CalendarToProto(mCalendar, namer.AsPatternIndex(nameIndex))
 		if err != nil {
 			log.Error().Err(err).Msg("unable to prepare response")
 			return nil, status.Error(codes.Internal, "unable to prepare response")
