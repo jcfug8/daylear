@@ -35,7 +35,6 @@ const router = createRouter({
       component: () => import('../views/meals/recipes/RecipeCreateView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -44,7 +43,6 @@ const router = createRouter({
       component: () => import('../views/meals/recipes/RecipeCreateView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -53,7 +51,6 @@ const router = createRouter({
       component: () => import('../views/meals/recipes/RecipeView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -62,7 +59,6 @@ const router = createRouter({
       component: () => import('../views/meals/recipes/RecipeView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -71,7 +67,6 @@ const router = createRouter({
       component: () => import('../views/meals/recipes/RecipeView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -80,7 +75,6 @@ const router = createRouter({
       component: () => import('../views/meals/recipes/RecipeEditView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -89,7 +83,6 @@ const router = createRouter({
       component: () => import('../views/meals/recipes/RecipeEditView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -98,7 +91,6 @@ const router = createRouter({
       component: () => import('../views/meals/recipes/RecipeEditView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -123,7 +115,6 @@ const router = createRouter({
       component: () => import('../views/users/UserEditView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -156,7 +147,6 @@ const router = createRouter({
       component: () => import('../views/circles/CircleEditView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -165,7 +155,6 @@ const router = createRouter({
       component: () => import('../views/circles/CircleCreateView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {
@@ -182,7 +171,6 @@ const router = createRouter({
       component: () => import('../views/circles/CircleView.vue'),
       meta: {
         requiresAuth: true,
-        breadcrumbs: true,
       },
     },
     {

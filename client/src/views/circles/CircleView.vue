@@ -203,7 +203,6 @@ import { useCirclesStore } from '@/stores/circles'
 import { useUsersStore } from '@/stores/users'
 import { storeToRefs } from 'pinia'
 import { onMounted,  watch, computed, ref } from 'vue'
-import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRoute, useRouter } from 'vue-router'
 import { circleService, circleAccessService } from '@/api/api'
 import { useAuthStore } from '@/stores/auth'
@@ -217,7 +216,6 @@ import { useAlertStore } from '@/stores/alerts'
 
 const route = useRoute()
 const router = useRouter()
-const breadcrumbStore = useBreadcrumbStore()
 const authStore = useAuthStore()
 const recipesStore = useRecipesStore()
 const circlesStore = useCirclesStore()
@@ -228,28 +226,19 @@ const { circle } = storeToRefs(circlesStore)
 const { user } = storeToRefs(authStore)
 const speedDialOpen = ref(false)
 
-// *** Breadcrumbs ***
 
 const trimmedCircleName = computed(() => {
   return route.path.substring(route.path.indexOf('circles/'))
 })
 
-async function loadAndSetBreadcrumbs(circleName: string) {
-  await circlesStore.loadCircle(trimmedCircleName.value)
-  breadcrumbStore.setBreadcrumbs([
-    { title: 'Circles', to: { name: 'circles' } },
-    { title: circle.value?.title || 'Circle' },
-  ])
-}
-
 onMounted(() => {
-  loadAndSetBreadcrumbs(route.path)
+  circlesStore.loadCircle(trimmedCircleName.value)
 })
 
 watch(
   () => route.path,
   () => {
-    loadAndSetBreadcrumbs(route.path)
+    circlesStore.loadCircle(trimmedCircleName.value)
   }
 )
 
@@ -374,10 +363,7 @@ async function handleRemoveAccess() {
     await circleAccessService.DeleteAccess(deleteRequest)
     router.push({ name: 'circles' })
   } catch (error) {
-    alertsStore.addAlert({
-      message: error instanceof Error ? error.message : String(error),
-      type: 'error',
-    })
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   } finally {
     removingAccess.value = false
     showRemoveAccessDialog.value = false
@@ -399,10 +385,7 @@ async function handleDelete() {
     })
     router.push({ name: 'circles' })
   } catch (error) {
-    alertsStore.addAlert({
-      message: error.message ? error.message : String(error),
-      type: 'error',
-    })
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   } finally {
     deleting.value = false
     showDeleteDialog.value = false
@@ -487,10 +470,7 @@ async function fetchCircleRecipients() {
       }))
     }
   } catch (error) {
-    alertsStore.addAlert({
-      message: error instanceof Error ? error.message : String(error),
-      type: 'error',
-    })
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   }
 }
 
@@ -512,10 +492,7 @@ async function updatePermission({ access, newLevel }: { access: any, newLevel: P
     // Update local state
     access.level = newLevel
   } catch (error) {
-    alertsStore.addAlert({
-      message: error instanceof Error ? error.message : String(error),
-      type: 'error',
-    })
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   } finally {
     updatingPermission.value[access.name] = false
   }
@@ -532,10 +509,7 @@ async function unshareCircle(accessName: string) {
     await circleAccessService.DeleteAccess(request)
     await fetchCircleRecipients()
   } catch (error) {
-    alertsStore.addAlert({
-      message: error instanceof Error ? error.message : String(error),
-      type: 'error',
-    })
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   } finally {
     unsharing.value[accessName] = false
   }
@@ -568,10 +542,7 @@ async function shareWithUser({ userName, permission }: { userName: string, permi
     await circleAccessService.CreateAccess(request)
     await fetchCircleRecipients()
   } catch (error) {
-    alertsStore.addAlert({
-      message: error instanceof Error ? error.message : String(error),
-      type: 'error',
-    })
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   } finally {
     sharing.value = false
   }

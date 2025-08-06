@@ -77,6 +77,7 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 		config.findDelegatedUserAccess = func() (model.Access, model.UserAccess, error) {
 			return d.repo.FindDelegatedUserCalendarAccess(ctx, authAccount, i)
 		}
+		determinedAccess = model.CalendarAccess{}
 	case model.CircleId:
 		config.findStandardUserAccess = func() (model.Access, error) {
 			return d.repo.FindStandardUserCircleAccess(ctx, authAccount, i)
@@ -87,6 +88,7 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 		config.findDelegatedUserAccess = func() (model.Access, model.UserAccess, error) {
 			return d.repo.FindDelegatedUserCircleAccess(ctx, authAccount, i)
 		}
+		determinedAccess = model.CircleAccess{}
 	case model.RecipeId:
 		config.findStandardUserAccess = func() (model.Access, error) {
 			return d.repo.FindStandardUserRecipeAccess(ctx, authAccount, i)
@@ -97,6 +99,7 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 		config.findDelegatedUserAccess = func() (model.Access, model.UserAccess, error) {
 			return d.repo.FindDelegatedUserRecipeAccess(ctx, authAccount, i)
 		}
+		determinedAccess = model.RecipeAccess{}
 	case model.UserId:
 		config.findStandardUserAccess = func() (model.Access, error) {
 			// if the user is requesting access to their own user, return the admin access
@@ -127,6 +130,7 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 			}
 			return d.repo.FindDelegatedUserUserAccess(ctx, authAccount, i)
 		}
+		determinedAccess = model.UserAccess{}
 	default:
 		return nil, domain.ErrInvalidArgument{Msg: "invalid resource id"}
 	}

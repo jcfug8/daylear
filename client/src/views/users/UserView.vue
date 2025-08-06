@@ -198,7 +198,7 @@
     :currentAccesses="currentAccesses"
     :sharing="sharing"
     :sharePermissionLoading="updatingPermission"
-    :userPermissionLevel="user.access?.level"
+    :userPermissionLevel="user.access?.permissionLevel"
     :allowPermissionOptions="allowPermissionOptions"
     :disableCreateShare="true"
     @share-user="shareWithUser"
@@ -213,7 +213,6 @@ import { useUsersStore } from '@/stores/users'
 import { useRecipesStore } from '@/stores/recipes'
 import { storeToRefs } from 'pinia'
 import { onMounted, ref, computed, watch } from 'vue'
-import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRoute } from 'vue-router'
 import ListTabsPage from '@/components/common/ListTabsPage.vue'
 import RecipeGrid from '@/components/RecipeGrid.vue'
@@ -235,7 +234,6 @@ const alertsStore = useAlertStore()
 const recipesStore = useRecipesStore()
 const circlesStore = useCirclesStore()
 const { currentUser: user } = storeToRefs(usersStore)
-const breadcrumbStore = useBreadcrumbStore()
 const route = useRoute()
 const tabsPage = ref()
 const speedDialOpen = ref(false)
@@ -247,9 +245,6 @@ const trimmedUserName = computed(() => {
 async function loadUser() {
   await Promise.all([
     usersStore.loadUser(trimmedUserName.value),
-  ])
-  breadcrumbStore.setBreadcrumbs([
-    { title: 'User Settings', to: route.path },
   ])
   tabsPage.value.activeTab = 'general'
 }
@@ -496,10 +491,7 @@ async function fetchUserRecipients() {
       }))
     }
   } catch (error) {
-    alertsStore.addAlert({
-      message: error instanceof Error ? error.message : String(error),
-      type: 'error',
-    })
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   }
 }
 
@@ -508,23 +500,20 @@ async function updatePermission({ access, newLevel }: { access: any, newLevel: P
   if (!access.name) return
   updatingPermission.value[access.name] = true
   try {
-    await userAccessService.UpdateAccess({
-      access: {
-        name: access.name,
-        level: newLevel,
-        state: undefined,
-        recipient: undefined,
-        requester: undefined,
-      },
-      updateMask: 'level',
-    })
-    // Update local state
-    access.level = newLevel
+    // await userAccessService.UpdateAccess({
+    //   access: {
+    //     name: access.name,
+    //     level: newLevel,
+    //     state: undefined,
+    //     recipient: undefined,
+    //     requester: undefined,
+    //   },
+    //   updateMask: 'level',
+    // })
+    // // Update local state
+    // access.level = newLevel
   } catch (error) {
-    alertsStore.addAlert({
-      message: error instanceof Error ? error.message : String(error),
-      type: 'error',
-    })
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   } finally {
     updatingPermission.value[access.name] = false
   }
@@ -541,10 +530,7 @@ async function unshareUser(accessName: string) {
     await userAccessService.DeleteAccess(request)
     await fetchUserRecipients()
   } catch (error) {
-    alertsStore.addAlert({
-      message: error instanceof Error ? error.message : String(error),
-      type: 'error',
-    })
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   } finally {
     unsharing.value[accessName] = false
   }
@@ -577,10 +563,7 @@ async function shareWithUser({ userName, permission }: { userName: string, permi
     await userAccessService.CreateAccess(request)
     await fetchUserRecipients()
   } catch (error) {
-    alertsStore.addAlert({
-      message: error instanceof Error ? error.message : String(error),
-      type: 'error',
-    })
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   } finally {
     sharing.value = false
   }

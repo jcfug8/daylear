@@ -13,16 +13,14 @@
 import { useCirclesStore } from '@/stores/circles'
 import { useRouter } from 'vue-router'
 import { onMounted, ref } from 'vue'
-import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useAuthStore } from '@/stores/auth'
 import CircleForm from '@/views/circles/forms/CircleForm.vue'
 import { fileService } from '@/api/api'
-import type { Circle, apitypes_VisibilityLevel, apitypes_PermissionLevel, apitypes_AccessState } from '@/genapi/api/circles/circle/v1alpha1'
+import type { apitypes_VisibilityLevel } from '@/genapi/api/circles/circle/v1alpha1'
 import { useAlertStore } from '@/stores/alerts'
 
 const router = useRouter()
 const circlesStore = useCirclesStore()
-const breadcrumbStore = useBreadcrumbStore()
 const authStore = useAuthStore()
 const alertsStore = useAlertStore()
 
@@ -48,10 +46,7 @@ async function saveCircle() {
     }
     router.push('/'+circle.name)
   } catch (err) {
-    alertsStore.addAlert({
-      message: err instanceof Error ? err.message : String(err),
-      type: 'error',
-    })
+    alertsStore.addAlert(err instanceof Error ? err.message : String(err),'error')
   }
 }
 
@@ -72,10 +67,6 @@ onMounted(() => {
     circleAccess: undefined,
     description: '',
   }
-  breadcrumbStore.setBreadcrumbs([
-    { title: 'Circles', to: { name: 'circles' } },
-    { title: 'Create New Circle', to: { name: 'circleCreate' } },
-  ])
 })
 </script>
 

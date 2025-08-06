@@ -208,7 +208,7 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 	}
 
 	mRecipeParent := model.RecipeParent{}
-	nameIndex, err := s.recipeNamer.ParseParent(request.GetParent(), &mRecipeParent)
+	_, err = s.recipeNamer.ParseParent(request.GetParent(), &mRecipeParent)
 	if err != nil {
 		log.Warn().Err(err).Msg("invalid parent")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
@@ -232,7 +232,7 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 
 	recipes := make([]*pb.Recipe, len(res))
 	for i, recipe := range res {
-		recipeProto, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, recipe, namer.AsPatternIndex(nameIndex))
+		recipeProto, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, recipe)
 		if err != nil {
 			log.Error().Err(err).Msg("unable to prepare response")
 			return nil, status.Error(codes.Internal, "unable to prepare response")

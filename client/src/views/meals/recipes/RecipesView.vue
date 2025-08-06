@@ -174,8 +174,10 @@ function onSearchEnter() {
 }
 
 onMounted(() => {
-  circlesStore.loadMyCircles()
-  usersStore.loadFriends()
+  if (authStore.user && authStore.user.name) {
+    circlesStore.loadMyCircles(authStore.user.name)
+    usersStore.loadFriends(authStore.user.name)
+  }
 })
 
 const accountOptions = computed(() => {

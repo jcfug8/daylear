@@ -130,15 +130,10 @@ func (d *Domain) DeleteRecipe(ctx context.Context, authAccount model.AuthAccount
 		return model.Recipe{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	recipeAccess, err := d.determineRecipeAccess(ctx, authAccount, id)
+	_, err = d.determineRecipeAccess(ctx, authAccount, id, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine recipe access")
 		return model.Recipe{}, err
-	}
-
-	if recipeAccess.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_ADMIN {
-		log.Warn().Msg("user does not have high enough access level")
-		return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have high enough access level"}
 	}
 
 	tx, err := d.repo.Begin(ctx)
@@ -260,15 +255,14 @@ func (d *Domain) UpdateRecipe(ctx context.Context, authAccount model.AuthAccount
 		return model.Recipe{}, err
 	}
 
-	recipeAccess, err := d.determineRecipeAccess(ctx, authAccount, recipe.Id, withResourceVisibilityLevel(previousDbRecipe.VisibilityLevel))
+	_, err = d.determineRecipeAccess(
+		ctx, authAccount, recipe.Id,
+		withResourceVisibilityLevel(previousDbRecipe.VisibilityLevel),
+		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE),
+	)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine recipe access")
 		return model.Recipe{}, err
-	}
-
-	if recipeAccess.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
-		log.Warn().Msg("user does not have high enough access level to update recipe")
-		return model.Recipe{}, domain.ErrPermissionDenied{Msg: "user does not have high enough access level to update recipe"}
 	}
 
 	tx, err := d.repo.Begin(ctx)
@@ -326,15 +320,14 @@ func (d *Domain) UploadRecipeImage(ctx context.Context, authAccount model.AuthAc
 	}
 	oldImageURI := dbRecipe.ImageURI
 
-	recipeAccess, err := d.determineRecipeAccess(ctx, authAccount, id, withResourceVisibilityLevel(dbRecipe.VisibilityLevel))
+	_, err = d.determineRecipeAccess(
+		ctx, authAccount, id,
+		withResourceVisibilityLevel(dbRecipe.VisibilityLevel),
+		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE),
+	)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine recipe access")
 		return "", err
-	}
-
-	if recipeAccess.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
-		log.Warn().Msg("user does not have high enough access level to upload image")
-		return "", domain.ErrPermissionDenied{Msg: "user does not have high enough access level to upload image"}
 	}
 
 	imageURI, err = d.uploadRecipeImage(ctx, id, imageReader)
@@ -370,15 +363,14 @@ func (d *Domain) GenerateRecipeImage(ctx context.Context, authAccount model.Auth
 		return file.File{}, err
 	}
 
-	recipeAccess, err := d.determineRecipeAccess(ctx, authAccount, id, withResourceVisibilityLevel(dbRecipe.VisibilityLevel))
+	_, err = d.determineRecipeAccess(
+		ctx, authAccount, id,
+		withResourceVisibilityLevel(dbRecipe.VisibilityLevel),
+		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE),
+	)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine recipe access")
 		return file.File{}, err
-	}
-
-	if recipeAccess.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_WRITE {
-		log.Warn().Msg("user does not have high enough access level to generate image")
-		return file.File{}, domain.ErrPermissionDenied{Msg: "user does not have high enough access level to generate image"}
 	}
 
 	f, err := d.imageGenerator.GenerateRecipeImage(ctx, dbRecipe)

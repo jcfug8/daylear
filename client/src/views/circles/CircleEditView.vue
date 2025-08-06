@@ -13,7 +13,6 @@
 import { useCirclesStore } from '@/stores/circles'
 import { storeToRefs } from 'pinia'
 import { onMounted, ref, watch } from 'vue'
-import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRouter, useRoute } from 'vue-router'
 import type { Circle, apitypes_VisibilityLevel, apitypes_PermissionLevel, apitypes_AccessState } from '@/genapi/api/circles/circle/v1alpha1'
 import { useAuthStore } from '@/stores/auth'
@@ -26,7 +25,6 @@ const router = useRouter()
 const route = useRoute()
 const circlesStore = useCirclesStore()
 const { circle } = storeToRefs(circlesStore)
-const breadcrumbStore = useBreadcrumbStore()
 const authStore = useAuthStore()
 const alertsStore = useAlertStore()
 
@@ -37,6 +35,7 @@ const editedCircle = ref<Circle>({
   imageUri: '',
   visibility: 'VISIBILITY_LEVEL_PUBLIC' as apitypes_VisibilityLevel,
   circleAccess: undefined,
+  description: '',
 })
 
 const pendingImageFile = ref<File | null>(null)
@@ -58,11 +57,8 @@ async function saveSettings() {
       circlesStore.circle.imageUri = response.imageUri
     }
     navigateBack()
-  } catch (error) {
-    alertsStore.addAlert({
-      message: error.message ? error.message : String(error),
-      type: 'error',
-    })
+  } catch (err) {
+    alertsStore.addAlert(err instanceof Error ? err.message : String(err),'error')
   }
 }
 
@@ -82,11 +78,6 @@ async function loadCircle() {
   if (circle.value) {
     editedCircle.value = { ...circle.value }
   }
-  breadcrumbStore.setBreadcrumbs([
-    { title: 'Circles', to: { name: 'circles' } },
-    { title: circle.value?.title || 'Circle', to: circleName.value },
-    { title: 'Edit' },
-  ])
 }
 
 onMounted(async () => {

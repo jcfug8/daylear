@@ -375,11 +375,9 @@
 <script setup lang="ts">
 import type { Recipe_MeasurementType, apitypes_VisibilityLevel, Recipe_Ingredient_MeasurementConjunction } from '@/genapi/api/meals/recipe/v1alpha1'
 import type { Access, CreateAccessRequest, ListAccessesRequest, DeleteAccessRequest } from '@/genapi/api/meals/recipe/v1alpha1'
-import type { PermissionLevel } from '@/genapi/api/types'
-import { useBreadcrumbStore } from '@/stores/breadcrumbs'
+import type { PermissionLevel } from '@/genapi/api/types' 
 import { useRecipesStore } from '@/stores/recipes'
 import { useRecipeFormStore } from '@/stores/recipeForm'
-import { useCirclesStore } from '@/stores/circles'
 import { storeToRefs } from 'pinia'
 import { onMounted, onBeforeUnmount, watch, computed, ref, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -387,13 +385,10 @@ import { recipeService, recipeAccessService, fileService } from '@/api/api'
 import { useAuthStore } from '@/stores/auth'
 import { hasWritePermission, hasAdminPermission, hasReadPermission } from '@/utils/permissions'
 import ShareDialog from '@/components/common/ShareDialog.vue'
-import { MEASUREMENT_TYPE_TO_STRING } from '@/constants/measurements'
 import { useAlertStore } from '@/stores/alerts'
 
 const authStore = useAuthStore()
-const breadcrumbStore = useBreadcrumbStore()
 const recipesStore = useRecipesStore()
-const circlesStore = useCirclesStore()
 const recipeFormStore = useRecipeFormStore()
 const route = useRoute()
 const router = useRouter()
@@ -403,8 +398,6 @@ const trimmedRecipeName = computed(() => {
 })
 
 const { recipe } = storeToRefs(recipesStore)
-const { circle } = storeToRefs(circlesStore)
-const speedDialOpen = ref(false)
 
 // Add local state for checked ingredients and directions
 const checkedIngredients = reactive<Array<Array<boolean>>>([])
@@ -530,10 +523,6 @@ function initializeCheckedState() {
 
 watch(recipe, initializeCheckedState, { immediate: true })
 
-const recipeName = route.path
-
-// *** Breadcrumbs ***
-
 onMounted(async () => {
   // First check URL hash
   const currentHash = route.hash
@@ -542,28 +531,6 @@ onMounted(async () => {
   }
 
   await recipesStore.loadRecipe(trimmedRecipeName.value)
-
-  let firstCrumbs
-
-  if (route.params.circleId) {
-    const circlePath = route.path.indexOf('/recipes') !== -1 
-      ? '/' + route.path.substring(0, route.path.indexOf('/recipes')).substring(1)
-      : null
-    await circlesStore.loadCircle(circlePath)
-    firstCrumbs = [
-      { title: 'Circles', to: { name: 'circles' } },
-      { title: circle.value?.title || '', to: circlePath },
-    ]
-  } else {
-    firstCrumbs = [{ title: 'Recipes', to: { name: 'recipes' } }]
-  }
-
-  breadcrumbStore.setBreadcrumbs([
-    ...firstCrumbs,
-    {
-      title: recipe.value?.title || '',
-    },
-  ])
 })
 
 // *** Tabs ***
@@ -676,10 +643,7 @@ async function handleRemoveAccess() {
     await recipeAccessService.DeleteAccess(deleteRequest)
     router.push(route.params.circleId ? { name: 'circle', params: { circleId: route.params.circleId } } : { name: 'recipes' })
   } catch (error) {
-    alertsStore.addAlert({
-      message: error.message ? error.message : String(error),
-      type: 'error',
-    })
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   } finally {
     removingAccess.value = false
     showRemoveAccessDialog.value = false
@@ -701,10 +665,7 @@ async function handleDelete() {
     })
     router.push({ name: 'recipes' })
   } catch (error) {
-    alertsStore.addAlert({
-      message: error.message ? error.message : String(error),
-      type: 'error',
-    })
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   } finally {
     deleting.value = false
     showDeleteDialog.value = false

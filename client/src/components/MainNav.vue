@@ -54,11 +54,6 @@
       <!-- </v-list-group> -->
     </v-list>
   </v-navigation-drawer>
-  <v-app-bar v-if="$route.meta.breadcrumbs && breadcrumbs.length > 0" flat density="compact">
-    <v-breadcrumbs density="compact"
-      :items="breadcrumbs.map((crumb) => ({ title: crumb.title, to: crumb.to }))"
-    ></v-breadcrumbs>
-  </v-app-bar>
   <v-navigation-drawer temporary location="right" v-model="accountDrawer" v-if="isLoggedIn">
     <v-list>
       <v-list-item
@@ -87,7 +82,6 @@ import type { User } from '@/genapi/api/users/user/v1alpha1'
 import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
 
 import { ref } from 'vue'
-import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import AlertStack from './common/AlertStack.vue'
 
 const accountDrawer = ref(false)
@@ -95,7 +89,6 @@ const navDrawer = ref(false)
 const router = useRouter()
 
 const authStore = useAuthStore()
-const breadcrumbStore = useBreadcrumbStore()
 
 const logOut = () => {
   accountDrawer.value = false
@@ -114,17 +107,8 @@ const toggleAccountDrawer = () => {
 }
 
 const { isLoggedIn, user } = storeToRefs(authStore)
-const { breadcrumbs } = storeToRefs(breadcrumbStore)
-console.log('breadcrumbs', breadcrumbs.value)
 </script>
 
 <style>
-.v-breadcrumbs-item--link {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: inline-block;
-  max-width: 33vw;
-  vertical-align: bottom;
-}
+
 </style>

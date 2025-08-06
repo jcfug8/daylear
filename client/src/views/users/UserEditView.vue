@@ -137,7 +137,6 @@
 import { useUsersStore } from '@/stores/users'
 import { storeToRefs } from 'pinia'
 import { onMounted, ref, watch } from 'vue'
-import { useBreadcrumbStore } from '@/stores/breadcrumbs'
 import { useRouter, useRoute } from 'vue-router'
 import { useAlertStore } from '@/stores/alerts'
 import { fileService } from '@/api/api'
@@ -146,7 +145,6 @@ import { computed } from 'vue'
 const router = useRouter()
 const usersStore = useUsersStore()
 const { currentUser: user, currentUserSettings: userSettings } = storeToRefs(usersStore)
-const breadcrumbStore = useBreadcrumbStore()
 const alertStore = useAlertStore()
 const route = useRoute()
 
@@ -241,10 +239,6 @@ async function loadUser() {
   await Promise.all([
     usersStore.loadUser(trimmedUserName.value),
     usersStore.loadUserSettings(trimmedUserName.value)
-  ])
-  breadcrumbStore.setBreadcrumbs([
-    { title: 'User Settings', to: userName.value },
-    { title: 'Edit'},
   ])
 }
 
