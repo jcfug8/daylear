@@ -29,7 +29,7 @@ const alertStore = useAlertStore()
 const { circle } = storeToRefs(circlesStore)
 
 const recipeName = computed(() => {
-  return route.path.replace('/edit', '').substring(1)
+  return route.path.replace('/edit', '')
 })
 
 const trimmedRecipeName = computed(() => {
@@ -53,7 +53,7 @@ async function saveRecipe(pendingImageFile: File | null) {
     // Upload image if there's a pending file
     if (pendingImageFile && recipesStore.recipe?.name) {
       const response = await fileService.UploadRecipeImage({
-        name: trimmedRecipeName,
+        name: trimmedRecipeName.value,
         file: pendingImageFile,
       })
       

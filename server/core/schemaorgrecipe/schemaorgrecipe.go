@@ -489,7 +489,7 @@ func ToModelRecipe(schemaRecipe SchemaOrgRecipe) model.Recipe {
 	if len(directions) > 0 {
 		coreRecipe.Directions = directions
 	}
-	coreRecipe.Visibility = 1
+	coreRecipe.VisibilityLevel = 1
 	return coreRecipe
 }
 

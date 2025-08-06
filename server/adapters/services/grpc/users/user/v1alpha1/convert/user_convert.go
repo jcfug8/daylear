@@ -43,7 +43,7 @@ func UserToProto(userNamer namer.ReflectNamer, accessNamer namer.ReflectNamer, u
 	proto.Bio = user.Bio
 
 	proto.Access = &pb.User_Access{
-		PermissionLevel: user.UserAccess.Level,
+		PermissionLevel: user.UserAccess.PermissionLevel,
 		State:           user.UserAccess.State,
 	}
 	if user.UserAccess.UserAccessId.UserAccessId != 0 {

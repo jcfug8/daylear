@@ -70,3 +70,13 @@ type CircleAccess struct {
 func (CircleAccess) TableName() string {
 	return "circle_access"
 }
+
+// CA
+type CA struct {
+	CircleAccess
+}
+
+// TableName -
+func (CA) TableName() string {
+	return "ca"
+}

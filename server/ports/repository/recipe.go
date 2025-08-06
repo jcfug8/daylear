@@ -8,11 +8,15 @@ import (
 
 // Client defines how to interact with the recipe in the database.
 type recipeClient interface {
-	CreateRecipe(ctx context.Context, recipe model.Recipe) (model.Recipe, error)
+	CreateRecipe(ctx context.Context, recipe model.Recipe, fields []string) (model.Recipe, error)
 	DeleteRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (model.Recipe, error)
-	GetRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (model.Recipe, error)
-	ListRecipes(ctx context.Context, authAccount model.AuthAccount, pageSize int32, offset int64, filter string) ([]model.Recipe, error)
-	UpdateRecipe(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe, updateMask []string) (model.Recipe, error)
+	GetRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId, fields []string) (model.Recipe, error)
+	ListRecipes(ctx context.Context, authAccount model.AuthAccount, pageSize int32, offset int64, filter string, fields []string) ([]model.Recipe, error)
+	UpdateRecipe(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe, fields []string) (model.Recipe, error)
+
+	FindStandardUserRecipeAccess(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (model.RecipeAccess, error)
+	FindDelegatedCircleRecipeAccess(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (model.RecipeAccess, model.CircleAccess, error)
+	FindDelegatedUserRecipeAccess(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (model.RecipeAccess, model.UserAccess, error)
 
 	CreateRecipeAccess(ctx context.Context, access model.RecipeAccess) (model.RecipeAccess, error)
 	DeleteRecipeAccess(ctx context.Context, parent model.RecipeAccessParent, id model.RecipeAccessId) error

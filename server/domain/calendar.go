@@ -12,44 +12,37 @@ import (
 // CreateCalendar creates a new calendar
 func (d *Domain) CreateCalendar(ctx context.Context, authAccount model.AuthAccount, calendar model.Calendar) (dbCalendar model.Calendar, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
-	log.Info().Msg("Domain CreateCalendar called")
 	if authAccount.AuthUserId == 0 {
-		log.Warn().Msg("user id required")
+		log.Warn().Msg("user id required when creating a calendar")
 		return model.Calendar{}, domain.ErrInvalidArgument{Msg: "user id required"}
 	}
-
-	if calendar.Parent.CircleId != 0 && authAccount.CircleId != 0 && calendar.Parent.CircleId != authAccount.CircleId {
-		log.Warn().Msg("both circle ids set but do not match")
-		return model.Calendar{}, domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
-	}
-
-	if calendar.Parent.CircleId != 0 {
-		authAccount.CircleId = calendar.Parent.CircleId
-	} else if calendar.Parent.UserId != 0 {
-		authAccount.UserId = calendar.Parent.UserId
-	}
-
 	calendar.CalendarId.CalendarId = 0
 
-	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
+	if calendar.Parent.CircleId != 0 {
+		_, err = d.determineCircleAccess(ctx, authAccount, model.CircleId{CircleId: authAccount.CircleId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
 		if err != nil {
-			log.Error().Err(err).Msg("getCircleAccessLevels failed")
+			log.Error().Err(err).Msg("unable to determine access when creating a calendar")
+			return model.Calendar{}, err
+		}
+	} else if calendar.Parent.UserId != 0 {
+		_, err = d.determineUserAccess(ctx, authAccount, model.UserId{UserId: authAccount.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
+		if err != nil {
+			log.Error().Err(err).Msg("unable to determine access when creating a calendar")
 			return model.Calendar{}, err
 		}
 	}
 
 	tx, err := d.repo.Begin(ctx)
 	if err != nil {
-		log.Error().Err(err).Msg("repo.Begin failed")
-		return model.Calendar{}, err
+		log.Error().Err(err).Msg("unable to begin creating calendar")
+		return model.Calendar{}, domain.ErrInternal{Msg: "unable to begin creating calendar"}
 	}
 	defer tx.Rollback()
 
-	dbCalendar, err = tx.CreateCalendar(ctx, calendar)
+	dbCalendar, err = tx.CreateCalendar(ctx, calendar, []string{})
 	if err != nil {
-		log.Error().Err(err).Msg("repo.CreateCalendar failed")
-		return model.Calendar{}, err
+		log.Error().Err(err).Msg("unable to create calendar")
+		return model.Calendar{}, domain.ErrInternal{Msg: "unable to create calendar"}
 	}
 
 	calendarAccess := model.CalendarAccess{
@@ -70,18 +63,18 @@ func (d *Domain) CreateCalendar(ctx context.Context, authAccount model.AuthAccou
 		}
 	}
 
-	dbCalendarAccess, err := tx.CreateCalendarAccess(ctx, calendarAccess)
+	dbCalendarAccess, err := tx.CreateCalendarAccess(ctx, calendarAccess, []string{})
 	if err != nil {
-		log.Error().Err(err).Msg("tx.CreateCalendarAccess failed")
-		return model.Calendar{}, err
+		log.Error().Err(err).Msg("unable to create calendar access")
+		return model.Calendar{}, domain.ErrInternal{Msg: "unable to create calendar access"}
 	}
 
 	dbCalendar.CalendarAccess = dbCalendarAccess
 
 	err = tx.Commit()
 	if err != nil {
-		log.Error().Err(err).Msg("tx.Commit failed")
-		return model.Calendar{}, err
+		log.Error().Err(err).Msg("unable to finish creating calendar")
+		return model.Calendar{}, domain.ErrInternal{Msg: "unable to finish creating calendar"}
 	}
 
 	dbCalendar.Parent = calendar.Parent
@@ -92,58 +85,46 @@ func (d *Domain) CreateCalendar(ctx context.Context, authAccount model.AuthAccou
 // DeleteCalendar deletes a calendar
 func (d *Domain) DeleteCalendar(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarParent, id model.CalendarId) (dbCalendar model.Calendar, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
-	log.Info().Msg("Domain DeleteCalendar called")
 
 	if authAccount.AuthUserId == 0 {
-		log.Warn().Msg("user id required")
-		return model.Calendar{}, domain.ErrInvalidArgument{Msg: "user id required"}
+		log.Warn().Msg("auth user id required when deleting a calendar")
+		return model.Calendar{}, domain.ErrInvalidArgument{Msg: "auth user id required"}
 	}
 
 	if id.CalendarId == 0 {
-		log.Warn().Msg("id required")
-		return model.Calendar{}, domain.ErrInvalidArgument{Msg: "id required"}
+		log.Warn().Msg("calendar id required when deleting a calendar")
+		return model.Calendar{}, domain.ErrInvalidArgument{Msg: "calendar id required"}
 	}
 
-	if parent.CircleId != 0 && authAccount.CircleId != 0 && parent.CircleId != authAccount.CircleId {
-		log.Warn().Msg("both circle ids set but do not match")
-		return model.Calendar{}, domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
-	}
-
-	if parent.CircleId != 0 {
-		authAccount.CircleId = parent.CircleId
-	} else if parent.UserId != 0 {
-		authAccount.UserId = parent.UserId
-	}
-
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCalendarAccessLevels(ctx, authAccount, id)
+	_, err = d.determineCalendarAccess(ctx, authAccount, id, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN))
 	if err != nil {
-		log.Error().Err(err).Msg("getCalendarAccessLevels failed")
+		log.Error().Err(err).Msg("unable to determine access when deleting a calendar")
 		return model.Calendar{}, err
 	}
 
 	tx, err := d.repo.Begin(ctx)
 	if err != nil {
-		log.Error().Err(err).Msg("repo.Begin failed")
-		return model.Calendar{}, err
+		log.Error().Err(err).Msg("unable to begin deleting calendar")
+		return model.Calendar{}, domain.ErrInternal{Msg: "unable to begin deleting calendar"}
 	}
 	defer tx.Rollback()
 
-	dbCalendar, err = tx.DeleteCalendar(ctx, authAccount, id)
+	dbCalendar, err = tx.DeleteCalendar(ctx, id)
 	if err != nil {
-		log.Error().Err(err).Msg("tx.DeleteCalendar failed")
-		return model.Calendar{}, err
+		log.Error().Err(err).Msg("unable to delete calendar")
+		return model.Calendar{}, domain.ErrInternal{Msg: "unable to delete calendar"}
 	}
 
 	err = tx.BulkDeleteCalendarAccess(ctx, model.CalendarAccessParent{CalendarId: id.CalendarId})
 	if err != nil {
-		log.Error().Err(err).Msg("tx.BulkDeleteCalendarAccess failed")
-		return model.Calendar{}, err
+		log.Error().Err(err).Msg("unable to delete calendar access")
+		return model.Calendar{}, domain.ErrInternal{Msg: "unable to delete calendar access"}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		log.Error().Err(err).Msg("tx.Commit failed")
-		return model.Calendar{}, err
+		log.Error().Err(err).Msg("unable to finish deleting calendar")
+		return model.Calendar{}, domain.ErrInternal{Msg: "unable to finish deleting calendar"}
 	}
 
 	dbCalendar.Parent = parent
@@ -152,145 +133,100 @@ func (d *Domain) DeleteCalendar(ctx context.Context, authAccount model.AuthAccou
 }
 
 // GetCalendar retrieves a calendar
-func (d *Domain) GetCalendar(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarParent, id model.CalendarId) (dbCalendar model.Calendar, err error) {
+func (d *Domain) GetCalendar(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarParent, id model.CalendarId, fields []string) (dbCalendar model.Calendar, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
-	log.Info().Msg("Domain GetCalendar called")
 
 	if authAccount.AuthUserId == 0 {
-		log.Warn().Msg("user id required")
+		log.Warn().Msg("user id required when getting a calendar")
 		return model.Calendar{}, domain.ErrInvalidArgument{Msg: "user id required"}
 	}
 
 	if id.CalendarId == 0 {
-		log.Warn().Msg("id required")
+		log.Warn().Msg("id required when getting a calendar")
 		return model.Calendar{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	if parent.CircleId != 0 && authAccount.CircleId != 0 && parent.CircleId != authAccount.CircleId {
-		log.Warn().Msg("both circle ids set but do not match")
-		return model.Calendar{}, domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
-	}
-
-	if parent.CircleId != 0 {
-		authAccount.CircleId = parent.CircleId
-	} else if parent.UserId != 0 {
-		authAccount.UserId = parent.UserId
-	}
-
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCalendarAccessLevels(ctx, authAccount, id)
+	dbCalendar, err = d.repo.GetCalendar(ctx, id, fields)
 	if err != nil {
-		log.Error().Err(err).Msg("getCalendarAccessLevels failed")
-		return model.Calendar{}, err
+		log.Error().Err(err).Msg("unable to get calendar")
+		return model.Calendar{}, domain.ErrInternal{Msg: "unable to get calendar"}
 	}
 
-	if authAccount.VisibilityLevel != types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC && authAccount.PermissionLevel == types.PermissionLevel_PERMISSION_LEVEL_UNSPECIFIED {
-		log.Warn().Msg("user does not have access")
-		return model.Calendar{}, domain.ErrPermissionDenied{Msg: "user does not have access"}
-	}
-
-	dbCalendar, err = d.repo.GetCalendar(ctx, authAccount, id)
+	dbCalendar.CalendarAccess, err = d.determineCalendarAccess(
+		ctx, authAccount, id,
+		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ),
+		withResourceVisibilityLevel(dbCalendar.VisibilityLevel),
+	)
 	if err != nil {
-		log.Error().Err(err).Msg("repo.GetCalendar failed")
+		log.Error().Err(err).Msg("unable to determine access when getting a calendar")
 		return model.Calendar{}, err
-	}
-
-	dbCalendar.Parent = parent
-	if authAccount.PermissionLevel < dbCalendar.CalendarAccess.PermissionLevel {
-		dbCalendar.CalendarAccess.PermissionLevel = authAccount.PermissionLevel
 	}
 
 	return dbCalendar, nil
 }
 
 // ListCalendars lists calendars
-func (d *Domain) ListCalendars(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarParent, pageSize int32, offset int64, filter string, fieldMask []string) (recipe []model.Calendar, err error) {
+func (d *Domain) ListCalendars(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarParent, pageSize int32, offset int64, filter string, fields []string) (dbCalendars []model.Calendar, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
-	log.Info().Msg("Domain ListCalendars called")
 
 	if authAccount.AuthUserId == 0 {
-		log.Warn().Msg("user id required")
+		log.Warn().Msg("user id required when listing calendars")
 		return nil, domain.ErrInvalidArgument{Msg: "user id required"}
-	}
-
-	if parent.CircleId != 0 && authAccount.CircleId != 0 && parent.CircleId != authAccount.CircleId {
-		log.Warn().Msg("both circle ids set but do not match")
-		return nil, domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
 	}
 
 	if parent.CircleId != 0 {
 		authAccount.CircleId = parent.CircleId
+		dbCircle, err := d.repo.GetCircle(ctx, authAccount, model.CircleId{CircleId: parent.CircleId})
+		if err != nil {
+			log.Error().Err(err).Msg("unable to get circle when listing calendars")
+			return nil, domain.ErrInternal{Msg: "unable to get circle when listing calendars"}
+		}
+		_, err = d.determineCircleAccess(
+			ctx, authAccount, model.CircleId{CircleId: parent.CircleId},
+			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
+			withResourceVisibilityLevel(dbCircle.VisibilityLevel),
+		)
+		if err != nil {
+			log.Error().Err(err).Msg("unable to determine access when listing calendars")
+			return nil, err
+		}
 	} else if parent.UserId != 0 {
 		authAccount.UserId = parent.UserId
 	}
 
-	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
-		if err != nil {
-			log.Error().Err(err).Msg("getCircleAccessLevels failed")
-			return nil, err
-		}
-	} else if authAccount.UserId != 0 {
-		authAccount.PermissionLevel, err = d.getUserAccessLevels(ctx, authAccount)
-		if err != nil {
-			log.Error().Err(err).Msg("getUserAccessLevels failed")
-			return nil, err
-		}
-	} else {
-		authAccount.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-	}
-
-	calendars, err := d.repo.ListCalendars(ctx, authAccount, pageSize, offset, filter, fieldMask)
+	dbCalendars, err = d.repo.ListCalendars(ctx, authAccount, pageSize, offset, filter, fields)
 	if err != nil {
-		log.Error().Err(err).Msg("repo.ListCalendars failed")
-		return nil, err
+		log.Error().Err(err).Msg("unable to list calendars")
+		return nil, domain.ErrInternal{Msg: "unable to list calendars"}
 	}
 
-	for i, calendar := range calendars {
-		calendars[i].Parent = parent
-		if calendar.CalendarAccess.PermissionLevel > authAccount.PermissionLevel {
-			calendars[i].CalendarAccess.PermissionLevel = authAccount.PermissionLevel
-		}
-	}
-
-	return calendars, nil
+	return dbCalendars, nil
 }
 
 // UpdateCalendar updates a calendar
-func (d *Domain) UpdateCalendar(ctx context.Context, authAccount model.AuthAccount, calendar model.Calendar, updateMask []string) (dbCalendar model.Calendar, err error) {
+func (d *Domain) UpdateCalendar(ctx context.Context, authAccount model.AuthAccount, calendar model.Calendar, fields []string) (dbCalendar model.Calendar, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
-	log.Info().Msg("Domain UpdateCalendar called")
 
 	if authAccount.AuthUserId == 0 {
-		log.Warn().Msg("user id required")
+		log.Warn().Msg("user id required when updating a calendar")
 		return model.Calendar{}, domain.ErrInvalidArgument{Msg: "user id required"}
 	}
 
 	if calendar.CalendarId.CalendarId == 0 {
-		log.Warn().Msg("id required")
+		log.Warn().Msg("id required when updating a calendar")
 		return model.Calendar{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	if calendar.Parent.CircleId != 0 && authAccount.CircleId != 0 && calendar.Parent.CircleId != authAccount.CircleId {
-		log.Warn().Msg("both circle ids set but do not match")
-		return model.Calendar{}, domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
-	}
-
-	if calendar.Parent.CircleId != 0 {
-		authAccount.CircleId = calendar.Parent.CircleId
-	} else if calendar.Parent.UserId != 0 {
-		authAccount.UserId = calendar.Parent.UserId
-	}
-
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkCalendarAccess(ctx, authAccount, calendar.CalendarId, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
+	_, err = d.determineCalendarAccess(ctx, authAccount, calendar.CalendarId, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
 	if err != nil {
-		log.Error().Err(err).Msg("checkCalendarAccess failed")
+		log.Error().Err(err).Msg("unable to determine access when updating a calendar")
 		return model.Calendar{}, err
 	}
 
-	dbCalendar, err = d.repo.UpdateCalendar(ctx, authAccount, calendar, updateMask)
+	dbCalendar, err = d.repo.UpdateCalendar(ctx, calendar, fields)
 	if err != nil {
-		log.Error().Err(err).Msg("repo.UpdateCalendar failed")
-		return model.Calendar{}, err
+		log.Error().Err(err).Msg("unable to update calendar")
+		return model.Calendar{}, domain.ErrInternal{Msg: "unable to update calendar"}
 	}
 
 	dbCalendar.Parent = calendar.Parent

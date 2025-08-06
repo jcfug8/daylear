@@ -14,6 +14,10 @@ type userClient interface {
 	ListUsers(ctx context.Context, authAccount model.AuthAccount, pageSize int32, offset int64, filter string, fieldMask []string) ([]model.User, error)
 	UpdateUser(ctx context.Context, authAccount model.AuthAccount, user model.User, updateMask []string) (model.User, error)
 
+	FindStandardUserUserAccess(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.UserAccess, error)
+	FindDelegatedCircleUserAccess(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.UserAccess, model.CircleAccess, error)
+	FindDelegatedUserUserAccess(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.UserAccess, model.UserAccess, error)
+
 	CreateUserAccess(ctx context.Context, access model.UserAccess) (model.UserAccess, error)
 	DeleteUserAccess(ctx context.Context, parent model.UserAccessParent, id model.UserAccessId) error
 	GetUserAccess(ctx context.Context, parent model.UserAccessParent, id model.UserAccessId) (model.UserAccess, error)

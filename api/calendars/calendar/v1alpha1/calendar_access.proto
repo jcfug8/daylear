@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package api.calendars.calendar.v1alpha1;
 
+import "api/types/accept_target.proto";
 import "api/types/access_state.proto";
 import "api/types/permission_level.proto";
 import "google/api/annotations.proto";
@@ -81,7 +82,11 @@ service CalendarAccessService {
   // List accesses to a calendar
   rpc ListAccesses(ListAccessesRequest) returns (ListAccessesResponse) {
     option (google.api.method_signature) = "parent";
-    option (google.api.http) = {get: "/calendars/v1alpha1/{parent=calendars/*}/accesses"};
+    option (google.api.http) = {
+      get: "/calendars/v1alpha1/{parent=calendars/*}/accesses"
+      additional_bindings {get: "/calendars/v1alpha1/{parent=users/*/calendars/*}/accesses"}
+      additional_bindings {get: "/calendars/v1alpha1/{parent=circles/*/calendars/*}/accesses"}
+    };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "List calendar accesses"
       description: "Lists all users and calendars with access to a calendar. If no calendar is provided, the response will only return the accesses for the current user (or calendar if the calendar header is provided)."
@@ -123,6 +128,8 @@ message Access {
   option (google.api.resource) = {
     type: "api.calendars.calendar.v1alpha1/Access"
     pattern: "calendars/{calendar}/accesses/{access}"
+    pattern: "users/{user}/calendars/{calendar}/accesses/{access}"
+    pattern: "circles/{circle}/calendars/{calendar}/accesses/{access}"
     plural: "accesses"
     singular: "access"
   };
@@ -131,19 +138,25 @@ message Access {
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
   // the name of the requesting user
-  Requester requester = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  RequesterOrRecipient requester = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // the name of the receiving user
-  User recipient = 3 [(google.api.field_behavior) = REQUIRED];
+  RequesterOrRecipient recipient = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
 
   // the permission level of the access
-  api.types.PermissionLevel level = 4 [(google.api.field_behavior) = REQUIRED];
+  api.types.PermissionLevel permission_level = 4 [(google.api.field_behavior) = REQUIRED];
 
   // the status of the access
   api.types.AccessState state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
 
+  // the target of the accept action
+  api.types.AcceptTarget accept_target = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+
   // the requester of the access
-  message Requester {
+  message RequesterOrRecipient {
     oneof name {
       // the name of the user
       string user = 1;

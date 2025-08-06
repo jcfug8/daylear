@@ -6,7 +6,6 @@ import (
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
-	"github.com/jcfug8/daylear/server/core/fieldmask"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	model "github.com/jcfug8/daylear/server/core/model"
@@ -15,26 +14,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
-
-// UpdateRecipeAccessMap maps the updatable core model fields to the database model fields for the RecipeAccess model.
-var UpdateRecipeAccessMap = map[string][]string{
-	model.RecipeAccessFields.Level: []string{
-		dbModel.RecipeAccessFields.PermissionLevel,
-	},
-	model.RecipeAccessFields.State: []string{
-		dbModel.RecipeAccessFields.State,
-	},
-}
-
-var UpdateRecipeAccessFieldMasker = fieldmask.NewFieldMasker(UpdateRecipeAccessMap)
-
-// RecipeAccessMap maps the core model fields to the database model fields for the unified RecipeAccess model.
-var RecipeAccessMap = map[string]string{
-	model.RecipeAccessFields.Level:           dbModel.RecipeAccessFields.PermissionLevel,
-	model.RecipeAccessFields.State:           dbModel.RecipeAccessFields.State,
-	model.RecipeAccessFields.RecipientUser:   dbModel.RecipeAccessFields.RecipientUserId,
-	model.RecipeAccessFields.RecipientCircle: dbModel.RecipeAccessFields.RecipientCircleId,
-}
 
 func (repo *Client) CreateRecipeAccess(ctx context.Context, access model.RecipeAccess) (model.RecipeAccess, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
@@ -172,7 +151,7 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 		)
 	}
 
-	conversion, err := repo.recipeAccessSQLConverter.Convert(filterStr)
+	conversion, err := dbModel.RecipeAccessSQLConverter.Convert(filterStr)
 	if err != nil {
 		log.Error().Err(err).Msg("invalid filter")
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
@@ -198,13 +177,13 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 	return accesses, nil
 }
 
-func (repo *Client) UpdateRecipeAccess(ctx context.Context, access model.RecipeAccess, updateMask []string) (model.RecipeAccess, error) {
+func (repo *Client) UpdateRecipeAccess(ctx context.Context, access model.RecipeAccess, fields []string) (model.RecipeAccess, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	dbAccess := convert.CoreRecipeAccessToRecipeAccess(access)
 
-	columns := UpdateRecipeAccessFieldMasker.Convert(updateMask)
-
-	db := repo.db.WithContext(ctx).Select(columns).Clauses(&clause.Returning{})
+	db := repo.db.WithContext(ctx).
+		Select(dbModel.UpdateRecipeAccessFieldMasker.Convert(fields)).
+		Clauses(&clause.Returning{})
 
 	err := db.Where("recipe_access_id = ?", access.RecipeAccessId.RecipeAccessId).Updates(&dbAccess).Error
 	if err != nil {
@@ -213,4 +192,80 @@ func (repo *Client) UpdateRecipeAccess(ctx context.Context, access model.RecipeA
 	}
 
 	return convert.RecipeAccessToCoreRecipeAccess(dbAccess), nil
+}
+
+func (repo *Client) FindStandardUserRecipeAccess(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (model.RecipeAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	// SELECT * from recipe_access where recipient_user_id = ? and recipe_id = ?
+
+	var recipeAccess dbModel.RecipeAccess
+	res := repo.db.WithContext(ctx).
+		Where("recipe_id = ? AND recipient_user_id = ?", id.RecipeId, authAccount.AuthUserId).
+		First(&recipeAccess)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Warn().Err(res.Error).Msg("standard user recipe access not found")
+			return model.RecipeAccess{}, repository.ErrNotFound{}
+		}
+		log.Error().Err(res.Error).Msg("unable to find standard user recipe access")
+		return model.RecipeAccess{}, res.Error
+	}
+	return convert.RecipeAccessToCoreRecipeAccess(recipeAccess), nil
+}
+
+func (repo *Client) FindDelegatedCircleRecipeAccess(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (model.RecipeAccess, model.CircleAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	// SELECT * from recipe_access
+	// 	JOIN circle_access ON circle_access.circle_id = recipe_access.recipient_circle_id
+	// WHERE recipe_access.recipe_id = 1 AND circle_access.recipient_user_id = 1 LIMIT 1;
+
+	type Result struct {
+		dbModel.RecipeAccess
+		dbModel.CircleAccess
+	}
+	var result Result
+	res := repo.db.WithContext(ctx).
+		Select("recipe_access.*, circle_access.*").
+		Table("recipe_access").
+		Joins("JOIN circle_access ON circle_access.circle_id = recipe_access.recipient_circle_id").
+		Where("recipe_access.recipe_id = ? AND circle_access.recipient_user_id = ?", id.RecipeId, authAccount.AuthUserId).
+		First(&result)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Warn().Err(res.Error).Msg("delegated circle recipe access not found")
+			return model.RecipeAccess{}, model.CircleAccess{}, repository.ErrNotFound{}
+		}
+		log.Error().Err(res.Error).Msg("unable to find delegated circle recipe access")
+		return model.RecipeAccess{}, model.CircleAccess{}, res.Error
+	}
+	return convert.RecipeAccessToCoreRecipeAccess(result.RecipeAccess), convert.CircleAccessToCoreCircleAccess(result.CircleAccess), nil
+}
+
+func (repo *Client) FindDelegatedUserRecipeAccess(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (model.RecipeAccess, model.UserAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	// SELECT * from recipe_access
+	// 	JOIN user_access ON user_access.user_id = recipe_access.recipient_user_id
+	// WHERE recipe_access.recipe_id = ? AND user_access.recipient_user_id = ? LIMIT 1;
+
+	type Result struct {
+		dbModel.RecipeAccess
+		dbModel.UserAccess
+	}
+	var result Result
+
+	res := repo.db.WithContext(ctx).
+		Select("recipe_access.*, user_access.*").
+		Table("recipe_access").
+		Joins("JOIN user_access ON user_access.user_id = recipe_access.recipient_user_id").
+		Where("recipe_access.recipe_id = ? AND user_access.recipient_user_id = ?", id.RecipeId, authAccount.AuthUserId).
+		First(&result)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Warn().Err(res.Error).Msg("delegated user recipe access not found")
+			return model.RecipeAccess{}, model.UserAccess{}, repository.ErrNotFound{}
+		}
+		log.Error().Err(res.Error).Msg("unable to find delegated user recipe access")
+		return model.RecipeAccess{}, model.UserAccess{}, res.Error
+	}
+	return convert.RecipeAccessToCoreRecipeAccess(result.RecipeAccess), convert.UserAccessToCoreUserAccess(result.UserAccess), nil
 }

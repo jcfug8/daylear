@@ -29,13 +29,13 @@ func (d *Domain) CreateRecipeAccess(ctx context.Context, authAccount model.AuthA
 		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "recipient is required"}
 	}
 
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, access.RecipeAccessParent.RecipeId, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
+	determinedRecipeAccess, err := d.determineRecipeAccess(ctx, authAccount, access.RecipeId, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
 	if err != nil {
-		log.Error().Err(err).Msg("checkRecipeAccess failed")
+		log.Error().Err(err).Msg("unable to determine recipe access")
 		return model.RecipeAccess{}, err
 	}
 
-	if authAccount.PermissionLevel < access.PermissionLevel {
+	if determinedRecipeAccess.PermissionLevel < access.PermissionLevel {
 		log.Warn().Msg("cannot create access with higher level than the requester's level")
 		return model.RecipeAccess{}, domain.ErrPermissionDenied{Msg: "cannot create access with higher level than the requester's level"}
 	}
@@ -84,9 +84,9 @@ func (d *Domain) DeleteRecipeAccess(ctx context.Context, authAccount model.AuthA
 		(access.Recipient.CircleId != 0 && access.Recipient.CircleId == authAccount.CircleId)
 
 	if !isRecipient {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, parent.RecipeId, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
+		_, err := d.determineRecipeAccess(ctx, authAccount, access.RecipeId, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
 		if err != nil {
-			log.Error().Err(err).Msg("checkRecipeAccess failed")
+			log.Error().Err(err).Msg("unable to determine recipe access")
 			return err
 		}
 	}
@@ -134,9 +134,9 @@ func (d *Domain) GetRecipeAccess(ctx context.Context, authAccount model.AuthAcco
 		(access.Recipient.CircleId != 0 && access.Recipient.CircleId == authAccount.CircleId)
 
 	if !isRecipient {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, parent.RecipeId, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
+		_, err := d.determineRecipeAccess(ctx, authAccount, access.RecipeId, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
 		if err != nil {
-			log.Error().Err(err).Msg("checkRecipeAccess failed")
+			log.Error().Err(err).Msg("unable to determine recipe access")
 			return model.RecipeAccess{}, err
 		}
 	}
@@ -154,9 +154,9 @@ func (d *Domain) ListRecipeAccesses(ctx context.Context, authAccount model.AuthA
 	}
 
 	if parent.RecipeId.RecipeId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, parent.RecipeId, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
+		_, err := d.determineRecipeAccess(ctx, authAccount, parent.RecipeId, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
 		if err != nil {
-			log.Error().Err(err).Msg("checkRecipeAccess failed")
+			log.Error().Err(err).Msg("unable to determine recipe access")
 			return nil, err
 		}
 	}
@@ -199,14 +199,14 @@ func (d *Domain) UpdateRecipeAccess(ctx context.Context, authAccount model.AuthA
 		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "access is not for the given recipe"}
 	}
 
-	authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.checkRecipeAccess(ctx, authAccount, access.RecipeAccessParent.RecipeId, types.PermissionLevel_PERMISSION_LEVEL_WRITE)
+	determinedRecipeAccess, err := d.determineRecipeAccess(ctx, authAccount, access.RecipeAccessParent.RecipeId, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
 	if err != nil {
-		log.Error().Err(err).Msg("checkRecipeAccess failed")
+		log.Error().Err(err).Msg("unable to determine recipe access")
 		return model.RecipeAccess{}, err
 	}
 
 	// if updating permission level, ensure it doesn't exceed the requester's level
-	if authAccount.PermissionLevel < access.PermissionLevel {
+	if determinedRecipeAccess.PermissionLevel < access.PermissionLevel {
 		log.Warn().Msg("cannot update access level to higher than your own level")
 		return model.RecipeAccess{}, domain.ErrPermissionDenied{Msg: "cannot update access level to higher than your own level"}
 	}
@@ -264,7 +264,7 @@ func (d *Domain) AcceptRecipeAccess(ctx context.Context, authAccount model.AuthA
 	access.State = types.AccessState_ACCESS_STATE_ACCEPTED
 
 	// update access using the repository
-	updatedAccess, err := d.repo.UpdateRecipeAccess(ctx, access, []string{model.RecipeAccessFields.State})
+	updatedAccess, err := d.repo.UpdateRecipeAccess(ctx, access, []string{model.RecipeAccessField_State})
 	if err != nil {
 		log.Error().Err(err).Msg("repo.UpdateRecipeAccess failed")
 		return model.RecipeAccess{}, err

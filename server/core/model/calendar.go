@@ -3,8 +3,20 @@ package model
 import (
 	"time"
 
-	"github.com/jcfug8/daylear/server/core/masks"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
+)
+
+var _ ResourceId = CalendarId{}
+
+// CalendarFields defines the calendar fields.
+const (
+	CalendarField_Parent      = "parent"
+	CalendarField_CalendarId  = "id"
+	CalendarField_Title       = "title"
+	CalendarField_Description = "description"
+	CalendarField_Visibility  = "visibility"
+
+	CalendarField_CalendarAccess = "calendar_access"
 )
 
 // Calendar represents a VCALENDAR component in iCalendar.
@@ -37,54 +49,6 @@ type CalendarId struct {
 	CalendarId int64 `aip_pattern:"key=calendar"`
 }
 
-// ----------------------------------------------------------------------------
-// Fields
-
-// CalendarFields defines the calendar fields.
-var CalendarFields = calendarFields{
-	CalendarId:  "calendar_id",
-	Title:       "title",
-	Description: "description",
-	Visibility:  "visibility",
-	AccessId:    "access_id",
-	Permission:  "permission",
-	State:       "state",
-}
-
-type calendarFields struct {
-	CalendarId  string
-	Title       string
-	Description string
-	Visibility  string
-	AccessId    string
-	Permission  string
-	State       string
-}
-
-// Mask returns a FieldMask for the calendar fields.
-func (fields calendarFields) Mask() []string {
-	return []string{
-		fields.CalendarId,
-		fields.Title,
-		fields.Description,
-		fields.Visibility,
-		fields.AccessId,
-		fields.Permission,
-		fields.State,
-	}
-}
-
-// UpdateMask returns the subset of provided fields that can be updated.
-func (fields calendarFields) UpdateMask(mask []string) []string {
-	updatable := []string{
-		fields.Title,
-		fields.Description,
-		fields.Visibility,
-	}
-
-	if len(mask) == 0 {
-		return updatable
-	}
-
-	return masks.Intersection(updatable, mask)
+// isResourceId - implements the ResourceId interface.
+func (c CalendarId) isResourceId() {
 }

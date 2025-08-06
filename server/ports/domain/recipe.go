@@ -11,9 +11,9 @@ import (
 type recipeDomain interface {
 	CreateRecipe(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe) (model.Recipe, error)
 	DeleteRecipe(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, id model.RecipeId) (model.Recipe, error)
-	GetRecipe(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, id model.RecipeId) (model.Recipe, error)
-	ListRecipes(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, pageSize int32, offset int64, filter string) ([]model.Recipe, error)
-	UpdateRecipe(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe, updateMask []string) (model.Recipe, error)
+	GetRecipe(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, id model.RecipeId, fields []string) (model.Recipe, error)
+	ListRecipes(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, pageSize int32, offset int64, filter string, fields []string) ([]model.Recipe, error)
+	UpdateRecipe(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe, fields []string) (model.Recipe, error)
 
 	ScrapeRecipe(ctx context.Context, authAccount model.AuthAccount, uri string) (model.Recipe, error)
 	OCRRecipe(ctx context.Context, authAccount model.AuthAccount, imageReaders []io.Reader) (model.Recipe, error)

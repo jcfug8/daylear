@@ -4,6 +4,8 @@ import (
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
+var _ Access = UserAccess{}
+
 // UserAccessFields defines the user access fields for filtering.
 var UserAccessFields = userAccessFields{
 	Level:           "permission_level",
@@ -23,8 +25,8 @@ type userAccessFields struct {
 type UserAccess struct {
 	UserAccessParent
 	UserAccessId
-	Level types.PermissionLevel
-	State types.AccessState
+	PermissionLevel types.PermissionLevel
+	State           types.AccessState
 
 	Requester UserId
 
@@ -32,6 +34,19 @@ type UserAccess struct {
 	RecipientUsername   string // username of the recipient
 	RecipientGivenName  string // given name of the recipient
 	RecipientFamilyName string // family name of the recipient
+}
+
+// GetPermissionLevel - returns the permission level of the user access.
+func (u UserAccess) GetPermissionLevel() types.PermissionLevel {
+	return u.PermissionLevel
+}
+
+// SetPermissionLevel - sets the permission level of the user access. Because this method is
+// uses a value receiver, it returns a new instance of the UserAccess struct and the caller
+// must assign the result to a variable.
+func (u UserAccess) SetPermissionLevel(permissionLevel types.PermissionLevel) Access {
+	u.PermissionLevel = permissionLevel
+	return u
 }
 
 type UserAccessParent struct {

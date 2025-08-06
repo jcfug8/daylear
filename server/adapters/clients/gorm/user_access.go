@@ -129,3 +129,79 @@ func (repo *Client) UpdateUserAccess(ctx context.Context, access model.UserAcces
 
 	return convert.UserAccessToCoreUserAccess(dbAccess), nil
 }
+
+func (repo *Client) FindStandardUserUserAccess(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.UserAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	// SELECT * from user_access where recipient_user_id = ? and user_id = ?
+
+	var userAccess dbModel.UserAccess
+	res := repo.db.WithContext(ctx).
+		Where("user_id = ? AND recipient_user_id = ?", id.UserId, authAccount.AuthUserId).
+		First(&userAccess)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Warn().Err(res.Error).Msg("standard user user access not found")
+			return model.UserAccess{}, repository.ErrNotFound{}
+		}
+		log.Error().Err(res.Error).Msg("unable to find standard user user access")
+		return model.UserAccess{}, res.Error
+	}
+	return convert.UserAccessToCoreUserAccess(userAccess), nil
+}
+
+func (repo *Client) FindDelegatedCircleUserAccess(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.UserAccess, model.CircleAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	// SELECT * from user_access
+	// 	JOIN circle_access ON circle_access.circle_id = user_access.recipient_circle_id
+	// WHERE user_access.user_id = 1 AND circle_access.recipient_user_id = 1 LIMIT 1;
+
+	type Result struct {
+		dbModel.UserAccess
+		dbModel.CircleAccess
+	}
+	var result Result
+	res := repo.db.WithContext(ctx).
+		Select("user_access.*, circle_access.*").
+		Table("user_access").
+		Joins("JOIN circle_access ON circle_access.circle_id = user_access.recipient_circle_id").
+		Where("user_access.user_id = ? AND circle_access.recipient_user_id = ?", id.UserId, authAccount.AuthUserId).
+		First(&result)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Warn().Err(res.Error).Msg("delegated circle user access not found")
+			return model.UserAccess{}, model.CircleAccess{}, repository.ErrNotFound{}
+		}
+		log.Error().Err(res.Error).Msg("unable to find delegated circle user access")
+		return model.UserAccess{}, model.CircleAccess{}, res.Error
+	}
+	return convert.UserAccessToCoreUserAccess(result.UserAccess), convert.CircleAccessToCoreCircleAccess(result.CircleAccess), nil
+}
+
+func (repo *Client) FindDelegatedUserUserAccess(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.UserAccess, model.UserAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	// SELECT * from user_access
+	// 	JOIN user_access ON user_access.user_id = user_access.recipient_user_id
+	// WHERE user_access.user_id = ? AND user_access.recipient_user_id = ? LIMIT 1;
+
+	type Result struct {
+		dbModel.UserAccess
+		dbModel.UA
+	}
+	var result Result
+
+	res := repo.db.WithContext(ctx).
+		Select("user_access.*, ua.*").
+		Table("user_access").
+		Joins("JOIN user_access AS ua ON user_access.user_id = ua.recipient_user_id").
+		Where("ua.user_id = ? AND user_access.recipient_user_id = ?", id.UserId, authAccount.AuthUserId).
+		First(&result)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Warn().Err(res.Error).Msg("delegated user user access not found")
+			return model.UserAccess{}, model.UserAccess{}, repository.ErrNotFound{}
+		}
+		log.Error().Err(res.Error).Msg("unable to find delegated user user access")
+		return model.UserAccess{}, model.UserAccess{}, res.Error
+	}
+	return convert.UserAccessToCoreUserAccess(result.UserAccess), convert.UserAccessToCoreUserAccess(result.UserAccess), nil
+}

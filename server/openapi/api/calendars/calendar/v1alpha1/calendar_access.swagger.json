@@ -58,15 +58,15 @@
               "type": "object",
               "properties": {
                 "requester": {
-                  "$ref": "#/definitions/calendarscalendarv1alpha1AccessRequester",
+                  "$ref": "#/definitions/calendarscalendarv1alpha1AccessRequesterOrRecipient",
                   "title": "the name of the requesting user",
                   "readOnly": true
                 },
                 "recipient": {
-                  "$ref": "#/definitions/calendarscalendarv1alpha1AccessUser",
+                  "$ref": "#/definitions/calendarscalendarv1alpha1AccessRequesterOrRecipient",
                   "title": "the name of the receiving user"
                 },
-                "level": {
+                "permissionLevel": {
                   "$ref": "#/definitions/typesPermissionLevel",
                   "title": "the permission level of the access"
                 },
@@ -74,12 +74,17 @@
                   "$ref": "#/definitions/typesAccessState",
                   "title": "the status of the access",
                   "readOnly": true
+                },
+                "acceptTarget": {
+                  "$ref": "#/definitions/typesAcceptTarget",
+                  "title": "the target of the accept action",
+                  "readOnly": true
                 }
               },
               "title": "access",
               "required": [
                 "recipient",
-                "level",
+                "permissionLevel",
                 "access"
               ]
             }
@@ -309,15 +314,15 @@
           "title": "The name of the access"
         },
         "requester": {
-          "$ref": "#/definitions/calendarscalendarv1alpha1AccessRequester",
+          "$ref": "#/definitions/calendarscalendarv1alpha1AccessRequesterOrRecipient",
           "title": "the name of the requesting user",
           "readOnly": true
         },
         "recipient": {
-          "$ref": "#/definitions/calendarscalendarv1alpha1AccessUser",
+          "$ref": "#/definitions/calendarscalendarv1alpha1AccessRequesterOrRecipient",
           "title": "the name of the receiving user"
         },
-        "level": {
+        "permissionLevel": {
           "$ref": "#/definitions/typesPermissionLevel",
           "title": "the permission level of the access"
         },
@@ -325,15 +330,20 @@
           "$ref": "#/definitions/typesAccessState",
           "title": "the status of the access",
           "readOnly": true
+        },
+        "acceptTarget": {
+          "$ref": "#/definitions/typesAcceptTarget",
+          "title": "the target of the accept action",
+          "readOnly": true
         }
       },
       "title": "This represents the data about a user's access to a calendar",
       "required": [
         "recipient",
-        "level"
+        "permissionLevel"
       ]
     },
-    "calendarscalendarv1alpha1AccessRequester": {
+    "calendarscalendarv1alpha1AccessRequesterOrRecipient": {
       "type": "object",
       "properties": {
         "user": {
@@ -346,34 +356,6 @@
         }
       },
       "title": "the requester of the access"
-    },
-    "calendarscalendarv1alpha1AccessUser": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "title": "the name of the user"
-        },
-        "username": {
-          "type": "string",
-          "title": "the username of the user",
-          "readOnly": true
-        },
-        "givenName": {
-          "type": "string",
-          "title": "the full name of the user",
-          "readOnly": true
-        },
-        "familyName": {
-          "type": "string",
-          "title": "the last name of the user",
-          "readOnly": true
-        }
-      },
-      "title": "user data",
-      "required": [
-        "name"
-      ]
     },
     "calendarscalendarv1alpha1ListAccessesResponse": {
       "type": "object",
@@ -420,6 +402,17 @@
           }
         }
       }
+    },
+    "typesAcceptTarget": {
+      "type": "string",
+      "enum": [
+        "ACCEPT_TARGET_UNSPECIFIED",
+        "ACCEPT_TARGET_RECIPIENT",
+        "ACCEPT_TARGET_RESOURCE"
+      ],
+      "default": "ACCEPT_TARGET_UNSPECIFIED",
+      "description": "- ACCEPT_TARGET_UNSPECIFIED: Acceptance not required or not applicable\n - ACCEPT_TARGET_RECIPIENT: The recipient or someone with correct access to the recipient can accept the access request\n - ACCEPT_TARGET_RESOURCE: The resource owner or someone with correct access to the resource can accept the access request",
+      "title": "The target of the accept action, or who can accept the access request"
     },
     "typesAccessState": {
       "type": "string",

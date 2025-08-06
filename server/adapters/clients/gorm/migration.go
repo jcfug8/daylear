@@ -8,6 +8,7 @@ import (
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/migrations"
 	model "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
 	"gorm.io/gorm"
 )
 
@@ -16,6 +17,11 @@ var manualMigrations = []migrations.Migration{
 		Key:         "1",
 		Description: "Create circle.handle field and backfill with unique slugified titles",
 		Run: func(ctx context.Context, tx *gorm.DB) error {
+			// check if table exists
+			if !tx.Migrator().HasTable(&model.Circle{}) {
+				return nil
+			}
+
 			// 1. Add the column if it doesn't exist (raw SQL)
 			if !tx.Migrator().HasColumn(&model.Circle{}, "handle") {
 				if err := tx.Exec(`ALTER TABLE circle ADD COLUMN handle VARCHAR(64)`).Error; err != nil {
@@ -70,9 +76,39 @@ var manualMigrations = []migrations.Migration{
 		Key:         "2",
 		Description: "Drop visibility column from user",
 		Run: func(ctx context.Context, tx *gorm.DB) error {
+			if !tx.Migrator().HasTable(&model.User{}) {
+				return nil
+			}
 			if err := tx.Exec(`ALTER TABLE daylear_user DROP COLUMN IF EXISTS visibility`).Error; err != nil {
 				return fmt.Errorf("failed to drop visibility column: %w", err)
 			}
+			return nil
+		},
+	},
+	{
+		Key:         "3",
+		Description: "Add own user access row",
+		Run: func(ctx context.Context, tx *gorm.DB) error {
+			if !tx.Migrator().HasTable(&model.User{}) {
+				return nil
+			}
+
+			if err := tx.Exec(`ALTER TABLE user_access ADD CONSTRAINT idx_user_access_user_recipient_unique UNIQUE (user_id, recipient_user_id)`).Error; err != nil {
+				return fmt.Errorf("failed to add unique index: %w", err)
+			}
+
+			// Use raw SQL with ON CONFLICT to efficiently insert self-access records
+			// This will insert admin access for all users, ignoring conflicts on the unique index
+			query := `
+				INSERT INTO user_access (user_id, requester_user_id, recipient_user_id, permission_level, state)
+				SELECT user_id, user_id, user_id, ?, ?
+				FROM daylear_user
+				ON CONFLICT (user_id, recipient_user_id) DO NOTHING
+			`
+			if err := tx.Exec(query, types.PermissionLevel_PERMISSION_LEVEL_ADMIN, types.AccessState_ACCESS_STATE_ACCEPTED).Error; err != nil {
+				return fmt.Errorf("failed to create self-access records: %w", err)
+			}
+
 			return nil
 		},
 	},

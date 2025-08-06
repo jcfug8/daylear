@@ -55,54 +55,29 @@ func (d *Domain) ListUsers(ctx context.Context, authAccount model.AuthAccount, p
 		return nil, domain.ErrInvalidArgument{Msg: "user_id required"}
 	}
 
-	if parent.CircleId != 0 && authAccount.CircleId != 0 && parent.CircleId != authAccount.CircleId {
-		log.Warn().Msg("both circle ids set but do not match")
-		return nil, domain.ErrInvalidArgument{Msg: "both circle ids set but do not match"}
-	}
-
 	if parent.CircleId != 0 {
 		authAccount.CircleId = parent.CircleId
+		dbCircle, err := d.repo.GetCircle(ctx, authAccount, model.CircleId{CircleId: parent.CircleId})
+		if err != nil {
+			log.Error().Err(err).Msg("unable to get circle when listing calendars")
+			return nil, domain.ErrInternal{Msg: "unable to get circle when listing calendars"}
+		}
+		_, err = d.determineCircleAccess(
+			ctx, authAccount, model.CircleId{CircleId: parent.CircleId},
+			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
+			withResourceVisibilityLevel(dbCircle.VisibilityLevel),
+		)
+		if err != nil {
+			log.Error().Err(err).Msg("unable to determine access when listing calendars")
+			return nil, err
+		}
 	} else if parent.UserId != 0 {
 		authAccount.UserId = parent.UserId
-	} else {
-		authAccount.UserId = authAccount.AuthUserId
-	}
-
-	if authAccount.CircleId != 0 {
-		authAccount.PermissionLevel, authAccount.VisibilityLevel, err = d.getCircleAccessLevels(ctx, authAccount)
-		if err != nil {
-			log.Error().Err(err).Msg("getCircleAccessLevels failed")
-			return nil, err
-		}
-	} else if authAccount.UserId != 0 {
-		authAccount.PermissionLevel, err = d.getUserAccessLevels(ctx, authAccount)
-		if err != nil {
-			log.Error().Err(err).Msg("getUserAccessLevels failed")
-			return nil, err
-		}
 	}
 
 	users, err = d.repo.ListUsers(ctx, authAccount, pageSize, pageOffset, filter, fieldMask)
 	if err != nil {
 		return nil, err
-	}
-
-	// manually add the user access for the current user
-	for i, user := range users {
-		if user.Id.UserId == authAccount.AuthUserId {
-			users[i].UserAccess = model.UserAccess{
-				UserAccessParent: model.UserAccessParent{
-					UserId: user.Id,
-				},
-				Requester: model.UserId{
-					UserId: authAccount.AuthUserId,
-				},
-				Recipient: model.UserId{
-					UserId: authAccount.AuthUserId,
-				},
-				Level: types.PermissionLevel_PERMISSION_LEVEL_ADMIN,
-			}
-		}
 	}
 
 	return users, nil
@@ -118,17 +93,10 @@ func (d *Domain) UpdateUser(ctx context.Context, authAccount model.AuthAccount, 
 		return model.User{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	authAccount.UserId = user.Id.UserId
-
-	authAccount.PermissionLevel, err = d.getUserAccessLevels(ctx, authAccount)
+	_, err = d.determineUserAccess(ctx, authAccount, model.UserId{UserId: authAccount.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN))
 	if err != nil {
-		log.Error().Err(err).Msg("getUserAccessLevels failed")
+		log.Error().Err(err).Msg("unable to determine access when updating user")
 		return model.User{}, err
-	}
-
-	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_ADMIN {
-		log.Warn().Msg("user does not have admin permission")
-		return model.User{}, domain.ErrPermissionDenied{Msg: "user does not have admin permission"}
 	}
 
 	dbUser, err = d.repo.UpdateUser(ctx, authAccount, user, updateMask)
@@ -148,40 +116,10 @@ func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, par
 		return model.User{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	authAccount.UserId = id.UserId
-
-	if parent.CircleId != 0 {
-		authAccount.CircleId = parent.CircleId
-	} else if parent.UserId != 0 {
-		authAccount.UserId = parent.UserId
-	}
-
-	authAccount.PermissionLevel, err = d.checkUserAccess(ctx, authAccount, id, 0)
-	if err != nil {
-		log.Error().Err(err).Msg("getUserAccessLevels failed")
-		return model.User{}, err
-	}
-
 	dbUser, err = d.repo.GetUser(ctx, authAccount, id)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.GetUser failed")
 		return model.User{}, err
-	}
-
-	// manually add the user access for the current user
-	if authAccount.AuthUserId == authAccount.UserId {
-		dbUser.UserAccess = model.UserAccess{
-			UserAccessParent: model.UserAccessParent{
-				UserId: id,
-			},
-			Requester: model.UserId{
-				UserId: authAccount.AuthUserId,
-			},
-			Recipient: model.UserId{
-				UserId: authAccount.AuthUserId,
-			},
-			Level: types.PermissionLevel_PERMISSION_LEVEL_ADMIN,
-		}
 	}
 
 	return dbUser, nil
@@ -195,8 +133,6 @@ func (d *Domain) GetOwnUser(ctx context.Context, authAccount model.AuthAccount, 
 		log.Warn().Msg("id does not match auth account")
 		return model.User{}, domain.ErrInvalidArgument{Msg: "id does not match auth account"}
 	}
-
-	authAccount.UserId = authAccount.AuthUserId
 
 	dbUser, err := d.repo.GetUser(ctx, authAccount, id)
 	if err != nil {
@@ -267,6 +203,8 @@ func (d *Domain) determineUsername(ctx context.Context, email string) (string, e
 
 // UploadUserImage uploads a user image and returns the image URI
 func (d *Domain) UploadUserImage(ctx context.Context, authAccount model.AuthAccount, id model.UserId, imageReader io.Reader) (imageURI string, err error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+
 	if authAccount.AuthUserId == 0 {
 		return "", domain.ErrInvalidArgument{Msg: "parent required"}
 	}
@@ -274,15 +212,12 @@ func (d *Domain) UploadUserImage(ctx context.Context, authAccount model.AuthAcco
 		return "", domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	authAccount.UserId = id.UserId
-
-	authAccount.PermissionLevel, err = d.getUserAccessLevels(ctx, authAccount)
+	_, err = d.determineUserAccess(ctx, authAccount, model.UserId{UserId: authAccount.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN))
 	if err != nil {
+		log.Error().Err(err).Msg("unable to determine access when uploading user image")
 		return "", err
 	}
-	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_ADMIN {
-		return "", domain.ErrPermissionDenied{Msg: "user does not have access"}
-	}
+
 	user, err := d.repo.GetUser(ctx, authAccount, id)
 	if err != nil {
 		return "", err

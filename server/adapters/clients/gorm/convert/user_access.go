@@ -12,7 +12,7 @@ func CoreUserAccessToUserAccess(access cmodel.UserAccess) gmodel.UserAccess {
 		UserId:          access.UserAccessParent.UserId.UserId,
 		RequesterUserId: access.Requester.UserId,
 		RecipientUserId: access.Recipient.UserId,
-		PermissionLevel: access.Level,
+		PermissionLevel: access.PermissionLevel,
 		State:           access.State,
 	}
 }
@@ -28,8 +28,8 @@ func UserAccessToCoreUserAccess(dbAccess gmodel.UserAccess) cmodel.UserAccess {
 				UserId: dbAccess.UserId,
 			},
 		},
-		Level: dbAccess.PermissionLevel,
-		State: dbAccess.State,
+		PermissionLevel: dbAccess.PermissionLevel,
+		State:           dbAccess.State,
 		Requester: cmodel.UserId{
 			UserId: dbAccess.RequesterUserId,
 		},

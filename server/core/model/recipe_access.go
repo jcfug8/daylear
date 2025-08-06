@@ -4,20 +4,16 @@ import (
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
-// RecipeAccessFields defines the recipe access fields for filtering.
-var RecipeAccessFields = recipeAccessFields{
-	Level:           "permission_level",
-	State:           "state",
-	RecipientUser:   "recipient.user_id",
-	RecipientCircle: "recipient.circle_id",
-}
+var _ Access = RecipeAccess{}
 
-type recipeAccessFields struct {
-	Level           string
-	State           string
-	RecipientUser   string
-	RecipientCircle string
-}
+const (
+	RecipeAccessField_Parent          = "parent"
+	RecipeAccessField_Id              = "id"
+	RecipeAccessField_PermissionLevel = "permission_level"
+	RecipeAccessField_State           = "state"
+	RecipeAccessField_Requester       = "requester"
+	RecipeAccessField_Recipient       = "recipient"
+)
 
 // RecipeAccess represents a user's or circle's access to a recipe
 type RecipeAccess struct {
@@ -34,6 +30,19 @@ type RecipeAccess struct {
 	RecipientFamilyName   string // family name of the recipient (if user)
 	RecipientCircleTitle  string // title of the recipient (if circle)
 	RecipientCircleHandle string // handle of the recipient (if circle)
+}
+
+// GetPermissionLevel - returns the permission level of the recipe access.
+func (r RecipeAccess) GetPermissionLevel() types.PermissionLevel {
+	return r.PermissionLevel
+}
+
+// SetPermissionLevel - sets the permission level of the recipe access. Because this method is
+// uses a value receiver, it returns a new instance of the RecipeAccess struct and the caller
+// must assign the result to a variable.
+func (r RecipeAccess) SetPermissionLevel(permissionLevel types.PermissionLevel) Access {
+	r.PermissionLevel = permissionLevel
+	return r
 }
 
 type RecipeRecipientOrRequester struct {

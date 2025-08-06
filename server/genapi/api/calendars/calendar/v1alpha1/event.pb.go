@@ -458,8 +458,7 @@ var File_api_calendars_calendar_v1alpha1_event_proto protoreflect.FileDescriptor
 
 const file_api_calendars_calendar_v1alpha1_event_proto_rawDesc = "" +
 	"\n" +
-	"+api/calendars/calendar/v1alpha1/event.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18google/type/latlng.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xfa\n" +
-	"\n" +
+	"+api/calendars/calendar/v1alpha1/event.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18google/type/latlng.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xdc\v\n" +
 	"\x05Event\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12>\n" +
@@ -495,8 +494,8 @@ const file_api_calendars_calendar_v1alpha1_event_proto_rawDesc = "" +
 	"\x11STATE_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fSTATE_CONFIRMED\x10\x01\x12\x13\n" +
 	"\x0fSTATE_TENTATIVE\x10\x02\x12\x13\n" +
-	"\x0fSTATE_CANCELLED\x10\x03:`\xeaA]\n" +
-	"\x1fapi.events.event.v1alpha1/Event\x12\x0eevents/{event}\x12\x1busers/{user}/events/{event}*\x06events2\x05event2\x0e\n" +
+	"\x0fSTATE_CANCELLED\x10\x03:\xc1\x01\xeaA\xbd\x01\n" +
+	"\x1fapi.events.event.v1alpha1/Event\x12#calendars/{calendar}/events/{event}\x120users/{user}/calendars/{calendar}/events/{event}\x124circles/{circle}/calendars/{calendar}/events/{event}*\x06events2\x05event2\x0e\n" +
 	"\fEventServiceB\x85\x03\x92AXZD\n" +
 	"B\n" +
 	"\n" +

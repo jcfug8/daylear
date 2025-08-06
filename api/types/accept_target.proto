@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package api.types;
+
+// The target of the accept action, or who can accept the access request
+enum AcceptTarget {
+  // Acceptance not required or not applicable
+  ACCEPT_TARGET_UNSPECIFIED = 0;
+  // The recipient or someone with correct access to the recipient can accept the access request
+  ACCEPT_TARGET_RECIPIENT = 100;
+  // The resource owner or someone with correct access to the resource can accept the access request
+  ACCEPT_TARGET_RESOURCE = 200;
+}

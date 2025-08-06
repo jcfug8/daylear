@@ -58,12 +58,12 @@
               "type": "object",
               "properties": {
                 "requester": {
-                  "$ref": "#/definitions/AccessRequesterOrRecipient",
+                  "$ref": "#/definitions/mealsrecipev1alpha1AccessRequesterOrRecipient",
                   "title": "the name of the requester",
                   "readOnly": true
                 },
                 "recipient": {
-                  "$ref": "#/definitions/AccessRequesterOrRecipient",
+                  "$ref": "#/definitions/mealsrecipev1alpha1AccessRequesterOrRecipient",
                   "title": "the name of the recipient"
                 },
                 "level": {
@@ -127,12 +127,12 @@
               "type": "object",
               "properties": {
                 "requester": {
-                  "$ref": "#/definitions/AccessRequesterOrRecipient",
+                  "$ref": "#/definitions/mealsrecipev1alpha1AccessRequesterOrRecipient",
                   "title": "the name of the requester",
                   "readOnly": true
                 },
                 "recipient": {
-                  "$ref": "#/definitions/AccessRequesterOrRecipient",
+                  "$ref": "#/definitions/mealsrecipev1alpha1AccessRequesterOrRecipient",
                   "title": "the name of the recipient"
                 },
                 "level": {
@@ -579,20 +579,6 @@
     }
   },
   "definitions": {
-    "AccessRequesterOrRecipient": {
-      "type": "object",
-      "properties": {
-        "user": {
-          "$ref": "#/definitions/mealsrecipev1alpha1AccessUser",
-          "title": "the name of the user"
-        },
-        "circle": {
-          "$ref": "#/definitions/v1alpha1AccessCircle",
-          "title": "the name of the circle"
-        }
-      },
-      "title": "the requester or recipient of the access"
-    },
     "RecipeAccessServiceAcceptRecipeAccessBody": {
       "type": "object",
       "title": "The request to accept a recipe access"
@@ -605,12 +591,12 @@
           "title": "The name of the access"
         },
         "requester": {
-          "$ref": "#/definitions/AccessRequesterOrRecipient",
+          "$ref": "#/definitions/mealsrecipev1alpha1AccessRequesterOrRecipient",
           "title": "the name of the requester",
           "readOnly": true
         },
         "recipient": {
-          "$ref": "#/definitions/AccessRequesterOrRecipient",
+          "$ref": "#/definitions/mealsrecipev1alpha1AccessRequesterOrRecipient",
           "title": "the name of the recipient"
         },
         "level": {
@@ -628,6 +614,20 @@
         "recipient",
         "level"
       ]
+    },
+    "mealsrecipev1alpha1AccessRequesterOrRecipient": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/mealsrecipev1alpha1AccessUser",
+          "title": "the name of the user"
+        },
+        "circle": {
+          "$ref": "#/definitions/v1alpha1AccessCircle",
+          "title": "the name of the circle"
+        }
+      },
+      "title": "the requester or recipient of the access"
     },
     "mealsrecipev1alpha1AccessUser": {
       "type": "object",

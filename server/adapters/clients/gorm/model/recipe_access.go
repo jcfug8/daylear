@@ -1,59 +1,41 @@
 package model
 
 import (
+	"github.com/jcfug8/daylear/server/core/fieldmask"
+	"github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/filter"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
-// RecipeAccessFields defines the recipeAccess fields.
-var RecipeAccessFields = recipeAccessFields{
-	RecipeAccessId:    "recipe_access.recipe_access_id",
-	RecipeId:          "recipe_access.recipe_id",
-	RequesterUserId:   "recipe_access.requester_user_id",
-	RequesterCircleId: "recipe_access.requester_circle_id",
-	RecipientUserId:   "recipe_access.recipient_user_id",
-	RecipientCircleId: "recipe_access.recipient_circle_id",
-	PermissionLevel:   "recipe_access.permission_level",
-	State:             "recipe_access.state",
-}
+const (
+	RecipeAccessFields_RecipeAccessId    = "recipe_access.recipe_access_id"
+	RecipeAccessFields_RecipeId          = "recipe_access.recipe_id"
+	RecipeAccessFields_RequesterUserId   = "recipe_access.requester_user_id"
+	RecipeAccessFields_RequesterCircleId = "recipe_access.requester_circle_id"
+	RecipeAccessFields_RecipientUserId   = "recipe_access.recipient_user_id"
+	RecipeAccessFields_RecipientCircleId = "recipe_access.recipient_circle_id"
+	RecipeAccessFields_PermissionLevel   = "recipe_access.permission_level"
+	RecipeAccessFields_State             = "recipe_access.state"
+)
 
-type recipeAccessFields struct {
-	RecipeAccessId    string
-	RecipeId          string
-	RequesterUserId   string
-	RequesterCircleId string
-	RecipientUserId   string
-	RecipientCircleId string
-	PermissionLevel   string
-	State             string
-}
-
-// Map maps the recipeAccess fields to their corresponding model values.
-func (fields recipeAccessFields) Map(m RecipeAccess) map[string]any {
-	return map[string]any{
-		fields.RecipeAccessId:    m.RecipeAccessId,
-		fields.RecipeId:          m.RecipeId,
-		fields.RequesterUserId:   m.RequesterUserId,
-		fields.RequesterCircleId: m.RequesterCircleId,
-		fields.RecipientUserId:   m.RecipientUserId,
-		fields.RecipientCircleId: m.RecipientCircleId,
-		fields.PermissionLevel:   m.PermissionLevel,
-		fields.State:             m.State,
-	}
-}
-
-// Mask returns a FieldMask for the recipeAccess fields.
-func (fields recipeAccessFields) Mask() []string {
-	return []string{
-		fields.RecipeAccessId,
-		fields.RecipeId,
-		fields.RequesterUserId,
-		fields.RequesterCircleId,
-		fields.RecipientUserId,
-		fields.RecipientCircleId,
-		fields.PermissionLevel,
-		fields.State,
-	}
-}
+var RecipeAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
+	model.RecipeAccessField_Parent:          {RecipeAccessFields_RecipeId},
+	model.RecipeAccessField_Id:              {RecipeAccessFields_RecipeAccessId},
+	model.RecipeAccessField_PermissionLevel: {RecipeAccessFields_PermissionLevel},
+	model.RecipeAccessField_State:           {RecipeAccessFields_State},
+	model.RecipeAccessField_Requester:       {RecipeAccessFields_RequesterUserId, RecipeAccessFields_RequesterCircleId},
+	model.RecipeAccessField_Recipient:       {RecipeAccessFields_RecipientUserId, RecipeAccessFields_RecipientCircleId},
+})
+var UpdateRecipeAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
+	model.RecipeAccessField_PermissionLevel: {RecipeAccessFields_PermissionLevel},
+	model.RecipeAccessField_State:           {RecipeAccessFields_State},
+})
+var RecipeAccessSQLConverter = filter.NewSQLConverter(map[string]string{
+	model.RecipeAccessField_PermissionLevel: RecipeAccessFields_PermissionLevel,
+	model.RecipeAccessField_State:           RecipeAccessFields_State,
+	model.RecipeAccessField_Requester:       RecipeAccessFields_RecipientUserId,
+	model.RecipeAccessField_Recipient:       RecipeAccessFields_RecipientCircleId,
+}, true)
 
 // RecipeAccess -
 type RecipeAccess struct {

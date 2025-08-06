@@ -3,58 +3,40 @@ package gorm
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
-	"github.com/jcfug8/daylear/server/core/fieldmask"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
-	model "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 	"github.com/jcfug8/daylear/server/ports/repository"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-// UpdateCalendarAccessMap maps the updatable core model fields to the database model fields for the CalendarAccess model.
-var UpdateCalendarAccessMap = map[string][]string{
-	model.CalendarAccessFields.Level: []string{
-		dbModel.CalendarAccessFields.PermissionLevel,
-	},
-	model.CalendarAccessFields.State: []string{
-		dbModel.CalendarAccessFields.State,
-	},
-}
-
-var UpdateCalendarAccessFieldMasker = fieldmask.NewFieldMasker(UpdateCalendarAccessMap)
-
-// CalendarAccessMap maps the core model fields to the database model fields for the unified CalendarAccess model.
-var CalendarAccessMap = map[string]string{
-	model.CalendarAccessFields.Level:           dbModel.CalendarAccessFields.PermissionLevel,
-	model.CalendarAccessFields.State:           dbModel.CalendarAccessFields.State,
-	model.CalendarAccessFields.RecipientUser:   dbModel.CalendarAccessFields.RecipientUserId,
-	model.CalendarAccessFields.RecipientCircle: dbModel.CalendarAccessFields.RecipientCircleId,
-}
-
 // CreateCalendarAccess creates calendar access
-func (c *Client) CreateCalendarAccess(ctx context.Context, access cmodel.CalendarAccess) (cmodel.CalendarAccess, error) {
-	log := logutil.EnrichLoggerWithContext(c.log, ctx)
+func (c *Client) CreateCalendarAccess(ctx context.Context, access cmodel.CalendarAccess, fields []string) (cmodel.CalendarAccess, error) {
+	log := logutil.EnrichLoggerWithContext(c.log, ctx).With().
+		Strs("fields", fields).
+		Logger()
+
 	db := c.db.WithContext(ctx)
 
 	// Validate that exactly one recipient type is set
 	if (access.Recipient.UserId != 0) == (access.Recipient.CircleId != 0) {
-		log.Error().Msg("exactly one recipient (user or circle) is required")
+		log.Error().Msg("exactly one recipient (user or circle) is required to create calendar access row")
 		return cmodel.CalendarAccess{}, repository.ErrInvalidArgument{Msg: "exactly one recipient (user or circle) is required"}
 	}
 
 	gormAccess := convert.CalendarAccessToGorm(access)
-	res := db.Clauses(clause.Returning{}).Create(&gormAccess)
+	res := db.Select(dbModel.CalendarAccessFieldMasker.Convert(fields)).Clauses(clause.Returning{}).Create(&gormAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrDuplicatedKey) {
-			log.Error().Err(res.Error).Msg("duplicate key error")
+			log.Error().Err(res.Error).Msg("unable to create calendar access row: already exists")
 			return cmodel.CalendarAccess{}, repository.ErrNewAlreadyExists{}
 		}
-		log.Error().Err(res.Error).Msg("db.Create failed")
+		log.Error().Err(res.Error).Msg("unable to create calendar access row")
 		return cmodel.CalendarAccess{}, res.Error
 	}
 
@@ -64,14 +46,18 @@ func (c *Client) CreateCalendarAccess(ctx context.Context, access cmodel.Calenda
 
 // DeleteCalendarAccess deletes calendar access
 func (c *Client) DeleteCalendarAccess(ctx context.Context, parent cmodel.CalendarAccessParent, id cmodel.CalendarAccessId) error {
-	log := logutil.EnrichLoggerWithContext(c.log, ctx)
+	log := logutil.EnrichLoggerWithContext(c.log, ctx).With().
+		Int64("calendarId", parent.CalendarId).
+		Int64("calendarAccessId", id.CalendarAccessId).
+		Logger()
+
 	if parent.CalendarId == 0 {
-		log.Error().Msg("calendar id is required")
+		log.Error().Msg("calendar id is required to delete calendar access row")
 		return repository.ErrInvalidArgument{Msg: "calendar id is required"}
 	}
 
 	if id.CalendarAccessId == 0 {
-		log.Error().Msg("calendar access id is required")
+		log.Error().Msg("calendar access id is required to delete calendar access row")
 		return repository.ErrInvalidArgument{Msg: "calendar access id is required"}
 	}
 
@@ -79,11 +65,11 @@ func (c *Client) DeleteCalendarAccess(ctx context.Context, parent cmodel.Calenda
 
 	res := db.Where("calendar_id = ? AND calendar_access_id = ?", parent.CalendarId, id.CalendarAccessId).Delete(&dbModel.CalendarAccess{})
 	if res.Error != nil {
-		log.Error().Err(res.Error).Msg("db.Delete failed")
+		log.Error().Err(res.Error).Msg("unable to delete calendar access row")
 		return ConvertGormError(res.Error)
 	}
 	if res.RowsAffected == 0 {
-		log.Warn().Msg("no rows affected (not found)")
+		log.Warn().Msg("no calendar access row deleted")
 		return repository.ErrNotFound{}
 	}
 
@@ -92,9 +78,12 @@ func (c *Client) DeleteCalendarAccess(ctx context.Context, parent cmodel.Calenda
 
 // BulkDeleteCalendarAccesses bulk deletes calendar accesses
 func (c *Client) BulkDeleteCalendarAccess(ctx context.Context, parent cmodel.CalendarAccessParent) error {
-	log := logutil.EnrichLoggerWithContext(c.log, ctx)
+	log := logutil.EnrichLoggerWithContext(c.log, ctx).With().
+		Int64("calendarId", parent.CalendarId).
+		Logger()
+
 	if parent.CalendarId == 0 {
-		log.Error().Msg("calendar id is required")
+		log.Error().Msg("calendar id is required to bulk delete calendar access rows")
 		return repository.ErrInvalidArgument{Msg: "calendar id is required"}
 	}
 
@@ -102,11 +91,11 @@ func (c *Client) BulkDeleteCalendarAccess(ctx context.Context, parent cmodel.Cal
 
 	res := db.Where("calendar_id = ?", parent.CalendarId).Delete(&dbModel.CalendarAccess{})
 	if res.Error != nil {
-		log.Error().Err(res.Error).Msg("db.Delete failed")
+		log.Error().Err(res.Error).Msg("unable to bulk delete calendar access rows")
 		return ConvertGormError(res.Error)
 	}
 	if res.RowsAffected == 0 {
-		log.Warn().Msg("no rows affected (not found)")
+		log.Warn().Msg("no calendar access rows deleted")
 		return repository.ErrNotFound{}
 	}
 
@@ -114,23 +103,34 @@ func (c *Client) BulkDeleteCalendarAccess(ctx context.Context, parent cmodel.Cal
 }
 
 // GetCalendarAccess retrieves calendar access
-func (c *Client) GetCalendarAccess(ctx context.Context, parent cmodel.CalendarAccessParent, id cmodel.CalendarAccessId) (cmodel.CalendarAccess, error) {
-	log := logutil.EnrichLoggerWithContext(c.log, ctx)
+func (c *Client) GetCalendarAccess(ctx context.Context, parent cmodel.CalendarAccessParent, id cmodel.CalendarAccessId, fields []string) (cmodel.CalendarAccess, error) {
+	log := logutil.EnrichLoggerWithContext(c.log, ctx).With().
+		Int64("calendarId", parent.CalendarId).
+		Int64("calendarAccessId", id.CalendarAccessId).
+		Strs("fields", fields).
+		Logger()
+
 	db := c.db.WithContext(ctx)
 
+	fields = dbModel.CalendarAccessFieldMasker.Convert(fields)
+
 	var calendarAccess dbModel.CalendarAccess
-	res := db.Table("calendar_access").
-		Select(`calendar_access.*, u.username as recipient_username, u.given_name as recipient_given_name, u.family_name as recipient_family_name, c.title as recipient_circle_title, c.handle as recipient_circle_handle`).
-		Joins(`LEFT JOIN daylear_user u ON calendar_access.recipient_user_id = u.user_id`).
-		Joins(`LEFT JOIN circle c ON calendar_access.recipient_circle_id = c.circle_id`).
-		Where("calendar_access.calendar_id = ? AND calendar_access.calendar_access_id = ?", parent.CalendarId, id.CalendarAccessId).
+	tx := db.Select(fields)
+	if slices.Contains(fields, dbModel.UserFields.Username) || slices.Contains(fields, dbModel.UserFields.GivenName) || slices.Contains(fields, dbModel.UserFields.FamilyName) {
+		tx = tx.Joins(`LEFT JOIN daylear_user ON calendar_access.recipient_user_id = daylear_user.user_id`)
+	}
+	if slices.Contains(fields, dbModel.CircleFields.Title) || slices.Contains(fields, dbModel.CircleFields.Handle) {
+		tx = tx.Joins(`LEFT JOIN circle ON calendar_access.recipient_circle_id = circle.circle_id`)
+	}
+
+	res := tx.Where("calendar_access.calendar_id = ? AND calendar_access.calendar_access_id = ?", parent.CalendarId, id.CalendarAccessId).
 		First(&calendarAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Warn().Err(res.Error).Msg("record not found")
+			log.Warn().Err(res.Error).Msg("calendar access row not found")
 			return cmodel.CalendarAccess{}, repository.ErrNotFound{}
 		}
-		log.Error().Err(res.Error).Msg("db.First failed")
+		log.Error().Err(res.Error).Msg("unable to get calendar access row")
 		return cmodel.CalendarAccess{}, res.Error
 	}
 
@@ -138,11 +138,20 @@ func (c *Client) GetCalendarAccess(ctx context.Context, parent cmodel.CalendarAc
 }
 
 // ListCalendarAccesses lists calendar accesses
-func (c *Client) ListCalendarAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent cmodel.CalendarAccessParent, pageSize int32, pageOffset int64, filterStr string) ([]cmodel.CalendarAccess, error) {
-	log := logutil.EnrichLoggerWithContext(c.log, ctx)
+func (c *Client) ListCalendarAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent cmodel.CalendarAccessParent, pageSize int32, pageOffset int64, filterStr string, fields []string) ([]cmodel.CalendarAccess, error) {
+	log := logutil.EnrichLoggerWithContext(c.log, ctx).With().
+		Int64("calendarId", parent.CalendarId).
+		Str("filter", filterStr).
+		Strs("fields", fields).
+		Int("pageSize", int(pageSize)).
+		Int64("pageOffset", pageOffset).Logger()
+
 	if authAccount.AuthUserId == 0 && authAccount.CircleId == 0 {
+		log.Error().Msg("user id or circle id is required to list calendar access rows")
 		return nil, repository.ErrInvalidArgument{Msg: "user id or circle id is required"}
 	}
+
+	fields = dbModel.CalendarAccessFieldMasker.Convert(fields)
 
 	orders := []clause.OrderByColumn{{
 		Column: clause.Column{Name: "calendar_access.calendar_access_id"},
@@ -151,47 +160,49 @@ func (c *Client) ListCalendarAccesses(ctx context.Context, authAccount cmodel.Au
 
 	var calendarAccesses []dbModel.CalendarAccess
 	// Start building the query
-	db := c.db.WithContext(ctx).
-		Table("calendar_access").
-		Select(`calendar_access.*, u.username as recipient_username, u.given_name as recipient_given_name, u.family_name as recipient_family_name, c.title as recipient_circle_title, c.handle as recipient_circle_handle`).
-		Joins(`LEFT JOIN daylear_user u ON calendar_access.recipient_user_id = u.user_id`).
-		Joins(`LEFT JOIN circle c ON calendar_access.recipient_circle_id = c.circle_id`).
+	tx := c.db.WithContext(ctx).
+		Select(fields).
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(pageOffset))
 
+	if slices.Contains(fields, dbModel.UserFields.Username) || slices.Contains(fields, dbModel.UserFields.GivenName) || slices.Contains(fields, dbModel.UserFields.FamilyName) {
+		tx = tx.Joins(`LEFT JOIN daylear_user ON calendar_access.recipient_user_id = daylear_user.user_id`)
+	}
+	if slices.Contains(fields, dbModel.CircleFields.Title) || slices.Contains(fields, dbModel.CircleFields.Handle) {
+		tx = tx.Joins(`LEFT JOIN circle ON calendar_access.recipient_circle_id = circle.circle_id`)
+	}
+
 	// Filter by calendar ID if provided
 	if parent.CalendarId != 0 {
-		db = db.Where("calendar_access.calendar_id = ?", parent.CalendarId)
+		tx = tx.Where("calendar_access.calendar_id = ?", parent.CalendarId)
 	}
 
 	if authAccount.CircleId != 0 {
-		db = db.Where(
+		tx = tx.Where(
 			"calendar_access.recipient_circle_id = ? OR calendar_access.calendar_id IN (SELECT calendar_id FROM calendar_access WHERE recipient_circle_id = ? AND permission_level >= ?)",
 			authAccount.CircleId, authAccount.CircleId, types.PermissionLevel_PERMISSION_LEVEL_WRITE,
 		)
 	} else if authAccount.AuthUserId != 0 {
-		db = db.Where(
+		tx = tx.Where(
 			"calendar_access.recipient_user_id = ? OR calendar_access.calendar_id IN (SELECT calendar_id FROM calendar_access WHERE recipient_user_id = ? AND permission_level >= ?)",
 			authAccount.AuthUserId, authAccount.AuthUserId, types.PermissionLevel_PERMISSION_LEVEL_WRITE,
 		)
 	}
 
-	conversion, err := c.calendarAccessSQLConverter.Convert(filterStr)
+	conversion, err := dbModel.CalendarAccessSQLConverter.Convert(filterStr)
 	if err != nil {
-		log.Error().Err(err).Msg("invalid filter")
+		log.Error().Err(err).Msg("invalid filter string when listing calendar access rows")
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
 	}
 
 	if conversion.WhereClause != "" {
-		db = db.Where(conversion.WhereClause, conversion.Params...)
+		tx = tx.Where(conversion.WhereClause, conversion.Params...)
 	}
 
-	err = db.Limit(int(pageSize)).
-		Offset(int(pageOffset)).
-		Find(&calendarAccesses).Error
+	err = tx.Find(&calendarAccesses).Error
 	if err != nil {
-		log.Error().Err(err).Msg("db.Find failed")
+		log.Error().Err(err).Msg("unable to list calendar access rows")
 		return nil, ConvertGormError(err)
 	}
 
@@ -204,19 +215,100 @@ func (c *Client) ListCalendarAccesses(ctx context.Context, authAccount cmodel.Au
 }
 
 // UpdateCalendarAccess updates calendar access
-func (c *Client) UpdateCalendarAccess(ctx context.Context, access cmodel.CalendarAccess, updateMask []string) (cmodel.CalendarAccess, error) {
-	log := logutil.EnrichLoggerWithContext(c.log, ctx)
+func (c *Client) UpdateCalendarAccess(ctx context.Context, access cmodel.CalendarAccess, fields []string) (cmodel.CalendarAccess, error) {
+	log := logutil.EnrichLoggerWithContext(c.log, ctx).With().
+		Int64("calendarAccessId", access.CalendarAccessId.CalendarAccessId).
+		Strs("fields", fields).
+		Logger()
+
 	dbAccess := convert.CalendarAccessToGorm(access)
 
-	columns := UpdateCalendarAccessFieldMasker.Convert(updateMask)
-
-	db := c.db.WithContext(ctx).Select(columns).Clauses(&clause.Returning{})
-
-	err := db.Where("calendar_access_id = ?", access.CalendarAccessId.CalendarAccessId).Updates(&dbAccess).Error
+	err := c.db.WithContext(ctx).
+		Select(dbModel.UpdateCalendarAccessFieldMasker.Convert(fields)).
+		Clauses(&clause.Returning{}).
+		Where("calendar_access_id = ?", access.CalendarAccessId.CalendarAccessId).
+		Updates(&dbAccess).Error
 	if err != nil {
-		log.Error().Err(err).Msg("db.Updates failed")
+		log.Error().Err(err).Msg("unable to update calendar access row")
 		return cmodel.CalendarAccess{}, ConvertGormError(err)
 	}
 
 	return convert.CalendarAccessFromGorm(dbAccess), nil
+}
+
+func (repo *Client) FindStandardUserCalendarAccess(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.CalendarId) (cmodel.CalendarAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	// SELECT * from calendar_access where recipient_user_id = ? and calendar_id = ?
+
+	var calendarAccess dbModel.CalendarAccess
+	res := repo.db.WithContext(ctx).
+		Where("calendar_id = ? AND recipient_user_id = ?", id.CalendarId, authAccount.AuthUserId).
+		First(&calendarAccess)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Warn().Err(res.Error).Msg("standard user calendar access not found")
+			return cmodel.CalendarAccess{}, repository.ErrNotFound{}
+		}
+		log.Error().Err(res.Error).Msg("unable to find standard user calendar access")
+		return cmodel.CalendarAccess{}, res.Error
+	}
+	return convert.CalendarAccessFromGorm(calendarAccess), nil
+}
+
+func (repo *Client) FindDelegatedCircleCalendarAccess(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.CalendarId) (cmodel.CalendarAccess, cmodel.CircleAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	// SELECT * from calendar_access
+	// 	JOIN circle_access ON circle_access.circle_id = calendar_access.recipient_circle_id
+	// WHERE calendar_access.calendar_id = 1 AND circle_access.recipient_user_id = 1 LIMIT 1;
+
+	type Result struct {
+		dbModel.CalendarAccess
+		dbModel.CircleAccess
+	}
+	var result Result
+	res := repo.db.WithContext(ctx).
+		Select("calendar_access.*, circle_access.*, LEAST(calendar_access.permission_level, circle_access.permission_level) as effective_permission_level").
+		Table("calendar_access").
+		Joins("JOIN circle_access ON circle_access.circle_id = calendar_access.recipient_circle_id").
+		Where("calendar_access.calendar_id = ? AND circle_access.recipient_user_id = ?", id.CalendarId, authAccount.AuthUserId).
+		Order("effective_permission_level DESC").
+		First(&result)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Warn().Err(res.Error).Msg("delegated circle calendar access not found")
+			return cmodel.CalendarAccess{}, cmodel.CircleAccess{}, repository.ErrNotFound{}
+		}
+		log.Error().Err(res.Error).Msg("unable to find delegated circle calendar access")
+		return cmodel.CalendarAccess{}, cmodel.CircleAccess{}, res.Error
+	}
+	return convert.CalendarAccessFromGorm(result.CalendarAccess), convert.CircleAccessToCoreCircleAccess(result.CircleAccess), nil
+}
+
+func (repo *Client) FindDelegatedUserCalendarAccess(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.CalendarId) (cmodel.CalendarAccess, cmodel.UserAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	// SELECT * from calendar_access
+	// 	JOIN user_access ON user_access.user_id = calendar_access.recipient_user_id
+	// WHERE calendar_access.calendar_id = ? AND user_access.recipient_user_id = ? LIMIT 1;
+
+	type Result struct {
+		dbModel.CalendarAccess
+		dbModel.UserAccess
+	}
+	var result Result
+
+	res := repo.db.WithContext(ctx).
+		Select("calendar_access.*, user_access.*").
+		Table("calendar_access").
+		Joins("JOIN user_access ON user_access.user_id = calendar_access.recipient_user_id").
+		Where("calendar_access.calendar_id = ? AND user_access.recipient_user_id = ?", id.CalendarId, authAccount.AuthUserId).
+		First(&result)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Warn().Err(res.Error).Msg("delegated user calendar access not found")
+			return cmodel.CalendarAccess{}, cmodel.UserAccess{}, repository.ErrNotFound{}
+		}
+		log.Error().Err(res.Error).Msg("unable to find delegated user calendar access")
+		return cmodel.CalendarAccess{}, cmodel.UserAccess{}, res.Error
+	}
+	return convert.CalendarAccessFromGorm(result.CalendarAccess), convert.UserAccessToCoreUserAccess(result.UserAccess), nil
 }

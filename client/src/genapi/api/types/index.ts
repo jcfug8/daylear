@@ -2,6 +2,14 @@
 /* eslint-disable camelcase */
 // @ts-nocheck
 
+// The target of the accept action, or who can accept the access request
+export type AcceptTarget =
+  // Acceptance not required or not applicable
+  | "ACCEPT_TARGET_UNSPECIFIED"
+  // The recipient or someone with correct access to the recipient can accept the access request
+  | "ACCEPT_TARGET_RECIPIENT"
+  // The resource owner or someone with correct access to the resource can accept the access request
+  | "ACCEPT_TARGET_RESOURCE";
 // the visibility levels
 export type AccessState =
   // This status should never get used.

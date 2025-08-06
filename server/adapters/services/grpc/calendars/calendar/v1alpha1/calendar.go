@@ -18,6 +18,15 @@ var (
 	calendarDefaultPageSize int32 = 100
 )
 
+var calendarFieldMap = map[string][]string{
+	"name":        {model.CalendarField_Parent, model.CalendarField_CalendarId},
+	"title":       {model.CalendarField_Title},
+	"description": {model.CalendarField_Description},
+	"visibility":  {model.CalendarField_Visibility},
+
+	"calendar_access": {model.CalendarField_CalendarAccess},
+}
+
 // CreateCalendar creates a new calendar
 func (s *CalendarService) CreateCalendar(ctx context.Context, request *pb.CreateCalendarRequest) (response *pb.Calendar, err error) {
 	log := logutil.EnrichLoggerWithContext(s.log, ctx)
@@ -122,7 +131,7 @@ func (s *CalendarService) GetCalendar(ctx context.Context, request *pb.GetCalend
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	mCalendar, err = s.domain.GetCalendar(ctx, authAccount, mCalendar.Parent, mCalendar.CalendarId)
+	mCalendar, err = s.domain.GetCalendar(ctx, authAccount, mCalendar.Parent, mCalendar.CalendarId, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.GetCalendar failed")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -251,4 +260,55 @@ func (s *CalendarService) ListCalendars(ctx context.Context, request *pb.ListCal
 
 	log.Info().Msg("gRPC ListCalendars returning successfully")
 	return response, nil
+}
+
+// ProtoToCalendar converts a proto Calendar to a model Calendar
+func (s *CalendarService) ProtoToCalendar(proto *pb.Calendar) (nameIndex int, calendar model.Calendar, err error) {
+	calendar = model.Calendar{
+		Title:           proto.GetTitle(),
+		Description:     proto.GetDescription(),
+		VisibilityLevel: proto.GetVisibility(),
+	}
+
+	// Parse parent from name if provided
+	if proto.GetName() != "" {
+		nameIndex, err = s.calendarNamer.Parse(proto.GetName(), &calendar)
+		if err != nil {
+			return 0, model.Calendar{}, err
+		}
+	}
+
+	return nameIndex, calendar, nil
+}
+
+// CalendarToProto converts a model Calendar to a proto Calendar
+func (s *CalendarService) CalendarToProto(calendar model.Calendar, options ...namer.FormatReflectNamerOption) (*pb.Calendar, error) {
+	proto := &pb.Calendar{
+		Title:       calendar.Title,
+		Description: calendar.Description,
+		Visibility:  calendar.VisibilityLevel,
+	}
+
+	// Generate name
+	if calendar.CalendarId.CalendarId != 0 {
+		name, err := s.calendarNamer.Format(calendar, options...)
+		if err != nil {
+			return nil, err
+		}
+		proto.Name = name
+	}
+
+	// Add calendar access data if available
+	if calendar.CalendarAccess.CalendarAccessId.CalendarAccessId != 0 {
+		name, err := s.calendarAccessNamer.Format(calendar.CalendarAccess)
+		if err == nil {
+			proto.CalendarAccess = &pb.Calendar_CalendarAccess{
+				Name:            name,
+				PermissionLevel: calendar.CalendarAccess.PermissionLevel,
+				State:           calendar.CalendarAccess.State,
+			}
+		}
+	}
+
+	return proto, nil
 }

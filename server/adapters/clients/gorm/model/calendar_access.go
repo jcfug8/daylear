@@ -1,59 +1,52 @@
 package model
 
 import (
+	"github.com/jcfug8/daylear/server/core/fieldmask"
+	cmodel "github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/filter"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
-// CalendarAccessFields defines the calendarAccess fields.
-var CalendarAccessFields = calendarAccessFields{
-	CalendarAccessId:  "calendar_access.calendar_access_id",
-	CalendarId:        "calendar_access.calendar_id",
-	RequesterUserId:   "calendar_access.requester_user_id",
-	RequesterCircleId: "calendar_access.requester_circle_id",
-	RecipientUserId:   "calendar_access.recipient_user_id",
-	RecipientCircleId: "calendar_access.recipient_circle_id",
-	PermissionLevel:   "calendar_access.permission_level",
-	State:             "calendar_access.state",
-}
+const (
+	CalendarAccessColumn_CalendarAccessId  = "calendar_access.calendar_access_id"
+	CalendarAccessColumn_CalendarId        = "calendar_access.calendar_id"
+	CalendarAccessColumn_RequesterUserId   = "calendar_access.requester_user_id"
+	CalendarAccessColumn_RequesterCircleId = "calendar_access.requester_circle_id"
+	CalendarAccessColumn_RecipientUserId   = "calendar_access.recipient_user_id"
+	CalendarAccessColumn_RecipientCircleId = "calendar_access.recipient_circle_id"
+	CalendarAccessColumn_PermissionLevel   = "calendar_access.permission_level"
+	CalendarAccessColumn_State             = "calendar_access.state"
+)
 
-type calendarAccessFields struct {
-	CalendarAccessId  string
-	CalendarId        string
-	RequesterUserId   string
-	RequesterCircleId string
-	RecipientUserId   string
-	RecipientCircleId string
-	PermissionLevel   string
-	State             string
-}
-
-// Map maps the calendarAccess fields to their corresponding model values.
-func (fields calendarAccessFields) Map(m CalendarAccess) map[string]any {
-	return map[string]any{
-		fields.CalendarAccessId:  m.CalendarAccessId,
-		fields.CalendarId:        m.CalendarId,
-		fields.RequesterUserId:   m.RequesterUserId,
-		fields.RequesterCircleId: m.RequesterCircleId,
-		fields.RecipientUserId:   m.RecipientUserId,
-		fields.RecipientCircleId: m.RecipientCircleId,
-		fields.PermissionLevel:   m.PermissionLevel,
-		fields.State:             m.State,
-	}
-}
-
-// Mask returns a FieldMask for the calendarAccess fields.
-func (fields calendarAccessFields) Mask() []string {
-	return []string{
-		fields.CalendarAccessId,
-		fields.CalendarId,
-		fields.RequesterUserId,
-		fields.RequesterCircleId,
-		fields.RecipientUserId,
-		fields.RecipientCircleId,
-		fields.PermissionLevel,
-		fields.State,
-	}
-}
+var CalendarAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
+	cmodel.CalendarAccessField_Parent:          {CalendarAccessColumn_CalendarId},
+	cmodel.CalendarAccessField_Id:              {CalendarAccessColumn_CalendarAccessId},
+	cmodel.CalendarAccessField_PermissionLevel: {CalendarAccessColumn_PermissionLevel},
+	cmodel.CalendarAccessField_State:           {CalendarAccessColumn_State},
+	cmodel.CalendarAccessField_Recipient: {
+		CalendarAccessColumn_RecipientUserId,
+		CalendarAccessColumn_RecipientCircleId,
+		UserFields.Username + " as recipient_username",
+		UserFields.GivenName + " as recipient_given_name",
+		UserFields.FamilyName + " as recipient_family_name",
+		CircleFields.Title + " as recipient_circle_title",
+		CircleFields.Handle + " as recipient_circle_handle",
+	},
+	cmodel.CalendarAccessField_Requester: {
+		CalendarAccessColumn_RequesterUserId,
+		CalendarAccessColumn_RequesterCircleId,
+	},
+})
+var UpdateCalendarAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
+	cmodel.CalendarAccessField_PermissionLevel: {CalendarAccessColumn_PermissionLevel},
+	cmodel.CalendarAccessField_State:           {CalendarAccessColumn_State},
+})
+var CalendarAccessSQLConverter = filter.NewSQLConverter(map[string]string{
+	"permission_level":    CalendarAccessColumn_PermissionLevel,
+	"state":               CalendarAccessColumn_State,
+	"recipient.user_id":   CalendarAccessColumn_RecipientUserId,
+	"recipient.circle_id": CalendarAccessColumn_RecipientCircleId,
+}, true)
 
 // CalendarAccess represents access control for a calendar
 type CalendarAccess struct {
@@ -65,6 +58,7 @@ type CalendarAccess struct {
 	RecipientCircleId int64                 `gorm:"not null;uniqueIndex:idx_calendar_id_recipient_circle_id,where:recipient_circle_id <> 0"`
 	PermissionLevel   types.PermissionLevel `gorm:"not null"`
 	State             types.AccessState     `gorm:"not null"`
+	AcceptTarget      types.AcceptTarget    `gorm:"not null"`
 
 	// Read-only fields from joins
 	RecipientUsername     string `gorm:"->;-:migration"` // read only from join

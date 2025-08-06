@@ -52,9 +52,9 @@ func (fields userAccessFields) Mask() []string {
 // UserAccess -
 type UserAccess struct {
 	UserAccessId    int64                 `gorm:"primaryKey;bigint;not null;<-:false"`
-	UserId          int64                 `gorm:"not null;index"`
+	UserId          int64                 `gorm:"not null;index;uniqueIndex:idx_user_access_user_recipient_unique,priority:1"`
 	RequesterUserId int64                 `gorm:"index"`
-	RecipientUserId int64                 `gorm:"not null;index"`
+	RecipientUserId int64                 `gorm:"not null;index;uniqueIndex:idx_user_access_user_recipient_unique,priority:2"`
 	PermissionLevel types.PermissionLevel `gorm:"not null"`
 	State           types.AccessState     `gorm:"not null"`
 
@@ -64,4 +64,13 @@ type UserAccess struct {
 // TableName -
 func (UserAccess) TableName() string {
 	return "user_access"
+}
+
+type UA struct {
+	UserAccess
+}
+
+// TableName -
+func (UA) TableName() string {
+	return "ua"
 }

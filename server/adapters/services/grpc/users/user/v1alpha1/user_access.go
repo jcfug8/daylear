@@ -231,8 +231,8 @@ func (s *UserService) AcceptAccess(ctx context.Context, request *pb.AcceptAccess
 // ProtoToUserAccess converts a proto Access to a model UserAccess
 func (s *UserService) ProtoToUserAccess(pbAccess *pb.Access) (model.UserAccess, error) {
 	mUserAccess := model.UserAccess{
-		Level: pbAccess.GetLevel(),
-		State: pbAccess.GetState(),
+		PermissionLevel: pbAccess.GetLevel(),
+		State:           pbAccess.GetState(),
 	}
 
 	if pbAccess.GetName() != "" {
@@ -262,7 +262,7 @@ func (s *UserService) ProtoToUserAccess(pbAccess *pb.Access) (model.UserAccess, 
 // UserAccessToProto converts a model UserAccess to a proto Access
 func (s *UserService) UserAccessToProto(mUserAccess model.UserAccess) (*pb.Access, error) {
 	pbAccess := &pb.Access{
-		Level: mUserAccess.Level,
+		Level: mUserAccess.PermissionLevel,
 		State: mUserAccess.State,
 	}
 

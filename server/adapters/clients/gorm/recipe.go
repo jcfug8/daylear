@@ -7,23 +7,19 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	"github.com/jcfug8/daylear/server/core/logutil"
-	"github.com/jcfug8/daylear/server/core/masks"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 	"github.com/jcfug8/daylear/server/ports/repository"
 	"gorm.io/gorm/clause"
 )
 
-// RecipeMap maps the core model fields to the database model fields for the unified Recipe model.
-var RecipeMap = map[string]string{
-	"permission": gmodel.RecipeAccessFields.PermissionLevel,
-	"visibility": gmodel.RecipeFields.VisibilityLevel,
-	"state":      gmodel.RecipeAccessFields.State,
-}
-
 // ListRecipes lists recipes.
-func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAccount, pageSize int32, offset int64, filter string) ([]cmodel.Recipe, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAccount, pageSize int32, offset int64, filter string, fields []string) ([]cmodel.Recipe, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Str("filter", filter).
+		Strs("fields", fields).
+		Int("pageSize", int(pageSize)).
+		Int64("offset", offset).Logger()
 	dbRecipes := []gmodel.Recipe{}
 
 	orders := []clause.OrderByColumn{{
@@ -32,33 +28,30 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 	}}
 
 	tx := repo.db.WithContext(ctx).
+		Select(gmodel.RecipeFieldMasker.Convert(fields)).
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(offset))
 
 	if authAccount.CircleId != 0 {
-		tx = tx.Select("recipe.*, ra.permission_level, ra.state, ra.recipe_access_id").
-			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ?", authAccount.CircleId).
+		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ?", authAccount.CircleId).
 			Joins("LEFT JOIN recipe_access as ra ON recipe.recipe_id = ra.recipe_id AND ra.recipient_user_id = ?", authAccount.AuthUserId).
-			Where("(recipe_access.recipient_circle_id = ? OR recipe.visibility_level = ?) AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?) ",
-				authAccount.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN)
+			Where("(recipe_access.recipient_circle_id = ? AND (recipe.visibility_level = ? OR ra.state = ?))",
+				authAccount.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.AccessState_ACCESS_STATE_ACCEPTED)
 	} else if authAccount.UserId != 0 {
-		tx = tx.Select("recipe.*, ra.permission_level, ra.state, ra.recipe_access_id").
-			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId).
+		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId).
 			Joins("LEFT JOIN recipe_access as ra ON recipe.recipe_id = ra.recipe_id AND ra.recipient_user_id = ?", authAccount.AuthUserId).
-			Where("(recipe_access.recipient_user_id = ? OR recipe.visibility_level = ?) AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?)",
-				authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN)
+			Where("(recipe.visibility_level = ? OR (recipe_access.recipient_user_id = ? AND ra.state = ?))",
+				types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.UserId, types.AccessState_ACCESS_STATE_ACCEPTED)
 	} else {
-		tx = tx.Select("recipe.*, recipe_access.permission_level, recipe_access.state, recipe_access.recipe_access_id").
-			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.AuthUserId).
-			Where("(recipe_access.recipient_user_id = ? OR recipe.visibility_level = ?) AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?)",
-				authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN)
+		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.AuthUserId).
+			Where("(recipe.visibility_level = ? OR recipe_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
 	}
 
-	conversion, err := repo.recipeSQLConverter.Convert(filter)
+	conversion, err := gmodel.RecipeSQLConverter.Convert(filter)
 	if err != nil {
-		log.Error().Err(err).Msg("invalid filter")
-		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
+		log.Error().Err(err).Msg("invalid filter string when listing recipe rows")
+		return nil, repository.ErrInvalidArgument{Msg: "invalid filter"}
 	}
 
 	if conversion.WhereClause != "" {
@@ -67,7 +60,7 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 
 	err = tx.Find(&dbRecipes).Error
 	if err != nil {
-		log.Error().Err(err).Msg("db.Find failed")
+		log.Error().Err(err).Msg("unable to list recipe rows")
 		return nil, ConvertGormError(err)
 	}
 
@@ -75,8 +68,8 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 	for i, m := range dbRecipes {
 		res[i], err = convert.RecipeToCoreModel(m)
 		if err != nil {
-			log.Error().Err(err).Msg("unable to read recipe")
-			return nil, fmt.Errorf("unable to read recipe: %v", err)
+			log.Error().Err(err).Msg("invalid recipe row when listing recipes")
+			return nil, repository.ErrInternal{Msg: "invalid recipe row when listing recipes"}
 		}
 	}
 
@@ -84,7 +77,7 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 }
 
 // CreateRecipe creates a new recipe.
-func (repo *Client) CreateRecipe(ctx context.Context, m cmodel.Recipe) (cmodel.Recipe, error) {
+func (repo *Client) CreateRecipe(ctx context.Context, m cmodel.Recipe, fields []string) (cmodel.Recipe, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	gm, err := convert.RecipeFromCoreModel(m)
 	if err != nil {
@@ -92,12 +85,8 @@ func (repo *Client) CreateRecipe(ctx context.Context, m cmodel.Recipe) (cmodel.R
 		return cmodel.Recipe{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid recipe: %v", err)}
 	}
 
-	recipeFields := masks.RemovePaths(
-		gmodel.RecipeFields.Mask(),
-	)
-
 	err = repo.db.
-		Select(recipeFields).
+		Select(gmodel.RecipeFieldMasker.Convert(fields)).
 		Clauses(clause.Returning{}).
 		Create(&gm).Error
 	if err != nil {
@@ -120,7 +109,7 @@ func (repo *Client) DeleteRecipe(ctx context.Context, authAccount cmodel.AuthAcc
 	gm := gmodel.Recipe{RecipeId: id.RecipeId}
 
 	err := repo.db.WithContext(ctx).
-		Select(gmodel.RecipeFields.Mask()).
+		Select(gmodel.RecipeFieldMasker.GetAll()).
 		Clauses(clause.Returning{}).
 		Delete(&gm).Error
 	if err != nil {
@@ -138,7 +127,7 @@ func (repo *Client) DeleteRecipe(ctx context.Context, authAccount cmodel.AuthAcc
 }
 
 // GetRecipe gets a recipe.
-func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.RecipeId) (cmodel.Recipe, error) {
+func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.RecipeId, fields []string) (cmodel.Recipe, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	gm := gmodel.Recipe{}
 
@@ -185,10 +174,8 @@ func (repo *Client) UpdateRecipe(ctx context.Context, authAccount cmodel.AuthAcc
 		return cmodel.Recipe{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("error reading recipe: %v", err)}
 	}
 
-	mask := masks.Map(fields, gmodel.RecipeMap)
-
 	err = repo.db.WithContext(ctx).
-		Select(mask).
+		Select(gmodel.RecipeFieldMasker.Convert(fields)).
 		Clauses(&clause.Returning{}).
 		Updates(&gm).Error
 	if err != nil {

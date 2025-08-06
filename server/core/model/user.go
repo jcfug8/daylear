@@ -4,6 +4,8 @@ import (
 	"github.com/jcfug8/daylear/server/core/masks"
 )
 
+var _ ResourceId = UserId{}
+
 // User defines the model for a user.
 type User struct {
 	Id         UserId
@@ -32,6 +34,9 @@ type User struct {
 type UserId struct {
 	UserId int64 `aip_pattern:"key=user,public_user"`
 }
+
+// isResourceId - implements the ResourceId interface.
+func (u UserId) isResourceId() {}
 
 type UserParent struct {
 	CircleId int64 `aip_pattern:"key=circle"`

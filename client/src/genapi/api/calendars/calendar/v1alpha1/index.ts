@@ -319,29 +319,41 @@ export type Access = {
   // the name of the requesting user
   //
   // Behaviors: OUTPUT_ONLY
-  requester: Access_Requester | undefined;
+  requester: Access_RequesterOrRecipient | undefined;
   // the name of the receiving user
   //
-  // Behaviors: REQUIRED
-  recipient: Access_User | undefined;
+  // Behaviors: REQUIRED, IMMUTABLE
+  recipient: Access_RequesterOrRecipient | undefined;
   // the permission level of the access
   //
   // Behaviors: REQUIRED
-  level: apitypes_PermissionLevel | undefined;
+  permissionLevel: apitypes_PermissionLevel | undefined;
   // the status of the access
   //
   // Behaviors: OUTPUT_ONLY
   state: apitypes_AccessState | undefined;
+  // the target of the accept action
+  //
+  // Behaviors: OUTPUT_ONLY
+  acceptTarget: apitypes_AcceptTarget | undefined;
 };
 
 // the requester of the access
-export type Access_Requester = {
+export type Access_RequesterOrRecipient = {
   // the name of the user
   user?: string;
   // the name of the calendar
   calendar?: string;
 };
 
+// The target of the accept action, or who can accept the access request
+export type apitypes_AcceptTarget =
+  // Acceptance not required or not applicable
+  | "ACCEPT_TARGET_UNSPECIFIED"
+  // The recipient or someone with correct access to the recipient can accept the access request
+  | "ACCEPT_TARGET_RECIPIENT"
+  // The resource owner or someone with correct access to the resource can accept the access request
+  | "ACCEPT_TARGET_RESOURCE";
 // user data
 export type Access_User = {
   // the name of the user

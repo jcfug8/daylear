@@ -23,17 +23,12 @@ func (d *Domain) CreateUserAccess(ctx context.Context, authAccount model.AuthAcc
 		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "recipient is required"}
 	}
 
-	if access.Level != types.PermissionLevel_PERMISSION_LEVEL_WRITE {
+	if access.PermissionLevel != types.PermissionLevel_PERMISSION_LEVEL_WRITE {
 		log.Warn().Msg("access level must be write")
 		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "access level must be write"}
 	}
 
 	authAccount.UserId = access.UserAccessParent.UserId.UserId
-	authAccount.PermissionLevel, err = d.getUserAccessLevels(ctx, authAccount)
-	if err != nil {
-		log.Error().Err(err).Msg("getUserAccessLevels failed")
-		return model.UserAccess{}, err
-	}
 
 	// Prepare both A and B accesses
 	user1 := authAccount.AuthUserId
@@ -41,14 +36,14 @@ func (d *Domain) CreateUserAccess(ctx context.Context, authAccount model.AuthAcc
 
 	userA := model.UserAccess{
 		UserAccessParent: model.UserAccessParent{UserId: model.UserId{UserId: user2}},
-		Level:            types.PermissionLevel_PERMISSION_LEVEL_WRITE,
+		PermissionLevel:  types.PermissionLevel_PERMISSION_LEVEL_WRITE,
 		State:            types.AccessState_ACCESS_STATE_PENDING,
 		Requester:        model.UserId{UserId: user1},
 		Recipient:        model.UserId{UserId: user1},
 	}
 	userB := model.UserAccess{
 		UserAccessParent: model.UserAccessParent{UserId: model.UserId{UserId: user1}},
-		Level:            types.PermissionLevel_PERMISSION_LEVEL_WRITE,
+		PermissionLevel:  types.PermissionLevel_PERMISSION_LEVEL_WRITE,
 		State:            types.AccessState_ACCESS_STATE_PENDING,
 		Requester:        model.UserId{UserId: user1},
 		Recipient:        model.UserId{UserId: user2},
@@ -160,14 +155,10 @@ func (d *Domain) ListUserAccesses(ctx context.Context, authAccount model.AuthAcc
 
 	if parent.UserId.UserId != 0 {
 		authAccount.UserId = parent.UserId.UserId
-		perm, err := d.getUserAccessLevels(ctx, authAccount)
+		_, err := d.determineUserAccess(ctx, authAccount, model.UserId{UserId: authAccount.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN))
 		if err != nil {
-			log.Error().Err(err).Msg("getUserAccessLevels failed")
+			log.Error().Err(err).Msg("unable to determine access when listing user accesses")
 			return nil, err
-		}
-		if perm < types.PermissionLevel_PERMISSION_LEVEL_ADMIN {
-			log.Warn().Msg("user does not have access to list accesses")
-			return nil, domain.ErrPermissionDenied{Msg: "user does not have access to list accesses"}
 		}
 	}
 

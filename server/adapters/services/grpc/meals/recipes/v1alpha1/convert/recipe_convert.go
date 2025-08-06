@@ -25,7 +25,7 @@ func ProtoToRecipe(RecipeNamer namer.ReflectNamer, proto *pb.Recipe) (int, model
 	recipe.Directions = ProtosToDirections(proto.Directions)
 	recipe.IngredientGroups = ProtosToIngredientGroups(proto.IngredientGroups)
 	recipe.ImageURI = proto.ImageUri
-	recipe.Visibility = proto.Visibility
+	recipe.VisibilityLevel = proto.Visibility
 	recipe.Citation = proto.Citation
 	if proto.CookDuration != nil {
 		recipe.CookDuration = proto.CookDuration.AsDuration()
@@ -67,7 +67,7 @@ func RecipeToProto(RecipeNamer namer.ReflectNamer, AccessNamer namer.ReflectName
 	proto.Directions = DirectionsToProtos(recipe.Directions)
 	proto.IngredientGroups = IngredientGroupsToProtos(recipe.IngredientGroups)
 	proto.ImageUri = recipe.ImageURI
-	proto.Visibility = recipe.Visibility
+	proto.Visibility = recipe.VisibilityLevel
 	proto.Citation = recipe.Citation
 	proto.CookDuration = durationpb.New(recipe.CookDuration)
 	proto.PrepDuration = durationpb.New(recipe.PrepDuration)

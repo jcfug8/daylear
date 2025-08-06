@@ -18,6 +18,14 @@ var (
 	accessDefaultPageSize int32 = 100
 )
 
+var recipeAccessFieldMap = map[string][]string{
+	"name":      {model.RecipeAccessField_Parent, model.RecipeAccessField_Id},
+	"level":     {model.RecipeAccessField_PermissionLevel},
+	"state":     {model.RecipeAccessField_State},
+	"requester": {model.RecipeAccessField_Requester},
+	"recipient": {model.RecipeAccessField_Recipient},
+}
+
 func (s *RecipeService) CreateAccess(ctx context.Context, request *pb.CreateAccessRequest) (*pb.Access, error) {
 	log := logutil.EnrichLoggerWithContext(s.log, ctx)
 	log.Info().Msg("gRPC CreateAccess called")

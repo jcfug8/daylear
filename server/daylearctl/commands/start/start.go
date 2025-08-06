@@ -13,11 +13,9 @@ import (
 	tokenClient "github.com/jcfug8/daylear/server/adapters/clients/jwt/token"
 	s3 "github.com/jcfug8/daylear/server/adapters/clients/s3"
 	grpcCalendarsV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/calendars/calendar/v1alpha1"
-	calendarsV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/services/grpc/calendars/calendar/v1alpha1/fieldmasker"
 	grpcCirclesV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1"
 	circlesV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1/fieldmasker"
 	grpcRecipesV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1"
-	recipesV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1/fieldmasker"
 	grpcUsersV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1"
 	usersV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1/fieldmasker"
 	oauth2 "github.com/jcfug8/daylear/server/adapters/services/http/auth/oauth2"
@@ -68,13 +66,11 @@ func start(opts ...fx.Option) error {
 		usersV1alpha1Masker.Module,
 		// recipes
 		grpcRecipesV1alpha1.Module,
-		recipesV1alpha1Masker.Module,
 		// circles
 		grpcCirclesV1alpha1.Module,
 		circlesV1alpha1Masker.Module,
 		// calendars
 		grpcCalendarsV1alpha1.Module,
-		calendarsV1alpha1Masker.Module,
 
 		// driven/secondary adapters
 		gorm.Module,

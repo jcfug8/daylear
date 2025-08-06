@@ -5,6 +5,8 @@ import (
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
+var _ ResourceId = CircleId{}
+
 // Circle defines the model for a circle.
 type Circle struct {
 	Id              CircleId
@@ -20,6 +22,10 @@ type Circle struct {
 // CircleId defines the identifier for a circle.
 type CircleId struct {
 	CircleId int64 `aip_pattern:"key=circle"`
+}
+
+// isResourceId - implements the ResourceId interface.
+func (c CircleId) isResourceId() {
 }
 
 type CircleParent struct {

@@ -19,6 +19,30 @@ var (
 	recipeDefaultPageSize int32 = 100
 )
 
+var recipeFieldMap = map[string][]string{
+	"name":              {model.RecipeField_Parent, model.RecipeField_Id},
+	"title":             {model.RecipeField_Title},
+	"description":       {model.RecipeField_Description},
+	"directions":        {model.RecipeField_Directions},
+	"ingredient_groups": {model.RecipeField_IngredientGroups},
+	"image_uri":         {model.RecipeField_ImageURI},
+	"visibility":        {model.RecipeField_VisibilityLevel},
+	"citation":          {model.RecipeField_Citation},
+	"cook_duration":     {model.RecipeField_CookDurationSeconds},
+	"prep_duration":     {model.RecipeField_PrepDurationSeconds},
+	"total_duration":    {model.RecipeField_TotalDurationSeconds},
+	"cooking_method":    {model.RecipeField_CookingMethod},
+	"categories":        {model.RecipeField_Categories},
+	"yield_amount":      {model.RecipeField_YieldAmount},
+	"cuisines":          {model.RecipeField_Cuisines},
+	"create_time":       {model.RecipeField_CreateTime},
+	"update_time":       {model.RecipeField_UpdateTime},
+
+	"recipe_access.name":             {model.RecipeField_RecipeAccess},
+	"recipe_access.permission_level": {model.RecipeAccessField_PermissionLevel},
+	"recipe_access.state":            {model.RecipeAccessField_State},
+}
+
 // CreateRecipe -
 func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateRecipeRequest) (response *pb.Recipe, err error) {
 	log := logutil.EnrichLoggerWithContext(s.log, ctx)
@@ -121,7 +145,7 @@ func (s *RecipeService) GetRecipe(ctx context.Context, request *pb.GetRecipeRequ
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	mRecipe, err = s.domain.GetRecipe(ctx, authAccount, mRecipe.Parent, mRecipe.Id)
+	mRecipe, err = s.domain.GetRecipe(ctx, authAccount, mRecipe.Parent, mRecipe.Id, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.GetRecipe failed")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -200,7 +224,7 @@ func (s *RecipeService) ListRecipes(ctx context.Context, request *pb.ListRecipes
 	}
 	request.PageSize = pageSize
 
-	res, err := s.domain.ListRecipes(ctx, authAccount, mRecipeParent, request.GetPageSize(), pageToken.Offset, request.GetFilter())
+	res, err := s.domain.ListRecipes(ctx, authAccount, mRecipeParent, request.GetPageSize(), pageToken.Offset, request.GetFilter(), nil)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.ListRecipes failed")
 		return nil, status.Error(codes.Internal, err.Error())

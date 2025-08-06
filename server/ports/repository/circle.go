@@ -14,6 +14,10 @@ type circleClient interface {
 	ListCircles(ctx context.Context, authAccount model.AuthAccount, pageSize int32, offset int64, filter string, fieldMask []string) ([]model.Circle, error)
 	UpdateCircle(ctx context.Context, authAccount model.AuthAccount, circle model.Circle, updateMask []string) (model.Circle, error)
 
+	FindStandardUserCircleAccess(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (model.CircleAccess, error)
+	FindDelegatedCircleCircleAccess(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (model.CircleAccess, model.CircleAccess, error)
+	FindDelegatedUserCircleAccess(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (model.CircleAccess, model.UserAccess, error)
+
 	CreateCircleAccess(ctx context.Context, access model.CircleAccess) (model.CircleAccess, error)
 	DeleteCircleAccess(ctx context.Context, parent model.CircleAccessParent, id model.CircleAccessId) error
 	BulkDeleteCircleAccess(ctx context.Context, parent model.CircleAccessParent) error

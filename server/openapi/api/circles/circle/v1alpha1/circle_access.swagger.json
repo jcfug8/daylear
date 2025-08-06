@@ -58,7 +58,7 @@
               "type": "object",
               "properties": {
                 "requester": {
-                  "$ref": "#/definitions/circlescirclev1alpha1AccessRequester",
+                  "$ref": "#/definitions/AccessRequester",
                   "title": "the name of the requesting user",
                   "readOnly": true
                 },
@@ -301,6 +301,20 @@
     }
   },
   "definitions": {
+    "AccessRequester": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "type": "string",
+          "title": "the name of the user"
+        },
+        "circle": {
+          "type": "string",
+          "title": "the name of the circle"
+        }
+      },
+      "title": "the requester of the access"
+    },
     "circlescirclev1alpha1Access": {
       "type": "object",
       "properties": {
@@ -309,7 +323,7 @@
           "title": "The name of the access"
         },
         "requester": {
-          "$ref": "#/definitions/circlescirclev1alpha1AccessRequester",
+          "$ref": "#/definitions/AccessRequester",
           "title": "the name of the requesting user",
           "readOnly": true
         },
@@ -332,20 +346,6 @@
         "recipient",
         "level"
       ]
-    },
-    "circlescirclev1alpha1AccessRequester": {
-      "type": "object",
-      "properties": {
-        "user": {
-          "type": "string",
-          "title": "the name of the user"
-        },
-        "circle": {
-          "type": "string",
-          "title": "the name of the circle"
-        }
-      },
-      "title": "the requester of the access"
     },
     "circlescirclev1alpha1AccessUser": {
       "type": "object",

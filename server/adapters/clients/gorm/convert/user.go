@@ -56,8 +56,8 @@ func UserToCoreModel(m gmodel.User) (cmodel.User, error) {
 					UserId: m.UserId,
 				},
 			},
-			Level: m.PermissionLevel,
-			State: m.State,
+			PermissionLevel: m.PermissionLevel,
+			State:           m.State,
 			Requester: cmodel.UserId{
 				UserId: m.RequesterUserId,
 			},
