@@ -41,7 +41,7 @@ func (repo *Client) CreateCircleAccess(ctx context.Context, access model.CircleA
 			return model.CircleAccess{}, repository.ErrNewAlreadyExists{}
 		}
 		log.Error().Err(res.Error).Msg("unable to create circle access row")
-		return model.CircleAccess{}, res.Error
+		return model.CircleAccess{}, ConvertGormError(res.Error)
 	}
 
 	access.CircleAccessId.CircleAccessId = circleAccess.CircleAccessId
@@ -123,7 +123,7 @@ func (repo *Client) GetCircleAccess(ctx context.Context, parent model.CircleAcce
 			return model.CircleAccess{}, repository.ErrNotFound{}
 		}
 		log.Error().Err(res.Error).Msg("unable to get circle access row")
-		return model.CircleAccess{}, res.Error
+		return model.CircleAccess{}, ConvertGormError(res.Error)
 	}
 
 	return convert.CircleAccessToCoreCircleAccess(circleAccess), nil
@@ -172,12 +172,12 @@ func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.A
 		authAccount.AuthUserId, authAccount.AuthUserId, types.PermissionLevel_PERMISSION_LEVEL_WRITE,
 	)
 
-	err = tx.Limit(int(pageSize)).
+	res := tx.Limit(int(pageSize)).
 		Offset(int(pageOffset)).
-		Find(&circleAccesses).Error
-	if err != nil {
-		log.Error().Err(err).Msg("unable to list circle access rows")
-		return nil, ConvertGormError(err)
+		Find(&circleAccesses)
+	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("unable to list circle access rows")
+		return nil, ConvertGormError(res.Error)
 	}
 
 	accesses := make([]model.CircleAccess, len(circleAccesses))
@@ -196,14 +196,14 @@ func (repo *Client) UpdateCircleAccess(ctx context.Context, access model.CircleA
 
 	dbAccess := convert.CoreCircleAccessToCircleAccess(access)
 
-	err := repo.db.WithContext(ctx).
+	res := repo.db.WithContext(ctx).
 		Select(dbModel.UpdateCircleAccessFieldMasker.Convert(fields)).
 		Clauses(&clause.Returning{}).
 		Where("circle_access_id = ?", access.CircleAccessId.CircleAccessId).
-		Updates(&dbAccess).Error
-	if err != nil {
-		log.Error().Err(err).Msg("unable to update circle access row")
-		return model.CircleAccess{}, ConvertGormError(err)
+		Updates(&dbAccess)
+	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("unable to update circle access row")
+		return model.CircleAccess{}, ConvertGormError(res.Error)
 	}
 
 	return convert.CircleAccessToCoreCircleAccess(dbAccess), nil

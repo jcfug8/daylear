@@ -69,7 +69,7 @@ func (repo *Client) DeleteCalendar(ctx context.Context, id cmodel.CalendarId) (c
 }
 
 // GetCalendar retrieves a calendar
-func (repo *Client) GetCalendar(ctx context.Context, id cmodel.CalendarId, fields []string) (cmodel.Calendar, error) {
+func (repo *Client) GetCalendar(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.CalendarId, fields []string) (cmodel.Calendar, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
 		Int64("calendarId", id.CalendarId).
 		Strs("fields", fields).
@@ -160,13 +160,13 @@ func (repo *Client) ListCalendars(ctx context.Context, authAccount cmodel.AuthAc
 }
 
 // UpdateCalendar updates a calendar
-func (repo *Client) UpdateCalendar(ctx context.Context, calendar cmodel.Calendar, fields []string) (cmodel.Calendar, error) {
+func (repo *Client) UpdateCalendar(ctx context.Context, authAccount cmodel.AuthAccount, m cmodel.Calendar, fields []string) (cmodel.Calendar, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
-		Int64("calendarId", calendar.CalendarId.CalendarId).
+		Int64("calendarId", m.CalendarId.CalendarId).
 		Strs("fields", fields).
 		Logger()
 
-	gm, err := convert.CalendarFromCoreModel(calendar)
+	gm, err := convert.CalendarFromCoreModel(m)
 	if err != nil {
 		log.Error().Err(err).Msg("invalid calendar when updating calendar row")
 		return cmodel.Calendar{}, repository.ErrInvalidArgument{Msg: "invalid calendar"}
@@ -181,7 +181,7 @@ func (repo *Client) UpdateCalendar(ctx context.Context, calendar cmodel.Calendar
 		return cmodel.Calendar{}, ConvertGormError(err)
 	}
 
-	m, err := convert.CalendarToCoreModel(gm)
+	m, err = convert.CalendarToCoreModel(gm)
 	if err != nil {
 		log.Error().Err(err).Msg("invalid calendar row when updating calendar")
 		return cmodel.Calendar{}, repository.ErrInternal{Msg: "invalid calendar row when updating calendar"}

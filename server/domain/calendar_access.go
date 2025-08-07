@@ -26,7 +26,7 @@ func (d *Domain) CreateCalendarAccess(ctx context.Context, authAccount model.Aut
 		UserId: authAccount.AuthUserId,
 	}
 
-	dbCalendar, err := d.repo.GetCalendar(ctx, model.CalendarId{CalendarId: access.CalendarAccessParent.CalendarId}, []string{model.CalendarField_Visibility})
+	dbCalendar, err := d.repo.GetCalendar(ctx, authAccount, model.CalendarId{CalendarId: access.CalendarAccessParent.CalendarId}, []string{model.CalendarField_Visibility})
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get calendar when creating a calendar access")
 		return model.CalendarAccess{}, err

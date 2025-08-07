@@ -123,7 +123,7 @@ func (repo *Client) GetCalendarAccess(ctx context.Context, parent cmodel.Calenda
 			return cmodel.CalendarAccess{}, repository.ErrNotFound{}
 		}
 		log.Error().Err(res.Error).Msg("unable to get calendar access row")
-		return cmodel.CalendarAccess{}, res.Error
+		return cmodel.CalendarAccess{}, ConvertGormError(res.Error)
 	}
 
 	return convert.CalendarAccessFromGorm(calendarAccess), nil
@@ -192,10 +192,10 @@ func (repo *Client) ListCalendarAccesses(ctx context.Context, authAccount cmodel
 		tx = tx.Where(conversion.WhereClause, conversion.Params...)
 	}
 
-	err = tx.Find(&calendarAccesses).Error
-	if err != nil {
-		log.Error().Err(err).Msg("unable to list calendar access rows")
-		return nil, ConvertGormError(err)
+	res := tx.Find(&calendarAccesses)
+	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("unable to list calendar access rows")
+		return nil, ConvertGormError(res.Error)
 	}
 
 	accesses := make([]cmodel.CalendarAccess, len(calendarAccesses))
@@ -215,14 +215,14 @@ func (repo *Client) UpdateCalendarAccess(ctx context.Context, access cmodel.Cale
 
 	dbAccess := convert.CalendarAccessToGorm(access)
 
-	err := repo.db.WithContext(ctx).
+	res := repo.db.WithContext(ctx).
 		Select(dbModel.UpdateCalendarAccessFieldMasker.Convert(fields)).
 		Clauses(&clause.Returning{}).
 		Where("calendar_access_id = ?", access.CalendarAccessId.CalendarAccessId).
-		Updates(&dbAccess).Error
-	if err != nil {
-		log.Error().Err(err).Msg("unable to update calendar access row")
-		return cmodel.CalendarAccess{}, ConvertGormError(err)
+		Updates(&dbAccess)
+	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("unable to update calendar access row")
+		return cmodel.CalendarAccess{}, ConvertGormError(res.Error)
 	}
 
 	return convert.CalendarAccessFromGorm(dbAccess), nil

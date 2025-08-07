@@ -146,7 +146,7 @@ func (d *Domain) GetCalendar(ctx context.Context, authAccount model.AuthAccount,
 		return model.Calendar{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	dbCalendar, err = d.repo.GetCalendar(ctx, id, fields)
+	dbCalendar, err = d.repo.GetCalendar(ctx, authAccount, id, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get calendar")
 		return model.Calendar{}, domain.ErrInternal{Msg: "unable to get calendar"}
@@ -223,7 +223,7 @@ func (d *Domain) UpdateCalendar(ctx context.Context, authAccount model.AuthAccou
 		return model.Calendar{}, err
 	}
 
-	dbCalendar, err = d.repo.UpdateCalendar(ctx, calendar, fields)
+	dbCalendar, err = d.repo.UpdateCalendar(ctx, authAccount, calendar, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to update calendar")
 		return model.Calendar{}, domain.ErrInternal{Msg: "unable to update calendar"}

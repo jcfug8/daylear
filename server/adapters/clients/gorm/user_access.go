@@ -34,7 +34,7 @@ func (repo *Client) CreateUserAccess(ctx context.Context, access model.UserAcces
 			return model.UserAccess{}, repository.ErrNewAlreadyExists{}
 		}
 		log.Error().Err(res.Error).Msg("unable to create user access row")
-		return model.UserAccess{}, res.Error
+		return model.UserAccess{}, ConvertGormError(res.Error)
 	}
 
 	access.UserAccessId.UserAccessId = userAccess.UserAccessId
@@ -97,7 +97,7 @@ func (repo *Client) GetUserAccess(ctx context.Context, parent model.UserAccessPa
 			return model.UserAccess{}, repository.ErrNotFound{}
 		}
 		log.Error().Err(res.Error).Msg("unable to get user access row")
-		return model.UserAccess{}, res.Error
+		return model.UserAccess{}, ConvertGormError(res.Error)
 	}
 
 	return convert.UserAccessToCoreUserAccess(userAccess), nil
@@ -135,10 +135,10 @@ func (repo *Client) ListUserAccesses(ctx context.Context, authAccount cmodel.Aut
 		tx = tx.Where("user_access.user_id = ?", parent.UserId.UserId)
 	}
 
-	err := tx.Find(&userAccesses).Error
-	if err != nil {
-		log.Error().Err(err).Msg("unable to list user access rows")
-		return nil, ConvertGormError(err)
+	res := tx.Find(&userAccesses)
+	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("unable to list user access rows")
+		return nil, ConvertGormError(res.Error)
 	}
 
 	accesses := make([]model.UserAccess, len(userAccesses))
@@ -157,14 +157,14 @@ func (repo *Client) UpdateUserAccess(ctx context.Context, access model.UserAcces
 
 	dbAccess := convert.CoreUserAccessToUserAccess(access)
 
-	err := repo.db.WithContext(ctx).
+	res := repo.db.WithContext(ctx).
 		Select(dbModel.UpdateUserAccessFieldMasker.Convert(fields)).
 		Clauses(&clause.Returning{}).
 		Where("user_access_id = ?", access.UserAccessId.UserAccessId).
-		Updates(&dbAccess).Error
-	if err != nil {
-		log.Error().Err(err).Msg("unable to update user access row")
-		return model.UserAccess{}, ConvertGormError(err)
+		Updates(&dbAccess)
+	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("unable to update user access row")
+		return model.UserAccess{}, ConvertGormError(res.Error)
 	}
 
 	return convert.UserAccessToCoreUserAccess(dbAccess), nil

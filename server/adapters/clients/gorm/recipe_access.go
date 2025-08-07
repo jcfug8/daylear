@@ -40,7 +40,7 @@ func (repo *Client) CreateRecipeAccess(ctx context.Context, access model.RecipeA
 			return model.RecipeAccess{}, repository.ErrNewAlreadyExists{}
 		}
 		log.Error().Err(res.Error).Msg("unable to create recipe access row")
-		return model.RecipeAccess{}, res.Error
+		return model.RecipeAccess{}, ConvertGormError(res.Error)
 	}
 
 	access.RecipeAccessId.RecipeAccessId = recipeAccess.RecipeAccessId
@@ -126,7 +126,7 @@ func (repo *Client) GetRecipeAccess(ctx context.Context, parent model.RecipeAcce
 			return model.RecipeAccess{}, repository.ErrNotFound{}
 		}
 		log.Error().Err(res.Error).Msg("unable to get recipe access row")
-		return model.RecipeAccess{}, res.Error
+		return model.RecipeAccess{}, ConvertGormError(res.Error)
 	}
 
 	return convert.RecipeAccessToCoreRecipeAccess(recipeAccess), nil
@@ -190,12 +190,12 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 		tx = tx.Where(conversion.WhereClause, conversion.Params...)
 	}
 
-	err = tx.Limit(int(pageSize)).
+	res := tx.Limit(int(pageSize)).
 		Offset(int(pageOffset)).
-		Find(&recipeAccesses).Error
-	if err != nil {
-		log.Error().Err(err).Msg("unable to list recipe access rows")
-		return nil, ConvertGormError(err)
+		Find(&recipeAccesses)
+	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("unable to list recipe access rows")
+		return nil, ConvertGormError(res.Error)
 	}
 
 	accesses := make([]model.RecipeAccess, len(recipeAccesses))
@@ -214,14 +214,14 @@ func (repo *Client) UpdateRecipeAccess(ctx context.Context, access model.RecipeA
 
 	dbAccess := convert.CoreRecipeAccessToRecipeAccess(access)
 
-	err := repo.db.WithContext(ctx).
+	res := repo.db.WithContext(ctx).
 		Select(dbModel.UpdateRecipeAccessFieldMasker.Convert(fields)).
 		Clauses(&clause.Returning{}).
 		Where("recipe_access_id = ?", access.RecipeAccessId.RecipeAccessId).
-		Updates(&dbAccess).Error
-	if err != nil {
-		log.Error().Err(err).Msg("unable to update recipe access row")
-		return model.RecipeAccess{}, ConvertGormError(err)
+		Updates(&dbAccess)
+	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("unable to update recipe access row")
+		return model.RecipeAccess{}, ConvertGormError(res.Error)
 	}
 
 	return convert.RecipeAccessToCoreRecipeAccess(dbAccess), nil
