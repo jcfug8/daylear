@@ -25,7 +25,7 @@ func (repo *Client) CreateCalendar(ctx context.Context, m cmodel.Calendar, field
 	}
 
 	err = repo.db.
-		Select(gmodel.CalendarAccessFieldMasker.Convert(fields)).
+		Select(gmodel.CalendarFieldMasker.Convert(fields)).
 		Clauses(clause.Returning{}).
 		Create(&gm).Error
 	if err != nil {
@@ -51,7 +51,7 @@ func (repo *Client) DeleteCalendar(ctx context.Context, id cmodel.CalendarId) (c
 	gm := gmodel.Calendar{CalendarId: id.CalendarId}
 
 	err := repo.db.WithContext(ctx).
-		Select(gmodel.CalendarAccessFieldMasker.GetAll()).
+		Select(gmodel.CalendarFieldMasker.GetAll()).
 		Clauses(clause.Returning{}).
 		Delete(&gm).Error
 	if err != nil {

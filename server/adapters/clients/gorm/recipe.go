@@ -144,23 +144,8 @@ func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccoun
 	gm := gmodel.Recipe{}
 
 	tx := repo.db.WithContext(ctx).
+		Select(gmodel.RecipeFieldMasker.Convert(fields)).
 		Where("recipe.recipe_id = ?", id.RecipeId)
-
-	if authAccount.CircleId != 0 {
-		tx = tx.Select("recipe.*, ra.permission_level, ra.state, ra.recipe_access_id").
-			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ?", authAccount.CircleId).
-			Joins("LEFT JOIN recipe_access as ra ON recipe.recipe_id = ra.recipe_id AND ra.recipient_user_id = ?", authAccount.AuthUserId).
-			Where("(recipe.visibility_level = ? OR recipe_access.recipient_circle_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.CircleId)
-	} else if authAccount.UserId != 0 {
-		tx = tx.Select("recipe.*, ra.permission_level, ra.state, ra.recipe_access_id").
-			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId).
-			Joins("LEFT JOIN recipe_access as ra ON recipe.recipe_id = ra.recipe_id AND ra.recipient_user_id = ?", authAccount.AuthUserId).
-			Where("(recipe.visibility_level = ? OR recipe_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.UserId)
-	} else {
-		tx = tx.Select("recipe.*, recipe_access.permission_level, recipe_access.state, recipe_access.recipe_access_id").
-			Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.AuthUserId).
-			Where("(recipe.visibility_level = ? OR recipe_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
-	}
 
 	err := tx.First(&gm).Error
 	if err != nil {

@@ -53,7 +53,6 @@ func (repo *Client) GetUser(ctx context.Context, authAccount cmodel.AuthAccount,
 
 	err := repo.db.WithContext(ctx).
 		Select(gmodel.UserFieldMasker.Convert(fields)).
-		Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?", authAccount.AuthUserId).
 		Where("daylear_user.user_id = ?", id.UserId).
 		First(&gm).Error
 	if err != nil {

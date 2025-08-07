@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"slices"
+
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	"github.com/jcfug8/daylear/server/core/logutil"
@@ -77,11 +79,17 @@ func (repo *Client) GetUserAccess(ctx context.Context, parent model.UserAccessPa
 		Strs("fields", fields).
 		Logger()
 
+	fields = dbModel.UserAccessFieldMasker.Convert(fields)
+
 	var userAccess dbModel.UserAccess
-	res := repo.db.WithContext(ctx).
-		Select(dbModel.UserAccessFieldMasker.Convert(fields)).
-		Joins("LEFT JOIN daylear_user ON user_access.recipient_user_id = daylear_user.user_id").
-		Where("user_access.user_id = ? AND user_access.user_access_id = ?", parent.UserId.UserId, id.UserAccessId).
+	tx := repo.db.WithContext(ctx).
+		Select(fields)
+
+	if slices.Contains(fields, dbModel.UserColumn_Username) || slices.Contains(fields, dbModel.UserColumn_GivenName) || slices.Contains(fields, dbModel.UserColumn_FamilyName) {
+		tx = tx.Joins("LEFT JOIN daylear_user ON user_access.recipient_user_id = daylear_user.user_id")
+	}
+
+	res := tx.Where("user_access.user_id = ? AND user_access.user_access_id = ?", parent.UserId.UserId, id.UserAccessId).
 		First(&userAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
@@ -104,6 +112,8 @@ func (repo *Client) ListUserAccesses(ctx context.Context, authAccount cmodel.Aut
 		Int64("pageOffset", pageOffset).
 		Logger()
 
+	fields = dbModel.UserAccessFieldMasker.Convert(fields)
+
 	orders := []clause.OrderByColumn{{
 		Column: clause.Column{Name: "user_access.user_access_id"},
 		Desc:   true,
@@ -111,11 +121,14 @@ func (repo *Client) ListUserAccesses(ctx context.Context, authAccount cmodel.Aut
 
 	var userAccesses []dbModel.UserAccess
 	db := repo.db.WithContext(ctx).
-		Select(dbModel.UserAccessFieldMasker.Convert(fields)).
-		Joins("LEFT JOIN daylear_user ON user_access.recipient_user_id = daylear_user.user_id").
+		Select(fields).
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(pageOffset))
+
+	if slices.Contains(fields, dbModel.UserColumn_Username) || slices.Contains(fields, dbModel.UserColumn_GivenName) || slices.Contains(fields, dbModel.UserColumn_FamilyName) {
+		db = db.Joins("LEFT JOIN daylear_user ON user_access.recipient_user_id = daylear_user.user_id")
+	}
 
 	// Filter by user ID if provided
 	if parent.UserId.UserId != 0 {
