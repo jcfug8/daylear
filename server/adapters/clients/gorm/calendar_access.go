@@ -116,7 +116,7 @@ func (c *Client) GetCalendarAccess(ctx context.Context, parent cmodel.CalendarAc
 
 	var calendarAccess dbModel.CalendarAccess
 	tx := db.Select(fields)
-	if slices.Contains(fields, dbModel.UserFields.Username) || slices.Contains(fields, dbModel.UserFields.GivenName) || slices.Contains(fields, dbModel.UserFields.FamilyName) {
+	if slices.Contains(fields, dbModel.UserColumn_Username) || slices.Contains(fields, dbModel.UserColumn_GivenName) || slices.Contains(fields, dbModel.UserColumn_FamilyName) {
 		tx = tx.Joins(`LEFT JOIN daylear_user ON calendar_access.recipient_user_id = daylear_user.user_id`)
 	}
 	if slices.Contains(fields, dbModel.CircleColumn_Title) || slices.Contains(fields, dbModel.CircleColumn_Handle) {
@@ -166,7 +166,7 @@ func (c *Client) ListCalendarAccesses(ctx context.Context, authAccount cmodel.Au
 		Limit(int(pageSize)).
 		Offset(int(pageOffset))
 
-	if slices.Contains(fields, dbModel.UserFields.Username) || slices.Contains(fields, dbModel.UserFields.GivenName) || slices.Contains(fields, dbModel.UserFields.FamilyName) {
+	if slices.Contains(fields, dbModel.UserColumn_Username) || slices.Contains(fields, dbModel.UserColumn_GivenName) || slices.Contains(fields, dbModel.UserColumn_FamilyName) {
 		tx = tx.Joins(`LEFT JOIN daylear_user ON calendar_access.recipient_user_id = daylear_user.user_id`)
 	}
 	if slices.Contains(fields, dbModel.CircleColumn_Title) || slices.Contains(fields, dbModel.CircleColumn_Handle) {

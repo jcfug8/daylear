@@ -29,9 +29,9 @@ var CircleAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
 	},
 	cmodel.CircleAccessField_Recipient: {
 		CircleAccessColumn_RecipientUserId,
-		UserFields.Username + " as recipient_username",
-		UserFields.GivenName + " as recipient_given_name",
-		UserFields.FamilyName + " as recipient_family_name",
+		UserColumn_Username + " as recipient_username",
+		UserColumn_GivenName + " as recipient_given_name",
+		UserColumn_FamilyName + " as recipient_family_name",
 	},
 })
 

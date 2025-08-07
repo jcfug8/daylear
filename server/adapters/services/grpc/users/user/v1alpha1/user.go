@@ -19,6 +19,17 @@ var (
 	userDefaultPageSize int32 = 100
 )
 
+var userFieldMap = map[string][]string{
+	"name":        {model.UserField_Parent, model.UserField_Id},
+	"username":    {model.UserField_Username},
+	"given_name":  {model.UserField_GivenName},
+	"family_name": {model.UserField_FamilyName},
+	"image_uri":   {model.UserField_ImageUri},
+	"bio":         {model.UserField_Bio},
+
+	"access": {model.UserField_AccessName, model.UserField_AccessPermissionLevel, model.UserField_AccessState},
+}
+
 // GetUser -
 func (s *UserService) GetUser(ctx context.Context, request *pb.GetUserRequest) (*pb.User, error) {
 	log := logutil.EnrichLoggerWithContext(s.log, ctx)
@@ -37,14 +48,7 @@ func (s *UserService) GetUser(ctx context.Context, request *pb.GetUserRequest) (
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	fieldMask := s.userFieldMasker.GetFieldMaskFromCtx(ctx)
-	readMask, err := s.userFieldMasker.GetReadMask(fieldMask)
-	if err != nil {
-		log.Warn().Err(err).Msg("invalid field mask")
-		return nil, status.Error(codes.InvalidArgument, "invalid field mask")
-	}
-
-	mUser, err = s.domain.GetUser(ctx, authAccount, mUser.Parent, mUser.Id, readMask)
+	mUser, err = s.domain.GetUser(ctx, authAccount, mUser.Parent, mUser.Id, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.GetUser failed")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -79,11 +83,7 @@ func (s *UserService) UpdateUser(ctx context.Context, request *pb.UpdateUserRequ
 	}
 
 	fieldMask := request.GetUpdateMask()
-	updateMask, err := s.userFieldMasker.GetWriteMask(fieldMask)
-	if err != nil {
-		log.Warn().Err(err).Msg("invalid field mask")
-		return nil, status.Error(codes.InvalidArgument, "invalid field mask")
-	}
+	updateMask := s.userFieldMasker.Convert(fieldMask.GetPaths())
 
 	mUser, err = convert.ProtoToUser(s.userNamer, s.accessNamer, userProto)
 	if err != nil {
@@ -117,13 +117,6 @@ func (s *UserService) ListUsers(ctx context.Context, request *pb.ListUsersReques
 		return nil, err
 	}
 
-	fieldMask := s.userFieldMasker.GetFieldMaskFromCtx(ctx)
-	readMask, err := s.userFieldMasker.GetReadMask(fieldMask)
-	if err != nil {
-		log.Warn().Err(err).Msg("invalid field mask")
-		return nil, status.Error(codes.InvalidArgument, "invalid field mask")
-	}
-
 	mUserParent := model.UserParent{}
 	_, err = s.userNamer.ParseParent(request.GetParent(), &mUserParent)
 	if err != nil {
@@ -141,7 +134,7 @@ func (s *UserService) ListUsers(ctx context.Context, request *pb.ListUsersReques
 	}
 	request.PageSize = pageSize
 
-	users, err := s.domain.ListUsers(ctx, authAccount, mUserParent, request.GetPageSize(), pageToken.Offset, request.GetFilter(), readMask)
+	users, err := s.domain.ListUsers(ctx, authAccount, mUserParent, request.GetPageSize(), pageToken.Offset, request.GetFilter(), nil)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.ListUsers failed")
 		return nil, status.Error(codes.Internal, err.Error())

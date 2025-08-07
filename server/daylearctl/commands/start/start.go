@@ -16,7 +16,6 @@ import (
 	grpcCirclesV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1"
 	grpcRecipesV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1"
 	grpcUsersV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1"
-	usersV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1/fieldmasker"
 	oauth2 "github.com/jcfug8/daylear/server/adapters/services/http/auth/oauth2"
 	tokenService "github.com/jcfug8/daylear/server/adapters/services/http/auth/token"
 	files "github.com/jcfug8/daylear/server/adapters/services/http/files"
@@ -62,7 +61,6 @@ func start(opts ...fx.Option) error {
 		openapi.Module,
 		// users
 		grpcUsersV1alpha1.Module,
-		usersV1alpha1Masker.Module,
 		// recipes
 		grpcRecipesV1alpha1.Module,
 		// circles

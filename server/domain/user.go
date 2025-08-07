@@ -24,14 +24,14 @@ func (d *Domain) IdentifyUser(ctx context.Context, user model.User) (model.User,
 	filter := ""
 	switch {
 	case user.AmazonId != "":
-		filter = fmt.Sprintf(`%s = "%s"`, model.UserFields.AmazonId, user.AmazonId)
+		filter = fmt.Sprintf(`%s = "%s"`, model.UserField_AmazonId, user.AmazonId)
 	case user.GoogleId != "":
-		filter = fmt.Sprintf(`%s = "%s"`, model.UserFields.GoogleId, user.GoogleId)
+		filter = fmt.Sprintf(`%s = "%s"`, model.UserField_GoogleId, user.GoogleId)
 	case user.FacebookId != "":
-		filter = fmt.Sprintf(`%s = "%s"`, model.UserFields.FacebookId, user.FacebookId)
+		filter = fmt.Sprintf(`%s = "%s"`, model.UserField_FacebookId, user.FacebookId)
 	}
 
-	users, err := d.repo.ListUsers(ctx, model.AuthAccount{}, 1, 0, filter, model.UserFields.Mask())
+	users, err := d.repo.ListUsers(ctx, model.AuthAccount{}, 1, 0, filter, nil)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -108,7 +108,7 @@ func (d *Domain) UpdateUser(ctx context.Context, authAccount model.AuthAccount, 
 }
 
 // GetUser gets a user.
-func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, parent model.UserParent, id model.UserId, fieldMask []string) (dbUser model.User, err error) {
+func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, parent model.UserParent, id model.UserId, fields []string) (dbUser model.User, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 
 	if id.UserId == 0 {
@@ -116,7 +116,7 @@ func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, par
 		return model.User{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	dbUser, err = d.repo.GetUser(ctx, authAccount, id)
+	dbUser, err = d.repo.GetUser(ctx, authAccount, id, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.GetUser failed")
 		return model.User{}, err
@@ -126,7 +126,7 @@ func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, par
 }
 
 // GetOwnUser gets the current user.
-func (d *Domain) GetOwnUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId, fieldMask []string) (model.User, error) {
+func (d *Domain) GetOwnUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId, fields []string) (model.User, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 
 	if id.UserId != authAccount.AuthUserId {
@@ -134,7 +134,7 @@ func (d *Domain) GetOwnUser(ctx context.Context, authAccount model.AuthAccount, 
 		return model.User{}, domain.ErrInvalidArgument{Msg: "id does not match auth account"}
 	}
 
-	dbUser, err := d.repo.GetUser(ctx, authAccount, id)
+	dbUser, err := d.repo.GetUser(ctx, authAccount, id, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.GetUser failed")
 		return model.User{}, err
@@ -163,7 +163,7 @@ func (d *Domain) CreateUser(ctx context.Context, user model.User) (model.User, e
 		user.Username = username
 	}
 
-	dbUser, err := d.repo.CreateUser(ctx, user)
+	dbUser, err := d.repo.CreateUser(ctx, user, nil)
 	if err != nil {
 		d.log.Error().Err(err).Msg("failed to create user")
 		return model.User{}, domain.ErrInternal{Msg: "failed to create user"}
@@ -218,7 +218,7 @@ func (d *Domain) UploadUserImage(ctx context.Context, authAccount model.AuthAcco
 		return "", err
 	}
 
-	user, err := d.repo.GetUser(ctx, authAccount, id)
+	user, err := d.repo.GetUser(ctx, authAccount, id, []string{model.UserField_ImageUri})
 	if err != nil {
 		return "", err
 	}
@@ -231,7 +231,7 @@ func (d *Domain) UploadUserImage(ctx context.Context, authAccount model.AuthAcco
 	_, err = d.repo.UpdateUser(ctx, authAccount, model.User{
 		Id:       id,
 		ImageUri: imageURI,
-	}, []string{model.UserFields.ImageUri})
+	}, []string{model.UserField_ImageUri})
 	if err != nil {
 		return "", err
 	}

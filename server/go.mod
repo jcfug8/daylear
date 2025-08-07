@@ -25,6 +25,7 @@ require (
 	go.einride.tech/aip v0.68.1
 	go.uber.org/fx v1.23.0
 	golang.org/x/oauth2 v0.24.0
+	golang.org/x/text v0.24.0
 	google.golang.org/genai v1.15.0
 	google.golang.org/genproto v0.0.0-20240903143218-8af14fe29dc1
 	google.golang.org/genproto/googleapis/api v0.0.0-20241219192143-6b3ec007d9bb
@@ -80,7 +81,6 @@ require (
 	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241219192143-6b3ec007d9bb // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

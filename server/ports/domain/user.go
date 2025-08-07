@@ -14,15 +14,15 @@ type userDomain interface {
 	IdentifyUser(ctx context.Context, user model.User) (model.User, error)
 
 	DeleteUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.User, error)
-	GetUser(ctx context.Context, authAccount model.AuthAccount, parent model.UserParent, id model.UserId, fieldMask []string) (model.User, error)
-	GetOwnUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId, fieldMask []string) (model.User, error)
-	ListUsers(ctx context.Context, authAccount model.AuthAccount, parent model.UserParent, pageSize int32, offset int64, filter string, fieldMask []string) ([]model.User, error)
-	UpdateUser(ctx context.Context, authAccount model.AuthAccount, user model.User, updateMask []string) (model.User, error)
+	GetUser(ctx context.Context, authAccount model.AuthAccount, parent model.UserParent, id model.UserId, fields []string) (model.User, error)
+	GetOwnUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId, fields []string) (model.User, error)
+	ListUsers(ctx context.Context, authAccount model.AuthAccount, parent model.UserParent, pageSize int32, offset int64, filter string, fields []string) ([]model.User, error)
+	UpdateUser(ctx context.Context, authAccount model.AuthAccount, user model.User, fields []string) (model.User, error)
 
 	CreateUserAccess(ctx context.Context, authAccount model.AuthAccount, access model.UserAccess) (model.UserAccess, error)
 	DeleteUserAccess(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, id model.UserAccessId) error
-	GetUserAccess(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, id model.UserAccessId) (model.UserAccess, error)
-	ListUserAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, pageSize int32, pageOffset int64, filter string) ([]model.UserAccess, error)
+	GetUserAccess(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, id model.UserAccessId, fields []string) (model.UserAccess, error)
+	ListUserAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, pageSize int32, pageOffset int64, filter string, fields []string) ([]model.UserAccess, error)
 	AcceptUserAccess(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, id model.UserAccessId) (model.UserAccess, error)
 
 	// UploadUserImage uploads a user image and returns the image URI

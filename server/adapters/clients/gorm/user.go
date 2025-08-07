@@ -7,32 +7,13 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	"github.com/jcfug8/daylear/server/core/logutil"
-	"github.com/jcfug8/daylear/server/core/masks"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/ports/repository"
 	"gorm.io/gorm/clause"
 )
 
-var UserMap = map[string]string{
-	"google_id":   gmodel.UserFields.GoogleId,
-	"facebook_id": gmodel.UserFields.FacebookId,
-	"amazon_id":   gmodel.UserFields.AmazonId,
-	"permission":  gmodel.UserFields.Permission,
-	"state":       gmodel.UserFields.State,
-	"username":    gmodel.UserFields.Username,
-}
-
-var UserCircleMap = map[string]string{
-	"google_id":   gmodel.UserFields.GoogleId,
-	"facebook_id": gmodel.UserFields.FacebookId,
-	"amazon_id":   gmodel.UserFields.AmazonId,
-	"username":    gmodel.UserFields.Username,
-	"permission":  gmodel.UserFields.Permission,
-	"state":       gmodel.UserFields.State,
-}
-
 // CreateUser creates a new user.
-func (repo *Client) CreateUser(ctx context.Context, m cmodel.User) (cmodel.User, error) {
+func (repo *Client) CreateUser(ctx context.Context, m cmodel.User, fields []string) (cmodel.User, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	gm, err := convert.UserFromCoreModel(m)
 	if err != nil {
@@ -40,10 +21,8 @@ func (repo *Client) CreateUser(ctx context.Context, m cmodel.User) (cmodel.User,
 		return cmodel.User{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid user: %v", err)}
 	}
 
-	fields := masks.RemovePaths(gmodel.UserFields.Mask())
-
 	err = repo.db.WithContext(ctx).
-		Select(fields).
+		Select(gmodel.UserFieldMasker.Convert(fields)).
 		Clauses(clause.Returning{}).
 		Create(&gm).Error
 	if err != nil {
@@ -61,14 +40,14 @@ func (repo *Client) CreateUser(ctx context.Context, m cmodel.User) (cmodel.User,
 }
 
 // GetUser gets a user. TODO: the WHERE clause is not correct yet.
-func (repo *Client) GetUser(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.UserId) (cmodel.User, error) {
+func (repo *Client) GetUser(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.UserId, fields []string) (cmodel.User, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	log.Info().Msg("GORM GetUser called")
 
 	gm := gmodel.User{}
 
 	err := repo.db.WithContext(ctx).
-		Select("daylear_user.*", "user_access.permission_level", "user_access.state", "user_access.user_access_id", "user_access.requester_user_id").
+		Select(gmodel.UserFieldMasker.Convert(fields)).
 		Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?", authAccount.AuthUserId).
 		Where("daylear_user.user_id = ?", id.UserId).
 		First(&gm).Error
@@ -92,51 +71,31 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 	log.Info().Msg("GORM ListUsers called")
 	dbUsers := []gmodel.User{}
 
-	columns := []string{"daylear_user.*"}
-	joins := []string{}
-	joinParams := [][]any{}
 	orders := []clause.OrderByColumn{{
 		Column: clause.Column{Name: "user_id"},
 		Desc:   true,
 	}}
-	converter := repo.userSQLConverter
-
-	switch {
-	case authAccount.CircleId != 0:
-		converter = repo.userCircleSQLConverter
-		columns = append(columns, "circle_access.permission_level", "circle_access.state", "circle_access.circle_access_id", "circle_access.requester_user_id")
-
-		joins = append(joins, "LEFT JOIN circle_access ON daylear_user.user_id = circle_access.recipient_user_id AND circle_access.circle_id = ?")
-		joinParams = append(joinParams, []any{authAccount.CircleId})
-
-		joins = append(joins, "LEFT JOIN user_access as user_access_auth ON daylear_user.user_id = user_access_auth.user_id AND user_access_auth.recipient_user_id = ?")
-		joinParams = append(joinParams, []any{authAccount.AuthUserId})
-	case authAccount.AuthUserId != authAccount.UserId:
-		columns = append(columns, "user_access_auth.permission_level", "user_access_auth.state", "user_access_auth.user_access_id", "user_access_auth.requester_user_id")
-
-		joins = append(joins, "LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?")
-		joinParams = append(joinParams, []any{authAccount.UserId})
-
-		joins = append(joins, "LEFT JOIN user_access as user_access_auth ON daylear_user.user_id = user_access_auth.user_id AND user_access_auth.recipient_user_id = ?")
-		joinParams = append(joinParams, []any{authAccount.AuthUserId})
-	case authAccount.UserId == authAccount.AuthUserId && authAccount.AuthUserId != 0:
-		columns = append(columns, "user_access.permission_level", "user_access.state", "user_access.user_access_id", "user_access.requester_user_id")
-
-		joins = append(joins, "LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?")
-		joinParams = append(joinParams, []any{authAccount.UserId})
-	}
 
 	tx := repo.db.WithContext(ctx).
-		Select(columns).
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(pageOffset))
 
-	for i, join := range joins {
-		tx = tx.Joins(join, joinParams[i]...)
+	switch {
+	case authAccount.CircleId != 0:
+		tx = tx.Select(gmodel.UserCircleFieldMasker.Convert(fields)).
+			Joins("LEFT JOIN circle_access ON daylear_user.user_id = circle_access.recipient_user_id AND circle_access.circle_id = ?", authAccount.CircleId).
+			Joins("LEFT JOIN user_access as user_access_auth ON daylear_user.user_id = user_access_auth.user_id AND user_access_auth.recipient_user_id = ?", authAccount.AuthUserId)
+	case authAccount.AuthUserId != authAccount.UserId && authAccount.UserId != 0:
+		tx = tx.Select(gmodel.UserFieldMasker.Convert(fields)).
+			Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?", authAccount.UserId).
+			Joins("LEFT JOIN user_access as user_access_auth ON daylear_user.user_id = user_access_auth.user_id AND user_access_auth.recipient_user_id = ?", authAccount.AuthUserId)
+	default:
+		tx = tx.Select(gmodel.UserFieldMasker.Convert(fields)).
+			Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?", authAccount.AuthUserId)
 	}
 
-	conversion, err := converter.Convert(filter)
+	conversion, err := gmodel.UserSQLConverter.Convert(filter)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to convert list users filter")
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
@@ -177,10 +136,8 @@ func (repo *Client) UpdateUser(ctx context.Context, authAccount cmodel.AuthAccou
 		return cmodel.User{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid user: %v", err)}
 	}
 
-	mask := masks.Map(fields, gmodel.UserMap)
-
 	err = repo.db.WithContext(ctx).
-		Select(mask).
+		Select(gmodel.UpdateUserFieldMasker.Convert(fields)).
 		Clauses(&clause.Returning{}).
 		Updates(&gm).Error
 	if err != nil {

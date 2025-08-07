@@ -1,4 +1,4 @@
-package files
+package openapi
 
 import (
 	"go.uber.org/fx"

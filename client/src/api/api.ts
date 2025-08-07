@@ -6,6 +6,12 @@ import { createFileServiceClient } from './files'
 import { AccountType, useAuthStore } from '@/stores/auth'
 import { API_BASE_URL } from '@/constants/api'
 
+// Type for API spec
+export type ApiSpec = {
+  name: string;
+  url: string;
+};
+
 // Generic fetch handler for the generated API client
 export const authenticatedFetchHandler = function(contentType: string) {
   return async function <T = string | null | FormData>(
@@ -47,6 +53,15 @@ export const authenticatedFetchHandler = function(contentType: string) {
     }
     return await res.json()
   }
+}
+
+// Function to fetch API specs
+export async function fetchApiSpecs(): Promise<ApiSpec[]> {
+  const res = await fetch(API_BASE_URL + 'openapi/specs.json')
+  if (!res.ok) {
+    throw new Error(`Failed to fetch API specs: ${res.status} ${res.statusText}`)
+  }
+  return await res.json()
 }
 
 export const recipeService = createRecipeServiceClient(authenticatedFetchHandler('application/json'))

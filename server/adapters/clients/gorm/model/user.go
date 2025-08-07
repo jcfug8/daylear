@@ -1,107 +1,69 @@
 package model
 
 import (
-	"github.com/jcfug8/daylear/server/core/masks"
-	"github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/core/fieldmask"
+	cmodel "github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/filter"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
-// UserMap maps the User fields to their corresponding
-// fields in the model.
-var UserMap = masks.NewFieldMap().
-	MapFieldToFields(model.UserFields.Id,
-		UserFields.UserId).
-	MapFieldToFields(model.UserFields.Email,
-		UserFields.Email).
-	MapFieldToFields(model.UserFields.Username,
-		UserFields.Username).
-	MapFieldToFields(model.UserFields.GivenName,
-		UserFields.GivenName).
-	MapFieldToFields(model.UserFields.FamilyName,
-		UserFields.FamilyName).
-	MapFieldToFields(model.UserFields.ImageUri,
-		UserFields.ImageUri).
-	MapFieldToFields(model.UserFields.Bio,
-		UserFields.Bio)
+const (
+	UserColumn_UserId     = "daylear_user.user_id"
+	UserColumn_Username   = "daylear_user.username"
+	UserColumn_GivenName  = "daylear_user.given_name"
+	UserColumn_FamilyName = "daylear_user.family_name"
+	UserColumn_ImageUri   = "daylear_user.image_uri"
+	UserColumn_Bio        = "daylear_user.bio"
+	UserColumn_Email      = "daylear_user.email"
+	UserColumn_AmazonId   = "daylear_user.amazon_id"
+	UserColumn_FacebookId = "daylear_user.facebook_id"
+	UserColumn_GoogleId   = "daylear_user.google_id"
+)
 
-// UserFields defines the user fields.
-var UserFields = userFields{
-	UserId:     "daylear_user.user_id",
-	Username:   "daylear_user.username",
-	GivenName:  "daylear_user.given_name",
-	FamilyName: "daylear_user.family_name",
-	ImageUri:   "daylear_user.image_uri",
-	Bio:        "daylear_user.bio",
+var UserFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
+	cmodel.UserField_Id:         {UserColumn_UserId},
+	cmodel.UserField_Username:   {UserColumn_Username},
+	cmodel.UserField_GivenName:  {UserColumn_GivenName},
+	cmodel.UserField_FamilyName: {UserColumn_FamilyName},
+	cmodel.UserField_ImageUri:   {UserColumn_ImageUri},
+	cmodel.UserField_Bio:        {UserColumn_Bio},
+	cmodel.UserField_Email:      {UserColumn_Email},
 
-	Email: "daylear_user.email",
+	cmodel.UserField_AccessName:            {UserAccessColumn_UserAccessId},
+	cmodel.UserField_AccessPermissionLevel: {UserAccessColumn_PermissionLevel},
+	cmodel.UserField_AccessState:           {UserAccessColumn_State},
+})
+var UserCircleFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
+	cmodel.UserField_Id:         {UserColumn_UserId},
+	cmodel.UserField_Username:   {UserColumn_Username},
+	cmodel.UserField_GivenName:  {UserColumn_GivenName},
+	cmodel.UserField_FamilyName: {UserColumn_FamilyName},
+	cmodel.UserField_ImageUri:   {UserColumn_ImageUri},
+	cmodel.UserField_Bio:        {UserColumn_Bio},
+	cmodel.UserField_Email:      {UserColumn_Email},
 
-	AmazonId:   "daylear_user.amazon_id",
-	FacebookId: "daylear_user.facebook_id",
-	GoogleId:   "daylear_user.google_id",
+	cmodel.UserField_AccessName:            {CircleAccessColumn_CircleAccessId},
+	cmodel.UserField_AccessPermissionLevel: {CircleAccessColumn_PermissionLevel},
+	cmodel.UserField_AccessState:           {CircleAccessColumn_State},
+})
 
-	Permission: "user_access.permission_level",
-	State:      "user_access.state",
-}
+var UpdateUserFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
+	cmodel.UserField_Username:   {UserColumn_Username},
+	cmodel.UserField_GivenName:  {UserColumn_GivenName},
+	cmodel.UserField_FamilyName: {UserColumn_FamilyName},
+	cmodel.UserField_ImageUri:   {UserColumn_ImageUri},
+	cmodel.UserField_Bio:        {UserColumn_Bio},
+	cmodel.UserField_Email:      {UserColumn_Email},
+})
 
-type userFields struct {
-	UserId     string
-	Username   string
-	GivenName  string
-	FamilyName string
-	ImageUri   string
-	Bio        string
-
-	Email string
-
-	AmazonId   string
-	FacebookId string
-	GoogleId   string
-
-	Permission string
-	State      string
-}
-
-// Map maps the user fields to their corresponding model values.
-func (fields userFields) Map(m User) map[string]any {
-	return map[string]any{
-		fields.UserId:     m.UserId,
-		fields.Username:   m.Username,
-		fields.GivenName:  m.GivenName,
-		fields.FamilyName: m.FamilyName,
-		fields.ImageUri:   m.ImageUri,
-		fields.Bio:        m.Bio,
-
-		fields.Email: m.Email,
-
-		fields.AmazonId:   m.AmazonId,
-		fields.FacebookId: m.FacebookId,
-		fields.GoogleId:   m.GoogleId,
-
-		fields.Permission: m.PermissionLevel,
-		fields.State:      m.State,
-	}
-}
-
-// Mask returns a FieldMask for the user fields.
-func (fields userFields) Mask() []string {
-	return []string{
-		fields.UserId,
-		fields.Username,
-		fields.GivenName,
-		fields.FamilyName,
-		fields.ImageUri,
-		fields.Bio,
-
-		fields.Email,
-
-		fields.AmazonId,
-		fields.FacebookId,
-		fields.GoogleId,
-
-		fields.Permission,
-		fields.State,
-	}
-}
+var UserSQLConverter = filter.NewSQLConverter(map[string]string{
+	"username":         UserColumn_Username,
+	"permission_level": UserAccessColumn_PermissionLevel,
+	"state":            UserAccessColumn_State,
+	"google_id":        UserColumn_GoogleId,
+	"facebook_id":      UserColumn_FacebookId,
+	"amazon_id":        UserColumn_AmazonId,
+}, true)
 
 // User -
 type User struct {

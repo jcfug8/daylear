@@ -50,12 +50,12 @@ func (d *Domain) CreateUserAccess(ctx context.Context, authAccount model.AuthAcc
 	}
 
 	// Create both accesses
-	dbUserAccessA, errA := d.repo.CreateUserAccess(ctx, userA)
+	dbUserAccessA, errA := d.repo.CreateUserAccess(ctx, userA, nil)
 	if errA != nil {
 		log.Error().Err(errA).Msg("repo.CreateUserAccess (A) failed")
 		return model.UserAccess{}, errA
 	}
-	_, errB := d.repo.CreateUserAccess(ctx, userB)
+	_, errB := d.repo.CreateUserAccess(ctx, userB, nil)
 	if errB != nil {
 		log.Error().Err(errB).Msg("repo.CreateUserAccess (B) failed")
 		// Attempt to clean up A if B fails
@@ -79,7 +79,7 @@ func (d *Domain) DeleteUserAccess(ctx context.Context, authAccount model.AuthAcc
 		log.Warn().Msg("access id is required")
 		return domain.ErrInvalidArgument{Msg: "access id is required"}
 	}
-	access, err := d.repo.GetUserAccess(ctx, parent, id)
+	access, err := d.repo.GetUserAccess(ctx, parent, id, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.GetUserAccess failed")
 		return err
@@ -99,7 +99,7 @@ func (d *Domain) DeleteUserAccess(ctx context.Context, authAccount model.AuthAcc
 	sisterParent := model.UserAccessParent{UserId: access.Recipient}
 	sisterFilter := fmt.Sprintf("requester_user_id=%d AND recipient_user_id=%d", access.Requester.UserId, parent.UserId.UserId)
 	// Find the sister access id
-	accesses, err := d.repo.ListUserAccesses(ctx, authAccount, sisterParent, 1, 0, sisterFilter)
+	accesses, err := d.repo.ListUserAccesses(ctx, authAccount, sisterParent, 1, 0, sisterFilter, []string{model.UserAccessField_Id})
 	if err != nil {
 	}
 	if len(accesses) == 0 {
@@ -117,7 +117,7 @@ func (d *Domain) DeleteUserAccess(ctx context.Context, authAccount model.AuthAcc
 }
 
 // GetUserAccess -
-func (d *Domain) GetUserAccess(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, id model.UserAccessId) (model.UserAccess, error) {
+func (d *Domain) GetUserAccess(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, id model.UserAccessId, fields []string) (model.UserAccess, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	log.Info().Msg("Domain GetUserAccess called")
 	if parent.UserId.UserId == 0 {
@@ -129,7 +129,7 @@ func (d *Domain) GetUserAccess(ctx context.Context, authAccount model.AuthAccoun
 		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "access id is required"}
 	}
 
-	access, err := d.repo.GetUserAccess(ctx, parent, id)
+	access, err := d.repo.GetUserAccess(ctx, parent, id, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.GetUserAccess failed")
 		return model.UserAccess{}, err
@@ -145,7 +145,7 @@ func (d *Domain) GetUserAccess(ctx context.Context, authAccount model.AuthAccoun
 }
 
 // ListUserAccesses -
-func (d *Domain) ListUserAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, pageSize int32, pageOffset int64, filter string) ([]model.UserAccess, error) {
+func (d *Domain) ListUserAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, pageSize int32, pageOffset int64, filter string, fields []string) ([]model.UserAccess, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	log.Info().Msg("Domain ListUserAccesses called")
 	if authAccount.AuthUserId == 0 {
@@ -162,7 +162,7 @@ func (d *Domain) ListUserAccesses(ctx context.Context, authAccount model.AuthAcc
 		}
 	}
 
-	accesses, err := d.repo.ListUserAccesses(ctx, authAccount, parent, pageSize, pageOffset, filter)
+	accesses, err := d.repo.ListUserAccesses(ctx, authAccount, parent, pageSize, pageOffset, filter, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.ListUserAccesses failed")
 		return nil, err
@@ -183,7 +183,7 @@ func (d *Domain) AcceptUserAccess(ctx context.Context, authAccount model.AuthAcc
 		log.Warn().Msg("access id is required")
 		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "access id is required"}
 	}
-	access, err := d.repo.GetUserAccess(ctx, parent, id)
+	access, err := d.repo.GetUserAccess(ctx, parent, id, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.GetUserAccess failed")
 		return model.UserAccess{}, err
@@ -198,7 +198,7 @@ func (d *Domain) AcceptUserAccess(ctx context.Context, authAccount model.AuthAcc
 	}
 	// Accept B
 	access.State = types.AccessState_ACCESS_STATE_ACCEPTED
-	updated, err := d.repo.UpdateUserAccess(ctx, access)
+	updated, err := d.repo.UpdateUserAccess(ctx, access, []string{model.UserAccessField_State})
 	if err != nil {
 		log.Error().Err(err).Msg("repo.UpdateUserAccess failed (B)")
 		return model.UserAccess{}, err
@@ -206,7 +206,7 @@ func (d *Domain) AcceptUserAccess(ctx context.Context, authAccount model.AuthAcc
 	// Accept sister A (swap UserId and Recipient)
 	sisterParent := model.UserAccessParent{UserId: access.Recipient}
 	sisterFilter := fmt.Sprintf("requester_user_id=%d AND recipient_user_id=%d", access.Requester.UserId, parent.UserId.UserId)
-	accesses, err := d.repo.ListUserAccesses(ctx, authAccount, sisterParent, 1, 0, sisterFilter)
+	accesses, err := d.repo.ListUserAccesses(ctx, authAccount, sisterParent, 1, 0, sisterFilter, []string{model.UserAccessField_Id})
 	if err != nil {
 		log.Error().Err(err).Msg("repo.ListUserAccesses failed (sister)")
 		return model.UserAccess{}, err
@@ -216,7 +216,7 @@ func (d *Domain) AcceptUserAccess(ctx context.Context, authAccount model.AuthAcc
 	}
 
 	accesses[0].State = types.AccessState_ACCESS_STATE_ACCEPTED
-	_, err = d.repo.UpdateUserAccess(ctx, accesses[0])
+	_, err = d.repo.UpdateUserAccess(ctx, accesses[0], []string{model.UserAccessField_State})
 	if err != nil {
 		log.Error().Err(err).Msg("repo.UpdateUserAccess failed (sister)")
 		return model.UserAccess{}, err

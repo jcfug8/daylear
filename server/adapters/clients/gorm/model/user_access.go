@@ -1,53 +1,48 @@
 package model
 
 import (
+	"github.com/jcfug8/daylear/server/core/fieldmask"
+	cmodel "github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/filter"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
-// UserAccessFields defines the userAccess fields.
-var UserAccessFields = userAccessFields{
-	UserAccessId:    "user_access.user_access_id",
-	UserId:          "user_access.user_id",
-	RequesterUserId: "user_access.requester_user_id",
-	RecipientUserId: "user_access.recipient_user_id",
-	PermissionLevel: "user_access.permission_level",
-	State:           "user_access.state",
-}
+const (
+	UserAccessColumn_UserAccessId    = "user_access.user_access_id"
+	UserAccessColumn_UserId          = "user_access.user_id"
+	UserAccessColumn_RequesterUserId = "user_access.requester_user_id"
+	UserAccessColumn_RecipientUserId = "user_access.recipient_user_id"
+	UserAccessColumn_PermissionLevel = "user_access.permission_level"
+	UserAccessColumn_State           = "user_access.state"
+)
 
-type userAccessFields struct {
-	UserAccessId    string
-	UserId          string
-	RequesterUserId string
-	RecipientUserId string
-	PermissionLevel string
-	State           string
-}
+var UserAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
+	cmodel.UserAccessField_Parent:          {UserAccessColumn_UserId},
+	cmodel.UserAccessField_Id:              {UserAccessColumn_UserAccessId},
+	cmodel.UserAccessField_PermissionLevel: {UserAccessColumn_PermissionLevel},
+	cmodel.UserAccessField_State:           {UserAccessColumn_State},
 
-// Map maps the userAccess fields to their corresponding model values.
-func (fields userAccessFields) Map(m UserAccess) map[string]any {
-	return map[string]any{
-		fields.UserAccessId:    m.UserAccessId,
-		fields.UserId:          m.UserId,
-		fields.RequesterUserId: m.RequesterUserId,
-		fields.RequesterUserId: m.RequesterUserId,
-		fields.RecipientUserId: m.RecipientUserId,
-		fields.PermissionLevel: m.PermissionLevel,
-		fields.State:           m.State,
-	}
-}
+	cmodel.UserAccessField_Requester: {
+		UserAccessColumn_RequesterUserId,
+	},
+	cmodel.UserAccessField_Recipient: {
+		UserAccessColumn_RecipientUserId,
+		UserColumn_Username + " as recipient_username",
+		UserColumn_GivenName + " as recipient_given_name",
+		UserColumn_FamilyName + " as recipient_family_name",
+	},
+})
 
-// Mask returns a FieldMask for the userAccess fields.
-func (fields userAccessFields) Mask() []string {
-	return []string{
-		fields.UserAccessId,
-		fields.UserId,
-		fields.RequesterUserId,
-		fields.RequesterUserId,
-		fields.RecipientUserId,
-		fields.PermissionLevel,
-		fields.State,
-	}
-}
+var UpdateUserAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
+	cmodel.UserField_AccessPermissionLevel: {UserAccessColumn_PermissionLevel},
+	cmodel.UserField_AccessState:           {UserAccessColumn_State},
+})
+
+var UserAccessSQLConverter = filter.NewSQLConverter(map[string]string{
+	"permission_level":  UserAccessColumn_PermissionLevel,
+	"state":             UserAccessColumn_State,
+	"recipient_user_id": UserAccessColumn_RecipientUserId,
+}, true)
 
 // UserAccess -
 type UserAccess struct {

@@ -6,20 +6,14 @@ import (
 
 var _ Access = UserAccess{}
 
-// UserAccessFields defines the user access fields for filtering.
-var UserAccessFields = userAccessFields{
-	Level:           "permission_level",
-	State:           "state",
-	RecipientUser:   "user_id",
-	RecipientCircle: "circle_id",
-}
-
-type userAccessFields struct {
-	Level           string
-	State           string
-	RecipientUser   string
-	RecipientCircle string
-}
+const (
+	UserAccessField_Parent          = "parent"
+	UserAccessField_Id              = "id"
+	UserAccessField_PermissionLevel = "permission_level"
+	UserAccessField_State           = "state"
+	UserAccessField_Requester       = "requester"
+	UserAccessField_Recipient       = "recipient"
+)
 
 // UserAccess represents a user's or circle's access to a user
 type UserAccess struct {

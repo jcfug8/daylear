@@ -80,22 +80,27 @@ func (s *Service) Register(m *http.ServeMux) error {
 	err = recipesV1alpha1.RegisterRecipeServiceHandlerServer(ctx, mux, s.recipesV1alpha1Service)
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
+		return err
 	}
 	err = recipesV1alpha1.RegisterRecipeAccessServiceHandlerServer(ctx, mux, s.recipeAccessService)
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
+		return err
 	}
 	err = circleV1alpha1.RegisterCircleServiceHandlerServer(ctx, mux, s.circleV1alpha1Service)
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
+		return err
 	}
 	err = circleV1alpha1.RegisterCircleAccessServiceHandlerServer(ctx, mux, s.circleAccessService)
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
+		return err
 	}
 	err = calendarV1alpha1.RegisterCalendarServiceHandlerServer(ctx, mux, s.calendarV1alpha1Service)
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
+		return err
 	}
 
 	m.Handle("/", headers.NewAuthTokenMiddleware(s.domain)(mux))

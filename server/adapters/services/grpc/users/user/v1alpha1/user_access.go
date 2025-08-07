@@ -19,6 +19,14 @@ var (
 	userAccessDefaultPageSize int32 = 100
 )
 
+var userAccessFieldMap = map[string][]string{
+	"name":      {model.UserField_Parent, model.UserField_Id},
+	"level":     {model.UserField_AccessPermissionLevel},
+	"state":     {model.UserField_AccessState},
+	"requester": {model.UserField_AccessName},
+	"recipient": {model.UserField_AccessName},
+}
+
 // CreateAccess -
 func (s *UserService) CreateAccess(ctx context.Context, request *pb.CreateAccessRequest) (*pb.Access, error) {
 	log := logutil.EnrichLoggerWithContext(s.log, ctx)
@@ -117,7 +125,7 @@ func (s *UserService) GetAccess(ctx context.Context, request *pb.GetAccessReques
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	mUserAccess, err = s.domain.GetUserAccess(ctx, authAccount, mUserAccess.UserAccessParent, mUserAccess.UserAccessId)
+	mUserAccess, err = s.domain.GetUserAccess(ctx, authAccount, mUserAccess.UserAccessParent, mUserAccess.UserAccessId, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.GetUserAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -163,7 +171,7 @@ func (s *UserService) ListAccesses(ctx context.Context, request *pb.ListAccesses
 	}
 	request.PageSize = pageSize
 
-	accesses, err := s.domain.ListUserAccesses(ctx, authAccount, mUserParent, request.GetPageSize(), pageToken.Offset, request.GetFilter())
+	accesses, err := s.domain.ListUserAccesses(ctx, authAccount, mUserParent, request.GetPageSize(), pageToken.Offset, request.GetFilter(), nil)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.ListUserAccesses failed")
 		return nil, status.Error(codes.Internal, err.Error())

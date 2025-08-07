@@ -14,19 +14,14 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// UserAccessMap maps the core model fields to the database model fields for the unified UserAccess model.
-var UserAccessMap = map[string]string{
-	model.UserAccessFields.Level:         dbModel.UserAccessFields.PermissionLevel,
-	model.UserAccessFields.State:         dbModel.UserAccessFields.State,
-	model.UserAccessFields.RecipientUser: dbModel.UserAccessFields.RecipientUserId,
-}
-
-func (repo *Client) CreateUserAccess(ctx context.Context, access model.UserAccess) (model.UserAccess, error) {
+func (repo *Client) CreateUserAccess(ctx context.Context, access model.UserAccess, fields []string) (model.UserAccess, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	db := repo.db.WithContext(ctx)
 
 	userAccess := convert.CoreUserAccessToUserAccess(access)
-	res := db.Create(&userAccess)
+	res := repo.db.WithContext(ctx).
+		Select(dbModel.UserAccessFieldMasker.Convert(fields)).
+		Clauses(clause.Returning{}).
+		Create(&userAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrDuplicatedKey) {
 			log.Error().Err(res.Error).Msg("duplicate key error")
@@ -42,9 +37,10 @@ func (repo *Client) CreateUserAccess(ctx context.Context, access model.UserAcces
 
 func (repo *Client) DeleteUserAccess(ctx context.Context, parent model.UserAccessParent, id model.UserAccessId) error {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	db := repo.db.WithContext(ctx)
 
-	res := db.Where("user_id = ? AND user_access_id = ?", parent.UserId.UserId, id.UserAccessId).Delete(&dbModel.UserAccess{})
+	res := repo.db.WithContext(ctx).
+		Where("user_id = ? AND user_access_id = ?", parent.UserId.UserId, id.UserAccessId).
+		Delete(&dbModel.UserAccess{})
 	if res.Error != nil {
 		log.Error().Err(res.Error).Msg("db.Delete failed")
 		return ConvertGormError(res.Error)
@@ -57,13 +53,12 @@ func (repo *Client) DeleteUserAccess(ctx context.Context, parent model.UserAcces
 	return nil
 }
 
-func (repo *Client) GetUserAccess(ctx context.Context, parent model.UserAccessParent, id model.UserAccessId) (model.UserAccess, error) {
+func (repo *Client) GetUserAccess(ctx context.Context, parent model.UserAccessParent, id model.UserAccessId, fields []string) (model.UserAccess, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	db := repo.db.WithContext(ctx)
 
 	var userAccess dbModel.UserAccess
-	res := db.Table("user_access").
-		Select("user_access.*, daylear_user.username as recipient_username").
+	res := repo.db.WithContext(ctx).
+		Select(dbModel.UserAccessFieldMasker.Convert(fields)).
 		Joins("LEFT JOIN daylear_user ON user_access.recipient_user_id = daylear_user.user_id").
 		Where("user_access.user_id = ? AND user_access.user_access_id = ?", parent.UserId.UserId, id.UserAccessId).
 		First(&userAccess)
@@ -79,7 +74,7 @@ func (repo *Client) GetUserAccess(ctx context.Context, parent model.UserAccessPa
 	return convert.UserAccessToCoreUserAccess(userAccess), nil
 }
 
-func (repo *Client) ListUserAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent model.UserAccessParent, pageSize int32, pageOffset int64, filterStr string) ([]model.UserAccess, error) {
+func (repo *Client) ListUserAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent model.UserAccessParent, pageSize int32, pageOffset int64, filterStr string, fields []string) ([]model.UserAccess, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	orders := []clause.OrderByColumn{{
 		Column: clause.Column{Name: "user_access.user_access_id"},
@@ -88,8 +83,7 @@ func (repo *Client) ListUserAccesses(ctx context.Context, authAccount cmodel.Aut
 
 	var userAccesses []dbModel.UserAccess
 	db := repo.db.WithContext(ctx).
-		Table("user_access").
-		Select("user_access.*, daylear_user.username as recipient_username").
+		Select(dbModel.UserAccessFieldMasker.Convert(fields)).
 		Joins("LEFT JOIN daylear_user ON user_access.recipient_user_id = daylear_user.user_id").
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
@@ -114,12 +108,13 @@ func (repo *Client) ListUserAccesses(ctx context.Context, authAccount cmodel.Aut
 	return accesses, nil
 }
 
-func (repo *Client) UpdateUserAccess(ctx context.Context, access model.UserAccess) (model.UserAccess, error) {
+func (repo *Client) UpdateUserAccess(ctx context.Context, access model.UserAccess, fields []string) (model.UserAccess, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	dbAccess := convert.CoreUserAccessToUserAccess(access)
-	db := repo.db.WithContext(ctx).Clauses(&clause.Returning{})
 
-	err := db.Model(&dbModel.UserAccess{}).
+	err := repo.db.WithContext(ctx).
+		Select(dbModel.UpdateUserAccessFieldMasker.Convert(fields)).
+		Clauses(clause.Returning{}).
 		Where("user_access_id = ?", access.UserAccessId.UserAccessId).
 		Updates(&dbAccess).Error
 	if err != nil {

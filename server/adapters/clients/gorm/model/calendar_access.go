@@ -26,9 +26,9 @@ var CalendarAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
 	cmodel.CalendarAccessField_Recipient: {
 		CalendarAccessColumn_RecipientUserId,
 		CalendarAccessColumn_RecipientCircleId,
-		UserFields.Username + " as recipient_username",
-		UserFields.GivenName + " as recipient_given_name",
-		UserFields.FamilyName + " as recipient_family_name",
+		UserColumn_Username + " as recipient_username",
+		UserColumn_GivenName + " as recipient_given_name",
+		UserColumn_FamilyName + " as recipient_family_name",
 		CircleColumn_Title + " as recipient_circle_title",
 		CircleColumn_Handle + " as recipient_circle_handle",
 	},
