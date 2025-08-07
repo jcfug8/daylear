@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"slices"
+
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	"github.com/jcfug8/daylear/server/core/logutil"
@@ -15,13 +17,12 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (repo *Client) CreateCircleAccess(ctx context.Context, access model.CircleAccess) (model.CircleAccess, error) {
+func (repo *Client) CreateCircleAccess(ctx context.Context, access model.CircleAccess, fields []string) (model.CircleAccess, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
 		Int64("circleId", access.CircleId.CircleId).
 		Int64("recipientUserId", access.Recipient.UserId).
+		Strs("fields", fields).
 		Logger()
-
-	db := repo.db.WithContext(ctx)
 
 	// Validate that exactly one recipient type is set
 	if access.Recipient.UserId == 0 {
@@ -30,7 +31,10 @@ func (repo *Client) CreateCircleAccess(ctx context.Context, access model.CircleA
 	}
 
 	circleAccess := convert.CoreCircleAccessToCircleAccess(access)
-	res := db.Create(&circleAccess)
+	res := repo.db.WithContext(ctx).
+		Select(dbModel.CircleAccessFieldMasker.Convert(fields)).
+		Clauses(clause.Returning{}).
+		Create(&circleAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrDuplicatedKey) {
 			log.Error().Err(res.Error).Msg("unable to create circle access row: already exists")
@@ -100,19 +104,22 @@ func (repo *Client) BulkDeleteCircleAccess(ctx context.Context, parent model.Cir
 	return nil
 }
 
-func (repo *Client) GetCircleAccess(ctx context.Context, parent model.CircleAccessParent, id model.CircleAccessId) (model.CircleAccess, error) {
+func (repo *Client) GetCircleAccess(ctx context.Context, parent model.CircleAccessParent, id model.CircleAccessId, fields []string) (model.CircleAccess, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
 		Int64("circleId", parent.CircleId.CircleId).
 		Int64("circleAccessId", id.CircleAccessId).
+		Strs("fields", fields).
 		Logger()
 
-	db := repo.db.WithContext(ctx)
+	fields = dbModel.CircleAccessFieldMasker.Convert(fields)
 
 	var circleAccess dbModel.CircleAccess
-	res := db.Table("circle_access").
-		Select("circle_access.*, daylear_user.username as recipient_username, daylear_user.given_name as recipient_given_name, daylear_user.family_name as recipient_family_name").
-		Joins("LEFT JOIN daylear_user ON circle_access.recipient_user_id = daylear_user.user_id").
-		Where("circle_access.circle_id = ? AND circle_access.circle_access_id = ?", parent.CircleId.CircleId, id.CircleAccessId).
+	tx := repo.db.WithContext(ctx).Select(fields)
+	if slices.Contains(fields, dbModel.UserColumn_Username) || slices.Contains(fields, dbModel.UserColumn_GivenName) || slices.Contains(fields, dbModel.UserColumn_FamilyName) {
+		tx = tx.Joins("LEFT JOIN daylear_user ON circle_access.recipient_user_id = daylear_user.user_id")
+	}
+
+	res := tx.Where("circle_access.circle_id = ? AND circle_access.circle_access_id = ?", parent.CircleId.CircleId, id.CircleAccessId).
 		First(&circleAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
@@ -126,10 +133,11 @@ func (repo *Client) GetCircleAccess(ctx context.Context, parent model.CircleAcce
 	return convert.CircleAccessToCoreCircleAccess(circleAccess), nil
 }
 
-func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent model.CircleAccessParent, pageSize int32, pageOffset int64, filterStr string) ([]model.CircleAccess, error) {
+func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent model.CircleAccessParent, pageSize int32, pageOffset int64, filterStr string, fields []string) ([]model.CircleAccess, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
 		Int64("circleId", parent.CircleId.CircleId).
 		Str("filter", filterStr).
+		Strs("fields", fields).
 		Int("pageSize", int(pageSize)).
 		Int64("pageOffset", pageOffset).
 		Logger()
@@ -139,6 +147,8 @@ func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.A
 		return nil, repository.ErrInvalidArgument{Msg: "user id is required"}
 	}
 
+	fields = dbModel.CircleAccessFieldMasker.Convert(fields)
+
 	conversion, err := dbModel.CircleAccessSQLConverter.Convert(filterStr)
 	if err != nil {
 		log.Error().Err(err).Msg("invalid filter string when listing circle access rows")
@@ -146,9 +156,11 @@ func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.A
 	}
 
 	var circleAccesses []dbModel.CircleAccess
-	db := repo.db.WithContext(ctx).Table("circle_access").
-		Select("circle_access.*, daylear_user.username as recipient_username, daylear_user.given_name as recipient_given_name, daylear_user.family_name as recipient_family_name").
-		Joins("LEFT JOIN daylear_user ON circle_access.recipient_user_id = daylear_user.user_id")
+	db := repo.db.WithContext(ctx).Select(fields)
+
+	if slices.Contains(fields, dbModel.UserColumn_Username) || slices.Contains(fields, dbModel.UserColumn_GivenName) || slices.Contains(fields, dbModel.UserColumn_FamilyName) {
+		db = db.Joins("LEFT JOIN daylear_user ON circle_access.recipient_user_id = daylear_user.user_id")
+	}
 
 	if conversion.WhereClause != "" {
 		db = db.Where(conversion.WhereClause, conversion.Params...)
@@ -180,17 +192,17 @@ func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.A
 	return accesses, nil
 }
 
-func (repo *Client) UpdateCircleAccess(ctx context.Context, access model.CircleAccess, updateMask []string) (model.CircleAccess, error) {
+func (repo *Client) UpdateCircleAccess(ctx context.Context, access model.CircleAccess, fields []string) (model.CircleAccess, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
 		Int64("circleAccessId", access.CircleAccessId.CircleAccessId).
-		Strs("updateMask", updateMask).
+		Strs("fields", fields).
 		Logger()
 
 	dbAccess := convert.CoreCircleAccessToCircleAccess(access)
 
-	columns := dbModel.UpdateCircleAccessFieldMasker.Convert(updateMask)
-
-	db := repo.db.WithContext(ctx).Select(columns).Clauses(clause.Returning{})
+	db := repo.db.WithContext(ctx).
+		Select(dbModel.UpdateCircleAccessFieldMasker.Convert(fields)).
+		Clauses(clause.Returning{})
 
 	err := db.Where("circle_access_id = ?", access.CircleAccessId.CircleAccessId).Updates(&dbAccess).Error
 	if err != nil {

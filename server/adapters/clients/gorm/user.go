@@ -91,8 +91,10 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 		Limit(int(pageSize)).
 		Offset(int(pageOffset))
 
+	converter := gmodel.UserSQLConverter
 	switch {
 	case authAccount.CircleId != 0:
+		converter = gmodel.UserCircleSQLConverter
 		tx = tx.Select(gmodel.UserCircleFieldMasker.Convert(fields)).
 			Joins("LEFT JOIN circle_access ON daylear_user.user_id = circle_access.recipient_user_id AND circle_access.circle_id = ?", authAccount.CircleId).
 			Joins("LEFT JOIN user_access as user_access_auth ON daylear_user.user_id = user_access_auth.user_id AND user_access_auth.recipient_user_id = ?", authAccount.AuthUserId)
@@ -105,7 +107,7 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 			Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?", authAccount.AuthUserId)
 	}
 
-	conversion, err := gmodel.UserSQLConverter.Convert(filter)
+	conversion, err := converter.Convert(filter)
 	if err != nil {
 		log.Error().Err(err).Msg("invalid filter string when listing user rows")
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}

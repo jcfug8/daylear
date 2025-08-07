@@ -124,7 +124,7 @@ func (s *CircleService) GetAccess(ctx context.Context, request *pb.GetAccessRequ
 	}
 
 	// get access
-	access, err := s.domain.GetCircleAccess(ctx, authAccount, circleAccess.CircleAccessParent, circleAccess.CircleAccessId)
+	access, err := s.domain.GetCircleAccess(ctx, authAccount, circleAccess.CircleAccessParent, circleAccess.CircleAccessId, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.GetCircleAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -171,7 +171,7 @@ func (s *CircleService) ListAccesses(ctx context.Context, request *pb.ListAccess
 	request.PageSize = pageSize
 
 	// list accesses
-	accesses, err := s.domain.ListCircleAccesses(ctx, authAccount, circleAccessParent, request.GetPageSize(), pageToken.Offset, request.GetFilter())
+	accesses, err := s.domain.ListCircleAccesses(ctx, authAccount, circleAccessParent, request.GetPageSize(), pageToken.Offset, request.GetFilter(), nil)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.ListCircleAccesses failed")
 		return nil, status.Error(codes.Internal, err.Error())

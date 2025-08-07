@@ -56,7 +56,7 @@ func (d *Domain) CreateCircleAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// create access
-	dbAccess, err = d.repo.CreateCircleAccess(ctx, access)
+	dbAccess, err = d.repo.CreateCircleAccess(ctx, access, []string{})
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create circle access")
 		return model.CircleAccess{}, domain.ErrInternal{Msg: "unable to create circle access"}
@@ -82,7 +82,7 @@ func (d *Domain) DeleteCircleAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// get the existing access record
-	dbAccess, err := d.repo.GetCircleAccess(ctx, parent, id)
+	dbAccess, err := d.repo.GetCircleAccess(ctx, parent, id, []string{})
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get circle access when deleting a circle access")
 		return domain.ErrInternal{Msg: "unable to get circle access"}
@@ -113,7 +113,7 @@ func (d *Domain) DeleteCircleAccess(ctx context.Context, authAccount model.AuthA
 }
 
 // GetCircleAccess gets a circle access
-func (d *Domain) GetCircleAccess(ctx context.Context, authAccount model.AuthAccount, parent model.CircleAccessParent, id model.CircleAccessId) (model.CircleAccess, error) {
+func (d *Domain) GetCircleAccess(ctx context.Context, authAccount model.AuthAccount, parent model.CircleAccessParent, id model.CircleAccessId, fields []string) (model.CircleAccess, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 
 	// verify circle is set
@@ -129,7 +129,7 @@ func (d *Domain) GetCircleAccess(ctx context.Context, authAccount model.AuthAcco
 	}
 
 	// get the access record
-	access, err := d.repo.GetCircleAccess(ctx, parent, id)
+	access, err := d.repo.GetCircleAccess(ctx, parent, id, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get circle access when getting a circle access")
 		return model.CircleAccess{}, domain.ErrInternal{Msg: "unable to get circle access"}
@@ -154,7 +154,7 @@ func (d *Domain) GetCircleAccess(ctx context.Context, authAccount model.AuthAcco
 }
 
 // ListCircleAccesses lists circle accesses
-func (d *Domain) ListCircleAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.CircleAccessParent, pageSize int32, pageOffset int64, filter string) ([]model.CircleAccess, error) {
+func (d *Domain) ListCircleAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.CircleAccessParent, pageSize int32, pageOffset int64, filter string, fields []string) ([]model.CircleAccess, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 
 	if authAccount.AuthUserId == 0 {
@@ -170,7 +170,7 @@ func (d *Domain) ListCircleAccesses(ctx context.Context, authAccount model.AuthA
 		}
 	}
 
-	accesses, err := d.repo.ListCircleAccesses(ctx, authAccount, parent, pageSize, pageOffset, filter)
+	accesses, err := d.repo.ListCircleAccesses(ctx, authAccount, parent, pageSize, pageOffset, filter, fields)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +195,7 @@ func (d *Domain) UpdateCircleAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// get the existing access record to verify it exists
-	dbAccess, err := d.repo.GetCircleAccess(ctx, access.CircleAccessParent, access.CircleAccessId)
+	dbAccess, err := d.repo.GetCircleAccess(ctx, access.CircleAccessParent, access.CircleAccessId, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get circle access when updating a circle access")
 		return model.CircleAccess{}, domain.ErrInternal{Msg: "unable to get circle access"}
@@ -219,20 +219,16 @@ func (d *Domain) UpdateCircleAccess(ctx context.Context, authAccount model.AuthA
 		maxPermissionLevel = determinedAccess.PermissionLevel
 	}
 
-	// if updating permission level, ensure it doesn't exceed the requester's level
+	// check if the user is trying to increase the permission level beyond what they can grant
 	if access.PermissionLevel > maxPermissionLevel {
 		log.Warn().Msg("unable to update circle access with the given permission level")
-		return model.CircleAccess{}, domain.ErrPermissionDenied{Msg: "cannot update access level to higher than your own level"}
+		return model.CircleAccess{}, domain.ErrPermissionDenied{Msg: "unable to update circle access with the given permission level"}
 	}
-
-	// preserve read-only fields
-	access.Requester = dbAccess.Requester
-	access.Recipient = dbAccess.Recipient
 
 	// update access
 	updatedAccess, err := d.repo.UpdateCircleAccess(ctx, access, fields)
 	if err != nil {
-		log.Error().Err(err).Msg("unable to update circle access when updating a circle access")
+		log.Error().Err(err).Msg("unable to update circle access")
 		return model.CircleAccess{}, domain.ErrInternal{Msg: "unable to update circle access"}
 	}
 
@@ -256,7 +252,7 @@ func (d *Domain) AcceptCircleAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// get the current access
-	access, err := d.repo.GetCircleAccess(ctx, parent, id)
+	access, err := d.repo.GetCircleAccess(ctx, parent, id, []string{})
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get circle access when accepting a circle access")
 		return model.CircleAccess{}, domain.ErrInternal{Msg: "unable to get circle access"}

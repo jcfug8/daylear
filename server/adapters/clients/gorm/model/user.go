@@ -65,6 +65,15 @@ var UserSQLConverter = filter.NewSQLConverter(map[string]string{
 	"amazon_id":        UserColumn_AmazonId,
 }, true)
 
+var UserCircleSQLConverter = filter.NewSQLConverter(map[string]string{
+	"username":         UserColumn_Username,
+	"permission_level": CircleAccessColumn_PermissionLevel,
+	"state":            CircleAccessColumn_State,
+	"google_id":        UserColumn_GoogleId,
+	"facebook_id":      UserColumn_FacebookId,
+	"amazon_id":        UserColumn_AmazonId,
+}, true)
+
 // User -
 type User struct {
 	UserId     int64  `gorm:"primaryKey;bigint;not null;<-:false"`

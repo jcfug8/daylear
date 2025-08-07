@@ -72,7 +72,7 @@ func (d *Domain) CreateCircle(ctx context.Context, authAccount model.AuthAccount
 		State:           types.AccessState_ACCESS_STATE_ACCEPTED,
 	}
 
-	dbCircleAccess, err := tx.CreateCircleAccess(ctx, circleAccess)
+	dbCircleAccess, err := tx.CreateCircleAccess(ctx, circleAccess, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create circle access")
 		return model.Circle{}, domain.ErrInternal{Msg: "unable to create circle access"}
@@ -187,7 +187,7 @@ func (d *Domain) ListCircles(ctx context.Context, authAccount model.AuthAccount,
 
 	if parent.UserId != 0 {
 		authAccount.UserId = parent.UserId
-		_, err = d.determineUserAccess(ctx, authAccount, model.UserId{UserId: parent.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ))
+		_, err = d.determineUserAccess(ctx, authAccount, model.UserId(parent), withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ))
 		if err != nil {
 			log.Error().Err(err).Msg("unable to determine access when listing circles")
 			return nil, err
