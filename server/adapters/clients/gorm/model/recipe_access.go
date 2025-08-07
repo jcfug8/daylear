@@ -23,8 +23,19 @@ var RecipeAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
 	model.RecipeAccessField_Id:              {RecipeAccessFields_RecipeAccessId},
 	model.RecipeAccessField_PermissionLevel: {RecipeAccessFields_PermissionLevel},
 	model.RecipeAccessField_State:           {RecipeAccessFields_State},
-	model.RecipeAccessField_Requester:       {RecipeAccessFields_RequesterUserId, RecipeAccessFields_RequesterCircleId},
-	model.RecipeAccessField_Recipient:       {RecipeAccessFields_RecipientUserId, RecipeAccessFields_RecipientCircleId},
+	model.RecipeAccessField_Requester: {
+		RecipeAccessFields_RequesterUserId,
+		RecipeAccessFields_RequesterCircleId,
+	},
+	model.RecipeAccessField_Recipient: {
+		RecipeAccessFields_RecipientUserId,
+		RecipeAccessFields_RecipientCircleId,
+		UserColumn_Username + "as recipient_username",
+		UserColumn_GivenName + "as recipient_given_name",
+		UserColumn_FamilyName + "as recipient_family_name",
+		CircleColumn_Title + "as recipient_circle_title",
+		CircleColumn_Handle + "as recipient_circle_handle",
+	},
 })
 var UpdateRecipeAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
 	model.RecipeAccessField_PermissionLevel: {RecipeAccessFields_PermissionLevel},

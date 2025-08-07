@@ -124,7 +124,7 @@ func (s *RecipeService) GetAccess(ctx context.Context, request *pb.GetAccessRequ
 	}
 
 	// get access
-	access, err := s.domain.GetRecipeAccess(ctx, authAccount, recipeAccess.RecipeAccessParent, recipeAccess.RecipeAccessId)
+	access, err := s.domain.GetRecipeAccess(ctx, authAccount, recipeAccess.RecipeAccessParent, recipeAccess.RecipeAccessId, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.GetRecipeAccess failed")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -171,7 +171,7 @@ func (s *RecipeService) ListAccesses(ctx context.Context, request *pb.ListAccess
 	request.PageSize = pageSize
 
 	// list accesses
-	accesses, err := s.domain.ListRecipeAccesses(ctx, authAccount, recipeAccessParent, request.GetPageSize(), pageToken.Offset, request.GetFilter())
+	accesses, err := s.domain.ListRecipeAccesses(ctx, authAccount, recipeAccessParent, request.GetPageSize(), pageToken.Offset, request.GetFilter(), nil)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.ListRecipeAccesses failed")
 		return nil, status.Error(codes.Internal, err.Error())

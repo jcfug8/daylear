@@ -41,7 +41,7 @@ func (d *Domain) CreateRecipeAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// create access
-	access, err = d.repo.CreateRecipeAccess(ctx, access)
+	access, err = d.repo.CreateRecipeAccess(ctx, access, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.CreateRecipeAccess failed")
 		return model.RecipeAccess{}, err
@@ -67,7 +67,7 @@ func (d *Domain) DeleteRecipeAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// get the existing access record
-	access, err := d.repo.GetRecipeAccess(ctx, parent, id)
+	access, err := d.repo.GetRecipeAccess(ctx, parent, id, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.GetRecipeAccess failed")
 		return err
@@ -101,7 +101,7 @@ func (d *Domain) DeleteRecipeAccess(ctx context.Context, authAccount model.AuthA
 	return nil
 }
 
-func (d *Domain) GetRecipeAccess(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeAccessParent, id model.RecipeAccessId) (model.RecipeAccess, error) {
+func (d *Domain) GetRecipeAccess(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeAccessParent, id model.RecipeAccessId, fields []string) (model.RecipeAccess, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	log.Info().Msg("Domain GetRecipeAccess called")
 	// verify recipe is set
@@ -117,7 +117,7 @@ func (d *Domain) GetRecipeAccess(ctx context.Context, authAccount model.AuthAcco
 	}
 
 	// get the access record
-	access, err := d.repo.GetRecipeAccess(ctx, parent, id)
+	access, err := d.repo.GetRecipeAccess(ctx, parent, id, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.GetRecipeAccess failed")
 		return model.RecipeAccess{}, err
@@ -145,7 +145,7 @@ func (d *Domain) GetRecipeAccess(ctx context.Context, authAccount model.AuthAcco
 	return access, nil
 }
 
-func (d *Domain) ListRecipeAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeAccessParent, pageSize int32, pageOffset int64, filter string) (recipeAccesses []model.RecipeAccess, err error) {
+func (d *Domain) ListRecipeAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeAccessParent, pageSize int32, pageOffset int64, filter string, fields []string) (recipeAccesses []model.RecipeAccess, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	log.Info().Msg("Domain ListRecipeAccesses called")
 	if authAccount.AuthUserId == 0 && authAccount.CircleId == 0 {
@@ -161,7 +161,7 @@ func (d *Domain) ListRecipeAccesses(ctx context.Context, authAccount model.AuthA
 		}
 	}
 
-	recipeAccesses, err = d.repo.ListRecipeAccesses(ctx, authAccount, parent, int32(pageSize), int64(pageOffset), filter)
+	recipeAccesses, err = d.repo.ListRecipeAccesses(ctx, authAccount, parent, int32(pageSize), int64(pageOffset), filter, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.ListRecipeAccesses failed")
 		return nil, err
@@ -171,7 +171,7 @@ func (d *Domain) ListRecipeAccesses(ctx context.Context, authAccount model.AuthA
 	return recipeAccesses, nil
 }
 
-func (d *Domain) UpdateRecipeAccess(ctx context.Context, authAccount model.AuthAccount, access model.RecipeAccess, updateMask []string) (model.RecipeAccess, error) {
+func (d *Domain) UpdateRecipeAccess(ctx context.Context, authAccount model.AuthAccount, access model.RecipeAccess, fields []string) (model.RecipeAccess, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	log.Info().Msg("Domain UpdateRecipeAccess called")
 	// verify recipe is set
@@ -187,7 +187,7 @@ func (d *Domain) UpdateRecipeAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// get the existing access record to verify it exists
-	dbAccess, err := d.repo.GetRecipeAccess(ctx, access.RecipeAccessParent, access.RecipeAccessId)
+	dbAccess, err := d.repo.GetRecipeAccess(ctx, access.RecipeAccessParent, access.RecipeAccessId, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.GetRecipeAccess failed")
 		return model.RecipeAccess{}, err
@@ -212,7 +212,7 @@ func (d *Domain) UpdateRecipeAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// update access
-	updatedAccess, err := d.repo.UpdateRecipeAccess(ctx, access, updateMask)
+	updatedAccess, err := d.repo.UpdateRecipeAccess(ctx, access, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.UpdateRecipeAccess failed")
 		return model.RecipeAccess{}, err
@@ -239,7 +239,7 @@ func (d *Domain) AcceptRecipeAccess(ctx context.Context, authAccount model.AuthA
 	}
 
 	// get the current access
-	access, err := d.repo.GetRecipeAccess(ctx, parent, id)
+	access, err := d.repo.GetRecipeAccess(ctx, parent, id, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.GetRecipeAccess failed")
 		return model.RecipeAccess{}, err

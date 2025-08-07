@@ -98,7 +98,7 @@ func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount
 		}
 	}
 
-	dbRecipeAccess, err := tx.CreateRecipeAccess(ctx, recipeAccess)
+	dbRecipeAccess, err := tx.CreateRecipeAccess(ctx, recipeAccess, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("tx.CreateRecipeAccess failed")
 		return model.Recipe{}, err

@@ -3,6 +3,7 @@ package gorm
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
@@ -15,24 +16,30 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (repo *Client) CreateRecipeAccess(ctx context.Context, access model.RecipeAccess) (model.RecipeAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	db := repo.db.WithContext(ctx)
+func (repo *Client) CreateRecipeAccess(ctx context.Context, access model.RecipeAccess, fields []string) (model.RecipeAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("recipeId", access.RecipeId.RecipeId).
+		Int64("recipientUserId", access.Recipient.UserId).
+		Int64("recipientCircleId", access.Recipient.CircleId).
+		Logger()
 
 	// Validate that exactly one recipient type is set
 	if (access.Recipient.UserId != 0) == (access.Recipient.CircleId != 0) {
-		log.Error().Msg("exactly one recipient (user or circle) is required")
+		log.Error().Msg("exactly one recipient (user or circle) is required to create recipe access row")
 		return model.RecipeAccess{}, repository.ErrInvalidArgument{Msg: "exactly one recipient (user or circle) is required"}
 	}
 
 	recipeAccess := convert.CoreRecipeAccessToRecipeAccess(access)
-	res := db.Clauses(clause.Returning{}).Create(&recipeAccess)
+	res := repo.db.WithContext(ctx).
+		Select(dbModel.RecipeAccessFieldMasker.Convert(fields)).
+		Clauses(clause.Returning{}).
+		Create(&recipeAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrDuplicatedKey) {
-			log.Error().Err(res.Error).Msg("duplicate key error")
+			log.Error().Err(res.Error).Msg("unable to create recipe access row: already exists")
 			return model.RecipeAccess{}, repository.ErrNewAlreadyExists{}
 		}
-		log.Error().Err(res.Error).Msg("db.Create failed")
+		log.Error().Err(res.Error).Msg("unable to create recipe access row")
 		return model.RecipeAccess{}, res.Error
 	}
 
@@ -41,14 +48,18 @@ func (repo *Client) CreateRecipeAccess(ctx context.Context, access model.RecipeA
 }
 
 func (repo *Client) DeleteRecipeAccess(ctx context.Context, parent model.RecipeAccessParent, id model.RecipeAccessId) error {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("recipeId", parent.RecipeId.RecipeId).
+		Int64("recipeAccessId", id.RecipeAccessId).
+		Logger()
+
 	if parent.RecipeId.RecipeId == 0 {
-		log.Error().Msg("recipe id is required")
+		log.Error().Msg("recipe id is required to delete recipe access row")
 		return repository.ErrInvalidArgument{Msg: "recipe id is required"}
 	}
 
 	if id.RecipeAccessId == 0 {
-		log.Error().Msg("recipe access id is required")
+		log.Error().Msg("recipe access id is required to delete recipe access row")
 		return repository.ErrInvalidArgument{Msg: "recipe access id is required"}
 	}
 
@@ -56,11 +67,11 @@ func (repo *Client) DeleteRecipeAccess(ctx context.Context, parent model.RecipeA
 
 	res := db.Where("recipe_id = ? AND recipe_access_id = ?", parent.RecipeId.RecipeId, id.RecipeAccessId).Delete(&dbModel.RecipeAccess{})
 	if res.Error != nil {
-		log.Error().Err(res.Error).Msg("db.Delete failed")
+		log.Error().Err(res.Error).Msg("unable to delete recipe access row")
 		return ConvertGormError(res.Error)
 	}
 	if res.RowsAffected == 0 {
-		log.Warn().Msg("no rows affected (not found)")
+		log.Warn().Msg("no recipe access row deleted")
 		return repository.ErrNotFound{}
 	}
 
@@ -68,9 +79,12 @@ func (repo *Client) DeleteRecipeAccess(ctx context.Context, parent model.RecipeA
 }
 
 func (repo *Client) BulkDeleteRecipeAccess(ctx context.Context, parent model.RecipeAccessParent) error {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("recipeId", parent.RecipeId.RecipeId).
+		Logger()
+
 	if parent.RecipeId.RecipeId == 0 {
-		log.Error().Msg("recipe id is required")
+		log.Error().Msg("recipe id is required to bulk delete recipe access rows")
 		return repository.ErrInvalidArgument{Msg: "recipe id is required"}
 	}
 
@@ -78,43 +92,56 @@ func (repo *Client) BulkDeleteRecipeAccess(ctx context.Context, parent model.Rec
 
 	res := db.Where("recipe_id = ?", parent.RecipeId.RecipeId).Delete(&dbModel.RecipeAccess{})
 	if res.Error != nil {
-		log.Error().Err(res.Error).Msg("db.Delete failed")
+		log.Error().Err(res.Error).Msg("unable to bulk delete recipe access rows")
 		return ConvertGormError(res.Error)
 	}
 	if res.RowsAffected == 0 {
-		log.Warn().Msg("no rows affected (not found)")
+		log.Warn().Msg("no recipe access rows deleted")
 		return repository.ErrNotFound{}
 	}
 
 	return nil
 }
 
-func (repo *Client) GetRecipeAccess(ctx context.Context, parent model.RecipeAccessParent, id model.RecipeAccessId) (model.RecipeAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	db := repo.db.WithContext(ctx)
+func (repo *Client) GetRecipeAccess(ctx context.Context, parent model.RecipeAccessParent, id model.RecipeAccessId, fields []string) (model.RecipeAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("recipeId", parent.RecipeId.RecipeId).
+		Int64("recipeAccessId", id.RecipeAccessId).
+		Logger()
 
 	var recipeAccess dbModel.RecipeAccess
-	res := db.Table("recipe_access").
-		Select(`recipe_access.*, u.username as recipient_username, u.given_name as recipient_given_name, u.family_name as recipient_family_name, c.title as recipient_circle_title, c.handle as recipient_circle_handle`).
-		Joins(`LEFT JOIN daylear_user u ON recipe_access.recipient_user_id = u.user_id`).
-		Joins(`LEFT JOIN circle c ON recipe_access.recipient_circle_id = c.circle_id`).
-		Where("recipe_access.recipe_id = ? AND recipe_access.recipe_access_id = ?", parent.RecipeId.RecipeId, id.RecipeAccessId).
-		First(&recipeAccess)
+	tx := repo.db.WithContext(ctx).
+		Select(dbModel.RecipeAccessFieldMasker.Convert(fields)).
+		Where("recipe_access.recipe_id = ? AND recipe_access.recipe_access_id = ?", parent.RecipeId.RecipeId, id.RecipeAccessId)
+
+	if slices.Contains(fields, dbModel.RecipeAccessFields_RecipientUserId) || slices.Contains(fields, dbModel.RecipeAccessFields_RecipientCircleId) {
+		tx = tx.Joins(`LEFT JOIN daylear_user ON recipe_access.recipient_user_id = daylear_user.user_id`).
+			Joins(`LEFT JOIN circle ON recipe_access.recipient_circle_id = circle.circle_id`)
+	}
+
+	res := tx.First(&recipeAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Warn().Err(res.Error).Msg("record not found")
+			log.Warn().Err(res.Error).Msg("recipe access row not found")
 			return model.RecipeAccess{}, repository.ErrNotFound{}
 		}
-		log.Error().Err(res.Error).Msg("db.First failed")
+		log.Error().Err(res.Error).Msg("unable to get recipe access row")
 		return model.RecipeAccess{}, res.Error
 	}
 
 	return convert.RecipeAccessToCoreRecipeAccess(recipeAccess), nil
 }
 
-func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent model.RecipeAccessParent, pageSize int32, pageOffset int64, filterStr string) ([]model.RecipeAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent model.RecipeAccessParent, pageSize int32, pageOffset int64, filterStr string, fields []string) ([]model.RecipeAccess, error) {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("recipeId", parent.RecipeId.RecipeId).
+		Str("filter", filterStr).
+		Int("pageSize", int(pageSize)).
+		Int64("pageOffset", pageOffset).
+		Logger()
+
 	if authAccount.AuthUserId == 0 && authAccount.CircleId == 0 {
+		log.Error().Msg("user id or circle id is required to list recipe access rows")
 		return nil, repository.ErrInvalidArgument{Msg: "user id or circle id is required"}
 	}
 
@@ -126,13 +153,15 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 	var recipeAccesses []dbModel.RecipeAccess
 	// Start building the query
 	db := repo.db.WithContext(ctx).
-		Table("recipe_access").
-		Select(`recipe_access.*, u.username as recipient_username, u.given_name as recipient_given_name, u.family_name as recipient_family_name, c.title as recipient_circle_title, c.handle as recipient_circle_handle`).
-		Joins(`LEFT JOIN daylear_user u ON recipe_access.recipient_user_id = u.user_id`).
-		Joins(`LEFT JOIN circle c ON recipe_access.recipient_circle_id = c.circle_id`).
+		Select(dbModel.RecipeAccessFieldMasker.Convert(fields)).
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(pageOffset))
+
+	if slices.Contains(fields, dbModel.RecipeAccessFields_RecipientUserId) || slices.Contains(fields, dbModel.RecipeAccessFields_RecipientCircleId) {
+		db = db.Joins(`LEFT JOIN daylear_user u ON recipe_access.recipient_user_id = u.user_id`).
+			Joins(`LEFT JOIN circle c ON recipe_access.recipient_circle_id = c.circle_id`)
+	}
 
 	// Filter by recipe ID if provided
 	if parent.RecipeId.RecipeId != 0 {
@@ -153,7 +182,7 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 
 	conversion, err := dbModel.RecipeAccessSQLConverter.Convert(filterStr)
 	if err != nil {
-		log.Error().Err(err).Msg("invalid filter")
+		log.Error().Err(err).Msg("invalid filter string when listing recipe access rows")
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
 	}
 
@@ -165,7 +194,7 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 		Offset(int(pageOffset)).
 		Find(&recipeAccesses).Error
 	if err != nil {
-		log.Error().Err(err).Msg("db.Find failed")
+		log.Error().Err(err).Msg("unable to list recipe access rows")
 		return nil, ConvertGormError(err)
 	}
 
@@ -178,7 +207,11 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 }
 
 func (repo *Client) UpdateRecipeAccess(ctx context.Context, access model.RecipeAccess, fields []string) (model.RecipeAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("recipeAccessId", access.RecipeAccessId.RecipeAccessId).
+		Strs("fields", fields).
+		Logger()
+
 	dbAccess := convert.CoreRecipeAccessToRecipeAccess(access)
 
 	db := repo.db.WithContext(ctx).
@@ -187,7 +220,7 @@ func (repo *Client) UpdateRecipeAccess(ctx context.Context, access model.RecipeA
 
 	err := db.Where("recipe_access_id = ?", access.RecipeAccessId.RecipeAccessId).Updates(&dbAccess).Error
 	if err != nil {
-		log.Error().Err(err).Msg("db.Updates failed")
+		log.Error().Err(err).Msg("unable to update recipe access row")
 		return model.RecipeAccess{}, ConvertGormError(err)
 	}
 
@@ -195,8 +228,10 @@ func (repo *Client) UpdateRecipeAccess(ctx context.Context, access model.RecipeA
 }
 
 func (repo *Client) FindStandardUserRecipeAccess(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (model.RecipeAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	// SELECT * from recipe_access where recipient_user_id = ? and recipe_id = ?
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("recipeId", id.RecipeId).
+		Int64("authUserId", authAccount.AuthUserId).
+		Logger()
 
 	var recipeAccess dbModel.RecipeAccess
 	res := repo.db.WithContext(ctx).
@@ -214,10 +249,10 @@ func (repo *Client) FindStandardUserRecipeAccess(ctx context.Context, authAccoun
 }
 
 func (repo *Client) FindDelegatedCircleRecipeAccess(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (model.RecipeAccess, model.CircleAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	// SELECT * from recipe_access
-	// 	JOIN circle_access ON circle_access.circle_id = recipe_access.recipient_circle_id
-	// WHERE recipe_access.recipe_id = 1 AND circle_access.recipient_user_id = 1 LIMIT 1;
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("recipeId", id.RecipeId).
+		Int64("authUserId", authAccount.AuthUserId).
+		Logger()
 
 	type Result struct {
 		dbModel.RecipeAccess
@@ -242,10 +277,10 @@ func (repo *Client) FindDelegatedCircleRecipeAccess(ctx context.Context, authAcc
 }
 
 func (repo *Client) FindDelegatedUserRecipeAccess(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) (model.RecipeAccess, model.UserAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	// SELECT * from recipe_access
-	// 	JOIN user_access ON user_access.user_id = recipe_access.recipient_user_id
-	// WHERE recipe_access.recipe_id = ? AND user_access.recipient_user_id = ? LIMIT 1;
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("recipeId", id.RecipeId).
+		Int64("authUserId", authAccount.AuthUserId).
+		Logger()
 
 	type Result struct {
 		dbModel.RecipeAccess

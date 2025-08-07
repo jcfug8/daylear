@@ -15,7 +15,11 @@ import (
 )
 
 func (repo *Client) CreateUserAccess(ctx context.Context, access model.UserAccess, fields []string) (model.UserAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("userId", access.UserId.UserId).
+		Int64("recipientUserId", access.Recipient.UserId).
+		Strs("fields", fields).
+		Logger()
 
 	userAccess := convert.CoreUserAccessToUserAccess(access)
 	res := repo.db.WithContext(ctx).
@@ -24,10 +28,10 @@ func (repo *Client) CreateUserAccess(ctx context.Context, access model.UserAcces
 		Create(&userAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrDuplicatedKey) {
-			log.Error().Err(res.Error).Msg("duplicate key error")
+			log.Error().Err(res.Error).Msg("unable to create user access row: already exists")
 			return model.UserAccess{}, repository.ErrNewAlreadyExists{}
 		}
-		log.Error().Err(res.Error).Msg("db.Create failed")
+		log.Error().Err(res.Error).Msg("unable to create user access row")
 		return model.UserAccess{}, res.Error
 	}
 
@@ -36,17 +40,30 @@ func (repo *Client) CreateUserAccess(ctx context.Context, access model.UserAcces
 }
 
 func (repo *Client) DeleteUserAccess(ctx context.Context, parent model.UserAccessParent, id model.UserAccessId) error {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("userId", parent.UserId.UserId).
+		Int64("userAccessId", id.UserAccessId).
+		Logger()
+
+	if parent.UserId.UserId == 0 {
+		log.Error().Msg("user id is required to delete user access row")
+		return repository.ErrInvalidArgument{Msg: "user id is required"}
+	}
+
+	if id.UserAccessId == 0 {
+		log.Error().Msg("user access id is required to delete user access row")
+		return repository.ErrInvalidArgument{Msg: "user access id is required"}
+	}
 
 	res := repo.db.WithContext(ctx).
 		Where("user_id = ? AND user_access_id = ?", parent.UserId.UserId, id.UserAccessId).
 		Delete(&dbModel.UserAccess{})
 	if res.Error != nil {
-		log.Error().Err(res.Error).Msg("db.Delete failed")
+		log.Error().Err(res.Error).Msg("unable to delete user access row")
 		return ConvertGormError(res.Error)
 	}
 	if res.RowsAffected == 0 {
-		log.Warn().Msg("no rows affected (not found)")
+		log.Warn().Msg("no user access row deleted")
 		return repository.ErrNotFound{}
 	}
 
@@ -54,7 +71,11 @@ func (repo *Client) DeleteUserAccess(ctx context.Context, parent model.UserAcces
 }
 
 func (repo *Client) GetUserAccess(ctx context.Context, parent model.UserAccessParent, id model.UserAccessId, fields []string) (model.UserAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("userId", parent.UserId.UserId).
+		Int64("userAccessId", id.UserAccessId).
+		Strs("fields", fields).
+		Logger()
 
 	var userAccess dbModel.UserAccess
 	res := repo.db.WithContext(ctx).
@@ -64,10 +85,10 @@ func (repo *Client) GetUserAccess(ctx context.Context, parent model.UserAccessPa
 		First(&userAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Warn().Err(res.Error).Msg("record not found")
+			log.Warn().Err(res.Error).Msg("user access row not found")
 			return model.UserAccess{}, repository.ErrNotFound{}
 		}
-		log.Error().Err(res.Error).Msg("db.First failed")
+		log.Error().Err(res.Error).Msg("unable to get user access row")
 		return model.UserAccess{}, res.Error
 	}
 
@@ -75,7 +96,14 @@ func (repo *Client) GetUserAccess(ctx context.Context, parent model.UserAccessPa
 }
 
 func (repo *Client) ListUserAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent model.UserAccessParent, pageSize int32, pageOffset int64, filterStr string, fields []string) ([]model.UserAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("userId", parent.UserId.UserId).
+		Str("filter", filterStr).
+		Strs("fields", fields).
+		Int("pageSize", int(pageSize)).
+		Int64("pageOffset", pageOffset).
+		Logger()
+
 	orders := []clause.OrderByColumn{{
 		Column: clause.Column{Name: "user_access.user_access_id"},
 		Desc:   true,
@@ -96,7 +124,7 @@ func (repo *Client) ListUserAccesses(ctx context.Context, authAccount cmodel.Aut
 
 	err := db.Find(&userAccesses).Error
 	if err != nil {
-		log.Error().Err(err).Msg("db.Find failed")
+		log.Error().Err(err).Msg("unable to list user access rows")
 		return nil, ConvertGormError(err)
 	}
 
@@ -109,7 +137,11 @@ func (repo *Client) ListUserAccesses(ctx context.Context, authAccount cmodel.Aut
 }
 
 func (repo *Client) UpdateUserAccess(ctx context.Context, access model.UserAccess, fields []string) (model.UserAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("userAccessId", access.UserAccessId.UserAccessId).
+		Strs("fields", fields).
+		Logger()
+
 	dbAccess := convert.CoreUserAccessToUserAccess(access)
 
 	err := repo.db.WithContext(ctx).
@@ -118,7 +150,7 @@ func (repo *Client) UpdateUserAccess(ctx context.Context, access model.UserAcces
 		Where("user_access_id = ?", access.UserAccessId.UserAccessId).
 		Updates(&dbAccess).Error
 	if err != nil {
-		log.Error().Err(err).Msg("db.Updates failed")
+		log.Error().Err(err).Msg("unable to update user access row")
 		return model.UserAccess{}, ConvertGormError(err)
 	}
 
@@ -126,8 +158,10 @@ func (repo *Client) UpdateUserAccess(ctx context.Context, access model.UserAcces
 }
 
 func (repo *Client) FindStandardUserUserAccess(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.UserAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	// SELECT * from user_access where recipient_user_id = ? and user_id = ?
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("userId", id.UserId).
+		Int64("authUserId", authAccount.AuthUserId).
+		Logger()
 
 	var userAccess dbModel.UserAccess
 	res := repo.db.WithContext(ctx).
@@ -145,10 +179,10 @@ func (repo *Client) FindStandardUserUserAccess(ctx context.Context, authAccount 
 }
 
 func (repo *Client) FindDelegatedCircleUserAccess(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.UserAccess, model.CircleAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	// SELECT * from user_access
-	// 	JOIN circle_access ON circle_access.circle_id = user_access.recipient_circle_id
-	// WHERE user_access.user_id = 1 AND circle_access.recipient_user_id = 1 LIMIT 1;
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("userId", id.UserId).
+		Int64("authUserId", authAccount.AuthUserId).
+		Logger()
 
 	type Result struct {
 		dbModel.UserAccess
@@ -173,10 +207,10 @@ func (repo *Client) FindDelegatedCircleUserAccess(ctx context.Context, authAccou
 }
 
 func (repo *Client) FindDelegatedUserUserAccess(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.UserAccess, model.UserAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	// SELECT * from user_access
-	// 	JOIN user_access ON user_access.user_id = user_access.recipient_user_id
-	// WHERE user_access.user_id = ? AND user_access.recipient_user_id = ? LIMIT 1;
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("userId", id.UserId).
+		Int64("authUserId", authAccount.AuthUserId).
+		Logger()
 
 	type Result struct {
 		dbModel.UserAccess

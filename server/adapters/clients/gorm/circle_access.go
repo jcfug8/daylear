@@ -16,13 +16,16 @@ import (
 )
 
 func (repo *Client) CreateCircleAccess(ctx context.Context, access model.CircleAccess) (model.CircleAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	log.Info().Msg("GORM CreateCircleAccess called")
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("circleId", access.CircleId.CircleId).
+		Int64("recipientUserId", access.Recipient.UserId).
+		Logger()
+
 	db := repo.db.WithContext(ctx)
 
 	// Validate that exactly one recipient type is set
 	if access.Recipient.UserId == 0 {
-		log.Error().Msg("recipient is required")
+		log.Error().Msg("recipient is required to create circle access row")
 		return model.CircleAccess{}, repository.ErrInvalidArgument{Msg: "recipient is required"}
 	}
 
@@ -30,59 +33,79 @@ func (repo *Client) CreateCircleAccess(ctx context.Context, access model.CircleA
 	res := db.Create(&circleAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrDuplicatedKey) {
-			log.Error().Err(res.Error).Msg("duplicate key error on create")
+			log.Error().Err(res.Error).Msg("unable to create circle access row: already exists")
 			return model.CircleAccess{}, repository.ErrNewAlreadyExists{}
 		}
-		log.Error().Err(res.Error).Msg("db.Create failed")
+		log.Error().Err(res.Error).Msg("unable to create circle access row")
 		return model.CircleAccess{}, res.Error
 	}
 
 	access.CircleAccessId.CircleAccessId = circleAccess.CircleAccessId
-	log.Info().Msg("GORM CreateCircleAccess returning successfully")
 	return access, nil
 }
 
 func (repo *Client) DeleteCircleAccess(ctx context.Context, parent model.CircleAccessParent, id model.CircleAccessId) error {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	log.Info().Msg("GORM DeleteCircleAccess called")
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("circleId", parent.CircleId.CircleId).
+		Int64("circleAccessId", id.CircleAccessId).
+		Logger()
+
+	if parent.CircleId.CircleId == 0 {
+		log.Error().Msg("circle id is required to delete circle access row")
+		return repository.ErrInvalidArgument{Msg: "circle id is required"}
+	}
+
+	if id.CircleAccessId == 0 {
+		log.Error().Msg("circle access id is required to delete circle access row")
+		return repository.ErrInvalidArgument{Msg: "circle access id is required"}
+	}
+
 	db := repo.db.WithContext(ctx)
 
 	res := db.Delete(&dbModel.CircleAccess{}, id.CircleAccessId)
 	if res.Error != nil {
-		log.Error().Err(res.Error).Msg("db.Delete failed")
+		log.Error().Err(res.Error).Msg("unable to delete circle access row")
 		return ConvertGormError(res.Error)
 	}
 	if res.RowsAffected == 0 {
-		log.Error().Msg("no rows affected on delete")
+		log.Warn().Msg("no circle access row deleted")
 		return repository.ErrNotFound{}
 	}
 
-	log.Info().Msg("GORM DeleteCircleAccess returning successfully")
 	return nil
 }
 
 func (repo *Client) BulkDeleteCircleAccess(ctx context.Context, parent model.CircleAccessParent) error {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	log.Info().Msg("GORM BulkDeleteCircleAccess called")
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("circleId", parent.CircleId.CircleId).
+		Logger()
+
+	if parent.CircleId.CircleId == 0 {
+		log.Error().Msg("circle id is required to bulk delete circle access rows")
+		return repository.ErrInvalidArgument{Msg: "circle id is required"}
+	}
+
 	db := repo.db.WithContext(ctx)
 
 	res := db.Where("circle_id = ?", parent.CircleId.CircleId).Delete(&dbModel.CircleAccess{})
 	if res.Error != nil {
-		log.Error().Err(res.Error).Msg("db.Delete failed")
+		log.Error().Err(res.Error).Msg("unable to bulk delete circle access rows")
 		return ConvertGormError(res.Error)
 	}
 	if res.RowsAffected == 0 {
-		log.Error().Msg("no rows affected on bulk delete")
+		log.Warn().Msg("no circle access rows deleted")
 		return repository.ErrNotFound{}
 	}
 
-	log.Info().Msg("GORM BulkDeleteCircleAccess returning successfully")
 	return nil
 }
 
 func (repo *Client) GetCircleAccess(ctx context.Context, parent model.CircleAccessParent, id model.CircleAccessId) (model.CircleAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	log.Info().Msg("GORM GetCircleAccess called")
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("circleId", parent.CircleId.CircleId).
+		Int64("circleAccessId", id.CircleAccessId).
+		Logger()
+
 	db := repo.db.WithContext(ctx)
 
 	var circleAccess dbModel.CircleAccess
@@ -93,28 +116,32 @@ func (repo *Client) GetCircleAccess(ctx context.Context, parent model.CircleAcce
 		First(&circleAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Error().Err(res.Error).Msg("record not found on get")
+			log.Warn().Err(res.Error).Msg("circle access row not found")
 			return model.CircleAccess{}, repository.ErrNotFound{}
 		}
-		log.Error().Err(res.Error).Msg("db.First failed")
+		log.Error().Err(res.Error).Msg("unable to get circle access row")
 		return model.CircleAccess{}, res.Error
 	}
 
-	log.Info().Msg("GORM GetCircleAccess returning successfully")
 	return convert.CircleAccessToCoreCircleAccess(circleAccess), nil
 }
 
 func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.AuthAccount, parent model.CircleAccessParent, pageSize int32, pageOffset int64, filterStr string) ([]model.CircleAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	log.Info().Msg("GORM ListCircleAccesses called")
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("circleId", parent.CircleId.CircleId).
+		Str("filter", filterStr).
+		Int("pageSize", int(pageSize)).
+		Int64("pageOffset", pageOffset).
+		Logger()
+
 	if authAccount.AuthUserId == 0 {
-		log.Error().Msg("user id is required")
+		log.Error().Msg("user id is required to list circle access rows")
 		return nil, repository.ErrInvalidArgument{Msg: "user id is required"}
 	}
 
 	conversion, err := dbModel.CircleAccessSQLConverter.Convert(filterStr)
 	if err != nil {
-		log.Error().Err(err).Msg("circleAccessSQLConverter.Convert failed")
+		log.Error().Err(err).Msg("invalid filter string when listing circle access rows")
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
 	}
 
@@ -141,7 +168,7 @@ func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.A
 		Offset(int(pageOffset)).
 		Find(&circleAccesses).Error
 	if err != nil {
-		log.Error().Err(err).Msg("db.Find failed")
+		log.Error().Err(err).Msg("unable to list circle access rows")
 		return nil, ConvertGormError(err)
 	}
 
@@ -150,13 +177,15 @@ func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.A
 		accesses[i] = convert.CircleAccessToCoreCircleAccess(access)
 	}
 
-	log.Info().Msg("GORM ListCircleAccesses returning successfully")
 	return accesses, nil
 }
 
 func (repo *Client) UpdateCircleAccess(ctx context.Context, access model.CircleAccess, updateMask []string) (model.CircleAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	log.Info().Msg("GORM UpdateCircleAccess called")
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("circleAccessId", access.CircleAccessId.CircleAccessId).
+		Strs("updateMask", updateMask).
+		Logger()
+
 	dbAccess := convert.CoreCircleAccessToCircleAccess(access)
 
 	columns := dbModel.UpdateCircleAccessFieldMasker.Convert(updateMask)
@@ -165,17 +194,18 @@ func (repo *Client) UpdateCircleAccess(ctx context.Context, access model.CircleA
 
 	err := db.Where("circle_access_id = ?", access.CircleAccessId.CircleAccessId).Updates(&dbAccess).Error
 	if err != nil {
-		log.Error().Err(err).Msg("db.Updates failed")
+		log.Error().Err(err).Msg("unable to update circle access row")
 		return model.CircleAccess{}, ConvertGormError(err)
 	}
 
-	log.Info().Msg("GORM UpdateCircleAccess returning successfully")
 	return convert.CircleAccessToCoreCircleAccess(dbAccess), nil
 }
 
 func (repo *Client) FindStandardUserCircleAccess(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.CircleId) (cmodel.CircleAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	// SELECT * from circle_access where recipient_user_id = ? and circle_id = ?
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("circleId", id.CircleId).
+		Int64("authUserId", authAccount.AuthUserId).
+		Logger()
 
 	var circleAccess dbModel.CircleAccess
 	res := repo.db.WithContext(ctx).
@@ -193,10 +223,10 @@ func (repo *Client) FindStandardUserCircleAccess(ctx context.Context, authAccoun
 }
 
 func (repo *Client) FindDelegatedUserCircleAccess(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.CircleId) (cmodel.CircleAccess, cmodel.UserAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	// SELECT * from circle_access
-	// 	JOIN user_access ON user_access.user_id = circle_access.recipient_user_id
-	// WHERE circle_access.circle_id = ? AND user_access.recipient_user_id = ? LIMIT 1;
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("circleId", id.CircleId).
+		Int64("authUserId", authAccount.AuthUserId).
+		Logger()
 
 	type Result struct {
 		dbModel.CircleAccess
