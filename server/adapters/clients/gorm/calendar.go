@@ -5,6 +5,7 @@ import (
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/core/fieldmask"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
@@ -51,7 +52,7 @@ func (repo *Client) DeleteCalendar(ctx context.Context, id cmodel.CalendarId) (c
 	gm := gmodel.Calendar{CalendarId: id.CalendarId}
 
 	err := repo.db.WithContext(ctx).
-		Select(gmodel.CalendarFieldMasker.GetAll()).
+		Select(gmodel.CalendarFieldMasker.Get()).
 		Clauses(clause.Returning{}).
 		Delete(&gm).Error
 	if err != nil {
@@ -78,7 +79,12 @@ func (repo *Client) GetCalendar(ctx context.Context, authAccount cmodel.AuthAcco
 	gm := gmodel.Calendar{}
 
 	tx := repo.db.WithContext(ctx).
-		Select(gmodel.CalendarFieldMasker.Convert(fields)).
+		Select(gmodel.CalendarFieldMasker.Convert(
+			fields,
+			fieldmask.ExcludeKeys(
+				cmodel.CalendarField_CalendarAccess,
+			),
+		)).
 		Where("calendar.calendar_id = ?", id.CalendarId)
 
 	err := tx.First(&gm).Error

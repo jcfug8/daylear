@@ -6,6 +6,7 @@ import (
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/core/fieldmask"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/ports/repository"
@@ -52,7 +53,14 @@ func (repo *Client) GetUser(ctx context.Context, authAccount cmodel.AuthAccount,
 	gm := gmodel.User{}
 
 	err := repo.db.WithContext(ctx).
-		Select(gmodel.UserFieldMasker.Convert(fields)).
+		Select(gmodel.UserFieldMasker.Convert(
+			fields,
+			fieldmask.ExcludeKeys(
+				cmodel.UserField_AccessName,
+				cmodel.UserField_AccessPermissionLevel,
+				cmodel.UserField_AccessState,
+			),
+		)).
 		Where("daylear_user.user_id = ?", id.UserId).
 		First(&gm).Error
 	if err != nil {

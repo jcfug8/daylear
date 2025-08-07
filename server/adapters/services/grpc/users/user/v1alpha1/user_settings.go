@@ -34,7 +34,7 @@ func (s *UserService) GetUserSettings(ctx context.Context, req *pb.GetUserSettin
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", req.GetName())
 	}
 
-	mUser, err = s.domain.GetOwnUser(ctx, authAccount, mUser.Id, s.userSettingsFieldMasker.GetAll())
+	mUser, err = s.domain.GetOwnUser(ctx, authAccount, mUser.Id, s.userSettingsFieldMasker.Get())
 	if err != nil {
 		log.Error().Err(err).Msg("domain.GetUser failed")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -69,7 +69,7 @@ func (s *UserService) UpdateUserSettings(ctx context.Context, req *pb.UpdateUser
 
 	// No updatable fields, so just return current settings
 	// TODO: add update mask and ability to update fields when there come
-	mUser, err = s.domain.GetUser(ctx, authAccount, mUser.Parent, mUser.Id, s.userSettingsFieldMasker.GetAll())
+	mUser, err = s.domain.GetUser(ctx, authAccount, mUser.Parent, mUser.Id, s.userSettingsFieldMasker.Get())
 	if err != nil {
 		log.Error().Err(err).Msg("domain.GetUser failed")
 		return nil, status.Error(codes.Internal, err.Error())

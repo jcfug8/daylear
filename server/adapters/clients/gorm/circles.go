@@ -6,6 +6,7 @@ import (
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/core/fieldmask"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
@@ -51,7 +52,7 @@ func (repo *Client) DeleteCircle(ctx context.Context, id cmodel.CircleId) (cmode
 
 	gm := gmodel.Circle{CircleId: id.CircleId}
 	err := repo.db.WithContext(ctx).
-		Select(gmodel.CircleFieldMasker.GetAll()).
+		Select(gmodel.CircleFieldMasker.Get()).
 		Clauses(clause.Returning{}).
 		Delete(&gm).Error
 	if err != nil {
@@ -78,7 +79,12 @@ func (repo *Client) GetCircle(ctx context.Context, authAccount cmodel.AuthAccoun
 	gm := gmodel.Circle{}
 
 	tx := repo.db.WithContext(ctx).
-		Select(gmodel.CircleFieldMasker.Convert(fields)).
+		Select(gmodel.CircleFieldMasker.Convert(
+			fields,
+			fieldmask.ExcludeKeys(
+				cmodel.CircleField_CircleAccess,
+			),
+		)).
 		Where("circle.circle_id = ?", id.CircleId)
 
 	err := tx.First(&gm).Error

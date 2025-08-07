@@ -6,6 +6,7 @@ import (
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/core/fieldmask"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
@@ -117,7 +118,7 @@ func (repo *Client) DeleteRecipe(ctx context.Context, authAccount cmodel.AuthAcc
 	gm := gmodel.Recipe{RecipeId: id.RecipeId}
 
 	err := repo.db.WithContext(ctx).
-		Select(gmodel.RecipeFieldMasker.GetAll()).
+		Select(gmodel.RecipeFieldMasker.Get()).
 		Clauses(clause.Returning{}).
 		Delete(&gm).Error
 	if err != nil {
@@ -144,7 +145,12 @@ func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccoun
 	gm := gmodel.Recipe{}
 
 	tx := repo.db.WithContext(ctx).
-		Select(gmodel.RecipeFieldMasker.Convert(fields)).
+		Select(gmodel.RecipeFieldMasker.Convert(
+			fields,
+			fieldmask.ExcludeKeys(
+				cmodel.RecipeField_RecipeAccess,
+			),
+		)).
 		Where("recipe.recipe_id = ?", id.RecipeId)
 
 	err := tx.First(&gm).Error

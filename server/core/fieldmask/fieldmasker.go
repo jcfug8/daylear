@@ -66,15 +66,18 @@ func collectFieldMasks(msg protoreflect.Message, prefix string, fields map[strin
 }
 
 // Convert takes a list of keys and returns a deduplicated list of all mapped values.
-func (fmm *FieldMasker) Convert(keys []string) []string {
+func (fmm *FieldMasker) Convert(keys []string, opts ...option) []string {
 	if len(keys) == 0 {
-		return fmm.GetAll()
+		return fmm.Get(opts...)
 	}
 
 	result := make([]string, 0)
 	seen := make(map[string]struct{})
 	for _, key := range keys {
 		if values, ok := fmm.mapping[key]; ok {
+			for _, opt := range opts {
+				values = opt(key, values)
+			}
 			for _, v := range values {
 				if _, exists := seen[v]; !exists {
 					result = append(result, v)
@@ -86,9 +89,12 @@ func (fmm *FieldMasker) Convert(keys []string) []string {
 	return result
 }
 
-func (fmm *FieldMasker) GetAll() []string {
+func (fmm *FieldMasker) Get(opts ...option) []string {
 	result := make([]string, 0)
-	for _, values := range fmm.mapping {
+	for key, values := range fmm.mapping {
+		for _, opt := range opts {
+			values = opt(key, values)
+		}
 		result = append(result, values...)
 	}
 	return result

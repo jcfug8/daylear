@@ -23,6 +23,11 @@ func (repo *Client) CreateUserAccess(ctx context.Context, access model.UserAcces
 		Strs("fields", fields).
 		Logger()
 
+	if access.Recipient.UserId == 0 {
+		log.Error().Msg("recipient is required to create user access row")
+		return model.UserAccess{}, repository.ErrInvalidArgument{Msg: "recipient is required"}
+	}
+
 	userAccess := convert.CoreUserAccessToUserAccess(access)
 	res := repo.db.WithContext(ctx).
 		Select(dbModel.UserAccessFieldMasker.Convert(fields)).
