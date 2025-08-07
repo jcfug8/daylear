@@ -18,6 +18,14 @@ var (
 	accessDefaultPageSize int32 = 100
 )
 
+var circleAccessFieldMap = map[string][]string{
+	"name":      {model.CircleAccessField_Parent, model.CircleAccessField_Id},
+	"level":     {model.CircleAccessField_PermissionLevel},
+	"state":     {model.CircleAccessField_State},
+	"requester": {model.CircleAccessField_Requester},
+	"recipient": {model.CircleAccessField_Recipient},
+}
+
 func (s *CircleService) CreateAccess(ctx context.Context, request *pb.CreateAccessRequest) (*pb.Access, error) {
 	log := logutil.EnrichLoggerWithContext(s.log, ctx)
 	log.Info().Msg("gRPC CreateAccess called")

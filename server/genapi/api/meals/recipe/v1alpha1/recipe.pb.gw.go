@@ -135,6 +135,65 @@ func local_request_RecipeService_CreateRecipe_1(ctx context.Context, marshaler r
 	return msg, metadata, err
 }
 
+var filter_RecipeService_CreateRecipe_2 = &utilities.DoubleArray{Encoding: map[string]int{"recipe": 0, "parent": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
+
+func request_RecipeService_CreateRecipe_2(ctx context.Context, marshaler runtime.Marshaler, client RecipeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CreateRecipeRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq.Recipe); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["parent"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "parent")
+	}
+	protoReq.Parent, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "parent", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_RecipeService_CreateRecipe_2); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := client.CreateRecipe(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_RecipeService_CreateRecipe_2(ctx context.Context, marshaler runtime.Marshaler, server RecipeServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CreateRecipeRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq.Recipe); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["parent"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "parent")
+	}
+	protoReq.Parent, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "parent", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_RecipeService_CreateRecipe_2); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := server.CreateRecipe(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 var filter_RecipeService_ListRecipes_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_RecipeService_ListRecipes_0(ctx context.Context, marshaler runtime.Marshaler, client RecipeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -357,168 +416,6 @@ func local_request_RecipeService_UpdateRecipe_0(ctx context.Context, marshaler r
 	return msg, metadata, err
 }
 
-var filter_RecipeService_UpdateRecipe_1 = &utilities.DoubleArray{Encoding: map[string]int{"recipe": 0, "name": 1}, Base: []int{1, 2, 1, 0, 0}, Check: []int{0, 1, 2, 3, 2}}
-
-func request_RecipeService_UpdateRecipe_1(ctx context.Context, marshaler runtime.Marshaler, client RecipeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq UpdateRecipeRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Recipe); err != nil && !errors.Is(err, io.EOF) {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if req.Body != nil {
-		_, _ = io.Copy(io.Discard, req.Body)
-	}
-	if protoReq.UpdateMask == nil || len(protoReq.UpdateMask.GetPaths()) == 0 {
-		if fieldMask, err := runtime.FieldMaskFromRequestBody(newReader(), protoReq.Recipe); err != nil {
-			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-		} else {
-			protoReq.UpdateMask = fieldMask
-		}
-	}
-	val, ok := pathParams["recipe.name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "recipe.name")
-	}
-	err = runtime.PopulateFieldFromPath(&protoReq, "recipe.name", val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "recipe.name", err)
-	}
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_RecipeService_UpdateRecipe_1); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	msg, err := client.UpdateRecipe(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-}
-
-func local_request_RecipeService_UpdateRecipe_1(ctx context.Context, marshaler runtime.Marshaler, server RecipeServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq UpdateRecipeRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Recipe); err != nil && !errors.Is(err, io.EOF) {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if protoReq.UpdateMask == nil || len(protoReq.UpdateMask.GetPaths()) == 0 {
-		if fieldMask, err := runtime.FieldMaskFromRequestBody(newReader(), protoReq.Recipe); err != nil {
-			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-		} else {
-			protoReq.UpdateMask = fieldMask
-		}
-	}
-	val, ok := pathParams["recipe.name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "recipe.name")
-	}
-	err = runtime.PopulateFieldFromPath(&protoReq, "recipe.name", val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "recipe.name", err)
-	}
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_RecipeService_UpdateRecipe_1); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	msg, err := server.UpdateRecipe(ctx, &protoReq)
-	return msg, metadata, err
-}
-
-var filter_RecipeService_UpdateRecipe_2 = &utilities.DoubleArray{Encoding: map[string]int{"recipe": 0, "name": 1}, Base: []int{1, 2, 1, 0, 0}, Check: []int{0, 1, 2, 3, 2}}
-
-func request_RecipeService_UpdateRecipe_2(ctx context.Context, marshaler runtime.Marshaler, client RecipeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq UpdateRecipeRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Recipe); err != nil && !errors.Is(err, io.EOF) {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if req.Body != nil {
-		_, _ = io.Copy(io.Discard, req.Body)
-	}
-	if protoReq.UpdateMask == nil || len(protoReq.UpdateMask.GetPaths()) == 0 {
-		if fieldMask, err := runtime.FieldMaskFromRequestBody(newReader(), protoReq.Recipe); err != nil {
-			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-		} else {
-			protoReq.UpdateMask = fieldMask
-		}
-	}
-	val, ok := pathParams["recipe.name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "recipe.name")
-	}
-	err = runtime.PopulateFieldFromPath(&protoReq, "recipe.name", val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "recipe.name", err)
-	}
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_RecipeService_UpdateRecipe_2); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	msg, err := client.UpdateRecipe(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-}
-
-func local_request_RecipeService_UpdateRecipe_2(ctx context.Context, marshaler runtime.Marshaler, server RecipeServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq UpdateRecipeRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Recipe); err != nil && !errors.Is(err, io.EOF) {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if protoReq.UpdateMask == nil || len(protoReq.UpdateMask.GetPaths()) == 0 {
-		if fieldMask, err := runtime.FieldMaskFromRequestBody(newReader(), protoReq.Recipe); err != nil {
-			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-		} else {
-			protoReq.UpdateMask = fieldMask
-		}
-	}
-	val, ok := pathParams["recipe.name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "recipe.name")
-	}
-	err = runtime.PopulateFieldFromPath(&protoReq, "recipe.name", val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "recipe.name", err)
-	}
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_RecipeService_UpdateRecipe_2); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	msg, err := server.UpdateRecipe(ctx, &protoReq)
-	return msg, metadata, err
-}
-
 func request_RecipeService_DeleteRecipe_0(ctx context.Context, marshaler runtime.Marshaler, client RecipeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq DeleteRecipeRequest
@@ -558,84 +455,6 @@ func local_request_RecipeService_DeleteRecipe_0(ctx context.Context, marshaler r
 	return msg, metadata, err
 }
 
-func request_RecipeService_DeleteRecipe_1(ctx context.Context, marshaler runtime.Marshaler, client RecipeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq DeleteRecipeRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	if req.Body != nil {
-		_, _ = io.Copy(io.Discard, req.Body)
-	}
-	val, ok := pathParams["name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
-	}
-	protoReq.Name, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
-	}
-	msg, err := client.DeleteRecipe(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-}
-
-func local_request_RecipeService_DeleteRecipe_1(ctx context.Context, marshaler runtime.Marshaler, server RecipeServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq DeleteRecipeRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	val, ok := pathParams["name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
-	}
-	protoReq.Name, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
-	}
-	msg, err := server.DeleteRecipe(ctx, &protoReq)
-	return msg, metadata, err
-}
-
-func request_RecipeService_DeleteRecipe_2(ctx context.Context, marshaler runtime.Marshaler, client RecipeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq DeleteRecipeRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	if req.Body != nil {
-		_, _ = io.Copy(io.Discard, req.Body)
-	}
-	val, ok := pathParams["name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
-	}
-	protoReq.Name, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
-	}
-	msg, err := client.DeleteRecipe(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-}
-
-func local_request_RecipeService_DeleteRecipe_2(ctx context.Context, marshaler runtime.Marshaler, server RecipeServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq DeleteRecipeRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	val, ok := pathParams["name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
-	}
-	protoReq.Name, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
-	}
-	msg, err := server.DeleteRecipe(ctx, &protoReq)
-	return msg, metadata, err
-}
-
 func request_RecipeService_GetRecipe_0(ctx context.Context, marshaler runtime.Marshaler, client RecipeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq GetRecipeRequest
@@ -658,84 +477,6 @@ func request_RecipeService_GetRecipe_0(ctx context.Context, marshaler runtime.Ma
 }
 
 func local_request_RecipeService_GetRecipe_0(ctx context.Context, marshaler runtime.Marshaler, server RecipeServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq GetRecipeRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	val, ok := pathParams["name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
-	}
-	protoReq.Name, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
-	}
-	msg, err := server.GetRecipe(ctx, &protoReq)
-	return msg, metadata, err
-}
-
-func request_RecipeService_GetRecipe_1(ctx context.Context, marshaler runtime.Marshaler, client RecipeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq GetRecipeRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	if req.Body != nil {
-		_, _ = io.Copy(io.Discard, req.Body)
-	}
-	val, ok := pathParams["name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
-	}
-	protoReq.Name, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
-	}
-	msg, err := client.GetRecipe(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-}
-
-func local_request_RecipeService_GetRecipe_1(ctx context.Context, marshaler runtime.Marshaler, server RecipeServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq GetRecipeRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	val, ok := pathParams["name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
-	}
-	protoReq.Name, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
-	}
-	msg, err := server.GetRecipe(ctx, &protoReq)
-	return msg, metadata, err
-}
-
-func request_RecipeService_GetRecipe_2(ctx context.Context, marshaler runtime.Marshaler, client RecipeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq GetRecipeRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	if req.Body != nil {
-		_, _ = io.Copy(io.Discard, req.Body)
-	}
-	val, ok := pathParams["name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
-	}
-	protoReq.Name, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
-	}
-	msg, err := client.GetRecipe(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-}
-
-func local_request_RecipeService_GetRecipe_2(ctx context.Context, marshaler runtime.Marshaler, server RecipeServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq GetRecipeRequest
 		metadata runtime.ServerMetadata
@@ -826,6 +567,26 @@ func RegisterRecipeServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		}
 		forward_RecipeService_CreateRecipe_1(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPost, pattern_RecipeService_CreateRecipe_2, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeService/CreateRecipe", runtime.WithHTTPPathPattern("/meals/v1alpha1/{parent=users/*}/recipes"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_RecipeService_CreateRecipe_2(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_RecipeService_CreateRecipe_2(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodGet, pattern_RecipeService_ListRecipes_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -906,46 +667,6 @@ func RegisterRecipeServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		}
 		forward_RecipeService_UpdateRecipe_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPatch, pattern_RecipeService_UpdateRecipe_1, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		var stream runtime.ServerTransportStream
-		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeService/UpdateRecipe", runtime.WithHTTPPathPattern("/meals/v1alpha1/{recipe.name=circles/*/recipes/*}"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := local_request_RecipeService_UpdateRecipe_1(annotatedContext, inboundMarshaler, server, req, pathParams)
-		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_RecipeService_UpdateRecipe_1(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
-	mux.Handle(http.MethodPatch, pattern_RecipeService_UpdateRecipe_2, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		var stream runtime.ServerTransportStream
-		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeService/UpdateRecipe", runtime.WithHTTPPathPattern("/meals/v1alpha1/{recipe.name=users/*/recipes/*}"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := local_request_RecipeService_UpdateRecipe_2(annotatedContext, inboundMarshaler, server, req, pathParams)
-		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_RecipeService_UpdateRecipe_2(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
 	mux.Handle(http.MethodDelete, pattern_RecipeService_DeleteRecipe_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -966,46 +687,6 @@ func RegisterRecipeServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		}
 		forward_RecipeService_DeleteRecipe_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodDelete, pattern_RecipeService_DeleteRecipe_1, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		var stream runtime.ServerTransportStream
-		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeService/DeleteRecipe", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=circles/*/recipes/*}"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := local_request_RecipeService_DeleteRecipe_1(annotatedContext, inboundMarshaler, server, req, pathParams)
-		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_RecipeService_DeleteRecipe_1(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
-	mux.Handle(http.MethodDelete, pattern_RecipeService_DeleteRecipe_2, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		var stream runtime.ServerTransportStream
-		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeService/DeleteRecipe", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=users/*/recipes/*}"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := local_request_RecipeService_DeleteRecipe_2(annotatedContext, inboundMarshaler, server, req, pathParams)
-		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_RecipeService_DeleteRecipe_2(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
 	mux.Handle(http.MethodGet, pattern_RecipeService_GetRecipe_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1025,46 +706,6 @@ func RegisterRecipeServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 			return
 		}
 		forward_RecipeService_GetRecipe_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
-	mux.Handle(http.MethodGet, pattern_RecipeService_GetRecipe_1, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		var stream runtime.ServerTransportStream
-		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeService/GetRecipe", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=circles/*/recipes/*}"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := local_request_RecipeService_GetRecipe_1(annotatedContext, inboundMarshaler, server, req, pathParams)
-		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_RecipeService_GetRecipe_1(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
-	mux.Handle(http.MethodGet, pattern_RecipeService_GetRecipe_2, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		var stream runtime.ServerTransportStream
-		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeService/GetRecipe", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=users/*/recipes/*}"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := local_request_RecipeService_GetRecipe_2(annotatedContext, inboundMarshaler, server, req, pathParams)
-		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_RecipeService_GetRecipe_2(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodPost, pattern_RecipeService_ScrapeRecipe_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
@@ -1160,6 +801,23 @@ func RegisterRecipeServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		}
 		forward_RecipeService_CreateRecipe_1(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPost, pattern_RecipeService_CreateRecipe_2, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeService/CreateRecipe", runtime.WithHTTPPathPattern("/meals/v1alpha1/{parent=users/*}/recipes"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_RecipeService_CreateRecipe_2(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_RecipeService_CreateRecipe_2(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodGet, pattern_RecipeService_ListRecipes_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1228,40 +886,6 @@ func RegisterRecipeServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		}
 		forward_RecipeService_UpdateRecipe_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPatch, pattern_RecipeService_UpdateRecipe_1, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeService/UpdateRecipe", runtime.WithHTTPPathPattern("/meals/v1alpha1/{recipe.name=circles/*/recipes/*}"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := request_RecipeService_UpdateRecipe_1(annotatedContext, inboundMarshaler, client, req, pathParams)
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_RecipeService_UpdateRecipe_1(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
-	mux.Handle(http.MethodPatch, pattern_RecipeService_UpdateRecipe_2, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeService/UpdateRecipe", runtime.WithHTTPPathPattern("/meals/v1alpha1/{recipe.name=users/*/recipes/*}"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := request_RecipeService_UpdateRecipe_2(annotatedContext, inboundMarshaler, client, req, pathParams)
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_RecipeService_UpdateRecipe_2(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
 	mux.Handle(http.MethodDelete, pattern_RecipeService_DeleteRecipe_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1279,40 +903,6 @@ func RegisterRecipeServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		}
 		forward_RecipeService_DeleteRecipe_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodDelete, pattern_RecipeService_DeleteRecipe_1, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeService/DeleteRecipe", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=circles/*/recipes/*}"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := request_RecipeService_DeleteRecipe_1(annotatedContext, inboundMarshaler, client, req, pathParams)
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_RecipeService_DeleteRecipe_1(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
-	mux.Handle(http.MethodDelete, pattern_RecipeService_DeleteRecipe_2, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeService/DeleteRecipe", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=users/*/recipes/*}"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := request_RecipeService_DeleteRecipe_2(annotatedContext, inboundMarshaler, client, req, pathParams)
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_RecipeService_DeleteRecipe_2(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
 	mux.Handle(http.MethodGet, pattern_RecipeService_GetRecipe_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1329,40 +919,6 @@ func RegisterRecipeServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 			return
 		}
 		forward_RecipeService_GetRecipe_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
-	mux.Handle(http.MethodGet, pattern_RecipeService_GetRecipe_1, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeService/GetRecipe", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=circles/*/recipes/*}"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := request_RecipeService_GetRecipe_1(annotatedContext, inboundMarshaler, client, req, pathParams)
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_RecipeService_GetRecipe_1(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
-	mux.Handle(http.MethodGet, pattern_RecipeService_GetRecipe_2, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.meals.recipe.v1alpha1.RecipeService/GetRecipe", runtime.WithHTTPPathPattern("/meals/v1alpha1/{name=users/*/recipes/*}"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := request_RecipeService_GetRecipe_2(annotatedContext, inboundMarshaler, client, req, pathParams)
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_RecipeService_GetRecipe_2(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodPost, pattern_RecipeService_ScrapeRecipe_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
@@ -1387,35 +943,25 @@ func RegisterRecipeServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 var (
 	pattern_RecipeService_CreateRecipe_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"meals", "v1alpha1", "recipes"}, ""))
 	pattern_RecipeService_CreateRecipe_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3, 2, 4}, []string{"meals", "v1alpha1", "circles", "parent", "recipes"}, ""))
+	pattern_RecipeService_CreateRecipe_2 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3, 2, 4}, []string{"meals", "v1alpha1", "users", "parent", "recipes"}, ""))
 	pattern_RecipeService_ListRecipes_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"meals", "v1alpha1", "recipes"}, ""))
 	pattern_RecipeService_ListRecipes_1  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3, 2, 4}, []string{"meals", "v1alpha1", "circles", "parent", "recipes"}, ""))
 	pattern_RecipeService_ListRecipes_2  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3, 2, 4}, []string{"meals", "v1alpha1", "users", "parent", "recipes"}, ""))
 	pattern_RecipeService_UpdateRecipe_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3}, []string{"meals", "v1alpha1", "recipes", "recipe.name"}, ""))
-	pattern_RecipeService_UpdateRecipe_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 3, 1, 0, 4, 4, 5, 4}, []string{"meals", "v1alpha1", "circles", "recipes", "recipe.name"}, ""))
-	pattern_RecipeService_UpdateRecipe_2 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 3, 1, 0, 4, 4, 5, 4}, []string{"meals", "v1alpha1", "users", "recipes", "recipe.name"}, ""))
 	pattern_RecipeService_DeleteRecipe_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3}, []string{"meals", "v1alpha1", "recipes", "name"}, ""))
-	pattern_RecipeService_DeleteRecipe_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 3, 1, 0, 4, 4, 5, 4}, []string{"meals", "v1alpha1", "circles", "recipes", "name"}, ""))
-	pattern_RecipeService_DeleteRecipe_2 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 3, 1, 0, 4, 4, 5, 4}, []string{"meals", "v1alpha1", "users", "recipes", "name"}, ""))
 	pattern_RecipeService_GetRecipe_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 2, 5, 3}, []string{"meals", "v1alpha1", "recipes", "name"}, ""))
-	pattern_RecipeService_GetRecipe_1    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 3, 1, 0, 4, 4, 5, 4}, []string{"meals", "v1alpha1", "circles", "recipes", "name"}, ""))
-	pattern_RecipeService_GetRecipe_2    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 2, 3, 1, 0, 4, 4, 5, 4}, []string{"meals", "v1alpha1", "users", "recipes", "name"}, ""))
 	pattern_RecipeService_ScrapeRecipe_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"meals", "v1alpha1", "recipes"}, "scrapeRecipe"))
 )
 
 var (
 	forward_RecipeService_CreateRecipe_0 = runtime.ForwardResponseMessage
 	forward_RecipeService_CreateRecipe_1 = runtime.ForwardResponseMessage
+	forward_RecipeService_CreateRecipe_2 = runtime.ForwardResponseMessage
 	forward_RecipeService_ListRecipes_0  = runtime.ForwardResponseMessage
 	forward_RecipeService_ListRecipes_1  = runtime.ForwardResponseMessage
 	forward_RecipeService_ListRecipes_2  = runtime.ForwardResponseMessage
 	forward_RecipeService_UpdateRecipe_0 = runtime.ForwardResponseMessage
-	forward_RecipeService_UpdateRecipe_1 = runtime.ForwardResponseMessage
-	forward_RecipeService_UpdateRecipe_2 = runtime.ForwardResponseMessage
 	forward_RecipeService_DeleteRecipe_0 = runtime.ForwardResponseMessage
-	forward_RecipeService_DeleteRecipe_1 = runtime.ForwardResponseMessage
-	forward_RecipeService_DeleteRecipe_2 = runtime.ForwardResponseMessage
 	forward_RecipeService_GetRecipe_0    = runtime.ForwardResponseMessage
-	forward_RecipeService_GetRecipe_1    = runtime.ForwardResponseMessage
-	forward_RecipeService_GetRecipe_2    = runtime.ForwardResponseMessage
 	forward_RecipeService_ScrapeRecipe_0 = runtime.ForwardResponseMessage
 )

@@ -1,55 +1,50 @@
 package model
 
 import (
+	"github.com/jcfug8/daylear/server/core/fieldmask"
+	cmodel "github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/filter"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
-// CircleAccessFields defines the circleAccess fields.
-var CircleAccessFields = circleAccessFields{
-	CircleAccessId:    "circle_access.circle_access_id",
-	CircleId:          "circle_access.circle_id",
-	RequesterUserId:   "circle_access.requester_user_id",
-	RequesterCircleId: "circle_access.requester_circle_id",
-	RecipientUserId:   "circle_access.recipient_user_id",
-	PermissionLevel:   "circle_access.permission_level",
-	State:             "circle_access.state",
-}
+const (
+	CircleAccessColumn_CircleAccessId    = "circle_access.circle_access_id"
+	CircleAccessColumn_CircleId          = "circle_access.circle_id"
+	CircleAccessColumn_RequesterUserId   = "circle_access.requester_user_id"
+	CircleAccessColumn_RequesterCircleId = "circle_access.requester_circle_id"
+	CircleAccessColumn_RecipientUserId   = "circle_access.recipient_user_id"
+	CircleAccessColumn_PermissionLevel   = "circle_access.permission_level"
+	CircleAccessColumn_State             = "circle_access.state"
+)
 
-type circleAccessFields struct {
-	CircleAccessId    string
-	CircleId          string
-	RequesterUserId   string
-	RequesterCircleId string
-	RecipientUserId   string
-	PermissionLevel   string
-	State             string
-}
+var CircleAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
+	cmodel.CircleAccessField_Parent:          {CircleAccessColumn_CircleId},
+	cmodel.CircleAccessField_Id:              {CircleAccessColumn_CircleAccessId},
+	cmodel.CircleAccessField_PermissionLevel: {CircleAccessColumn_PermissionLevel},
+	cmodel.CircleAccessField_State:           {CircleAccessColumn_State},
 
-// Map maps the circleAccess fields to their corresponding model values.
-func (fields circleAccessFields) Map(m CircleAccess) map[string]any {
-	return map[string]any{
-		fields.CircleAccessId:    m.CircleAccessId,
-		fields.CircleId:          m.CircleId,
-		fields.RequesterUserId:   m.RequesterUserId,
-		fields.RequesterCircleId: m.RequesterCircleId,
-		fields.RecipientUserId:   m.RecipientUserId,
-		fields.PermissionLevel:   m.PermissionLevel,
-		fields.State:             m.State,
-	}
-}
+	cmodel.CircleAccessField_Requester: {
+		CircleAccessColumn_RequesterUserId,
+		CircleAccessColumn_RequesterCircleId,
+	},
+	cmodel.CircleAccessField_Recipient: {
+		CircleAccessColumn_RecipientUserId,
+		UserFields.Username + " as recipient_username",
+		UserFields.GivenName + " as recipient_given_name",
+		UserFields.FamilyName + " as recipient_family_name",
+	},
+})
 
-// Mask returns a FieldMask for the circleAccess fields.
-func (fields circleAccessFields) Mask() []string {
-	return []string{
-		fields.CircleAccessId,
-		fields.CircleId,
-		fields.RequesterUserId,
-		fields.RequesterCircleId,
-		fields.RecipientUserId,
-		fields.PermissionLevel,
-		fields.State,
-	}
-}
+var UpdateCircleAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
+	cmodel.CircleAccessField_PermissionLevel: {CircleAccessColumn_PermissionLevel},
+	cmodel.CircleAccessField_State:           {CircleAccessColumn_State},
+})
+
+var CircleAccessSQLConverter = filter.NewSQLConverter(map[string]string{
+	"permission_level":  CircleAccessColumn_PermissionLevel,
+	"state":             CircleAccessColumn_State,
+	"recipient.user_id": CircleAccessColumn_RecipientUserId,
+}, true)
 
 // CircleAccess -
 type CircleAccess struct {

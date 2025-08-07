@@ -5,27 +5,16 @@ import (
 	"fmt"
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
-	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	"github.com/jcfug8/daylear/server/core/logutil"
-	"github.com/jcfug8/daylear/server/core/masks"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 	"github.com/jcfug8/daylear/server/ports/repository"
 	"gorm.io/gorm/clause"
 )
 
-// CircleMap maps the core model fields to the database model fields for the unified CircleAccess model.
-var CircleMap = map[string]string{
-	"permission": dbModel.CircleFields.Permission,
-	"state":      dbModel.CircleFields.State,
-	"title":      dbModel.CircleFields.Title,
-	"visibility": dbModel.CircleFields.Visibility,
-	"handle":     dbModel.CircleFields.Handle,
-}
-
 // CreateCircle creates a new circle.
-func (repo *Client) CreateCircle(ctx context.Context, m cmodel.Circle) (cmodel.Circle, error) {
+func (repo *Client) CreateCircle(ctx context.Context, m cmodel.Circle, fields []string) (cmodel.Circle, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	log.Info().Msg("GORM CreateCircle called")
 	gm, err := convert.CircleFromCoreModel(m)
@@ -34,12 +23,8 @@ func (repo *Client) CreateCircle(ctx context.Context, m cmodel.Circle) (cmodel.C
 		return cmodel.Circle{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid circle: %v", err)}
 	}
 
-	circleFields := masks.RemovePaths(
-		gmodel.CircleFields.Mask(),
-	)
-
 	err = repo.db.
-		Select(circleFields).
+		Select(fields).
 		Clauses(clause.Returning{}).
 		Create(&gm).Error
 	if err != nil {
@@ -79,22 +64,21 @@ func (repo *Client) DeleteCircle(ctx context.Context, id cmodel.CircleId) (cmode
 }
 
 // GetCircle gets a circle.
-func (repo *Client) GetCircle(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.CircleId) (cmodel.Circle, error) {
+func (repo *Client) GetCircle(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.CircleId, fields []string) (cmodel.Circle, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
 	log.Info().Msg("GORM GetCircle called")
 	gm := gmodel.Circle{}
 
 	tx := repo.db.WithContext(ctx).
+		Select(gmodel.CircleFieldMasker.Convert(fields)).
 		Where("circle.circle_id = ?", id.CircleId)
 
 	if authAccount.UserId != 0 {
-		tx = tx.Select("circle.*", "ca.permission_level", "ca.state", "ca.circle_access_id").
-			Joins("LEFT JOIN circle_access as ca ON circle.circle_id = ca.circle_id AND ca.recipient_user_id = ?", authAccount.UserId).
+		tx = tx.Joins("LEFT JOIN circle_access as ca ON circle.circle_id = ca.circle_id AND ca.recipient_user_id = ?", authAccount.UserId).
 			Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.AuthUserId).
 			Where("(circle.visibility_level = ? OR ca.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.UserId)
 	} else {
-		tx = tx.Select("circle.*", "circle_access.permission_level", "circle_access.state", "circle_access.circle_access_id").
-			Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.AuthUserId).
+		tx = tx.Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.AuthUserId).
 			Where("(circle.visibility_level = ? OR circle_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
 	}
 
@@ -123,10 +107,8 @@ func (repo *Client) UpdateCircle(ctx context.Context, authAccount cmodel.AuthAcc
 		return cmodel.Circle{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid circle: %v", err)}
 	}
 
-	mask := masks.Map(fields, gmodel.CircleMap)
-
 	err = repo.db.WithContext(ctx).
-		Select(mask).
+		Select(gmodel.UpdateCircleFieldMasker.Convert(fields)).
 		Clauses(clause.Returning{}).
 		Updates(&gm).Error
 	if err != nil {
@@ -155,22 +137,22 @@ func (repo *Client) ListCircles(ctx context.Context, authAccount cmodel.AuthAcco
 	}}
 
 	tx := repo.db.WithContext(ctx).
+		Select(gmodel.CircleFieldMasker.Convert(fields)).
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(offset))
 
 	if authAccount.UserId != 0 {
 		tx = tx.Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.UserId).
-			Select("circle.*", "ca.permission_level", "ca.state", "ca.circle_access_id").
 			Joins("LEFT JOIN circle_access as ca ON circle.circle_id = ca.circle_id AND ca.recipient_user_id = ?", authAccount.AuthUserId).
-			Where("(circle_access.recipient_user_id = ? AND (circle.visibility_level = ? OR ca.recipient_user_id = ?))", authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
+			Where("(circle_access.recipient_user_id = ? AND (circle.visibility_level = ? OR ca.state = ?))",
+				authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.AccessState_ACCESS_STATE_ACCEPTED)
 	} else {
-		tx = tx.Select("circle.*", "circle_access.permission_level", "circle_access.state", "circle_access.circle_access_id").
-			Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.AuthUserId).
+		tx = tx.Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.AuthUserId).
 			Where("(circle.visibility_level = ? OR circle_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
 	}
 
-	conversion, err := repo.circleSQLConverter.Convert(filter)
+	conversion, err := gmodel.CircleSQLConverter.Convert(filter)
 	if err != nil {
 		log.Error().Err(err).Msg("circleSQLConverter.Convert failed")
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}

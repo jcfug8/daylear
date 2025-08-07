@@ -14,7 +14,6 @@ import (
 	s3 "github.com/jcfug8/daylear/server/adapters/clients/s3"
 	grpcCalendarsV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/calendars/calendar/v1alpha1"
 	grpcCirclesV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1"
-	circlesV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1/fieldmasker"
 	grpcRecipesV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/meals/recipes/v1alpha1"
 	grpcUsersV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1"
 	usersV1alpha1Masker "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1/fieldmasker"
@@ -68,7 +67,6 @@ func start(opts ...fx.Option) error {
 		grpcRecipesV1alpha1.Module,
 		// circles
 		grpcCirclesV1alpha1.Module,
-		circlesV1alpha1Masker.Module,
 		// calendars
 		grpcCalendarsV1alpha1.Module,
 

@@ -1,7 +1,6 @@
 package v1alpha1
 
 import (
-	fieldMasker "github.com/jcfug8/daylear/server/adapters/services/grpc/circles/circle/v1alpha1/fieldmasker"
 	"github.com/jcfug8/daylear/server/core/fieldmask"
 	"github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1"
@@ -18,7 +17,7 @@ type NewCircleServiceParams struct {
 
 	Domain            domain.Domain
 	Log               zerolog.Logger
-	CircleFieldMasker fieldMasker.CircleFieldMasker
+	CircleFieldMasker fieldmask.FieldMasker `name:"v1alpha1CircleFieldMasker"`
 	AccessFieldMasker fieldmask.FieldMasker `name:"v1alpha1CircleAccessFieldMasker"`
 	CircleNamer       namer.ReflectNamer    `name:"v1alpha1CircleNamer"`
 	AccessNamer       namer.ReflectNamer    `name:"v1alpha1CircleAccessNamer"`
@@ -44,7 +43,7 @@ type CircleService struct {
 	pb.UnimplementedCircleAccessServiceServer
 	domain            domain.Domain
 	log               zerolog.Logger
-	circleFieldMasker fieldMasker.CircleFieldMasker
+	circleFieldMasker fieldmask.FieldMasker
 	accessFieldMasker fieldmask.FieldMasker
 	circleNamer       namer.ReflectNamer
 	accessNamer       namer.ReflectNamer

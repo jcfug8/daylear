@@ -83,7 +83,7 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 			return d.repo.FindStandardUserCircleAccess(ctx, authAccount, i)
 		}
 		config.findDelegatedCircleAccess = func() (model.Access, model.CircleAccess, error) {
-			return d.repo.FindDelegatedCircleCircleAccess(ctx, authAccount, i)
+			return model.CircleAccess{}, model.CircleAccess{}, nil
 		}
 		config.findDelegatedUserAccess = func() (model.Access, model.UserAccess, error) {
 			return d.repo.FindDelegatedUserCircleAccess(ctx, authAccount, i)
@@ -139,8 +139,8 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 	if config.resourceVisibilityLevel <= types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN {
 		standardUserAccess, err = config.findStandardUserAccess()
 		if err != nil && !errors.Is(err, repository.ErrNotFound{}) {
-			log.Error().Err(err).Msg("error finding standard user calendar access")
-			return nil, errors.New("unable to determine calendar access")
+			log.Error().Err(err).Msg("error finding standard user resource access")
+			return nil, errors.New("unable to determine resource access")
 		}
 		if standardUserAccess.GetPermissionLevel() > types.PermissionLevel_PERMISSION_LEVEL_PUBLIC {
 			determinedAccess = standardUserAccess
@@ -151,8 +151,8 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 		var circleAccess model.CircleAccess
 		delegatedCircleAccess, circleAccess, err = config.findDelegatedCircleAccess()
 		if err != nil && !errors.Is(err, repository.ErrNotFound{}) {
-			log.Error().Err(err).Msg("error finding delegated circle calendar access")
-			return nil, errors.New("unable to determine calendar access")
+			log.Error().Err(err).Msg("error finding delegated circle resource access")
+			return nil, errors.New("unable to determine resource access")
 		}
 		if delegatedCircleAccess.GetPermissionLevel() > types.PermissionLevel_PERMISSION_LEVEL_PUBLIC && circleAccess.PermissionLevel > determinedAccess.GetPermissionLevel() {
 			determinedAccess = delegatedCircleAccess.SetPermissionLevel(min(delegatedCircleAccess.GetPermissionLevel(), circleAccess.PermissionLevel))
@@ -162,8 +162,8 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 	if config.resourceVisibilityLevel <= types.VisibilityLevel_VISIBILITY_LEVEL_RESTRICTED {
 		delegatedUserAccess, _, err = config.findDelegatedUserAccess()
 		if err != nil && !errors.Is(err, repository.ErrNotFound{}) {
-			log.Error().Err(err).Msg("error finding delegated user calendar access")
-			return nil, errors.New("unable to determine calendar access")
+			log.Error().Err(err).Msg("error finding delegated user resource access")
+			return nil, errors.New("unable to determine resource access")
 		}
 		if delegatedUserAccess.GetPermissionLevel() > types.PermissionLevel_PERMISSION_LEVEL_PUBLIC && delegatedUserAccess.GetPermissionLevel() > determinedAccess.GetPermissionLevel() {
 			determinedAccess = delegatedUserAccess.SetPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ)

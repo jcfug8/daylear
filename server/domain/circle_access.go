@@ -278,7 +278,7 @@ func (d *Domain) AcceptCircleAccess(ctx context.Context, authAccount model.AuthA
 	access.State = types.AccessState_ACCESS_STATE_ACCEPTED
 
 	// update access using the repository
-	updatedAccess, err := d.repo.UpdateCircleAccess(ctx, access, []string{model.CircleAccessFields.State})
+	updatedAccess, err := d.repo.UpdateCircleAccess(ctx, access, []string{model.CircleAccessField_State})
 	if err != nil {
 		log.Error().Err(err).Msg("unable to update circle access when accepting a circle access")
 		return model.CircleAccess{}, domain.ErrInternal{Msg: "unable to update circle access"}

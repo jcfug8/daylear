@@ -119,7 +119,7 @@ func (c *Client) GetCalendarAccess(ctx context.Context, parent cmodel.CalendarAc
 	if slices.Contains(fields, dbModel.UserFields.Username) || slices.Contains(fields, dbModel.UserFields.GivenName) || slices.Contains(fields, dbModel.UserFields.FamilyName) {
 		tx = tx.Joins(`LEFT JOIN daylear_user ON calendar_access.recipient_user_id = daylear_user.user_id`)
 	}
-	if slices.Contains(fields, dbModel.CircleFields.Title) || slices.Contains(fields, dbModel.CircleFields.Handle) {
+	if slices.Contains(fields, dbModel.CircleColumn_Title) || slices.Contains(fields, dbModel.CircleColumn_Handle) {
 		tx = tx.Joins(`LEFT JOIN circle ON calendar_access.recipient_circle_id = circle.circle_id`)
 	}
 
@@ -169,7 +169,7 @@ func (c *Client) ListCalendarAccesses(ctx context.Context, authAccount cmodel.Au
 	if slices.Contains(fields, dbModel.UserFields.Username) || slices.Contains(fields, dbModel.UserFields.GivenName) || slices.Contains(fields, dbModel.UserFields.FamilyName) {
 		tx = tx.Joins(`LEFT JOIN daylear_user ON calendar_access.recipient_user_id = daylear_user.user_id`)
 	}
-	if slices.Contains(fields, dbModel.CircleFields.Title) || slices.Contains(fields, dbModel.CircleFields.Handle) {
+	if slices.Contains(fields, dbModel.CircleColumn_Title) || slices.Contains(fields, dbModel.CircleColumn_Handle) {
 		tx = tx.Joins(`LEFT JOIN circle ON calendar_access.recipient_circle_id = circle.circle_id`)
 	}
 

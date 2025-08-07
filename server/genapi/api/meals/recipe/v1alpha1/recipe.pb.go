@@ -1162,18 +1162,18 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\x13ScrapeRecipeRequest\x12\x15\n" +
 	"\x03uri\x18\x01 \x01(\tB\x03\xe0A\x02R\x03uri\"Q\n" +
 	"\x14ScrapeRecipeResponse\x129\n" +
-	"\x06recipe\x18\x01 \x01(\v2!.api.meals.recipe.v1alpha1.RecipeR\x06recipe2\xff\x0e\n" +
-	"\rRecipeService\x12\xaf\x02\n" +
-	"\fCreateRecipe\x12..api.meals.recipe.v1alpha1.CreateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\xcb\x01\x92AQ\n" +
-	"\rRecipeService\x12\x0fCreate a recipe\x1a/Creates a new recipe with the provided details.\xdaA\x17parent,recipe,recipe_id\x82\xd3\xe4\x93\x02W:\x06recipeZ4:\x06recipe\"*/meals/v1alpha1/{parent=circles/*}/recipes\"\x17/meals/v1alpha1/recipes\x12\xdc\x02\n" +
+	"\x06recipe\x18\x01 \x01(\v2!.api.meals.recipe.v1alpha1.RecipeR\x06recipe2\x85\r\n" +
+	"\rRecipeService\x12\xe4\x02\n" +
+	"\fCreateRecipe\x12..api.meals.recipe.v1alpha1.CreateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x80\x02\x92AQ\n" +
+	"\rRecipeService\x12\x0fCreate a recipe\x1a/Creates a new recipe with the provided details.\xdaA\x17parent,recipe,recipe_id\x82\xd3\xe4\x93\x02\x8b\x01:\x06recipeZ4:\x06recipe\"*/meals/v1alpha1/{parent=circles/*}/recipesZ2:\x06recipe\"(/meals/v1alpha1/{parent=users/*}/recipes\"\x17/meals/v1alpha1/recipes\x12\xdc\x02\n" +
 	"\vListRecipes\x12-.api.meals.recipe.v1alpha1.ListRecipesRequest\x1a..api.meals.recipe.v1alpha1.ListRecipesResponse\"\xed\x01\x92Ah\n" +
-	"\rRecipeService\x12\fList recipes\x1aIRetrieves a paginated list of recipes. Supports filtering and pagination.\xdaA\x06parent\x82\xd3\xe4\x93\x02sZ,\x12*/meals/v1alpha1/{parent=circles/*}/recipesZ*\x12(/meals/v1alpha1/{parent=users/*}/recipes\x12\x17/meals/v1alpha1/recipes\x12\xf8\x02\n" +
-	"\fUpdateRecipe\x12..api.meals.recipe.v1alpha1.UpdateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x94\x02\x92AL\n" +
-	"\rRecipeService\x12\x0fUpdate a recipe\x1a*Updates the details of an existing recipe.\xdaA\x12recipe,update_mask\x82\xd3\xe4\x93\x02\xa9\x01:\x06recipeZ;:\x06recipe21/meals/v1alpha1/{recipe.name=circles/*/recipes/*}Z9:\x06recipe2//meals/v1alpha1/{recipe.name=users/*/recipes/*}2'/meals/v1alpha1/{recipe.name=recipes/*}\x12\xb4\x02\n" +
-	"\fDeleteRecipe\x12..api.meals.recipe.v1alpha1.DeleteRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\xd0\x01\x92AD\n" +
-	"\rRecipeService\x12\x0fDelete a recipe\x1a\"Deletes a recipe by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02|Z,**/meals/v1alpha1/{name=circles/*/recipes/*}Z**(/meals/v1alpha1/{name=users/*/recipes/*}* /meals/v1alpha1/{name=recipes/*}\x12\xb4\x02\n" +
-	"\tGetRecipe\x12+.api.meals.recipe.v1alpha1.GetRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\xd6\x01\x92AJ\n" +
-	"\rRecipeService\x12\fGet a recipe\x1a+Retrieves a single recipe by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02|Z,\x12*/meals/v1alpha1/{name=circles/*/recipes/*}Z*\x12(/meals/v1alpha1/{name=users/*/recipes/*}\x12 /meals/v1alpha1/{name=recipes/*}\x12\xf3\x01\n" +
+	"\rRecipeService\x12\fList recipes\x1aIRetrieves a paginated list of recipes. Supports filtering and pagination.\xdaA\x06parent\x82\xd3\xe4\x93\x02sZ,\x12*/meals/v1alpha1/{parent=circles/*}/recipesZ*\x12(/meals/v1alpha1/{parent=users/*}/recipes\x12\x17/meals/v1alpha1/recipes\x12\xff\x01\n" +
+	"\fUpdateRecipe\x12..api.meals.recipe.v1alpha1.UpdateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x9b\x01\x92AL\n" +
+	"\rRecipeService\x12\x0fUpdate a recipe\x1a*Updates the details of an existing recipe.\xdaA\x12recipe,update_mask\x82\xd3\xe4\x93\x021:\x06recipe2'/meals/v1alpha1/{recipe.name=recipes/*}\x12\xd9\x01\n" +
+	"\fDeleteRecipe\x12..api.meals.recipe.v1alpha1.DeleteRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"v\x92AD\n" +
+	"\rRecipeService\x12\x0fDelete a recipe\x1a\"Deletes a recipe by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02\"* /meals/v1alpha1/{name=recipes/*}\x12\xd9\x01\n" +
+	"\tGetRecipe\x12+.api.meals.recipe.v1alpha1.GetRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"|\x92AJ\n" +
+	"\rRecipeService\x12\fGet a recipe\x1a+Retrieves a single recipe by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02\"\x12 /meals/v1alpha1/{name=recipes/*}\x12\xf3\x01\n" +
 	"\fScrapeRecipe\x12..api.meals.recipe.v1alpha1.ScrapeRecipeRequest\x1a/.api.meals.recipe.v1alpha1.ScrapeRecipeResponse\"\x81\x01\x92AI\n" +
 	"\rRecipeService\x12\x1aScrape a recipe from a uri\x1a\x1cScrapes a recipe from a uri.\xdaA\x03uri\x82\xd3\xe4\x93\x02):\x01*\"$/meals/v1alpha1/recipes:scrapeRecipeB\xe0\x02\x92AXZD\n" +
 	"B\n" +

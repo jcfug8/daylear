@@ -27,8 +27,8 @@ var UserCircleMap = map[string]string{
 	"facebook_id": gmodel.UserFields.FacebookId,
 	"amazon_id":   gmodel.UserFields.AmazonId,
 	"username":    gmodel.UserFields.Username,
-	"permission":  gmodel.CircleAccessFields.PermissionLevel,
-	"state":       gmodel.CircleAccessFields.State,
+	"permission":  gmodel.UserFields.Permission,
+	"state":       gmodel.UserFields.State,
 }
 
 // CreateUser creates a new user.

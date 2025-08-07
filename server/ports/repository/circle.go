@@ -8,14 +8,13 @@ import (
 
 // Client defines how to interact with the circle in the database.
 type circleClient interface {
-	CreateCircle(ctx context.Context, circle model.Circle) (model.Circle, error)
+	CreateCircle(ctx context.Context, circle model.Circle, fields []string) (model.Circle, error)
 	DeleteCircle(ctx context.Context, id model.CircleId) (model.Circle, error)
-	GetCircle(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (model.Circle, error)
-	ListCircles(ctx context.Context, authAccount model.AuthAccount, pageSize int32, offset int64, filter string, fieldMask []string) ([]model.Circle, error)
-	UpdateCircle(ctx context.Context, authAccount model.AuthAccount, circle model.Circle, updateMask []string) (model.Circle, error)
+	GetCircle(ctx context.Context, authAccount model.AuthAccount, id model.CircleId, fields []string) (model.Circle, error)
+	ListCircles(ctx context.Context, authAccount model.AuthAccount, pageSize int32, offset int64, filter string, fields []string) ([]model.Circle, error)
+	UpdateCircle(ctx context.Context, authAccount model.AuthAccount, circle model.Circle, fields []string) (model.Circle, error)
 
 	FindStandardUserCircleAccess(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (model.CircleAccess, error)
-	FindDelegatedCircleCircleAccess(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (model.CircleAccess, model.CircleAccess, error)
 	FindDelegatedUserCircleAccess(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (model.CircleAccess, model.UserAccess, error)
 
 	CreateCircleAccess(ctx context.Context, access model.CircleAccess) (model.CircleAccess, error)

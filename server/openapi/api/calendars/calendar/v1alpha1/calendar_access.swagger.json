@@ -204,6 +204,118 @@
         ]
       }
     },
+    "/calendars/v1alpha1/{parent_1}/accesses": {
+      "get": {
+        "summary": "List calendar accesses",
+        "description": "Lists all users and calendars with access to a calendar. If no calendar is provided, the response will only return the accesses for the current user (or calendar if the calendar header is provided).",
+        "operationId": "CalendarAccessService_ListAccesses2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/calendarscalendarv1alpha1ListAccessesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent_1",
+            "description": "parent",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/calendars/[^/]+"
+          },
+          {
+            "name": "filter",
+            "description": "The filter to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "description": "The page size to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "The page token to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CalendarAccessService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{parent_2}/accesses": {
+      "get": {
+        "summary": "List calendar accesses",
+        "description": "Lists all users and calendars with access to a calendar. If no calendar is provided, the response will only return the accesses for the current user (or calendar if the calendar header is provided).",
+        "operationId": "CalendarAccessService_ListAccesses3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/calendarscalendarv1alpha1ListAccessesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent_2",
+            "description": "parent",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/calendars/[^/]+"
+          },
+          {
+            "name": "filter",
+            "description": "The filter to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "description": "The page size to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "The page token to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CalendarAccessService"
+        ]
+      }
+    },
     "/calendars/v1alpha1/{parent}/accesses": {
       "get": {
         "summary": "List calendar accesses",

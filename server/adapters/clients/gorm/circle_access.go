@@ -6,7 +6,6 @@ import (
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
-	"github.com/jcfug8/daylear/server/core/fieldmask"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	model "github.com/jcfug8/daylear/server/core/model"
@@ -15,25 +14,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
-
-// CircleAccessMap maps the core model fields to the database model fields for the unified CircleAccess model.
-var CircleAccessMap = map[string]string{
-	model.CircleAccessFields.Level:         dbModel.CircleAccessFields.PermissionLevel,
-	model.CircleAccessFields.State:         dbModel.CircleAccessFields.State,
-	model.CircleAccessFields.RecipientUser: dbModel.CircleAccessFields.RecipientUserId,
-}
-
-// UpdateCircleAccessMap maps the updatable core model fields to the database model fields for the CircleAccess model.
-var UpdateCircleAccessMap = map[string][]string{
-	model.CircleAccessFields.Level: []string{
-		dbModel.CircleAccessFields.PermissionLevel,
-	},
-	model.CircleAccessFields.State: []string{
-		dbModel.CircleAccessFields.State,
-	},
-}
-
-var UpdateCircleAccessFieldMasker = fieldmask.NewFieldMasker(UpdateCircleAccessMap)
 
 func (repo *Client) CreateCircleAccess(ctx context.Context, access model.CircleAccess) (model.CircleAccess, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
@@ -132,7 +112,7 @@ func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.A
 		return nil, repository.ErrInvalidArgument{Msg: "user id is required"}
 	}
 
-	conversion, err := repo.circleAccessSQLConverter.Convert(filterStr)
+	conversion, err := dbModel.CircleAccessSQLConverter.Convert(filterStr)
 	if err != nil {
 		log.Error().Err(err).Msg("circleAccessSQLConverter.Convert failed")
 		return nil, repository.ErrInvalidArgument{Msg: "invalid filter: " + err.Error()}
@@ -179,7 +159,7 @@ func (repo *Client) UpdateCircleAccess(ctx context.Context, access model.CircleA
 	log.Info().Msg("GORM UpdateCircleAccess called")
 	dbAccess := convert.CoreCircleAccessToCircleAccess(access)
 
-	columns := UpdateCircleAccessFieldMasker.Convert(updateMask)
+	columns := dbModel.UpdateCircleAccessFieldMasker.Convert(updateMask)
 
 	db := repo.db.WithContext(ctx).Select(columns).Clauses(clause.Returning{})
 
@@ -210,34 +190,6 @@ func (repo *Client) FindStandardUserCircleAccess(ctx context.Context, authAccoun
 		return cmodel.CircleAccess{}, res.Error
 	}
 	return convert.CircleAccessToCoreCircleAccess(circleAccess), nil
-}
-
-func (repo *Client) FindDelegatedCircleCircleAccess(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.CircleId) (cmodel.CircleAccess, cmodel.CircleAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx)
-	// SELECT * from circle_access
-	// 	JOIN circle_access ON circle_access.circle_id = circle_access.recipient_circle_id
-	// WHERE circle_access.circle_id = 1 AND circle_access.recipient_user_id = 1 LIMIT 1;
-
-	type Result struct {
-		dbModel.CircleAccess
-		dbModel.CA
-	}
-	var result Result
-	res := repo.db.WithContext(ctx).
-		Select("circle_access.*, ca.*").
-		Table("circle_access").
-		Joins("JOIN circle_access AS ca ON circle_access.circle_id = ca.recipient_circle_id").
-		Where("ca.circle_id = ? AND circle_access.recipient_user_id = ?", id.CircleId, authAccount.AuthUserId).
-		First(&result)
-	if res.Error != nil {
-		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Warn().Err(res.Error).Msg("delegated circle circle access not found")
-			return cmodel.CircleAccess{}, cmodel.CircleAccess{}, repository.ErrNotFound{}
-		}
-		log.Error().Err(res.Error).Msg("unable to find delegated circle circle access")
-		return cmodel.CircleAccess{}, cmodel.CircleAccess{}, res.Error
-	}
-	return convert.CircleAccessToCoreCircleAccess(result.CircleAccess), convert.CircleAccessToCoreCircleAccess(result.CircleAccess), nil
 }
 
 func (repo *Client) FindDelegatedUserCircleAccess(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.CircleId) (cmodel.CircleAccess, cmodel.UserAccess, error) {

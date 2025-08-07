@@ -18,6 +18,17 @@ var (
 	circleDefaultPageSize int32 = 100
 )
 
+var circleFieldMap = map[string][]string{
+	"name":        {model.CircleField_Parent, model.CircleField_CircleId},
+	"title":       {model.CircleField_Title},
+	"description": {model.CircleField_Description},
+	"handle":      {model.CircleField_Handle},
+	"image_uri":   {model.CircleField_ImageURI},
+	"visibility":  {model.CircleField_Visibility},
+
+	"circle_access": {model.CircleField_CircleAccess},
+}
+
 // CreateCircle -
 func (s *CircleService) CreateCircle(ctx context.Context, request *pb.CreateCircleRequest) (response *pb.Circle, err error) {
 	log := logutil.EnrichLoggerWithContext(s.log, ctx)
@@ -116,7 +127,7 @@ func (s *CircleService) GetCircle(ctx context.Context, request *pb.GetCircleRequ
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
 	}
 
-	mCircle, err = s.domain.GetCircle(ctx, authAccount, mCircle.Parent, mCircle.Id)
+	mCircle, err = s.domain.GetCircle(ctx, authAccount, mCircle.Parent, mCircle.Id, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.GetCircle failed")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -153,7 +164,7 @@ func (s *CircleService) UpdateCircle(ctx context.Context, request *pb.UpdateCirc
 	}
 
 	fieldMask := request.GetUpdateMask()
-	updateMask, err := s.circleFieldMasker.GetWriteMask(fieldMask)
+	updateMask := s.circleFieldMasker.Convert(fieldMask.GetPaths())
 	if err != nil {
 		log.Warn().Err(err).Msg("invalid field mask")
 		return nil, status.Error(codes.InvalidArgument, "invalid field mask")
@@ -193,13 +204,6 @@ func (s *CircleService) ListCircles(ctx context.Context, request *pb.ListCircles
 		return nil, err
 	}
 
-	fieldMask := s.circleFieldMasker.GetFieldMaskFromCtx(ctx)
-	readMask, err := s.circleFieldMasker.GetReadMask(fieldMask)
-	if err != nil {
-		log.Warn().Err(err).Msg("invalid field mask")
-		return nil, status.Error(codes.InvalidArgument, "invalid field mask")
-	}
-
 	mCircleParent := model.CircleParent{}
 	nameIndex, err := s.circleNamer.ParseParent(request.GetParent(), &mCircleParent)
 	if err != nil {
@@ -217,7 +221,7 @@ func (s *CircleService) ListCircles(ctx context.Context, request *pb.ListCircles
 	}
 	request.PageSize = pageSize
 
-	circles, err := s.domain.ListCircles(ctx, authAccount, mCircleParent, request.GetPageSize(), pageToken.Offset, request.GetFilter(), readMask)
+	circles, err := s.domain.ListCircles(ctx, authAccount, mCircleParent, request.GetPageSize(), pageToken.Offset, request.GetFilter(), nil)
 	if err != nil {
 		log.Error().Err(err).Msg("domain.ListCircles failed")
 		return nil, status.Error(codes.Internal, err.Error())

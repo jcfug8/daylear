@@ -84,8 +84,8 @@ service CalendarAccessService {
     option (google.api.method_signature) = "parent";
     option (google.api.http) = {
       get: "/calendars/v1alpha1/{parent=calendars/*}/accesses"
-      additional_bindings {get: "/calendars/v1alpha1/{parent=users/*/calendars/*}/accesses"}
-      additional_bindings {get: "/calendars/v1alpha1/{parent=circles/*/calendars/*}/accesses"}
+      additional_bindings: {get: "/calendars/v1alpha1/{parent=users/*/calendars/*}/accesses"}
+      additional_bindings: {get: "/calendars/v1alpha1/{parent=circles/*/calendars/*}/accesses"}
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "List calendar accesses"

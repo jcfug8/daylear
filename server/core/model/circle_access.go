@@ -6,20 +6,14 @@ import (
 
 var _ Access = CircleAccess{}
 
-// CircleAccessFields defines the circle access fields for filtering.
-var CircleAccessFields = circleAccessFields{
-	Level:           "permission_level",
-	State:           "state",
-	RecipientUser:   "user_id",
-	RecipientCircle: "circle_id",
-}
-
-type circleAccessFields struct {
-	Level           string
-	State           string
-	RecipientUser   string
-	RecipientCircle string
-}
+const (
+	CircleAccessField_Parent          = "parent"
+	CircleAccessField_Id              = "id"
+	CircleAccessField_PermissionLevel = "permission_level"
+	CircleAccessField_State           = "state"
+	CircleAccessField_Requester       = "requester"
+	CircleAccessField_Recipient       = "recipient"
+)
 
 // CircleAccess represents a user's or circle's access to a circle
 type CircleAccess struct {

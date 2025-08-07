@@ -43,7 +43,7 @@ func (d *Domain) CreateCalendarAccess(ctx context.Context, authAccount model.Aut
 	resourceOwner = determinedCalendarAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_WRITE
 
 	if access.Recipient.CircleId != 0 { // recipient is a circle
-		dbCircle, err := d.repo.GetCircle(ctx, authAccount, model.CircleId{CircleId: access.Recipient.CircleId})
+		dbCircle, err := d.repo.GetCircle(ctx, authAccount, model.CircleId{CircleId: access.Recipient.CircleId}, []string{model.CircleField_Visibility})
 		if err != nil {
 			log.Error().Err(err).Msg("unable to get circle when creating a calendar access")
 			return model.CalendarAccess{}, err

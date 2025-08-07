@@ -209,7 +209,7 @@ func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount,
 
 	if parent.CircleId != 0 {
 		authAccount.CircleId = parent.CircleId
-		dbCircle, err := d.repo.GetCircle(ctx, authAccount, model.CircleId{CircleId: parent.CircleId})
+		dbCircle, err := d.repo.GetCircle(ctx, authAccount, model.CircleId{CircleId: parent.CircleId}, []string{model.CircleField_Visibility})
 		if err != nil {
 			log.Error().Err(err).Msg("unable to get circle when listing calendars")
 			return nil, domain.ErrInternal{Msg: "unable to get circle when listing calendars"}

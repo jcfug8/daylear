@@ -1,76 +1,46 @@
 package model
 
 import (
-	"github.com/jcfug8/daylear/server/core/masks"
-	coremodel "github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/core/fieldmask"
+	cmodel "github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/filter"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
-// CircleMap maps the Circle fields to their corresponding fields in the core model.
-var CircleMap = masks.NewFieldMap().
-	MapFieldToFields(coremodel.CircleFields.Id,
-		CircleFields.CircleId).
-	MapFieldToFields(coremodel.CircleFields.Title,
-		CircleFields.Title).
-	MapFieldToFields(coremodel.CircleFields.Visibility,
-		CircleFields.Visibility).
-	MapFieldToFields(coremodel.CircleFields.ImageURI,
-		CircleFields.ImageURI).
-	MapFieldToFields(coremodel.CircleFields.Handle,
-		CircleFields.Handle).
-	MapFieldToFields(coremodel.CircleFields.Description,
-		CircleFields.Description)
+const (
+	CircleColumn_CircleId    = "circle.circle_id"
+	CircleColumn_Title       = "circle.title"
+	CircleColumn_Description = "circle.description"
+	CircleColumn_Handle      = "circle.handle"
+	CircleColumn_ImageURI    = "circle.image_uri"
+	CircleColumn_Visibility  = "circle.visibility_level"
+)
 
-// CircleFields defines the circle fields in the GORM model.
-var CircleFields = circleFields{
-	CircleId:    "circle.circle_id",
-	Title:       "circle.title",
-	Description: "circle.description",
-	Handle:      "circle.handle",
-	ImageURI:    "circle.image_uri",
-	Visibility:  "circle.visibility_level",
-	Permission:  "circle_access.permission_level",
-	State:       "circle_access.state",
-}
+var CircleFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
+	cmodel.CircleField_CircleId:    {CircleColumn_CircleId},
+	cmodel.CircleField_Title:       {CircleColumn_Title},
+	cmodel.CircleField_Description: {CircleColumn_Description},
+	cmodel.CircleField_Handle:      {CircleColumn_Handle},
+	cmodel.CircleField_ImageURI:    {CircleColumn_ImageURI},
+	cmodel.CircleField_Visibility:  {CircleColumn_Visibility},
 
-type circleFields struct {
-	CircleId    string
-	Title       string
-	Description string
-	Handle      string
-	ImageURI    string
-	Visibility  string
-	Permission  string
-	State       string
-}
+	cmodel.CircleField_CircleAccess: {
+		CircleAccessColumn_CircleAccessId,
+		CircleAccessColumn_PermissionLevel,
+		CircleAccessColumn_State,
+	},
+})
+var UpdateCircleFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
+	cmodel.CircleField_Title:       {CircleColumn_Title},
+	cmodel.CircleField_Description: {CircleColumn_Description},
+	cmodel.CircleField_Visibility:  {CircleColumn_Visibility},
+})
 
-// Map maps the circle fields to their corresponding model values.
-func (fields circleFields) Map(m Circle) map[string]any {
-	return map[string]any{
-		fields.CircleId:    m.CircleId,
-		fields.Title:       m.Title,
-		fields.Description: m.Description,
-		fields.Handle:      m.Handle,
-		fields.ImageURI:    m.ImageURI,
-		fields.Visibility:  m.VisibilityLevel,
-		fields.Permission:  m.PermissionLevel,
-		fields.State:       m.State,
-	}
-}
-
-// Mask returns a FieldMask for the circle fields.
-func (fields circleFields) Mask() []string {
-	return []string{
-		fields.CircleId,
-		fields.Title,
-		fields.Description,
-		fields.Handle,
-		fields.ImageURI,
-		fields.Visibility,
-		fields.Permission,
-		fields.State,
-	}
-}
+var CircleSQLConverter = filter.NewSQLConverter(map[string]string{
+	"visibility":       CircleColumn_Visibility,
+	"permission_level": CircleAccessColumn_PermissionLevel,
+	"state":            CircleAccessColumn_State,
+}, true)
 
 // Circle is the GORM model for a circle.
 type Circle struct {

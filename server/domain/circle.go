@@ -52,7 +52,7 @@ func (d *Domain) CreateCircle(ctx context.Context, authAccount model.AuthAccount
 		return model.Circle{}, domain.ErrInternal{Msg: "unable to create circle image"}
 	}
 
-	dbCircle, err := tx.CreateCircle(ctx, circle)
+	dbCircle, err := tx.CreateCircle(ctx, circle, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create circle")
 		return model.Circle{}, domain.ErrInternal{Msg: "unable to create circle"}
@@ -144,7 +144,7 @@ func (d *Domain) DeleteCircle(ctx context.Context, authAccount model.AuthAccount
 }
 
 // GetCircle gets a circle.
-func (d *Domain) GetCircle(ctx context.Context, authAccount model.AuthAccount, parent model.CircleParent, id model.CircleId) (dbCircle model.Circle, err error) {
+func (d *Domain) GetCircle(ctx context.Context, authAccount model.AuthAccount, parent model.CircleParent, id model.CircleId, fields []string) (dbCircle model.Circle, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 
 	if authAccount.AuthUserId == 0 {
@@ -157,7 +157,7 @@ func (d *Domain) GetCircle(ctx context.Context, authAccount model.AuthAccount, p
 		return model.Circle{}, domain.ErrInvalidArgument{Msg: "circle id required"}
 	}
 
-	dbCircle, err = d.repo.GetCircle(ctx, authAccount, id)
+	dbCircle, err = d.repo.GetCircle(ctx, authAccount, id, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get circle")
 		return model.Circle{}, domain.ErrInternal{Msg: "unable to get circle"}
@@ -223,11 +223,11 @@ func (d *Domain) UpdateCircle(ctx context.Context, authAccount model.AuthAccount
 		return model.Circle{}, err
 	}
 
-	if slices.Contains(fields, model.CircleFields.Handle) && circle.Handle == "" {
+	if slices.Contains(fields, model.CircleField_Handle) && circle.Handle == "" {
 		circle.Handle, _ = d.generateUniqueCircleHandle(ctx, circle.Title)
 	}
 
-	previousDbCircle, err := d.repo.GetCircle(ctx, authAccount, circle.Id)
+	previousDbCircle, err := d.repo.GetCircle(ctx, authAccount, circle.Id, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get circle when updating a circle")
 		return model.Circle{}, domain.ErrInternal{Msg: "unable to get circle"}
@@ -240,7 +240,7 @@ func (d *Domain) UpdateCircle(ctx context.Context, authAccount model.AuthAccount
 	}
 	defer tx.Rollback()
 
-	if slices.Contains(fields, model.CircleFields.ImageURI) && circle.ImageURI != previousDbCircle.ImageURI {
+	if slices.Contains(fields, model.CircleField_ImageURI) && circle.ImageURI != previousDbCircle.ImageURI {
 		circle.ImageURI, err = d.updateCircleImageURI(ctx, authAccount, circle)
 		if err != nil {
 			log.Error().Err(err).Msg("unable to update circle image")
@@ -283,12 +283,12 @@ func (d *Domain) UploadCircleImage(ctx context.Context, authAccount model.AuthAc
 		return "", err
 	}
 
-	circle, err := d.repo.GetCircle(ctx, authAccount, id)
+	dbCircle, err := d.repo.GetCircle(ctx, authAccount, id, []string{model.CircleField_ImageURI})
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get circle when uploading a circle image")
 		return "", domain.ErrInternal{Msg: "unable to get circle"}
 	}
-	oldImageURI := circle.ImageURI
+	oldImageURI := dbCircle.ImageURI
 
 	imageURI, err = d.uploadCircleImage(ctx, id, imageReader)
 	if err != nil {
@@ -299,7 +299,7 @@ func (d *Domain) UploadCircleImage(ctx context.Context, authAccount model.AuthAc
 	_, err = d.repo.UpdateCircle(ctx, authAccount, model.Circle{
 		Id:       id,
 		ImageURI: imageURI,
-	}, []string{model.CircleFields.ImageURI})
+	}, []string{model.CircleField_ImageURI})
 	if err != nil {
 		log.Error().Err(err).Msg("unable to update circle image")
 		return "", domain.ErrInternal{Msg: "unable to update circle image"}
@@ -395,7 +395,7 @@ func (d *Domain) uploadCircleImage(ctx context.Context, id model.CircleId, image
 }
 
 func (d *Domain) removeCircleImage(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (err error) {
-	circle, err := d.GetCircle(ctx, authAccount, model.CircleParent{}, id)
+	circle, err := d.GetCircle(ctx, authAccount, model.CircleParent{}, id, []string{model.CircleField_ImageURI})
 	if err != nil {
 		return err
 	}

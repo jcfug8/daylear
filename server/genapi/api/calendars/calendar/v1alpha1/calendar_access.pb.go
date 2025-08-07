@@ -655,7 +655,7 @@ var File_api_calendars_calendar_v1alpha1_calendar_access_proto protoreflect.File
 
 const file_api_calendars_calendar_v1alpha1_calendar_access_proto_rawDesc = "" +
 	"\n" +
-	"5api/calendars/calendar/v1alpha1/calendar_access.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1dapi/types/accept_target.proto\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xf0\x05\n" +
+	"5api/calendars/calendar/v1alpha1/calendar_access.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1dapi/types/accept_target.proto\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xe0\x06\n" +
 	"\x06Access\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12_\n" +
 	"\trequester\x18\x02 \x01(\v2<.api.calendars.calendar.v1alpha1.Access.RequesterOrRecipientB\x03\xe0A\x03R\trequester\x12b\n" +
@@ -673,8 +673,8 @@ const file_api_calendars_calendar_v1alpha1_calendar_access_proto_rawDesc = "" +
 	"\n" +
 	"given_name\x18\x03 \x01(\tB\x03\xe0A\x03R\tgivenName\x12$\n" +
 	"\vfamily_name\x18\x04 \x01(\tB\x03\xe0A\x03R\n" +
-	"familyName:e\xeaAb\n" +
-	"&api.calendars.calendar.v1alpha1/Access\x12&calendars/{calendar}/accesses/{access}*\baccesses2\x06access\"\xa5\x01\n" +
+	"familyName:\xd4\x01\xeaA\xd0\x01\n" +
+	"&api.calendars.calendar.v1alpha1/Access\x12&calendars/{calendar}/accesses/{access}\x123users/{user}/calendars/{calendar}/accesses/{access}\x127circles/{circle}/calendars/{calendar}/accesses/{access}*\baccesses2\x06access\"\xa5\x01\n" +
 	"\x13CreateAccessRequest\x12H\n" +
 	"\x06parent\x18\x01 \x01(\tB0\xe0A\x02\xfaA*\n" +
 	"(api.calendars.calendar.v1alpha1/CalendarR\x06parent\x12D\n" +
@@ -701,16 +701,16 @@ const file_api_calendars_calendar_v1alpha1_calendar_access_proto_rawDesc = "" +
 	"updateMask\"Y\n" +
 	"\x13AcceptAccessRequest\x12B\n" +
 	"\x04name\x18\x01 \x01(\tB.\xe0A\x02\xfaA(\n" +
-	"&api.calendars.calendar.v1alpha1/AccessR\x04name2\xaa\x10\n" +
+	"&api.calendars.calendar.v1alpha1/AccessR\x04name2\xa7\x11\n" +
 	"\x15CalendarAccessService\x12\xd1\x02\n" +
 	"\fCreateAccess\x124.api.calendars.calendar.v1alpha1.CreateAccessRequest\x1a'.api.calendars.calendar.v1alpha1.Access\"\xe1\x01\x92A\x8c\x01\n" +
 	"\x15CalendarAccessService\x12-Grant a user or calendar access to a calendar\x1aDGrants a user or calendar a specific permission level to a calendar.\xdaA\rparent,access\x82\xd3\xe4\x93\x02;:\x06access\"1/calendars/v1alpha1/{parent=calendars/*}/accesses\x12\x89\x02\n" +
 	"\fDeleteAccess\x124.api.calendars.calendar.v1alpha1.DeleteAccessRequest\x1a\x16.google.protobuf.Empty\"\xaa\x01\x92Ag\n" +
 	"\x15CalendarAccessService\x12\x18Delete a calendar access\x1a4Removes a user's or calendar's access to a calendar.\xdaA\x04name\x82\xd3\xe4\x93\x023*1/calendars/v1alpha1/{name=calendars/*/accesses/*}\x12\x90\x02\n" +
 	"\tGetAccess\x121.api.calendars.calendar.v1alpha1.GetAccessRequest\x1a'.api.calendars.calendar.v1alpha1.Access\"\xa6\x01\x92Ac\n" +
-	"\x15CalendarAccessService\x12\x15Get a calendar access\x1a3Retrieves details about a specific calendar access.\xdaA\x04name\x82\xd3\xe4\x93\x023\x121/calendars/v1alpha1/{name=calendars/*/accesses/*}\x12\xbc\x03\n" +
-	"\fListAccesses\x124.api.calendars.calendar.v1alpha1.ListAccessesRequest\x1a5.api.calendars.calendar.v1alpha1.ListAccessesResponse\"\xbe\x02\x92A\xf8\x01\n" +
-	"\x15CalendarAccessService\x12\x16List calendar accesses\x1a\xc6\x01Lists all users and calendars with access to a calendar. If no calendar is provided, the response will only return the accesses for the current user (or calendar if the calendar header is provided).\xdaA\x06parent\x82\xd3\xe4\x93\x023\x121/calendars/v1alpha1/{parent=calendars/*}/accesses\x12\xc3\x02\n" +
+	"\x15CalendarAccessService\x12\x15Get a calendar access\x1a3Retrieves details about a specific calendar access.\xdaA\x04name\x82\xd3\xe4\x93\x023\x121/calendars/v1alpha1/{name=calendars/*/accesses/*}\x12\xb9\x04\n" +
+	"\fListAccesses\x124.api.calendars.calendar.v1alpha1.ListAccessesRequest\x1a5.api.calendars.calendar.v1alpha1.ListAccessesResponse\"\xbb\x03\x92A\xf8\x01\n" +
+	"\x15CalendarAccessService\x12\x16List calendar accesses\x1a\xc6\x01Lists all users and calendars with access to a calendar. If no calendar is provided, the response will only return the accesses for the current user (or calendar if the calendar header is provided).\xdaA\x06parent\x82\xd3\xe4\x93\x02\xaf\x01Z;\x129/calendars/v1alpha1/{parent=users/*/calendars/*}/accessesZ=\x12;/calendars/v1alpha1/{parent=circles/*/calendars/*}/accesses\x121/calendars/v1alpha1/{parent=calendars/*}/accesses\x12\xc3\x02\n" +
 	"\fUpdateAccess\x124.api.calendars.calendar.v1alpha1.UpdateAccessRequest\x1a'.api.calendars.calendar.v1alpha1.Access\"\xd3\x01\x92As\n" +
 	"\x15CalendarAccessService\x12\x18Update a calendar access\x1a@Updates the permission level or recipient for a calendar access.\xdaA\x12access,update_mask\x82\xd3\xe4\x93\x02B:\x06access28/calendars/v1alpha1/{access.name=calendars/*/accesses/*}\x12\xc0\x02\n" +
 	"\fAcceptAccess\x124.api.calendars.calendar.v1alpha1.AcceptAccessRequest\x1a'.api.calendars.calendar.v1alpha1.Access\"\xd0\x01\x92A\x82\x01\n" +
