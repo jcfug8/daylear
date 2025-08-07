@@ -64,9 +64,7 @@ func (repo *Client) DeleteCircleAccess(ctx context.Context, parent model.CircleA
 		return repository.ErrInvalidArgument{Msg: "circle access id is required"}
 	}
 
-	db := repo.db.WithContext(ctx)
-
-	res := db.Delete(&dbModel.CircleAccess{}, id.CircleAccessId)
+	res := repo.db.WithContext(ctx).Delete(&dbModel.CircleAccess{}, id.CircleAccessId)
 	if res.Error != nil {
 		log.Error().Err(res.Error).Msg("unable to delete circle access row")
 		return ConvertGormError(res.Error)
@@ -89,9 +87,7 @@ func (repo *Client) BulkDeleteCircleAccess(ctx context.Context, parent model.Cir
 		return repository.ErrInvalidArgument{Msg: "circle id is required"}
 	}
 
-	db := repo.db.WithContext(ctx)
-
-	res := db.Where("circle_id = ?", parent.CircleId.CircleId).Delete(&dbModel.CircleAccess{})
+	res := repo.db.WithContext(ctx).Where("circle_id = ?", parent.CircleId.CircleId).Delete(&dbModel.CircleAccess{})
 	if res.Error != nil {
 		log.Error().Err(res.Error).Msg("unable to bulk delete circle access rows")
 		return ConvertGormError(res.Error)
@@ -156,27 +152,27 @@ func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.A
 	}
 
 	var circleAccesses []dbModel.CircleAccess
-	db := repo.db.WithContext(ctx).Select(fields)
+	tx := repo.db.WithContext(ctx).Select(fields)
 
 	if slices.Contains(fields, dbModel.UserColumn_Username) || slices.Contains(fields, dbModel.UserColumn_GivenName) || slices.Contains(fields, dbModel.UserColumn_FamilyName) {
-		db = db.Joins("LEFT JOIN daylear_user ON circle_access.recipient_user_id = daylear_user.user_id")
+		tx = tx.Joins("LEFT JOIN daylear_user ON circle_access.recipient_user_id = daylear_user.user_id")
 	}
 
 	if conversion.WhereClause != "" {
-		db = db.Where(conversion.WhereClause, conversion.Params...)
+		tx = tx.Where(conversion.WhereClause, conversion.Params...)
 	}
 
 	// Filter by circle ID if provided
 	if parent.CircleId.CircleId != 0 {
-		db = db.Where("circle_access.circle_id = ?", parent.CircleId.CircleId)
+		tx = tx.Where("circle_access.circle_id = ?", parent.CircleId.CircleId)
 	}
 
-	db = db.Where(
+	tx = tx.Where(
 		"circle_access.recipient_user_id = ? OR circle_access.circle_id IN (SELECT circle_id FROM circle_access WHERE recipient_user_id = ? AND permission_level >= ?)",
 		authAccount.AuthUserId, authAccount.AuthUserId, types.PermissionLevel_PERMISSION_LEVEL_WRITE,
 	)
 
-	err = db.Limit(int(pageSize)).
+	err = tx.Limit(int(pageSize)).
 		Offset(int(pageOffset)).
 		Find(&circleAccesses).Error
 	if err != nil {
@@ -200,11 +196,11 @@ func (repo *Client) UpdateCircleAccess(ctx context.Context, access model.CircleA
 
 	dbAccess := convert.CoreCircleAccessToCircleAccess(access)
 
-	db := repo.db.WithContext(ctx).
+	err := repo.db.WithContext(ctx).
 		Select(dbModel.UpdateCircleAccessFieldMasker.Convert(fields)).
-		Clauses(clause.Returning{})
-
-	err := db.Where("circle_access_id = ?", access.CircleAccessId.CircleAccessId).Updates(&dbAccess).Error
+		Clauses(&clause.Returning{}).
+		Where("circle_access_id = ?", access.CircleAccessId.CircleAccessId).
+		Updates(&dbAccess).Error
 	if err != nil {
 		log.Error().Err(err).Msg("unable to update circle access row")
 		return model.CircleAccess{}, ConvertGormError(err)
@@ -229,7 +225,7 @@ func (repo *Client) FindStandardUserCircleAccess(ctx context.Context, authAccoun
 			return cmodel.CircleAccess{}, repository.ErrNotFound{}
 		}
 		log.Error().Err(res.Error).Msg("unable to find standard user circle access")
-		return cmodel.CircleAccess{}, res.Error
+		return cmodel.CircleAccess{}, ConvertGormError(res.Error)
 	}
 	return convert.CircleAccessToCoreCircleAccess(circleAccess), nil
 }
@@ -258,7 +254,7 @@ func (repo *Client) FindDelegatedUserCircleAccess(ctx context.Context, authAccou
 			return cmodel.CircleAccess{}, cmodel.UserAccess{}, repository.ErrNotFound{}
 		}
 		log.Error().Err(res.Error).Msg("unable to find delegated user circle access")
-		return cmodel.CircleAccess{}, cmodel.UserAccess{}, res.Error
+		return cmodel.CircleAccess{}, cmodel.UserAccess{}, ConvertGormError(res.Error)
 	}
 	return convert.CircleAccessToCoreCircleAccess(result.CircleAccess), convert.UserAccessToCoreUserAccess(result.UserAccess), nil
 }

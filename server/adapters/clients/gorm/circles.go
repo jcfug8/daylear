@@ -25,7 +25,7 @@ func (repo *Client) CreateCircle(ctx context.Context, m cmodel.Circle, fields []
 		return cmodel.Circle{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid circle: %v", err)}
 	}
 
-	err = repo.db.
+	err = repo.db.WithContext(ctx).
 		Select(gmodel.CircleFieldMasker.Convert(fields)).
 		Clauses(clause.Returning{}).
 		Create(&gm).Error
@@ -51,6 +51,7 @@ func (repo *Client) DeleteCircle(ctx context.Context, id cmodel.CircleId) (cmode
 
 	gm := gmodel.Circle{CircleId: id.CircleId}
 	err := repo.db.WithContext(ctx).
+		Select(gmodel.CircleFieldMasker.GetAll()).
 		Clauses(clause.Returning{}).
 		Delete(&gm).Error
 	if err != nil {
@@ -110,7 +111,7 @@ func (repo *Client) UpdateCircle(ctx context.Context, authAccount cmodel.AuthAcc
 
 	err = repo.db.WithContext(ctx).
 		Select(gmodel.UpdateCircleFieldMasker.Convert(fields)).
-		Clauses(clause.Returning{}).
+		Clauses(&clause.Returning{}).
 		Updates(&gm).Error
 	if err != nil {
 		log.Error().Err(err).Msg("unable to update circle row")

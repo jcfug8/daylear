@@ -63,9 +63,9 @@ func (repo *Client) DeleteRecipeAccess(ctx context.Context, parent model.RecipeA
 		return repository.ErrInvalidArgument{Msg: "recipe access id is required"}
 	}
 
-	db := repo.db.WithContext(ctx)
-
-	res := db.Where("recipe_id = ? AND recipe_access_id = ?", parent.RecipeId.RecipeId, id.RecipeAccessId).Delete(&dbModel.RecipeAccess{})
+	res := repo.db.WithContext(ctx).
+		Where("recipe_id = ? AND recipe_access_id = ?", parent.RecipeId.RecipeId, id.RecipeAccessId).
+		Delete(&dbModel.RecipeAccess{})
 	if res.Error != nil {
 		log.Error().Err(res.Error).Msg("unable to delete recipe access row")
 		return ConvertGormError(res.Error)
@@ -88,9 +88,9 @@ func (repo *Client) BulkDeleteRecipeAccess(ctx context.Context, parent model.Rec
 		return repository.ErrInvalidArgument{Msg: "recipe id is required"}
 	}
 
-	db := repo.db.WithContext(ctx)
-
-	res := db.Where("recipe_id = ?", parent.RecipeId.RecipeId).Delete(&dbModel.RecipeAccess{})
+	res := repo.db.WithContext(ctx).
+		Where("recipe_id = ?", parent.RecipeId.RecipeId).
+		Delete(&dbModel.RecipeAccess{})
 	if res.Error != nil {
 		log.Error().Err(res.Error).Msg("unable to bulk delete recipe access rows")
 		return ConvertGormError(res.Error)
@@ -152,29 +152,29 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 
 	var recipeAccesses []dbModel.RecipeAccess
 	// Start building the query
-	db := repo.db.WithContext(ctx).
+	tx := repo.db.WithContext(ctx).
 		Select(dbModel.RecipeAccessFieldMasker.Convert(fields)).
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(pageOffset))
 
 	if slices.Contains(fields, dbModel.RecipeAccessFields_RecipientUserId) || slices.Contains(fields, dbModel.RecipeAccessFields_RecipientCircleId) {
-		db = db.Joins(`LEFT JOIN daylear_user u ON recipe_access.recipient_user_id = u.user_id`).
+		tx = tx.Joins(`LEFT JOIN daylear_user u ON recipe_access.recipient_user_id = u.user_id`).
 			Joins(`LEFT JOIN circle c ON recipe_access.recipient_circle_id = c.circle_id`)
 	}
 
 	// Filter by recipe ID if provided
 	if parent.RecipeId.RecipeId != 0 {
-		db = db.Where("recipe_access.recipe_id = ?", parent.RecipeId.RecipeId)
+		tx = tx.Where("recipe_access.recipe_id = ?", parent.RecipeId.RecipeId)
 	}
 
 	if authAccount.CircleId != 0 {
-		db = db.Where(
+		tx = tx.Where(
 			"recipe_access.recipient_circle_id = ? OR recipe_access.recipe_id IN (SELECT recipe_id FROM recipe_access WHERE recipient_circle_id = ? AND permission_level >= ?)",
 			authAccount.CircleId, authAccount.CircleId, types.PermissionLevel_PERMISSION_LEVEL_WRITE,
 		)
 	} else if authAccount.AuthUserId != 0 {
-		db = db.Where(
+		tx = tx.Where(
 			"recipe_access.recipient_user_id = ? OR recipe_access.recipe_id IN (SELECT recipe_id FROM recipe_access WHERE recipient_user_id = ? AND permission_level >= ?)",
 			authAccount.AuthUserId, authAccount.AuthUserId, types.PermissionLevel_PERMISSION_LEVEL_WRITE,
 		)
@@ -187,10 +187,10 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 	}
 
 	if conversion.WhereClause != "" {
-		db = db.Where(conversion.WhereClause, conversion.Params...)
+		tx = tx.Where(conversion.WhereClause, conversion.Params...)
 	}
 
-	err = db.Limit(int(pageSize)).
+	err = tx.Limit(int(pageSize)).
 		Offset(int(pageOffset)).
 		Find(&recipeAccesses).Error
 	if err != nil {
@@ -214,11 +214,11 @@ func (repo *Client) UpdateRecipeAccess(ctx context.Context, access model.RecipeA
 
 	dbAccess := convert.CoreRecipeAccessToRecipeAccess(access)
 
-	db := repo.db.WithContext(ctx).
+	err := repo.db.WithContext(ctx).
 		Select(dbModel.UpdateRecipeAccessFieldMasker.Convert(fields)).
-		Clauses(&clause.Returning{})
-
-	err := db.Where("recipe_access_id = ?", access.RecipeAccessId.RecipeAccessId).Updates(&dbAccess).Error
+		Clauses(&clause.Returning{}).
+		Where("recipe_access_id = ?", access.RecipeAccessId.RecipeAccessId).
+		Updates(&dbAccess).Error
 	if err != nil {
 		log.Error().Err(err).Msg("unable to update recipe access row")
 		return model.RecipeAccess{}, ConvertGormError(err)
@@ -243,7 +243,7 @@ func (repo *Client) FindStandardUserRecipeAccess(ctx context.Context, authAccoun
 			return model.RecipeAccess{}, repository.ErrNotFound{}
 		}
 		log.Error().Err(res.Error).Msg("unable to find standard user recipe access")
-		return model.RecipeAccess{}, res.Error
+		return model.RecipeAccess{}, ConvertGormError(res.Error)
 	}
 	return convert.RecipeAccessToCoreRecipeAccess(recipeAccess), nil
 }
@@ -271,7 +271,7 @@ func (repo *Client) FindDelegatedCircleRecipeAccess(ctx context.Context, authAcc
 			return model.RecipeAccess{}, model.CircleAccess{}, repository.ErrNotFound{}
 		}
 		log.Error().Err(res.Error).Msg("unable to find delegated circle recipe access")
-		return model.RecipeAccess{}, model.CircleAccess{}, res.Error
+		return model.RecipeAccess{}, model.CircleAccess{}, ConvertGormError(res.Error)
 	}
 	return convert.RecipeAccessToCoreRecipeAccess(result.RecipeAccess), convert.CircleAccessToCoreCircleAccess(result.CircleAccess), nil
 }
@@ -300,7 +300,7 @@ func (repo *Client) FindDelegatedUserRecipeAccess(ctx context.Context, authAccou
 			return model.RecipeAccess{}, model.UserAccess{}, repository.ErrNotFound{}
 		}
 		log.Error().Err(res.Error).Msg("unable to find delegated user recipe access")
-		return model.RecipeAccess{}, model.UserAccess{}, res.Error
+		return model.RecipeAccess{}, model.UserAccess{}, ConvertGormError(res.Error)
 	}
 	return convert.RecipeAccessToCoreRecipeAccess(result.RecipeAccess), convert.UserAccessToCoreUserAccess(result.UserAccess), nil
 }

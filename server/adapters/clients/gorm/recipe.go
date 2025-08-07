@@ -90,7 +90,7 @@ func (repo *Client) CreateRecipe(ctx context.Context, m cmodel.Recipe, fields []
 		return cmodel.Recipe{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid recipe: %v", err)}
 	}
 
-	err = repo.db.
+	err = repo.db.WithContext(ctx).
 		Select(gmodel.RecipeFieldMasker.Convert(fields)).
 		Clauses(clause.Returning{}).
 		Create(&gm).Error

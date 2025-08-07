@@ -24,7 +24,7 @@ func (repo *Client) CreateCalendar(ctx context.Context, m cmodel.Calendar, field
 		return cmodel.Calendar{}, repository.ErrInvalidArgument{Msg: "invalid calendar"}
 	}
 
-	err = repo.db.
+	err = repo.db.WithContext(ctx).
 		Select(gmodel.CalendarFieldMasker.Convert(fields)).
 		Clauses(clause.Returning{}).
 		Create(&gm).Error
