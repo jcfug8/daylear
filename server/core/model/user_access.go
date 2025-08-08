@@ -21,6 +21,7 @@ type UserAccess struct {
 	UserAccessId
 	PermissionLevel types.PermissionLevel
 	State           types.AccessState
+	AcceptTarget    types.AcceptTarget
 
 	Requester UserId
 
@@ -30,9 +31,34 @@ type UserAccess struct {
 	RecipientFamilyName string // family name of the recipient
 }
 
+// GetAccessId - returns the access id of the user access.
+func (u UserAccess) GetAccessId() int64 {
+	return u.UserAccessId.UserAccessId
+}
+
 // GetPermissionLevel - returns the permission level of the user access.
 func (u UserAccess) GetPermissionLevel() types.PermissionLevel {
 	return u.PermissionLevel
+}
+
+// GetAcceptTarget - returns the accept target of the user access.
+func (u UserAccess) GetAcceptTarget() types.AcceptTarget {
+	return u.AcceptTarget
+}
+
+// GetAccessState - returns the access state of the user access.
+func (u UserAccess) GetAccessState() types.AccessState {
+	return u.State
+}
+
+// GetRecipientCircleId - returns the circle id of the recipient.
+func (u UserAccess) GetRecipientCircleId() CircleId {
+	return CircleId{}
+}
+
+// GetRecipientUserId - returns the user id of the recipient.
+func (u UserAccess) GetRecipientUserId() UserId {
+	return UserId{UserId: u.Recipient.UserId}
 }
 
 // SetPermissionLevel - sets the permission level of the user access. Because this method is

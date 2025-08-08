@@ -21,6 +21,7 @@ type RecipeAccess struct {
 	RecipeAccessId
 	PermissionLevel types.PermissionLevel
 	State           types.AccessState
+	AcceptTarget    types.AcceptTarget
 
 	Requester RecipeRecipientOrRequester
 
@@ -32,9 +33,34 @@ type RecipeAccess struct {
 	RecipientCircleHandle string // handle of the recipient (if circle)
 }
 
+// GetAccessId - returns the access id of the recipe access.
+func (r RecipeAccess) GetAccessId() int64 {
+	return r.RecipeAccessId.RecipeAccessId
+}
+
 // GetPermissionLevel - returns the permission level of the recipe access.
 func (r RecipeAccess) GetPermissionLevel() types.PermissionLevel {
 	return r.PermissionLevel
+}
+
+// GetAcceptTarget - returns the accept target of the recipe access.
+func (r RecipeAccess) GetAcceptTarget() types.AcceptTarget {
+	return r.AcceptTarget
+}
+
+// GetAccessState - returns the access state of the recipe access.
+func (r RecipeAccess) GetAccessState() types.AccessState {
+	return r.State
+}
+
+// GetRecipientCircleId - returns the circle id of the recipient.
+func (r RecipeAccess) GetRecipientCircleId() CircleId {
+	return CircleId{CircleId: r.Recipient.CircleId}
+}
+
+// GetRecipientUserId - returns the user id of the recipient.
+func (r RecipeAccess) GetRecipientUserId() UserId {
+	return UserId{UserId: r.Recipient.UserId}
 }
 
 // SetPermissionLevel - sets the permission level of the recipe access. Because this method is

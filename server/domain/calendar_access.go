@@ -19,67 +19,19 @@ func (d *Domain) CreateCalendarAccess(ctx context.Context, authAccount model.Aut
 		return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "calendar id required"}
 	}
 
+	determinedCalendarAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, access)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine calendar access ownership details when creating a calendar access")
+		return model.CalendarAccess{}, err
+	}
+
 	access.Requester = model.CalendarRecipientOrRequester{
 		UserId: authAccount.AuthUserId,
 	}
+	access.AcceptTarget = determinedCalendarAccessOwnershipDetails.acceptTarget
+	access.State = determinedCalendarAccessOwnershipDetails.accessState
 
-	var recipientOwner bool
-	var resourceOwner bool
-
-	dbCalendar, err := d.repo.GetCalendar(ctx, authAccount, model.CalendarId{CalendarId: access.CalendarAccessParent.CalendarId}, []string{model.CalendarField_Visibility})
-	if err != nil {
-		log.Error().Err(err).Msg("unable to get calendar when creating a calendar access")
-		return model.CalendarAccess{}, err
-	}
-	determinedCalendarAccess, err := d.determineCalendarAccess(
-		ctx, authAccount, model.CalendarId{CalendarId: access.CalendarAccessParent.CalendarId},
-		withResourceVisibilityLevel(dbCalendar.VisibilityLevel),
-		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
-	)
-	if err != nil {
-		log.Error().Err(err).Msg("unable to determine calendar access when creating a calendar access")
-		return model.CalendarAccess{}, err
-	}
-	resourceOwner = determinedCalendarAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_WRITE
-
-	if access.Recipient.CircleId != 0 { // recipient is a circle
-		dbCircle, err := d.repo.GetCircle(ctx, authAccount, model.CircleId{CircleId: access.Recipient.CircleId}, []string{model.CircleField_Visibility})
-		if err != nil {
-			log.Error().Err(err).Msg("unable to get circle when creating a calendar access")
-			return model.CalendarAccess{}, err
-		}
-		determinedCircleAccess, err := d.determineCircleAccess(ctx, authAccount, model.CircleId{CircleId: access.Recipient.CircleId}, withResourceVisibilityLevel(dbCircle.VisibilityLevel))
-		if err != nil {
-			log.Error().Err(err).Msg("unable to determine circle access when creating a calendar access")
-			return model.CalendarAccess{}, err
-		}
-		recipientOwner = determinedCircleAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_WRITE
-	} else if access.Recipient.UserId != 0 { // recipient is a user
-		determinedUserAccess, err := d.determineUserAccess(ctx, authAccount, model.UserId{UserId: access.Recipient.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ))
-		if err != nil {
-			log.Error().Err(err).Msg("unable to determine user access when creating a calendar access")
-			return model.CalendarAccess{}, err
-		}
-		recipientOwner = determinedUserAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-	} else {
-		log.Warn().Msg("recipient is required when creating a calendar access")
-		return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "recipient is required"}
-	}
-
-	if !resourceOwner && recipientOwner {
-		access.State = types.AccessState_ACCESS_STATE_PENDING
-		access.AcceptTarget = types.AcceptTarget_ACCEPT_TARGET_RESOURCE
-	} else if resourceOwner && !recipientOwner {
-		access.State = types.AccessState_ACCESS_STATE_PENDING
-		access.AcceptTarget = types.AcceptTarget_ACCEPT_TARGET_RECIPIENT
-	} else if resourceOwner && recipientOwner {
-		access.State = types.AccessState_ACCESS_STATE_ACCEPTED
-		access.AcceptTarget = types.AcceptTarget_ACCEPT_TARGET_UNSPECIFIED
-	} else {
-		return model.CalendarAccess{}, domain.ErrPermissionDenied{Msg: "incorrect access"}
-	}
-
-	if access.PermissionLevel > max(types.PermissionLevel_PERMISSION_LEVEL_READ, determinedCalendarAccess.PermissionLevel) {
+	if access.PermissionLevel > determinedCalendarAccessOwnershipDetails.maximumPermissionLevel {
 		log.Warn().Msg("unable to create calendar access with the given permission level")
 		return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "cannot create access level higher than your own level"}
 	}

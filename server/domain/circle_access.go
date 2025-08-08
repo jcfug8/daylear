@@ -25,53 +25,21 @@ func (d *Domain) CreateCircleAccess(ctx context.Context, authAccount model.AuthA
 		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "recipient is required"}
 	}
 
+	determinedCircleAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, access)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine circle access ownership details when creating a circle access")
+		return model.CircleAccess{}, err
+	}
+
 	access.Requester = model.CircleRequester{
 		UserId: authAccount.AuthUserId,
 	}
+	access.AcceptTarget = determinedCircleAccessOwnershipDetails.acceptTarget
+	access.State = determinedCircleAccessOwnershipDetails.accessState
 
-	var recipientOwner bool
-	var resourceOwner bool
-
-	dbCircle, err := d.repo.GetCircle(ctx, authAccount, access.CircleId, []string{model.CircleField_Visibility})
-	if err != nil {
-		log.Error().Err(err).Msg("unable to get circle when creating a circle access")
-		return model.CircleAccess{}, err
-	}
-	determinedCircleAccess, err := d.determineCircleAccess(
-		ctx, authAccount, model.CircleId{CircleId: access.CircleId.CircleId},
-		withResourceVisibilityLevel(dbCircle.VisibilityLevel),
-		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
-	)
-	if err != nil {
-		log.Error().Err(err).Msg("unable to determine circle access when creating a circle access")
-		return model.CircleAccess{}, err
-	}
-	resourceOwner = determinedCircleAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_WRITE
-
-	if access.Recipient.UserId != 0 {
-		determinedUserAccess, err := d.determineUserAccess(ctx, authAccount, model.UserId{UserId: access.Recipient.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ))
-		if err != nil {
-			log.Error().Err(err).Msg("unable to determine user access when creating a circle access")
-			return model.CircleAccess{}, err
-		}
-		recipientOwner = determinedUserAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-	} else {
-		log.Warn().Msg("recipient is required when creating a circle access")
-		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "recipient is required"}
-	}
-
-	if !resourceOwner && recipientOwner {
-		access.State = types.AccessState_ACCESS_STATE_PENDING
-		access.AcceptTarget = types.AcceptTarget_ACCEPT_TARGET_RESOURCE
-	} else if resourceOwner && !recipientOwner {
-		access.State = types.AccessState_ACCESS_STATE_PENDING
-		access.AcceptTarget = types.AcceptTarget_ACCEPT_TARGET_RECIPIENT
-	} else if resourceOwner && recipientOwner {
-		access.State = types.AccessState_ACCESS_STATE_ACCEPTED
-		access.AcceptTarget = types.AcceptTarget_ACCEPT_TARGET_UNSPECIFIED
-	} else {
-		log.Warn().Msg("unable to determine access state when creating a circle access")
-		return model.CircleAccess{}, domain.ErrInternal{Msg: "unable to determine access state"}
+	if access.PermissionLevel > determinedCircleAccessOwnershipDetails.maximumPermissionLevel {
+		log.Warn().Msg("unable to create circle access with the given permission level")
+		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "cannot create access level higher than your own level"}
 	}
 
 	// create access
@@ -107,32 +75,13 @@ func (d *Domain) DeleteCircleAccess(ctx context.Context, authAccount model.AuthA
 		return domain.ErrInternal{Msg: "unable to get circle access"}
 	}
 
-	isRecipientOwner := false
-	isCircleOwner := false
-
-	determinedUserAccess, err := d.determineUserAccess(
-		ctx, authAccount, model.UserId{UserId: dbAccess.Recipient.UserId},
-		withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC),
-	)
+	determinedCircleAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, dbAccess)
 	if err != nil {
-		log.Error().Err(err).Msg("unable to determine user access when deleting a circle access")
-		return err
+		log.Error().Err(err).Msg("unable to determine circle access ownership details when deleting a circle access")
+		return domain.ErrInternal{Msg: "unable to determine circle access ownership details"}
 	}
 
-	isRecipientOwner = determinedUserAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-
-	determinedCircleAccess, err := d.determineCircleAccess(
-		ctx, authAccount, model.CircleId{CircleId: dbAccess.CircleId.CircleId},
-		withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC),
-	)
-	if err != nil {
-		log.Error().Err(err).Msg("unable to determine circle access when deleting a circle access")
-		return err
-	}
-
-	isCircleOwner = determinedCircleAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-
-	if !isRecipientOwner && !isCircleOwner {
+	if !determinedCircleAccessOwnershipDetails.isRecipientOwner && !determinedCircleAccessOwnershipDetails.isResourceOwner {
 		log.Warn().Msg("access denied when deleting a circle access")
 		return domain.ErrPermissionDenied{Msg: "access denied"}
 	}
@@ -169,32 +118,13 @@ func (d *Domain) GetCircleAccess(ctx context.Context, authAccount model.AuthAcco
 		return model.CircleAccess{}, domain.ErrInternal{Msg: "unable to get circle access"}
 	}
 
-	isRecipientOwner := false
-	isCircleOwner := false
-
-	determinedUserAccess, err := d.determineUserAccess(
-		ctx, authAccount, model.UserId{UserId: dbAccess.Recipient.UserId},
-		withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC),
-	)
+	determinedCircleAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, dbAccess)
 	if err != nil {
-		log.Error().Err(err).Msg("unable to determine user access when deleting a circle access")
-		return model.CircleAccess{}, err
+		log.Error().Err(err).Msg("unable to determine circle access ownership details when getting a circle access")
+		return model.CircleAccess{}, domain.ErrInternal{Msg: "unable to determine circle access ownership details"}
 	}
 
-	isRecipientOwner = determinedUserAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-
-	determinedCircleAccess, err := d.determineCircleAccess(
-		ctx, authAccount, model.CircleId{CircleId: dbAccess.CircleId.CircleId},
-		withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC),
-	)
-	if err != nil {
-		log.Error().Err(err).Msg("unable to determine circle access when deleting a circle access")
-		return model.CircleAccess{}, err
-	}
-
-	isCircleOwner = determinedCircleAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-
-	if !isRecipientOwner && !isCircleOwner {
+	if !determinedCircleAccessOwnershipDetails.isRecipientOwner && !determinedCircleAccessOwnershipDetails.isResourceOwner {
 		log.Warn().Msg("access denied when getting a circle access")
 		return model.CircleAccess{}, domain.ErrPermissionDenied{Msg: "access denied"}
 	}
@@ -243,16 +173,18 @@ func (d *Domain) UpdateCircleAccess(ctx context.Context, authAccount model.AuthA
 		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "access id is required"}
 	}
 
-	determinedCircleAccess, err := d.determineCircleAccess(
-		ctx, authAccount, model.CircleId{CircleId: access.CircleAccessParent.CircleId.CircleId},
-		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE),
-	)
+	determinedCircleAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, access)
 	if err != nil {
-		log.Error().Err(err).Msg("unable to determine circle access when updating a circle access")
-		return model.CircleAccess{}, err
+		log.Error().Err(err).Msg("unable to determine circle access ownership details when updating a circle access")
+		return model.CircleAccess{}, domain.ErrInternal{Msg: "unable to determine circle access ownership details"}
 	}
 
-	if slices.Contains(fields, model.CircleAccessField_PermissionLevel) && determinedCircleAccess.PermissionLevel < access.PermissionLevel {
+	if !determinedCircleAccessOwnershipDetails.isRecipientOwner && !determinedCircleAccessOwnershipDetails.isResourceOwner {
+		log.Warn().Msg("access denied when updating a circle access")
+		return model.CircleAccess{}, domain.ErrPermissionDenied{Msg: "access denied"}
+	}
+
+	if slices.Contains(fields, model.CircleAccessField_PermissionLevel) && determinedCircleAccessOwnershipDetails.maximumPermissionLevel < access.PermissionLevel {
 		log.Warn().Msg("cannot update circle access permission level to a higher level than your own")
 		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "cannot update circle access permission level to a higher level than your own"}
 	}
@@ -296,29 +228,21 @@ func (d *Domain) AcceptCircleAccess(ctx context.Context, authAccount model.AuthA
 		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "access must be in pending state to be accepted"}
 	}
 
-	switch access.AcceptTarget {
-	case types.AcceptTarget_ACCEPT_TARGET_RESOURCE:
-		_, err := d.determineCircleAccess(
-			ctx, authAccount, model.CircleId{CircleId: access.CircleId.CircleId},
-			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
-		if err != nil {
-			log.Error().Err(err).Msg("unable to determine circle access when accepting circle access")
-			return model.CircleAccess{}, domain.ErrInternal{Msg: "unable to determine circle access"}
-		}
-	case types.AcceptTarget_ACCEPT_TARGET_RECIPIENT:
-		if access.Recipient.UserId != 0 {
-			_, err := d.determineUserAccess(ctx, authAccount, model.UserId{UserId: access.Recipient.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN))
-			if err != nil {
-				log.Error().Err(err).Msg("unable to determine user access when accepting circle access")
-				return model.CircleAccess{}, domain.ErrInternal{Msg: "unable to determine user access"}
-			}
-		} else {
-			log.Warn().Msg("recipient is required when accepting a circle access")
-			return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "recipient is required"}
-		}
-	default:
-		log.Warn().Msg("invalid accept target when accepting a circle access")
-		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "invalid accept target"}
+	determinedCircleAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, access)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine circle access ownership details when accepting a circle access")
+		return model.CircleAccess{}, domain.ErrInternal{Msg: "unable to determine circle access ownership details"}
+	}
+
+	if determinedCircleAccessOwnershipDetails.acceptTarget == types.AcceptTarget_ACCEPT_TARGET_RESOURCE && !determinedCircleAccessOwnershipDetails.isResourceOwner {
+		log.Warn().Msg("must be resource owner to accept resourse targeted circle access")
+		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "must be resource owner to accept resourse targeted circle access"}
+	} else if determinedCircleAccessOwnershipDetails.acceptTarget == types.AcceptTarget_ACCEPT_TARGET_RECIPIENT && !determinedCircleAccessOwnershipDetails.isRecipientOwner {
+		log.Warn().Msg("must be recipient owner to accept recipient targeted circle access")
+		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "must be recipient owner to accept recipient targeted circle access"}
+	} else if determinedCircleAccessOwnershipDetails.acceptTarget == types.AcceptTarget_ACCEPT_TARGET_UNSPECIFIED {
+		log.Warn().Msg("unspecified accept target when accepting a circle access")
+		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "unspecified accept target"}
 	}
 
 	// update the access state to accepted

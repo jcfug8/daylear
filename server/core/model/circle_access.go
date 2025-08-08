@@ -32,9 +32,24 @@ type CircleAccess struct {
 	RecipientFamilyName string // family name of the recipient
 }
 
+// GetAccessId - returns the access id of the circle access.
+func (c CircleAccess) GetAccessId() int64 {
+	return c.CircleAccessId.CircleAccessId
+}
+
 // GetPermissionLevel - returns the permission level of the circle access.
 func (c CircleAccess) GetPermissionLevel() types.PermissionLevel {
 	return c.PermissionLevel
+}
+
+// GetAcceptTarget - returns the accept target of the circle access.
+func (c CircleAccess) GetAcceptTarget() types.AcceptTarget {
+	return c.AcceptTarget
+}
+
+// GetAccessState - returns the access state of the circle access.
+func (c CircleAccess) GetAccessState() types.AccessState {
+	return c.State
 }
 
 // SetPermissionLevel - sets the permission level of the circle access. Because this method is
@@ -43,6 +58,16 @@ func (c CircleAccess) GetPermissionLevel() types.PermissionLevel {
 func (c CircleAccess) SetPermissionLevel(permissionLevel types.PermissionLevel) Access {
 	c.PermissionLevel = permissionLevel
 	return c
+}
+
+// GetRecipientCircleId - returns the circle id of the recipient.
+func (c CircleAccess) GetRecipientCircleId() CircleId {
+	return CircleId{}
+}
+
+// GetRecipientUserId - returns the user id of the recipient.
+func (c CircleAccess) GetRecipientUserId() UserId {
+	return UserId{UserId: c.Recipient.UserId}
 }
 
 type CircleRequester struct {

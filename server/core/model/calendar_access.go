@@ -37,9 +37,34 @@ type CalendarAccess struct {
 	RecipientCircleHandle string // handle of the recipient (if circle)
 }
 
+// GetAccessId - returns the access id of the calendar access.
+func (c CalendarAccess) GetAccessId() int64 {
+	return c.CalendarAccessId.CalendarAccessId
+}
+
 // GetPermissionLevel - returns the permission level of the calendar access.
 func (c CalendarAccess) GetPermissionLevel() types.PermissionLevel {
 	return c.PermissionLevel
+}
+
+// GetAcceptTarget - returns the accept target of the calendar access.
+func (c CalendarAccess) GetAcceptTarget() types.AcceptTarget {
+	return c.AcceptTarget
+}
+
+// GetAccessState - returns the access state of the calendar access.
+func (c CalendarAccess) GetAccessState() types.AccessState {
+	return c.State
+}
+
+// GetRecipientCircleId - returns the circle id of the recipient.
+func (c CalendarAccess) GetRecipientCircleId() CircleId {
+	return CircleId{CircleId: c.Recipient.CircleId}
+}
+
+// GetRecipientUserId - returns the user id of the recipient.
+func (c CalendarAccess) GetRecipientUserId() UserId {
+	return UserId{UserId: c.Recipient.UserId}
 }
 
 // SetPermissionLevel - sets the permission level of the calendar access. Because this method is
