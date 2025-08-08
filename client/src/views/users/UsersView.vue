@@ -25,10 +25,12 @@ import { ref } from 'vue'
 import ListTabsPage from '@/components/common/ListTabsPage.vue'
 import { useUsersStore } from '@/stores/users'
 import UserGrid from '@/components/UserGrid.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const usersStore = useUsersStore()
 const tabsPage = ref()
 const acceptingUserId = ref<string | null>(null)
+const authStore = useAuthStore()
 
 const tabs = [
   {
@@ -36,7 +38,7 @@ const tabs = [
     value: 'friends',
     icon: 'mdi-account-multiple',
     loader: async () => {
-      await usersStore.loadFriends()
+      await usersStore.loadFriends(authStore.user?.name || '')
       return [...usersStore.friends]
     },
   },
@@ -45,16 +47,16 @@ const tabs = [
     value: 'pending',
     icon: 'mdi-account-clock',
     loader: async () => {
-      await usersStore.loadPendingFriends()
+      await usersStore.loadPendingFriends(authStore.user?.name || '')
       return [...usersStore.pendingFriends]
     },
   },
   {
     label: 'Explore',
-    value: 'explore',
+    value: 'explore', 
     icon: 'mdi-compass-outline',
     loader: async () => {
-      await usersStore.loadPublicUsers()
+      await usersStore.loadPublicUsers(authStore.user?.name || '')
       return [...usersStore.publicUsers]
     },
   },

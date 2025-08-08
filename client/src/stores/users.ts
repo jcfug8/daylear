@@ -29,7 +29,12 @@ export const useUsersStore = defineStore('users', () => {
 
   async function loadFriends(parent: string) {
     const result = await loadUsers(parent, 'state = 200')
-    friends.value = result
+    friends.value = result.reduce((acc, user) => {
+      if (user.name !== parent) {
+        acc.push(user)
+      }
+      return acc
+    }, [] as User[])
   }
 
   async function loadPendingFriends(parent: string) {

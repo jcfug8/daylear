@@ -165,7 +165,7 @@ func (d *Domain) GetCircle(ctx context.Context, authAccount model.AuthAccount, p
 
 	dbCircle.CircleAccess, err = d.determineCircleAccess(
 		ctx, authAccount, id,
-		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ),
+		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
 		withResourceVisibilityLevel(dbCircle.VisibilityLevel),
 	)
 	if err != nil {

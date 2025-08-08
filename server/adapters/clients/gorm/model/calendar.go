@@ -10,6 +10,10 @@ import (
 )
 
 const (
+	CalendarTable = "calendar"
+)
+
+const (
 	CalendarColumn_CalendarId      = "calendar_id"
 	CalendarColumn_Title           = "title"
 	CalendarColumn_Description     = "description"
@@ -18,28 +22,23 @@ const (
 	CalendarColumn_UpdateTime      = "update_time"
 )
 
-var CalendarFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
-	cmodel.CalendarField_Parent:      {CalendarColumn_CalendarId},
-	cmodel.CalendarField_CalendarId:  {CalendarColumn_CalendarId},
-	cmodel.CalendarField_Title:       {CalendarColumn_Title},
-	cmodel.CalendarField_Description: {CalendarColumn_Description},
-	cmodel.CalendarField_Visibility:  {CalendarColumn_VisibilityLevel},
+var CalendarFieldMasker = fieldmask.NewSQLFieldMasker(Calendar{}, map[string][]fieldmask.Field{
+	cmodel.CalendarField_Parent:      {{Name: CalendarColumn_CalendarId, Table: CalendarTable}},
+	cmodel.CalendarField_CalendarId:  {{Name: CalendarColumn_CalendarId, Table: CalendarTable}},
+	cmodel.CalendarField_Title:       {{Name: CalendarColumn_Title, Table: CalendarTable, Updatable: true}},
+	cmodel.CalendarField_Description: {{Name: CalendarColumn_Description, Table: CalendarTable, Updatable: true}},
+	cmodel.CalendarField_Visibility:  {{Name: CalendarColumn_VisibilityLevel, Table: CalendarTable, Updatable: true}},
 
 	cmodel.CalendarField_CalendarAccess: {
-		CalendarAccessColumn_CalendarAccessId,
-		CalendarAccessColumn_PermissionLevel,
-		CalendarAccessColumn_State,
+		{Name: CalendarAccessColumn_CalendarAccessId, Table: CalendarAccessTable},
+		{Name: CalendarAccessColumn_PermissionLevel, Table: CalendarAccessTable},
+		{Name: CalendarAccessColumn_State, Table: CalendarAccessTable},
 	},
 })
-var UpdateCalendarFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
-	cmodel.CalendarField_Title:       {CalendarColumn_Title},
-	cmodel.CalendarField_Description: {CalendarColumn_Description},
-	cmodel.CalendarField_Visibility:  {CalendarColumn_VisibilityLevel},
-})
-var CalendarSQLConverter = filter.NewSQLConverter(map[string]string{
-	"visibility":       CalendarColumn_VisibilityLevel,
-	"permission_level": CalendarAccessColumn_PermissionLevel,
-	"state":            CalendarAccessColumn_State,
+var CalendarSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
+	"visibility":       {Name: CalendarColumn_VisibilityLevel, Table: CalendarTable},
+	"permission_level": {Name: CalendarAccessColumn_PermissionLevel, Table: CalendarAccessTable},
+	"state":            {Name: CalendarAccessColumn_State, Table: CalendarAccessTable},
 }, true)
 
 // Calendar is the GORM model for a calendar.
@@ -59,5 +58,5 @@ type Calendar struct {
 
 // TableName sets the table name for the Calendar model.
 func (Calendar) TableName() string {
-	return "calendar"
+	return CalendarTable
 }

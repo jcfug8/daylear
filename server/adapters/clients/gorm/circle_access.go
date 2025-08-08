@@ -4,10 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"slices"
-
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/core/fieldmask"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	model "github.com/jcfug8/daylear/server/core/model"
@@ -107,11 +106,11 @@ func (repo *Client) GetCircleAccess(ctx context.Context, parent model.CircleAcce
 		Strs("fields", fields).
 		Logger()
 
-	fields = dbModel.CircleAccessFieldMasker.Convert(fields)
+	dbFields := dbModel.CircleAccessFieldMasker.Convert(fields)
 
 	var circleAccess dbModel.CircleAccess
-	tx := repo.db.WithContext(ctx).Select(fields)
-	if slices.Contains(fields, dbModel.UserColumn_Username) || slices.Contains(fields, dbModel.UserColumn_GivenName) || slices.Contains(fields, dbModel.UserColumn_FamilyName) {
+	tx := repo.db.WithContext(ctx).Select(dbFields)
+	if fieldmask.ContainsAny(dbFields, dbModel.UserColumn_Username, dbModel.UserColumn_GivenName, dbModel.UserColumn_FamilyName) {
 		tx = tx.Joins("LEFT JOIN daylear_user ON circle_access.recipient_user_id = daylear_user.user_id")
 	}
 
@@ -143,7 +142,7 @@ func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.A
 		return nil, repository.ErrInvalidArgument{Msg: "user id is required"}
 	}
 
-	fields = dbModel.CircleAccessFieldMasker.Convert(fields)
+	dbFields := dbModel.CircleAccessFieldMasker.Convert(fields)
 
 	conversion, err := dbModel.CircleAccessSQLConverter.Convert(filterStr)
 	if err != nil {
@@ -152,9 +151,9 @@ func (repo *Client) ListCircleAccesses(ctx context.Context, authAccount cmodel.A
 	}
 
 	var circleAccesses []dbModel.CircleAccess
-	tx := repo.db.WithContext(ctx).Select(fields)
+	tx := repo.db.WithContext(ctx).Select(dbFields)
 
-	if slices.Contains(fields, dbModel.UserColumn_Username) || slices.Contains(fields, dbModel.UserColumn_GivenName) || slices.Contains(fields, dbModel.UserColumn_FamilyName) {
+	if fieldmask.ContainsAny(dbFields, dbModel.UserColumn_Username, dbModel.UserColumn_GivenName, dbModel.UserColumn_FamilyName) {
 		tx = tx.Joins("LEFT JOIN daylear_user ON circle_access.recipient_user_id = daylear_user.user_id")
 	}
 
@@ -197,7 +196,7 @@ func (repo *Client) UpdateCircleAccess(ctx context.Context, access model.CircleA
 	dbAccess := convert.CoreCircleAccessToCircleAccess(access)
 
 	res := repo.db.WithContext(ctx).
-		Select(dbModel.UpdateCircleAccessFieldMasker.Convert(fields)).
+		Select(dbModel.CircleAccessFieldMasker.Convert(fields, fieldmask.OnlyUpdatable())).
 		Clauses(&clause.Returning{}).
 		Where("circle_access_id = ?", access.CircleAccessId.CircleAccessId).
 		Updates(&dbAccess)

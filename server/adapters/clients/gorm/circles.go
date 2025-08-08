@@ -116,7 +116,7 @@ func (repo *Client) UpdateCircle(ctx context.Context, authAccount cmodel.AuthAcc
 	}
 
 	err = repo.db.WithContext(ctx).
-		Select(gmodel.UpdateCircleFieldMasker.Convert(fields)).
+		Select(gmodel.CircleFieldMasker.Convert(fields, fieldmask.OnlyUpdatable())).
 		Clauses(&clause.Returning{}).
 		Updates(&gm).Error
 	if err != nil {

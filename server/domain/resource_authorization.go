@@ -117,11 +117,7 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 			return d.repo.FindStandardUserUserAccess(ctx, authAccount, i)
 		}
 		config.findDelegatedCircleAccess = func() (model.Access, model.CircleAccess, error) {
-			// if the user is requesting access to their own user just return the admin access
-			if authAccount.UserId == i.UserId {
-				return model.UserAccess{}, model.CircleAccess{}, nil
-			}
-			return d.repo.FindDelegatedCircleUserAccess(ctx, authAccount, i)
+			return model.UserAccess{}, model.CircleAccess{}, nil
 		}
 		config.findDelegatedUserAccess = func() (model.Access, model.UserAccess, error) {
 			// if the user is requesting access to their own user just return the admin access
@@ -154,8 +150,9 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 			log.Error().Err(err).Msg("error finding delegated circle resource access")
 			return nil, errors.New("unable to determine resource access")
 		}
-		if delegatedCircleAccess.GetPermissionLevel() > types.PermissionLevel_PERMISSION_LEVEL_PUBLIC && circleAccess.PermissionLevel > determinedAccess.GetPermissionLevel() {
-			determinedAccess = delegatedCircleAccess.SetPermissionLevel(min(delegatedCircleAccess.GetPermissionLevel(), circleAccess.PermissionLevel))
+		effectivePermissionLevel := min(delegatedCircleAccess.GetPermissionLevel(), circleAccess.PermissionLevel)
+		if delegatedCircleAccess.GetPermissionLevel() < types.PermissionLevel_PERMISSION_LEVEL_PUBLIC && effectivePermissionLevel > determinedAccess.GetPermissionLevel() {
+			determinedAccess = delegatedCircleAccess.SetPermissionLevel(effectivePermissionLevel)
 		}
 	}
 	// if the resource visibility level is restricted or lower, consider standard user access, delegated circle accesses, and delegated user accesses
@@ -165,8 +162,9 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 			log.Error().Err(err).Msg("error finding delegated user resource access")
 			return nil, errors.New("unable to determine resource access")
 		}
-		if delegatedUserAccess.GetPermissionLevel() > types.PermissionLevel_PERMISSION_LEVEL_PUBLIC && delegatedUserAccess.GetPermissionLevel() > determinedAccess.GetPermissionLevel() {
-			determinedAccess = delegatedUserAccess.SetPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ)
+		effectivePermissionLevel := types.PermissionLevel_PERMISSION_LEVEL_READ
+		if delegatedUserAccess.GetPermissionLevel() < types.PermissionLevel_PERMISSION_LEVEL_PUBLIC && effectivePermissionLevel > determinedAccess.GetPermissionLevel() {
+			determinedAccess = delegatedUserAccess.SetPermissionLevel(effectivePermissionLevel)
 		}
 	}
 	// if the resource visibility level is public, set the permission level to public if it is unspecified

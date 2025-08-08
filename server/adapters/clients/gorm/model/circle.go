@@ -8,38 +8,38 @@ import (
 )
 
 const (
-	CircleColumn_CircleId    = "circle.circle_id"
-	CircleColumn_Title       = "circle.title"
-	CircleColumn_Description = "circle.description"
-	CircleColumn_Handle      = "circle.handle"
-	CircleColumn_ImageURI    = "circle.image_uri"
-	CircleColumn_Visibility  = "circle.visibility_level"
+	CircleTable = "circle"
 )
 
-var CircleFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
-	cmodel.CircleField_CircleId:    {CircleColumn_CircleId},
-	cmodel.CircleField_Title:       {CircleColumn_Title},
-	cmodel.CircleField_Description: {CircleColumn_Description},
-	cmodel.CircleField_Handle:      {CircleColumn_Handle},
-	cmodel.CircleField_ImageURI:    {CircleColumn_ImageURI},
-	cmodel.CircleField_Visibility:  {CircleColumn_Visibility},
+const (
+	CircleColumn_CircleId    = "circle_id"
+	CircleColumn_Title       = "title"
+	CircleColumn_Description = "description"
+	CircleColumn_Handle      = "handle"
+	CircleColumn_ImageURI    = "image_uri"
+	CircleColumn_Visibility  = "visibility_level"
+)
+
+var CircleFieldMasker = fieldmask.NewSQLFieldMasker(Circle{}, map[string][]fieldmask.Field{
+	cmodel.CircleField_CircleId:    {{Name: CircleColumn_CircleId, Table: CircleTable}},
+	cmodel.CircleField_Title:       {{Name: CircleColumn_Title, Table: CircleTable, Updatable: true}},
+	cmodel.CircleField_Description: {{Name: CircleColumn_Description, Table: CircleTable, Updatable: true}},
+	cmodel.CircleField_Handle:      {{Name: CircleColumn_Handle, Table: CircleTable, Updatable: true}},
+	cmodel.CircleField_ImageURI:    {{Name: CircleColumn_ImageURI, Table: CircleTable, Updatable: true}},
+	cmodel.CircleField_Visibility:  {{Name: CircleColumn_Visibility, Table: CircleTable, Updatable: true}},
 
 	cmodel.CircleField_CircleAccess: {
-		CircleAccessColumn_CircleAccessId,
-		CircleAccessColumn_PermissionLevel,
-		CircleAccessColumn_State,
+		{Name: CircleAccessColumn_CircleAccessId, Table: CircleAccessTable},
+		{Name: CircleAccessColumn_PermissionLevel, Table: CircleAccessTable},
+		{Name: CircleAccessColumn_State, Table: CircleAccessTable},
+		{Name: CircleAccessColumn_AcceptTarget, Table: CircleAccessTable},
 	},
 })
-var UpdateCircleFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
-	cmodel.CircleField_Title:       {CircleColumn_Title},
-	cmodel.CircleField_Description: {CircleColumn_Description},
-	cmodel.CircleField_Visibility:  {CircleColumn_Visibility},
-})
 
-var CircleSQLConverter = filter.NewSQLConverter(map[string]string{
-	"visibility":       CircleColumn_Visibility,
-	"permission_level": CircleAccessColumn_PermissionLevel,
-	"state":            CircleAccessColumn_State,
+var CircleSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
+	"visibility":       {Name: CircleColumn_Visibility, Table: CircleTable},
+	"permission_level": {Name: CircleAccessColumn_PermissionLevel, Table: CircleAccessTable},
+	"state":            {Name: CircleAccessColumn_State, Table: CircleAccessTable},
 }, true)
 
 // Circle is the GORM model for a circle.
@@ -55,9 +55,10 @@ type Circle struct {
 	CircleAccessId  int64                 `gorm:"->;-:migration"` // only used for read from a join
 	PermissionLevel types.PermissionLevel `gorm:"->;-:migration"` // only used for read from a join
 	State           types.AccessState     `gorm:"->;-:migration"` // only used for read from a join
+	AcceptTarget    types.AcceptTarget    `gorm:"->;-:migration"` // only used for read from a join
 }
 
 // TableName sets the table name for the Circle model.
 func (Circle) TableName() string {
-	return "circle"
+	return CircleTable
 }

@@ -11,6 +11,7 @@ const (
 	CircleAccessField_Id              = "id"
 	CircleAccessField_PermissionLevel = "permission_level"
 	CircleAccessField_State           = "state"
+	CircleAccessField_AcceptTarget    = "accept_target"
 	CircleAccessField_Requester       = "requester"
 	CircleAccessField_Recipient       = "recipient"
 )
@@ -21,6 +22,7 @@ type CircleAccess struct {
 	CircleAccessId
 	PermissionLevel types.PermissionLevel
 	State           types.AccessState
+	AcceptTarget    types.AcceptTarget
 
 	Requester CircleRequester
 

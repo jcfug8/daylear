@@ -8,44 +8,46 @@ import (
 )
 
 const (
-	CalendarAccessColumn_CalendarAccessId  = "calendar_access.calendar_access_id"
-	CalendarAccessColumn_CalendarId        = "calendar_access.calendar_id"
-	CalendarAccessColumn_RequesterUserId   = "calendar_access.requester_user_id"
-	CalendarAccessColumn_RequesterCircleId = "calendar_access.requester_circle_id"
-	CalendarAccessColumn_RecipientUserId   = "calendar_access.recipient_user_id"
-	CalendarAccessColumn_RecipientCircleId = "calendar_access.recipient_circle_id"
-	CalendarAccessColumn_PermissionLevel   = "calendar_access.permission_level"
-	CalendarAccessColumn_State             = "calendar_access.state"
+	CalendarAccessTable = "calendar_access"
 )
 
-var CalendarAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
-	cmodel.CalendarAccessField_Parent:          {CalendarAccessColumn_CalendarId},
-	cmodel.CalendarAccessField_Id:              {CalendarAccessColumn_CalendarAccessId},
-	cmodel.CalendarAccessField_PermissionLevel: {CalendarAccessColumn_PermissionLevel},
-	cmodel.CalendarAccessField_State:           {CalendarAccessColumn_State},
+const (
+	CalendarAccessColumn_CalendarAccessId  = "calendar_access_id"
+	CalendarAccessColumn_CalendarId        = "calendar_id"
+	CalendarAccessColumn_RequesterUserId   = "requester_user_id"
+	CalendarAccessColumn_RequesterCircleId = "requester_circle_id"
+	CalendarAccessColumn_RecipientUserId   = "recipient_user_id"
+	CalendarAccessColumn_RecipientCircleId = "recipient_circle_id"
+	CalendarAccessColumn_PermissionLevel   = "permission_level"
+	CalendarAccessColumn_State             = "state"
+	CalendarAccessColumn_AcceptTarget      = "accept_target"
+)
+
+var CalendarAccessFieldMasker = fieldmask.NewSQLFieldMasker(CalendarAccess{}, map[string][]fieldmask.Field{
+	cmodel.CalendarAccessField_Parent:          {{Name: CalendarAccessColumn_CalendarId, Table: CalendarAccessTable}},
+	cmodel.CalendarAccessField_Id:              {{Name: CalendarAccessColumn_CalendarAccessId, Table: CalendarAccessTable}},
+	cmodel.CalendarAccessField_PermissionLevel: {{Name: CalendarAccessColumn_PermissionLevel, Table: CalendarAccessTable, Updatable: true}},
+	cmodel.CalendarAccessField_State:           {{Name: CalendarAccessColumn_State, Table: CalendarAccessTable, Updatable: true}},
+	cmodel.CalendarAccessField_AcceptTarget:    {{Name: CalendarAccessColumn_AcceptTarget, Table: CalendarAccessTable, Updatable: true}},
 	cmodel.CalendarAccessField_Recipient: {
-		CalendarAccessColumn_RecipientUserId,
-		CalendarAccessColumn_RecipientCircleId,
-		UserColumn_Username + " as recipient_username",
-		UserColumn_GivenName + " as recipient_given_name",
-		UserColumn_FamilyName + " as recipient_family_name",
-		CircleColumn_Title + " as recipient_circle_title",
-		CircleColumn_Handle + " as recipient_circle_handle",
+		{Name: CalendarAccessColumn_RecipientUserId, Table: CalendarAccessTable},
+		{Name: CalendarAccessColumn_RecipientCircleId, Table: CalendarAccessTable},
+		{Name: UserColumn_Username, Table: UserTable, Alias: "recipient_username"},
+		{Name: UserColumn_GivenName, Table: UserTable, Alias: "recipient_given_name"},
+		{Name: UserColumn_FamilyName, Table: UserTable, Alias: "recipient_family_name"},
+		{Name: CircleColumn_Title, Table: CircleTable, Alias: "recipient_circle_title"},
+		{Name: CircleColumn_Handle, Table: CircleTable, Alias: "recipient_circle_handle"},
 	},
 	cmodel.CalendarAccessField_Requester: {
-		CalendarAccessColumn_RequesterUserId,
-		CalendarAccessColumn_RequesterCircleId,
+		{Name: CalendarAccessColumn_RequesterUserId, Table: CalendarAccessTable},
+		{Name: CalendarAccessColumn_RequesterCircleId, Table: CalendarAccessTable},
 	},
 })
-var UpdateCalendarAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
-	cmodel.CalendarAccessField_PermissionLevel: {CalendarAccessColumn_PermissionLevel},
-	cmodel.CalendarAccessField_State:           {CalendarAccessColumn_State},
-})
-var CalendarAccessSQLConverter = filter.NewSQLConverter(map[string]string{
-	"permission_level":    CalendarAccessColumn_PermissionLevel,
-	"state":               CalendarAccessColumn_State,
-	"recipient.user_id":   CalendarAccessColumn_RecipientUserId,
-	"recipient.circle_id": CalendarAccessColumn_RecipientCircleId,
+var CalendarAccessSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
+	"permission_level":    {Name: CalendarAccessColumn_PermissionLevel, Table: "calendar_access"},
+	"state":               {Name: CalendarAccessColumn_State, Table: "calendar_access"},
+	"recipient.user_id":   {Name: CalendarAccessColumn_RecipientUserId, Table: "calendar_access"},
+	"recipient.circle_id": {Name: CalendarAccessColumn_RecipientCircleId, Table: "calendar_access"},
 }, true)
 
 // CalendarAccess represents access control for a calendar
@@ -70,5 +72,5 @@ type CalendarAccess struct {
 
 // TableName sets the table name for the CalendarAccess model.
 func (CalendarAccess) TableName() string {
-	return "calendar_access"
+	return CalendarAccessTable
 }

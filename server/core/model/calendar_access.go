@@ -12,6 +12,7 @@ const (
 	CalendarAccessField_Id              = "id"
 	CalendarAccessField_PermissionLevel = "permission_level"
 	CalendarAccessField_State           = "state"
+	CalendarAccessField_AcceptTarget    = "accept_target"
 	CalendarAccessField_Requester       = "requester"
 	CalendarAccessField_Recipient       = "recipient"
 )

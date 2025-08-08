@@ -19,11 +19,12 @@ var (
 )
 
 var circleAccessFieldMap = map[string][]string{
-	"name":      {model.CircleAccessField_Parent, model.CircleAccessField_Id},
-	"level":     {model.CircleAccessField_PermissionLevel},
-	"state":     {model.CircleAccessField_State},
-	"requester": {model.CircleAccessField_Requester},
-	"recipient": {model.CircleAccessField_Recipient},
+	"name":          {model.CircleAccessField_Parent, model.CircleAccessField_Id},
+	"level":         {model.CircleAccessField_PermissionLevel},
+	"state":         {model.CircleAccessField_State},
+	"accept_target": {model.CircleAccessField_AcceptTarget},
+	"requester":     {model.CircleAccessField_Requester},
+	"recipient":     {model.CircleAccessField_Recipient},
 }
 
 func (s *CircleService) CreateAccess(ctx context.Context, request *pb.CreateAccessRequest) (*pb.Access, error) {
@@ -287,6 +288,7 @@ func (s *CircleService) ProtoToCircleAccess(proto *pb.Access) (model.CircleAcces
 	circleAccess := model.CircleAccess{
 		PermissionLevel: proto.GetLevel(),
 		State:           proto.GetState(),
+		AcceptTarget:    proto.GetAcceptTarget(),
 	}
 	if proto.GetName() != "" {
 		_, err := s.accessNamer.Parse(proto.GetName(), &circleAccess)
@@ -322,8 +324,9 @@ func (s *CircleService) ProtoToCircleAccess(proto *pb.Access) (model.CircleAcces
 
 func (s *CircleService) CircleAccessToProto(circleAccess model.CircleAccess) (*pb.Access, error) {
 	proto := &pb.Access{
-		Level: circleAccess.PermissionLevel,
-		State: circleAccess.State,
+		Level:        circleAccess.PermissionLevel,
+		State:        circleAccess.State,
+		AcceptTarget: circleAccess.AcceptTarget,
 	}
 
 	if circleAccess.CircleId.CircleId != 0 {

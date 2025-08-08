@@ -8,70 +8,64 @@ import (
 )
 
 const (
-	UserColumn_UserId     = "daylear_user.user_id"
-	UserColumn_Username   = "daylear_user.username"
-	UserColumn_GivenName  = "daylear_user.given_name"
-	UserColumn_FamilyName = "daylear_user.family_name"
-	UserColumn_ImageUri   = "daylear_user.image_uri"
-	UserColumn_Bio        = "daylear_user.bio"
-	UserColumn_Email      = "daylear_user.email"
-	UserColumn_AmazonId   = "daylear_user.amazon_id"
-	UserColumn_FacebookId = "daylear_user.facebook_id"
-	UserColumn_GoogleId   = "daylear_user.google_id"
+	UserTable = "daylear_user"
 )
 
-var UserFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
-	cmodel.UserField_Id:         {UserColumn_UserId},
-	cmodel.UserField_Username:   {UserColumn_Username},
-	cmodel.UserField_GivenName:  {UserColumn_GivenName},
-	cmodel.UserField_FamilyName: {UserColumn_FamilyName},
-	cmodel.UserField_ImageUri:   {UserColumn_ImageUri},
-	cmodel.UserField_Bio:        {UserColumn_Bio},
-	cmodel.UserField_Email:      {UserColumn_Email},
+const (
+	UserColumn_UserId     = "user_id"
+	UserColumn_Username   = "username"
+	UserColumn_GivenName  = "given_name"
+	UserColumn_FamilyName = "family_name"
+	UserColumn_ImageUri   = "image_uri"
+	UserColumn_Bio        = "bio"
+	UserColumn_Email      = "email"
+	UserColumn_AmazonId   = "amazon_id"
+	UserColumn_FacebookId = "facebook_id"
+	UserColumn_GoogleId   = "google_id"
+)
 
-	cmodel.UserField_AccessName:            {UserAccessColumn_UserAccessId},
-	cmodel.UserField_AccessPermissionLevel: {UserAccessColumn_PermissionLevel},
-	cmodel.UserField_AccessState:           {UserAccessColumn_State},
+var UserFieldMasker = fieldmask.NewSQLFieldMasker(User{}, map[string][]fieldmask.Field{
+	cmodel.UserField_Id:         {{Name: UserColumn_UserId, Table: "daylear_user"}},
+	cmodel.UserField_Username:   {{Name: UserColumn_Username, Table: "daylear_user", Updatable: true}},
+	cmodel.UserField_GivenName:  {{Name: UserColumn_GivenName, Table: "daylear_user", Updatable: true}},
+	cmodel.UserField_FamilyName: {{Name: UserColumn_FamilyName, Table: "daylear_user", Updatable: true}},
+	cmodel.UserField_ImageUri:   {{Name: UserColumn_ImageUri, Table: "daylear_user", Updatable: true}},
+	cmodel.UserField_Bio:        {{Name: UserColumn_Bio, Table: "daylear_user", Updatable: true}},
+	cmodel.UserField_Email:      {{Name: UserColumn_Email, Table: "daylear_user", Updatable: true}},
+	cmodel.UserField_AmazonId:   {{Name: UserColumn_AmazonId, Table: "daylear_user"}},
+	cmodel.UserField_FacebookId: {{Name: UserColumn_FacebookId, Table: "daylear_user"}},
+	cmodel.UserField_GoogleId:   {{Name: UserColumn_GoogleId, Table: "daylear_user"}},
+
+	cmodel.UserField_AccessName: {
+		{Name: CircleAccessColumn_CircleAccessId, Table: "circle_access"},
+		{Name: UserAccessColumn_UserAccessId, Table: "user_access"},
+	},
+	cmodel.UserField_AccessPermissionLevel: {
+		{Name: CircleAccessColumn_PermissionLevel, Table: "circle_access"},
+		{Name: UserAccessColumn_PermissionLevel, Table: "user_access"},
+	},
+	cmodel.UserField_AccessState: {
+		{Name: CircleAccessColumn_State, Table: "circle_access"},
+		{Name: UserAccessColumn_State, Table: "user_access"},
+	},
 })
-var UserCircleFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
-	cmodel.UserField_Id:         {UserColumn_UserId},
-	cmodel.UserField_Username:   {UserColumn_Username},
-	cmodel.UserField_GivenName:  {UserColumn_GivenName},
-	cmodel.UserField_FamilyName: {UserColumn_FamilyName},
-	cmodel.UserField_ImageUri:   {UserColumn_ImageUri},
-	cmodel.UserField_Bio:        {UserColumn_Bio},
-	cmodel.UserField_Email:      {UserColumn_Email},
 
-	cmodel.UserField_AccessName:            {CircleAccessColumn_CircleAccessId},
-	cmodel.UserField_AccessPermissionLevel: {CircleAccessColumn_PermissionLevel},
-	cmodel.UserField_AccessState:           {CircleAccessColumn_State},
-})
-
-var UpdateUserFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
-	cmodel.UserField_Username:   {UserColumn_Username},
-	cmodel.UserField_GivenName:  {UserColumn_GivenName},
-	cmodel.UserField_FamilyName: {UserColumn_FamilyName},
-	cmodel.UserField_ImageUri:   {UserColumn_ImageUri},
-	cmodel.UserField_Bio:        {UserColumn_Bio},
-	cmodel.UserField_Email:      {UserColumn_Email},
-})
-
-var UserSQLConverter = filter.NewSQLConverter(map[string]string{
-	"username":         UserColumn_Username,
-	"permission_level": UserAccessColumn_PermissionLevel,
-	"state":            UserAccessColumn_State,
-	"google_id":        UserColumn_GoogleId,
-	"facebook_id":      UserColumn_FacebookId,
-	"amazon_id":        UserColumn_AmazonId,
+var UserSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
+	"username":         {Name: UserColumn_Username, Table: "daylear_user"},
+	"permission_level": {Name: UserAccessColumn_PermissionLevel, Table: "user_access"},
+	"state":            {Name: UserAccessColumn_State, Table: "user_access"},
+	"google_id":        {Name: UserColumn_GoogleId, Table: "daylear_user"},
+	"facebook_id":      {Name: UserColumn_FacebookId, Table: "daylear_user"},
+	"amazon_id":        {Name: UserColumn_AmazonId, Table: "daylear_user"},
 }, true)
 
-var UserCircleSQLConverter = filter.NewSQLConverter(map[string]string{
-	"username":         UserColumn_Username,
-	"permission_level": CircleAccessColumn_PermissionLevel,
-	"state":            CircleAccessColumn_State,
-	"google_id":        UserColumn_GoogleId,
-	"facebook_id":      UserColumn_FacebookId,
-	"amazon_id":        UserColumn_AmazonId,
+var UserCircleSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
+	"username":         {Name: UserColumn_Username, Table: "daylear_user"},
+	"permission_level": {Name: CircleAccessColumn_PermissionLevel, Table: "circle_access"},
+	"state":            {Name: CircleAccessColumn_State, Table: "circle_access"},
+	"google_id":        {Name: UserColumn_GoogleId, Table: "daylear_user"},
+	"facebook_id":      {Name: UserColumn_FacebookId, Table: "daylear_user"},
+	"amazon_id":        {Name: UserColumn_AmazonId, Table: "daylear_user"},
 }, true)
 
 // User -
@@ -91,6 +85,7 @@ type User struct {
 	Bio      string `gorm:"size:1024"`
 
 	UserAccessId    int64                 `gorm:"->;-:migration"` // only used for read from a join
+	CircleAccessId  int64                 `gorm:"->;-:migration"` // only used for read from a join
 	PermissionLevel types.PermissionLevel `gorm:"->;-:migration"` // only used for read from a join
 	State           types.AccessState     `gorm:"->;-:migration"` // only used for read from a join
 	RequesterUserId int64                 `gorm:"->;-:migration"` // only used for read from a join
@@ -98,5 +93,5 @@ type User struct {
 
 // TableName -
 func (User) TableName() string {
-	return "daylear_user"
+	return UserTable
 }

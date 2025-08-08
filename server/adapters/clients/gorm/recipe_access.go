@@ -3,10 +3,10 @@ package gorm
 import (
 	"context"
 	"errors"
-	"slices"
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/core/fieldmask"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	model "github.com/jcfug8/daylear/server/core/model"
@@ -109,12 +109,14 @@ func (repo *Client) GetRecipeAccess(ctx context.Context, parent model.RecipeAcce
 		Int64("recipeAccessId", id.RecipeAccessId).
 		Logger()
 
+	dbFields := dbModel.RecipeAccessFieldMasker.Convert(fields)
+
 	var recipeAccess dbModel.RecipeAccess
 	tx := repo.db.WithContext(ctx).
-		Select(dbModel.RecipeAccessFieldMasker.Convert(fields)).
+		Select(dbFields).
 		Where("recipe_access.recipe_id = ? AND recipe_access.recipe_access_id = ?", parent.RecipeId.RecipeId, id.RecipeAccessId)
 
-	if slices.Contains(fields, dbModel.RecipeAccessFields_RecipientUserId) || slices.Contains(fields, dbModel.RecipeAccessFields_RecipientCircleId) {
+	if fieldmask.ContainsAny(dbFields, dbModel.RecipeAccessFields_RecipientUserId, dbModel.RecipeAccessFields_RecipientCircleId) {
 		tx = tx.Joins(`LEFT JOIN daylear_user ON recipe_access.recipient_user_id = daylear_user.user_id`).
 			Joins(`LEFT JOIN circle ON recipe_access.recipient_circle_id = circle.circle_id`)
 	}
@@ -150,17 +152,19 @@ func (repo *Client) ListRecipeAccesses(ctx context.Context, authAccount cmodel.A
 		Desc:   true,
 	}}
 
+	dbFields := dbModel.RecipeAccessFieldMasker.Convert(fields)
+
 	var recipeAccesses []dbModel.RecipeAccess
 	// Start building the query
 	tx := repo.db.WithContext(ctx).
-		Select(dbModel.RecipeAccessFieldMasker.Convert(fields)).
+		Select(dbFields).
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(pageOffset))
 
-	if slices.Contains(fields, dbModel.RecipeAccessFields_RecipientUserId) || slices.Contains(fields, dbModel.RecipeAccessFields_RecipientCircleId) {
-		tx = tx.Joins(`LEFT JOIN daylear_user u ON recipe_access.recipient_user_id = u.user_id`).
-			Joins(`LEFT JOIN circle c ON recipe_access.recipient_circle_id = c.circle_id`)
+	if fieldmask.ContainsAny(dbFields, dbModel.RecipeAccessFields_RecipientUserId, dbModel.RecipeAccessFields_RecipientCircleId) {
+		tx = tx.Joins(`LEFT JOIN daylear_user ON recipe_access.recipient_user_id = daylear_user.user_id`).
+			Joins(`LEFT JOIN circle ON recipe_access.recipient_circle_id = circle.circle_id`)
 	}
 
 	// Filter by recipe ID if provided
@@ -215,7 +219,7 @@ func (repo *Client) UpdateRecipeAccess(ctx context.Context, access model.RecipeA
 	dbAccess := convert.CoreRecipeAccessToRecipeAccess(access)
 
 	res := repo.db.WithContext(ctx).
-		Select(dbModel.UpdateRecipeAccessFieldMasker.Convert(fields)).
+		Select(dbModel.RecipeAccessFieldMasker.Convert(fields, fieldmask.OnlyUpdatable())).
 		Clauses(&clause.Returning{}).
 		Where("recipe_access_id = ?", access.RecipeAccessId.RecipeAccessId).
 		Updates(&dbAccess)

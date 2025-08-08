@@ -6,7 +6,7 @@
       <h3 class="text-grey-lighten-1 mb-2">{{ emptyText }}</h3>
     </div>
     <v-row v-if="!loading && users.length > 0">
-      <v-col lg="3" md="4" sm="6" cols="12" v-for="user in filteredUsers" :key="user.name">
+      <v-col lg="3" md="4" sm="6" cols="12" v-for="user in users" :key="user.name">
         <v-card
           class="user-card"
           hover
@@ -81,17 +81,12 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
-import { computed } from 'vue'
 const props = defineProps({
   users: { type: Array as () => any[], required: true },
   loading: { type: Boolean, default: false },
   emptyText: { type: String, default: '' },
   showActions: { type: Boolean, default: false },
   acceptingUserId: { type: String, default: null },
-})
-
-const filteredUsers = computed(() => {
-  return props.users.filter((user) => user.name !== currentUser.value?.name)
 })
 
 const authStore = useAuthStore()

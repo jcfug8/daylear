@@ -298,6 +298,7 @@ func (s *CircleService) CircleToProto(circle model.Circle, nameIndex ...namer.Fo
 			Name:            name,
 			PermissionLevel: circle.CircleAccess.PermissionLevel,
 			State:           circle.CircleAccess.State,
+			AcceptTarget:    circle.CircleAccess.AcceptTarget,
 		}
 	}
 

@@ -1,68 +1,34 @@
 package fieldmask
 
-import (
-	"fmt"
+import "strings"
 
-	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
-)
+// Field represents a database column with its table information
+type Field struct {
+	Name      string
+	Table     string
+	Alias     string
+	Updatable bool
+}
 
-// FieldMasker allows mapping keys to a set of values and converting lists of keys to deduplicated lists of values.
+func (f Field) String() string {
+	name := f.Name
+	if f.Table != "" {
+		name = f.Table + "." + name
+	}
+	if f.Alias != "" {
+		name = name + " as " + f.Alias
+	}
+	return name
+}
+
+// FieldMasker allows mapping keys to a set of fields and converting lists of keys to deduplicated lists of field names.
 type FieldMasker struct {
-	mapping map[string][]string
+	mapping map[string][]Field
 }
 
 // NewFieldMasker initializes a new FieldMasker with the provided mapping.
-func NewFieldMasker(mapping map[string][]string) FieldMasker {
+func NewFieldMasker(mapping map[string][]Field) FieldMasker {
 	return FieldMasker{mapping: mapping}
-}
-
-// NewProtoFieldMasker initializes a FieldMasker and ensures all keys exist as field mask paths in the proto message.
-func NewProtoFieldMasker(msg proto.Message, mapping map[string][]string) (FieldMasker, error) {
-	validPaths := make(map[string]struct{}, 0)
-	collectFieldMasks(msg.ProtoReflect(), "", validPaths)
-
-	for key := range mapping {
-		if _, ok := validPaths[key]; !ok {
-			return FieldMasker{}, fmt.Errorf("field mask key '%s' does not exist in proto message %T", key, msg)
-		}
-	}
-	return FieldMasker{mapping: mapping}, nil
-}
-
-// collectFieldMasks recursively collects field masks from a proto.Message.
-func collectFieldMasks(msg protoreflect.Message, prefix string, fields map[string]struct{}) {
-	msgDescriptor := msg.Descriptor()
-
-	// Iterate over all field descriptors
-	for i := 0; i < msgDescriptor.Fields().Len(); i++ {
-		fd := msgDescriptor.Fields().Get(i)
-		fieldName := string(fd.Name())
-		fullPath := fieldName
-		if prefix != "" {
-			fullPath = prefix + "." + fieldName
-		}
-
-		// // Check for field behavior annotations
-		// readOnly := false
-		// if options := fd.Options().(*descriptorpb.FieldOptions); options != nil {
-		// 	behaviors := proto.GetExtension(options, annotations.E_FieldBehavior).([]annotations.FieldBehavior)
-		// 	for _, behavior := range behaviors {
-		// 		if behavior == annotations.FieldBehavior_OUTPUT_ONLY || behavior == annotations.FieldBehavior_IMMUTABLE || behavior == annotations.FieldBehavior_IDENTIFIER {
-		// 			readOnly = true
-		// 			break
-		// 		}
-		// 	}
-		// }
-
-		fields[fullPath] = struct{}{}
-
-		// Check if the field is a message type and recursively collect its fields
-		if fd.Kind() == protoreflect.MessageKind && !fd.IsList() {
-			nestedMsg := msg.Get(fd).Message()
-			collectFieldMasks(nestedMsg, fullPath, fields)
-		}
-	}
 }
 
 // Convert takes a list of keys and returns a deduplicated list of all mapped values.
@@ -74,14 +40,14 @@ func (fmm *FieldMasker) Convert(keys []string, opts ...option) []string {
 	result := make([]string, 0)
 	seen := make(map[string]struct{})
 	for _, key := range keys {
-		if values, ok := fmm.mapping[key]; ok {
+		if fields, ok := fmm.mapping[key]; ok {
 			for _, opt := range opts {
-				values = opt(key, values)
+				fields = opt(key, fields)
 			}
-			for _, v := range values {
-				if _, exists := seen[v]; !exists {
-					result = append(result, v)
-					seen[v] = struct{}{}
+			for _, field := range fields {
+				if _, exists := seen[field.String()]; !exists {
+					result = append(result, field.String())
+					seen[field.String()] = struct{}{}
 				}
 			}
 		}
@@ -91,11 +57,29 @@ func (fmm *FieldMasker) Convert(keys []string, opts ...option) []string {
 
 func (fmm *FieldMasker) Get(opts ...option) []string {
 	result := make([]string, 0)
-	for key, values := range fmm.mapping {
+	for key, fields := range fmm.mapping {
 		for _, opt := range opts {
-			values = opt(key, values)
+			fields = opt(key, fields)
 		}
-		result = append(result, values...)
+		for _, field := range fields {
+			result = append(result, field.String())
+		}
 	}
 	return result
+}
+
+func ContainsAny(fields []string, fieldsToCheck ...string) bool {
+	for _, field := range fields {
+		for _, fieldToCheck := range fieldsToCheck {
+			if field == fieldToCheck {
+				return true
+			} else {
+				fieldParts := strings.Split(field, ".")
+				if len(fieldParts) == 2 && strings.HasPrefix(fieldParts[1], fieldToCheck) {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }

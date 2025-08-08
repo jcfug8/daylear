@@ -68,14 +68,14 @@
             </v-col>
           </v-row>
           <!-- Accept/Decline Buttons for Pending Access -->
-          <v-row v-if="acceptCircle && circle.circleAccess?.state === 'ACCESS_STATE_PENDING'">
+          <v-row v-if="circle.circleAccess?.acceptTarget === 'ACCEPT_TARGET_RECIPIENT' && circle.circleAccess?.state === 'ACCESS_STATE_PENDING'">
             <v-col cols="12">
               <v-btn
                 color="success"
                 class="mb-2"
                 block
                 :loading="acceptingCircle"
-                @click="acceptCircle"
+                @click="acceptCircle(circle.circleAccess?.name)"
               >
                 Accept Circle
               </v-btn>
@@ -96,8 +96,14 @@
           <v-btn density="compact" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)" color="primary" :to="'/'+circle.name+'/edit'">
             <v-icon>mdi-pencil</v-icon>Edit
           </v-btn>
+          <v-btn density="compact" v-if="!hasReadPermission(circle.circleAccess?.permissionLevel) && !circle.circleAccess" color="primary" @click="handleRequestAccess" :loading="requestingAccess">
+            <v-icon>mdi-account-plus</v-icon>Request Access
+          </v-btn>
+          <v-btn density="compact" v-if="circle.circleAccess?.state === 'ACCESS_STATE_PENDING'" color="warning" @click="showCancelRequestDialog = true">
+            <v-icon>mdi-close</v-icon>Cancel Request
+          </v-btn>
           <v-btn density="compact" v-if="!hasAdminPermission(circle.circleAccess?.permissionLevel) && circle.circleAccess?.state === 'ACCESS_STATE_ACCEPTED'" color="warning" @click="showRemoveAccessDialog = true">
-            <v-icon>mdi-link-variant-off</v-icon>Remove
+            <v-icon>mdi-link-variant-off</v-icon>Remove Access
           </v-btn>
           <v-btn density="compact" v-if="hasAdminPermission(circle.circleAccess?.permissionLevel)" color="error" @click="showDeleteDialog = true">
             <v-icon>mdi-delete</v-icon>Delete
@@ -171,6 +177,7 @@
       @share-user="shareWithUser"
       @remove-access="unshareCircle"
       @permission-change="updatePermission"
+      @approve-access="acceptCircleFromShareDialog"
     />
     <!-- Delete Dialog -->
     <v-dialog v-model="showDeleteDialog" max-width="500">
@@ -193,6 +200,27 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Cancel Request Dialog -->
+    <v-dialog v-model="showCancelRequestDialog" max-width="500">
+      <v-card>
+        <v-card-title class="text-h5">
+          Cancel Access Request
+        </v-card-title>
+        <v-card-text>
+          Are you sure you want to cancel your access request to this circle?
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="text" @click="showCancelRequestDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn color="error" @click="handleCancelRequest" :loading="cancelingRequest">
+            Cancel Request
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -206,7 +234,7 @@ import { onMounted,  watch, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { circleService, circleAccessService } from '@/api/api'
 import { useAuthStore } from '@/stores/auth'
-import { hasAdminPermission, hasWritePermission } from '@/utils/permissions'
+import { hasAdminPermission, hasWritePermission, hasReadPermission } from '@/utils/permissions'
 import ListTabsPage from '@/components/common/ListTabsPage.vue'
 import RecipeGrid from '@/components/RecipeGrid.vue'
 import UserGrid from '@/components/UserGrid.vue'
@@ -397,14 +425,84 @@ async function handleDelete() {
 const acceptingCircle = ref(false)
 const decliningCircle = ref(false)
 
-async function acceptCircle() {
+// *** Access Request ***
+const requestingAccess = ref(false)
+const showCancelRequestDialog = ref(false)
+const cancelingRequest = ref(false)
+
+async function handleRequestAccess() {
+  if (!circle.value?.name) return
+  if (!authStore.user?.name) return
+  
+  requestingAccess.value = true
+  try {
+    const access: Access = {
+      recipient: {
+        name: authStore.user?.name,
+        username: undefined,
+        givenName: undefined,
+        familyName: undefined,
+      },
+      level: 'PERMISSION_LEVEL_READ',
+      name: undefined, // Will be set by the server
+      requester: undefined, // Will be set by the server
+      state: undefined, // Will be set by the server
+      acceptTarget: undefined, // Will be set by the server
+    }
+
+    const request: CreateAccessRequest = {
+      parent: circle.value.name,
+      access
+    }
+
+    await circleAccessService.CreateAccess(request)
+    await circlesStore.loadCircle(circle.value.name)
+    alertsStore.addAlert('Access request sent.', 'info')
+  } catch (error) {
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
+  } finally {
+    requestingAccess.value = false
+  }
+}
+
+async function handleCancelRequest() {
   if (!circle.value?.circleAccess?.name) return
+
+  cancelingRequest.value = true
+  try {
+    const deleteRequest: DeleteAccessRequest = {
+      name: circle.value.circleAccess.name
+    }
+    
+    await circleAccessService.DeleteAccess(deleteRequest)
+    await circlesStore.loadCircle(circle.value.name!)
+    alertsStore.addAlert('Access request cancelled.', 'info')
+  } catch (error) {
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
+  } finally {
+    cancelingRequest.value = false
+    showCancelRequestDialog.value = false
+  }
+}
+
+async function acceptCircleFromShareDialog(circleAccessName: string | undefined) {
+  if (!circle.value?.circleAccess?.name) return
+  if (!circleAccessName) return
+  await acceptCircle(circleAccessName)
+  await fetchCircleRecipients()
+}
+
+async function acceptCircle(circleAccessName: string | undefined) {
+  if (!circle.value?.circleAccess?.name) return
+  if (!circleAccessName) return
+  
   acceptingCircle.value = true
   try {
-    await circleAccessService.AcceptAccess({ name: circle.value.circleAccess.name })
+    await circleAccessService.AcceptAccess({ name: circleAccessName })
     await circlesStore.loadCircle(circle.value.name!)
+    alertsStore.addAlert('Access accepted.', 'info')
   } catch (error) {
-    // Optionally show a notification
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
   } finally {
     acceptingCircle.value = false
   }
@@ -467,6 +565,7 @@ async function fetchCircleRecipients() {
         level: access.level || 'PERMISSION_LEVEL_READ',
         state: access.state || 'ACCESS_STATE_PENDING',
         requester: access.requester || undefined,
+        acceptTarget: access.acceptTarget || 'ACCEPT_TARGET_UNSPECIFIED',
       }))
     }
   } catch (error) {
@@ -486,6 +585,7 @@ async function updatePermission({ access, newLevel }: { access: any, newLevel: P
         state: undefined,
         recipient: undefined,
         requester: undefined,
+        acceptTarget: undefined,
       },
       updateMask: 'level',
     })
@@ -532,6 +632,7 @@ async function shareWithUser({ userName, permission }: { userName: string, permi
       name: undefined, // Will be set by the server
       requester: undefined, // Will be set by the server
       state: undefined, // Will be set by the server
+      acceptTarget: undefined, // Will be set by the server
     }
 
     const request: CreateAccessRequest = {

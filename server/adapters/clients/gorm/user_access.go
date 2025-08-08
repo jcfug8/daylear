@@ -4,10 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"slices"
-
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/core/fieldmask"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	model "github.com/jcfug8/daylear/server/core/model"
@@ -84,13 +83,13 @@ func (repo *Client) GetUserAccess(ctx context.Context, parent model.UserAccessPa
 		Strs("fields", fields).
 		Logger()
 
-	fields = dbModel.UserAccessFieldMasker.Convert(fields)
+	dbFields := dbModel.UserAccessFieldMasker.Convert(fields)
 
 	var userAccess dbModel.UserAccess
 	tx := repo.db.WithContext(ctx).
-		Select(fields)
+		Select(dbFields)
 
-	if slices.Contains(fields, dbModel.UserColumn_Username) || slices.Contains(fields, dbModel.UserColumn_GivenName) || slices.Contains(fields, dbModel.UserColumn_FamilyName) {
+	if fieldmask.ContainsAny(dbFields, dbModel.UserColumn_Username, dbModel.UserColumn_GivenName, dbModel.UserColumn_FamilyName) {
 		tx = tx.Joins("LEFT JOIN daylear_user ON user_access.recipient_user_id = daylear_user.user_id")
 	}
 
@@ -117,7 +116,7 @@ func (repo *Client) ListUserAccesses(ctx context.Context, authAccount cmodel.Aut
 		Int64("pageOffset", pageOffset).
 		Logger()
 
-	fields = dbModel.UserAccessFieldMasker.Convert(fields)
+	dbFields := dbModel.UserAccessFieldMasker.Convert(fields)
 
 	orders := []clause.OrderByColumn{{
 		Column: clause.Column{Name: "user_access.user_access_id"},
@@ -126,12 +125,12 @@ func (repo *Client) ListUserAccesses(ctx context.Context, authAccount cmodel.Aut
 
 	var userAccesses []dbModel.UserAccess
 	tx := repo.db.WithContext(ctx).
-		Select(fields).
+		Select(dbFields).
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(pageOffset))
 
-	if slices.Contains(fields, dbModel.UserColumn_Username) || slices.Contains(fields, dbModel.UserColumn_GivenName) || slices.Contains(fields, dbModel.UserColumn_FamilyName) {
+	if fieldmask.ContainsAny(dbFields, dbModel.UserColumn_Username, dbModel.UserColumn_GivenName, dbModel.UserColumn_FamilyName) {
 		tx = tx.Joins("LEFT JOIN daylear_user ON user_access.recipient_user_id = daylear_user.user_id")
 	}
 
@@ -163,7 +162,7 @@ func (repo *Client) UpdateUserAccess(ctx context.Context, access model.UserAcces
 	dbAccess := convert.CoreUserAccessToUserAccess(access)
 
 	res := repo.db.WithContext(ctx).
-		Select(dbModel.UpdateUserAccessFieldMasker.Convert(fields)).
+		Select(dbModel.UserAccessFieldMasker.Convert(fields, fieldmask.OnlyUpdatable())).
 		Clauses(&clause.Returning{}).
 		Where("user_access_id = ?", access.UserAccessId.UserAccessId).
 		Updates(&dbAccess)
@@ -196,34 +195,6 @@ func (repo *Client) FindStandardUserUserAccess(ctx context.Context, authAccount 
 	return convert.UserAccessToCoreUserAccess(userAccess), nil
 }
 
-func (repo *Client) FindDelegatedCircleUserAccess(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.UserAccess, model.CircleAccess, error) {
-	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
-		Int64("userId", id.UserId).
-		Int64("authUserId", authAccount.AuthUserId).
-		Logger()
-
-	type Result struct {
-		dbModel.UserAccess
-		dbModel.CircleAccess
-	}
-	var result Result
-	res := repo.db.WithContext(ctx).
-		Select("user_access.*, circle_access.*").
-		Table("user_access").
-		Joins("JOIN circle_access ON circle_access.circle_id = user_access.recipient_circle_id").
-		Where("user_access.user_id = ? AND circle_access.recipient_user_id = ?", id.UserId, authAccount.AuthUserId).
-		First(&result)
-	if res.Error != nil {
-		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Warn().Err(res.Error).Msg("delegated circle user access not found")
-			return model.UserAccess{}, model.CircleAccess{}, repository.ErrNotFound{}
-		}
-		log.Error().Err(res.Error).Msg("unable to find delegated circle user access")
-		return model.UserAccess{}, model.CircleAccess{}, ConvertGormError(res.Error)
-	}
-	return convert.UserAccessToCoreUserAccess(result.UserAccess), convert.CircleAccessToCoreCircleAccess(result.CircleAccess), nil
-}
-
 func (repo *Client) FindDelegatedUserUserAccess(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.UserAccess, model.UserAccess, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
 		Int64("userId", id.UserId).
@@ -250,5 +221,5 @@ func (repo *Client) FindDelegatedUserUserAccess(ctx context.Context, authAccount
 		log.Error().Err(res.Error).Msg("unable to find delegated user user access")
 		return model.UserAccess{}, model.UserAccess{}, ConvertGormError(res.Error)
 	}
-	return convert.UserAccessToCoreUserAccess(result.UserAccess), convert.UserAccessToCoreUserAccess(result.UserAccess), nil
+	return convert.UserAccessToCoreUserAccess(result.UserAccess), convert.UserAccessToCoreUserAccess(result.UA.UserAccess), nil
 }

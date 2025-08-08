@@ -19,12 +19,12 @@ func (d *Domain) CreateCalendarAccess(ctx context.Context, authAccount model.Aut
 		return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "calendar id required"}
 	}
 
-	var recipeientOwner bool
-	var resourceOwner bool
-
 	access.Requester = model.CalendarRecipientOrRequester{
 		UserId: authAccount.AuthUserId,
 	}
+
+	var recipientOwner bool
+	var resourceOwner bool
 
 	dbCalendar, err := d.repo.GetCalendar(ctx, authAccount, model.CalendarId{CalendarId: access.CalendarAccessParent.CalendarId}, []string{model.CalendarField_Visibility})
 	if err != nil {
@@ -53,26 +53,26 @@ func (d *Domain) CreateCalendarAccess(ctx context.Context, authAccount model.Aut
 			log.Error().Err(err).Msg("unable to determine circle access when creating a calendar access")
 			return model.CalendarAccess{}, err
 		}
-		recipeientOwner = determinedCircleAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_WRITE
-	} else if access.Recipient.UserId != 0 { // recipient is a different user
+		recipientOwner = determinedCircleAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_WRITE
+	} else if access.Recipient.UserId != 0 { // recipient is a user
 		determinedUserAccess, err := d.determineUserAccess(ctx, authAccount, model.UserId{UserId: access.Recipient.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ))
 		if err != nil {
 			log.Error().Err(err).Msg("unable to determine user access when creating a calendar access")
 			return model.CalendarAccess{}, err
 		}
-		recipeientOwner = determinedUserAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_ADMIN
+		recipientOwner = determinedUserAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_ADMIN
 	} else {
 		log.Warn().Msg("recipient is required when creating a calendar access")
 		return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "recipient is required"}
 	}
 
-	if !resourceOwner && recipeientOwner {
+	if !resourceOwner && recipientOwner {
 		access.State = types.AccessState_ACCESS_STATE_PENDING
 		access.AcceptTarget = types.AcceptTarget_ACCEPT_TARGET_RESOURCE
-	} else if resourceOwner && !recipeientOwner {
+	} else if resourceOwner && !recipientOwner {
 		access.State = types.AccessState_ACCESS_STATE_PENDING
 		access.AcceptTarget = types.AcceptTarget_ACCEPT_TARGET_RECIPIENT
-	} else if resourceOwner && recipeientOwner {
+	} else if resourceOwner && recipientOwner {
 		access.State = types.AccessState_ACCESS_STATE_ACCEPTED
 		access.AcceptTarget = types.AcceptTarget_ACCEPT_TARGET_UNSPECIFIED
 	} else {
@@ -116,33 +116,43 @@ func (d *Domain) DeleteCalendarAccess(ctx context.Context, authAccount model.Aut
 		return domain.ErrInternal{Msg: "unable to get calendar access"}
 	}
 
+	isRecipientOwner := false
+	isResourceOwner := false
+
 	if dbAccess.Recipient.CircleId != 0 {
-		_, err = d.determineCircleAccess(
+		determinedCircleAccess, err := d.determineCircleAccess(
 			ctx, authAccount, model.CircleId{CircleId: dbAccess.Recipient.CircleId},
-			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE),
+			withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC),
 		)
 		if err != nil {
 			log.Error().Err(err).Msg("unable to determine circle access when deleting a calendar access")
 			return err
 		}
+		isRecipientOwner = determinedCircleAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_WRITE
 	} else if dbAccess.Recipient.UserId != 0 {
-		_, err = d.determineUserAccess(
+		determinedUserAccess, err := d.determineUserAccess(
 			ctx, authAccount, model.UserId{UserId: dbAccess.Recipient.UserId},
-			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN),
+			withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC),
 		)
 		if err != nil {
 			log.Error().Err(err).Msg("unable to determine user access when deleting a calendar access")
 			return err
 		}
-	} else {
-		_, err := d.determineCalendarAccess(
-			ctx, authAccount, model.CalendarId{CalendarId: parent.CalendarId},
-			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE),
-		)
-		if err != nil {
-			log.Error().Err(err).Msg("unable to determine calendar access when deleting a calendar access")
-			return err
-		}
+		isRecipientOwner = determinedUserAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_ADMIN
+	}
+	determinedCalendarAccess, err := d.determineCalendarAccess(
+		ctx, authAccount, model.CalendarId{CalendarId: parent.CalendarId},
+		withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC),
+	)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine calendar access when deleting a calendar access")
+		return err
+	}
+	isResourceOwner = determinedCalendarAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_WRITE
+
+	if !isRecipientOwner && !isResourceOwner {
+		log.Warn().Msg("access denied when deleting a calendar access")
+		return domain.ErrPermissionDenied{Msg: "access denied"}
 	}
 
 	err = d.repo.DeleteCalendarAccess(ctx, parent, id)
@@ -270,7 +280,13 @@ func (d *Domain) UpdateCalendarAccess(ctx context.Context, authAccount model.Aut
 		return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "cannot update calendar access permission level to a higher level than your own"}
 	}
 
-	return d.repo.UpdateCalendarAccess(ctx, access, fields)
+	updatedAccess, err := d.repo.UpdateCalendarAccess(ctx, access, fields)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to update calendar access when updating a calendar access")
+		return model.CalendarAccess{}, domain.ErrInternal{Msg: "unable to update calendar access"}
+	}
+
+	return updatedAccess, nil
 }
 
 // AcceptCalendarAccess accepts calendar access
@@ -335,6 +351,7 @@ func (d *Domain) AcceptCalendarAccess(ctx context.Context, authAccount model.Aut
 			return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "invalid recipient"}
 		}
 	default:
+		log.Warn().Msg("invalid accept target when accepting a calendar access")
 		return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "invalid accept target"}
 	}
 

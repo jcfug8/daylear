@@ -10,70 +10,58 @@ import (
 )
 
 const (
-	RecipeFields_RecipeId             = "recipe.recipe_id"
-	RecipeFields_Title                = "recipe.title"
-	RecipeFields_Description          = "recipe.description"
-	RecipeFields_Directions           = "recipe.directions"
-	RecipeFields_ImageURI             = "recipe.image_uri"
-	RecipeFields_IngredientGroups     = "recipe.ingredient_groups"
-	RecipeFields_VisibilityLevel      = "recipe.visibility_level"
-	RecipeFields_Citation             = "recipe.citation"
-	RecipeFields_CookDurationSeconds  = "recipe.cook_duration_seconds"
-	RecipeFields_PrepDurationSeconds  = "recipe.prep_duration_seconds"
-	RecipeFields_TotalDurationSeconds = "recipe.total_duration_seconds"
-	RecipeFields_CookingMethod        = "recipe.cooking_method"
-	RecipeFields_Categories           = "recipe.categories"
-	RecipeFields_YieldAmount          = "recipe.yield_amount"
-	RecipeFields_Cuisines             = "recipe.cuisines"
-	RecipeFields_CreateTime           = "recipe.create_time"
-	RecipeFields_UpdateTime           = "recipe.update_time"
+	RecipeTable = "recipe"
 )
 
-var RecipeFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
-	model.RecipeField_Id:                   {RecipeFields_RecipeId},
-	model.RecipeField_Title:                {RecipeFields_Title},
-	model.RecipeField_Description:          {RecipeFields_Description},
-	model.RecipeField_Directions:           {RecipeFields_Directions},
-	model.RecipeField_ImageURI:             {RecipeFields_ImageURI},
-	model.RecipeField_IngredientGroups:     {RecipeFields_IngredientGroups},
-	model.RecipeField_VisibilityLevel:      {RecipeFields_VisibilityLevel},
-	model.RecipeField_Citation:             {RecipeFields_Citation},
-	model.RecipeField_CookDurationSeconds:  {RecipeFields_CookDurationSeconds},
-	model.RecipeField_PrepDurationSeconds:  {RecipeFields_PrepDurationSeconds},
-	model.RecipeField_TotalDurationSeconds: {RecipeFields_TotalDurationSeconds},
-	model.RecipeField_CookingMethod:        {RecipeFields_CookingMethod},
-	model.RecipeField_Categories:           {RecipeFields_Categories},
-	model.RecipeField_YieldAmount:          {RecipeFields_YieldAmount},
-	model.RecipeField_Cuisines:             {RecipeFields_Cuisines},
-	model.RecipeField_CreateTime:           {RecipeFields_CreateTime},
-	model.RecipeField_UpdateTime:           {RecipeFields_UpdateTime},
+const (
+	RecipeFields_RecipeId             = "recipe_id"
+	RecipeFields_Title                = "title"
+	RecipeFields_Description          = "description"
+	RecipeFields_Directions           = "directions"
+	RecipeFields_ImageURI             = "image_uri"
+	RecipeFields_IngredientGroups     = "ingredient_groups"
+	RecipeFields_VisibilityLevel      = "visibility_level"
+	RecipeFields_Citation             = "citation"
+	RecipeFields_CookDurationSeconds  = "cook_duration_seconds"
+	RecipeFields_PrepDurationSeconds  = "prep_duration_seconds"
+	RecipeFields_TotalDurationSeconds = "total_duration_seconds"
+	RecipeFields_CookingMethod        = "cooking_method"
+	RecipeFields_Categories           = "categories"
+	RecipeFields_YieldAmount          = "yield_amount"
+	RecipeFields_Cuisines             = "cuisines"
+	RecipeFields_CreateTime           = "create_time"
+	RecipeFields_UpdateTime           = "update_time"
+)
+
+var RecipeFieldMasker = fieldmask.NewSQLFieldMasker(Recipe{}, map[string][]fieldmask.Field{
+	model.RecipeField_Id:                   {{Name: RecipeFields_RecipeId, Table: RecipeTable}},
+	model.RecipeField_Title:                {{Name: RecipeFields_Title, Table: RecipeTable, Updatable: true}},
+	model.RecipeField_Description:          {{Name: RecipeFields_Description, Table: RecipeTable, Updatable: true}},
+	model.RecipeField_Directions:           {{Name: RecipeFields_Directions, Table: RecipeTable, Updatable: true}},
+	model.RecipeField_ImageURI:             {{Name: RecipeFields_ImageURI, Table: RecipeTable, Updatable: true}},
+	model.RecipeField_IngredientGroups:     {{Name: RecipeFields_IngredientGroups, Table: RecipeTable, Updatable: true}},
+	model.RecipeField_VisibilityLevel:      {{Name: RecipeFields_VisibilityLevel, Table: RecipeTable, Updatable: true}},
+	model.RecipeField_Citation:             {{Name: RecipeFields_Citation, Table: RecipeTable, Updatable: true}},
+	model.RecipeField_CookDurationSeconds:  {{Name: RecipeFields_CookDurationSeconds, Table: RecipeTable, Updatable: true}},
+	model.RecipeField_PrepDurationSeconds:  {{Name: RecipeFields_PrepDurationSeconds, Table: RecipeTable, Updatable: true}},
+	model.RecipeField_TotalDurationSeconds: {{Name: RecipeFields_TotalDurationSeconds, Table: RecipeTable, Updatable: true}},
+	model.RecipeField_CookingMethod:        {{Name: RecipeFields_CookingMethod, Table: RecipeTable, Updatable: true}},
+	model.RecipeField_Categories:           {{Name: RecipeFields_Categories, Table: RecipeTable, Updatable: true}},
+	model.RecipeField_YieldAmount:          {{Name: RecipeFields_YieldAmount, Table: RecipeTable, Updatable: true}},
+	model.RecipeField_Cuisines:             {{Name: RecipeFields_Cuisines, Table: RecipeTable, Updatable: true}},
+	model.RecipeField_CreateTime:           {{Name: RecipeFields_CreateTime, Table: RecipeTable}},
+	model.RecipeField_UpdateTime:           {{Name: RecipeFields_UpdateTime, Table: RecipeTable}},
 
 	model.RecipeField_RecipeAccess: {
-		RecipeAccessFields_RecipeAccessId,
-		RecipeAccessFields_PermissionLevel,
-		RecipeAccessFields_State,
+		{Name: RecipeAccessFields_RecipeAccessId, Table: RecipeAccessTable},
+		{Name: RecipeAccessFields_PermissionLevel, Table: RecipeAccessTable},
+		{Name: RecipeAccessFields_State, Table: RecipeAccessTable},
 	},
 })
-var UpdateRecipeFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
-	model.RecipeField_Title:                {RecipeFields_Title},
-	model.RecipeField_Description:          {RecipeFields_Description},
-	model.RecipeField_Directions:           {RecipeFields_Directions},
-	model.RecipeField_ImageURI:             {RecipeFields_ImageURI},
-	model.RecipeField_IngredientGroups:     {RecipeFields_IngredientGroups},
-	model.RecipeField_VisibilityLevel:      {RecipeFields_VisibilityLevel},
-	model.RecipeField_Citation:             {RecipeFields_Citation},
-	model.RecipeField_CookDurationSeconds:  {RecipeFields_CookDurationSeconds},
-	model.RecipeField_PrepDurationSeconds:  {RecipeFields_PrepDurationSeconds},
-	model.RecipeField_TotalDurationSeconds: {RecipeFields_TotalDurationSeconds},
-	model.RecipeField_CookingMethod:        {RecipeFields_CookingMethod},
-	model.RecipeField_Categories:           {RecipeFields_Categories},
-	model.RecipeField_YieldAmount:          {RecipeFields_YieldAmount},
-	model.RecipeField_Cuisines:             {RecipeFields_Cuisines},
-})
-var RecipeSQLConverter = filter.NewSQLConverter(map[string]string{
-	"visibility": RecipeFields_VisibilityLevel,
-	"permission": RecipeAccessFields_PermissionLevel,
-	"state":      RecipeAccessFields_State,
+var RecipeSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
+	"visibility": {Name: RecipeFields_VisibilityLevel, Table: RecipeTable},
+	"permission": {Name: RecipeAccessFields_PermissionLevel, Table: RecipeAccessTable},
+	"state":      {Name: RecipeAccessFields_State, Table: RecipeAccessTable},
 }, true)
 
 // Recipe -
@@ -105,5 +93,5 @@ type Recipe struct {
 
 // TableName -
 func (Recipe) TableName() string {
-	return "recipe"
+	return RecipeTable
 }

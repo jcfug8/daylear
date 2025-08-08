@@ -102,15 +102,15 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 	switch {
 	case authAccount.CircleId != 0:
 		converter = gmodel.UserCircleSQLConverter
-		tx = tx.Select(gmodel.UserCircleFieldMasker.Convert(fields)).
+		tx = tx.Select(gmodel.UserFieldMasker.Convert(fields, fieldmask.ExcludeTables("user_access"))).
 			Joins("LEFT JOIN circle_access ON daylear_user.user_id = circle_access.recipient_user_id AND circle_access.circle_id = ?", authAccount.CircleId).
 			Joins("LEFT JOIN user_access as user_access_auth ON daylear_user.user_id = user_access_auth.user_id AND user_access_auth.recipient_user_id = ?", authAccount.AuthUserId)
 	case authAccount.AuthUserId != authAccount.UserId && authAccount.UserId != 0:
-		tx = tx.Select(gmodel.UserFieldMasker.Convert(fields)).
+		tx = tx.Select(gmodel.UserFieldMasker.Convert(fields, fieldmask.ExcludeTables("circle_access"))).
 			Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?", authAccount.UserId).
 			Joins("LEFT JOIN user_access as user_access_auth ON daylear_user.user_id = user_access_auth.user_id AND user_access_auth.recipient_user_id = ?", authAccount.AuthUserId)
 	default:
-		tx = tx.Select(gmodel.UserFieldMasker.Convert(fields)).
+		tx = tx.Select(gmodel.UserFieldMasker.Convert(fields, fieldmask.ExcludeTables("circle_access"))).
 			Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?", authAccount.AuthUserId)
 	}
 
@@ -157,7 +157,7 @@ func (repo *Client) UpdateUser(ctx context.Context, authAccount cmodel.AuthAccou
 	}
 
 	err = repo.db.WithContext(ctx).
-		Select(gmodel.UpdateUserFieldMasker.Convert(fields)).
+		Select(gmodel.UserFieldMasker.Convert(fields, fieldmask.OnlyUpdatable())).
 		Clauses(&clause.Returning{}).
 		Updates(&gm).Error
 	if err != nil {

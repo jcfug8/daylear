@@ -59,7 +59,7 @@
                 :search-input.sync="circleInput"
                 label="Search Circles"
                 item-title="displayName"
-                item-value="name"
+                item-value="handle"
                 :rules="[validateCircle]"
                 clearable
                 :input-attrs="{ autocapitalize: 'off', autocomplete: 'off', spellcheck: 'false' }"
@@ -175,7 +175,17 @@
                       </v-list-item>
                     </v-list>
                   </v-menu>
-                  <v-chip v-if="access.state === 'ACCESS_STATE_PENDING'" size="small" color="warning" variant="outlined">
+                  <v-btn 
+                    v-if="access.state === 'ACCESS_STATE_PENDING' && access.acceptTarget === 'ACCEPT_TARGET_RESOURCE'" 
+                    size="small" 
+                    color="success" 
+                    variant="outlined"
+                    @click="emitApproveAccess(access.name || '')"
+                    :disabled="!isAccessEditable(access)"
+                  >
+                    Approve
+                  </v-btn>
+                  <v-chip v-else-if="access.state === 'ACCESS_STATE_PENDING'" size="small" color="warning" variant="outlined">
                     Pending
                   </v-chip>
                   <v-btn 
@@ -234,6 +244,7 @@ const emit = defineEmits([
   'share-circle',
   'remove-access',
   'permission-change',
+  'approve-access',
   'close',
 ])
 
@@ -249,7 +260,7 @@ const permissions = [
 const permissionOptions = computed(() => {
   // First filter by allowed permissions, then by user's permission level
   return props.allowPermissionOptions
-    .filter(permission => getPermissionValue(permission) <= getPermissionValue(props.userPermissionLevel))
+    .filter(permission => getPermissionValue(permission as PermissionLevel) <= getPermissionValue(props.userPermissionLevel as PermissionLevel))
     .map(permission => {
       for (const p of permissions) {
         if (p.value === permission) {
@@ -273,7 +284,7 @@ function getPermissionDetails(permission: PermissionLevel) {
 function isAccessEditable(access: any): boolean {
   const accessLevel = access.level
   const userLevel = props.userPermissionLevel
-  return getPermissionValue(accessLevel) <= getPermissionValue(userLevel)
+  return getPermissionValue(accessLevel as PermissionLevel) <= getPermissionValue(userLevel as PermissionLevel)
 }
 
 // Autocomplete state
@@ -287,8 +298,8 @@ const userFuse = ref<Fuse<User> | null>(null)
 const circleFuse = ref<Fuse<Circle> | null>(null)
 
 // Selection state
-const selectedUser = ref<User | null>(null)
-const selectedCircle = ref<Circle | null>(null)
+const selectedUser = ref<string | null>(null)
+const selectedCircle = ref<string | null>(null)
 const usernameInput = ref('')
 const circleInput = ref('')
 
@@ -297,6 +308,10 @@ let isValidCircle = ref(false)
 
 function emitRemoveAccess(name: string) {
   emit('remove-access', name)
+}
+
+function emitApproveAccess(name: string) {
+  emit('approve-access', name)
 }
 function emitPermissionChange(access: any, newLevel: string) {
   emit('permission-change', { access, newLevel })
@@ -410,7 +425,8 @@ async function fetchUsers() {
     const request: ListUsersRequest = {
       pageSize: 1000,
       pageToken: undefined,
-      filter: 'state = 200'
+      filter: 'state = 200',
+      parent: undefined
     }
     const response = await userService.ListUsers(request)
     
@@ -433,7 +449,8 @@ async function fetchCircles() {
     const request: ListCirclesRequest = {
       pageSize: 1000,
       pageToken: undefined,
-      filter: 'state = 200'
+      filter: 'state = 200',
+      parent: undefined
     }
     const response = await circleService.ListCircles(request)
     
@@ -449,7 +466,7 @@ async function fetchCircles() {
 
 // Search functions
 function searchUsers(query: string) {
-  if (!userFuse.value || !query.trim()) {
+  if (!userFuse.value || !query?.trim()) {
     userSuggestions.value = allUsers.value.slice(0, 15)
     return
   }
@@ -481,20 +498,14 @@ function handleCircleSearch(query: string) {
   searchCircles(query)
 }
 
-function handleUserSelection(user: User | null) {
+function handleUserSelection(user: string | null) {
   selectedUser.value = user
   isValidUsername.value = !!user
-  if (user) {
-    usernameInput.value = user.displayName
-  }
 }
 
-function handleCircleSelection(circle: Circle | null) {
+function handleCircleSelection(circle: string | null) {
   selectedCircle.value = circle
   isValidCircle.value = !!circle
-  if (circle) {
-    circleInput.value = circle.displayName
-  }
 }
 
 // Validation functions
@@ -509,25 +520,25 @@ function validateCircle(value: string): boolean | string {
 // Computed properties for icons and colors
 const getUsernameIcon = computed(() => {
   if (isLoadingUsers.value) return 'mdi-loading'
-  if (!usernameInput.value) return undefined
+  if (!selectedUser.value) return undefined
   return isValidUsername.value ? 'mdi-check-circle' : 'mdi-close-circle'
 })
 
 const getUsernameColor = computed(() => {
   if (isLoadingUsers.value) return undefined
-  if (!usernameInput.value) return undefined
+  if (!selectedUser.value) return undefined
   return isValidUsername.value ? 'success' : 'error'
 })
 
 const getCircleIcon = computed(() => {
   if (isLoadingCircles.value) return 'mdi-loading'
-  if (!circleInput.value) return undefined
+  if (!selectedCircle.value) return undefined
   return isValidCircle.value ? 'mdi-check-circle' : 'mdi-close-circle'
 })
 
 const getCircleColor = computed(() => {
   if (isLoadingCircles.value) return undefined
-  if (!circleInput.value) return undefined
+  if (!selectedCircle.value) return undefined
   return isValidCircle.value ? 'success' : 'error'
 })
 

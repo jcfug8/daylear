@@ -122,6 +122,12 @@ func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, par
 		return model.User{}, err
 	}
 
+	dbUser.UserAccess, err = d.determineUserAccess(ctx, authAccount, id, withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC))
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine access when getting user")
+		return model.User{}, err
+	}
+
 	return dbUser, nil
 }
 

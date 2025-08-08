@@ -38,7 +38,9 @@ type Access struct {
 	// the permission level of the access
 	Level types.PermissionLevel `protobuf:"varint,4,opt,name=level,proto3,enum=api.types.PermissionLevel" json:"level,omitempty"`
 	// the status of the access
-	State         types.AccessState `protobuf:"varint,5,opt,name=state,proto3,enum=api.types.AccessState" json:"state,omitempty"`
+	State types.AccessState `protobuf:"varint,5,opt,name=state,proto3,enum=api.types.AccessState" json:"state,omitempty"`
+	// the accept target of the access
+	AcceptTarget  types.AcceptTarget `protobuf:"varint,6,opt,name=accept_target,json=acceptTarget,proto3,enum=api.types.AcceptTarget" json:"accept_target,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -106,6 +108,13 @@ func (x *Access) GetState() types.AccessState {
 		return x.State
 	}
 	return types.AccessState(0)
+}
+
+func (x *Access) GetAcceptTarget() types.AcceptTarget {
+	if x != nil {
+		return x.AcceptTarget
+	}
+	return types.AcceptTarget(0)
 }
 
 // The request to create an access to a circle
@@ -646,13 +655,14 @@ var File_api_circles_circle_v1alpha1_circle_access_proto protoreflect.FileDescri
 
 const file_api_circles_circle_v1alpha1_circle_access_proto_rawDesc = "" +
 	"\n" +
-	"/api/circles/circle/v1alpha1/circle_access.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xdb\x04\n" +
+	"/api/circles/circle/v1alpha1/circle_access.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1dapi/types/accept_target.proto\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x9e\x05\n" +
 	"\x06Access\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12P\n" +
 	"\trequester\x18\x02 \x01(\v2-.api.circles.circle.v1alpha1.Access.RequesterB\x03\xe0A\x03R\trequester\x12K\n" +
 	"\trecipient\x18\x03 \x01(\v2(.api.circles.circle.v1alpha1.Access.UserB\x03\xe0A\x02R\trecipient\x125\n" +
 	"\x05level\x18\x04 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x02R\x05level\x121\n" +
-	"\x05state\x18\x05 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state\x1aC\n" +
+	"\x05state\x18\x05 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state\x12A\n" +
+	"\raccept_target\x18\x06 \x01(\x0e2\x17.api.types.AcceptTargetB\x03\xe0A\x03R\facceptTarget\x1aC\n" +
 	"\tRequester\x12\x14\n" +
 	"\x04user\x18\x01 \x01(\tH\x00R\x04user\x12\x18\n" +
 	"\x06circle\x18\x02 \x01(\tH\x00R\x06circleB\x06\n" +
@@ -740,35 +750,37 @@ var file_api_circles_circle_v1alpha1_circle_access_proto_goTypes = []any{
 	(*Access_User)(nil),           // 9: api.circles.circle.v1alpha1.Access.User
 	(types.PermissionLevel)(0),    // 10: api.types.PermissionLevel
 	(types.AccessState)(0),        // 11: api.types.AccessState
-	(*fieldmaskpb.FieldMask)(nil), // 12: google.protobuf.FieldMask
-	(*emptypb.Empty)(nil),         // 13: google.protobuf.Empty
+	(types.AcceptTarget)(0),       // 12: api.types.AcceptTarget
+	(*fieldmaskpb.FieldMask)(nil), // 13: google.protobuf.FieldMask
+	(*emptypb.Empty)(nil),         // 14: google.protobuf.Empty
 }
 var file_api_circles_circle_v1alpha1_circle_access_proto_depIdxs = []int32{
 	8,  // 0: api.circles.circle.v1alpha1.Access.requester:type_name -> api.circles.circle.v1alpha1.Access.Requester
 	9,  // 1: api.circles.circle.v1alpha1.Access.recipient:type_name -> api.circles.circle.v1alpha1.Access.User
 	10, // 2: api.circles.circle.v1alpha1.Access.level:type_name -> api.types.PermissionLevel
 	11, // 3: api.circles.circle.v1alpha1.Access.state:type_name -> api.types.AccessState
-	0,  // 4: api.circles.circle.v1alpha1.CreateAccessRequest.access:type_name -> api.circles.circle.v1alpha1.Access
-	0,  // 5: api.circles.circle.v1alpha1.ListAccessesResponse.accesses:type_name -> api.circles.circle.v1alpha1.Access
-	0,  // 6: api.circles.circle.v1alpha1.UpdateAccessRequest.access:type_name -> api.circles.circle.v1alpha1.Access
-	12, // 7: api.circles.circle.v1alpha1.UpdateAccessRequest.update_mask:type_name -> google.protobuf.FieldMask
-	1,  // 8: api.circles.circle.v1alpha1.CircleAccessService.CreateAccess:input_type -> api.circles.circle.v1alpha1.CreateAccessRequest
-	2,  // 9: api.circles.circle.v1alpha1.CircleAccessService.DeleteAccess:input_type -> api.circles.circle.v1alpha1.DeleteAccessRequest
-	3,  // 10: api.circles.circle.v1alpha1.CircleAccessService.GetAccess:input_type -> api.circles.circle.v1alpha1.GetAccessRequest
-	4,  // 11: api.circles.circle.v1alpha1.CircleAccessService.ListAccesses:input_type -> api.circles.circle.v1alpha1.ListAccessesRequest
-	6,  // 12: api.circles.circle.v1alpha1.CircleAccessService.UpdateAccess:input_type -> api.circles.circle.v1alpha1.UpdateAccessRequest
-	7,  // 13: api.circles.circle.v1alpha1.CircleAccessService.AcceptAccess:input_type -> api.circles.circle.v1alpha1.AcceptAccessRequest
-	0,  // 14: api.circles.circle.v1alpha1.CircleAccessService.CreateAccess:output_type -> api.circles.circle.v1alpha1.Access
-	13, // 15: api.circles.circle.v1alpha1.CircleAccessService.DeleteAccess:output_type -> google.protobuf.Empty
-	0,  // 16: api.circles.circle.v1alpha1.CircleAccessService.GetAccess:output_type -> api.circles.circle.v1alpha1.Access
-	5,  // 17: api.circles.circle.v1alpha1.CircleAccessService.ListAccesses:output_type -> api.circles.circle.v1alpha1.ListAccessesResponse
-	0,  // 18: api.circles.circle.v1alpha1.CircleAccessService.UpdateAccess:output_type -> api.circles.circle.v1alpha1.Access
-	0,  // 19: api.circles.circle.v1alpha1.CircleAccessService.AcceptAccess:output_type -> api.circles.circle.v1alpha1.Access
-	14, // [14:20] is the sub-list for method output_type
-	8,  // [8:14] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	12, // 4: api.circles.circle.v1alpha1.Access.accept_target:type_name -> api.types.AcceptTarget
+	0,  // 5: api.circles.circle.v1alpha1.CreateAccessRequest.access:type_name -> api.circles.circle.v1alpha1.Access
+	0,  // 6: api.circles.circle.v1alpha1.ListAccessesResponse.accesses:type_name -> api.circles.circle.v1alpha1.Access
+	0,  // 7: api.circles.circle.v1alpha1.UpdateAccessRequest.access:type_name -> api.circles.circle.v1alpha1.Access
+	13, // 8: api.circles.circle.v1alpha1.UpdateAccessRequest.update_mask:type_name -> google.protobuf.FieldMask
+	1,  // 9: api.circles.circle.v1alpha1.CircleAccessService.CreateAccess:input_type -> api.circles.circle.v1alpha1.CreateAccessRequest
+	2,  // 10: api.circles.circle.v1alpha1.CircleAccessService.DeleteAccess:input_type -> api.circles.circle.v1alpha1.DeleteAccessRequest
+	3,  // 11: api.circles.circle.v1alpha1.CircleAccessService.GetAccess:input_type -> api.circles.circle.v1alpha1.GetAccessRequest
+	4,  // 12: api.circles.circle.v1alpha1.CircleAccessService.ListAccesses:input_type -> api.circles.circle.v1alpha1.ListAccessesRequest
+	6,  // 13: api.circles.circle.v1alpha1.CircleAccessService.UpdateAccess:input_type -> api.circles.circle.v1alpha1.UpdateAccessRequest
+	7,  // 14: api.circles.circle.v1alpha1.CircleAccessService.AcceptAccess:input_type -> api.circles.circle.v1alpha1.AcceptAccessRequest
+	0,  // 15: api.circles.circle.v1alpha1.CircleAccessService.CreateAccess:output_type -> api.circles.circle.v1alpha1.Access
+	14, // 16: api.circles.circle.v1alpha1.CircleAccessService.DeleteAccess:output_type -> google.protobuf.Empty
+	0,  // 17: api.circles.circle.v1alpha1.CircleAccessService.GetAccess:output_type -> api.circles.circle.v1alpha1.Access
+	5,  // 18: api.circles.circle.v1alpha1.CircleAccessService.ListAccesses:output_type -> api.circles.circle.v1alpha1.ListAccessesResponse
+	0,  // 19: api.circles.circle.v1alpha1.CircleAccessService.UpdateAccess:output_type -> api.circles.circle.v1alpha1.Access
+	0,  // 20: api.circles.circle.v1alpha1.CircleAccessService.AcceptAccess:output_type -> api.circles.circle.v1alpha1.Access
+	15, // [15:21] is the sub-list for method output_type
+	9,  // [9:15] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_api_circles_circle_v1alpha1_circle_access_proto_init() }

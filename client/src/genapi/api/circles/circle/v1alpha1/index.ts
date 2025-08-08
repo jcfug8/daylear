@@ -60,6 +60,10 @@ export type Circle_CircleAccess = {
   //
   // Behaviors: OUTPUT_ONLY
   state: apitypes_AccessState | undefined;
+  // the accept target of the access (the user or circle that is accepting the access)
+  //
+  // Behaviors: OUTPUT_ONLY
+  acceptTarget: apitypes_AcceptTarget | undefined;
 };
 
 // the permission levels
@@ -82,6 +86,14 @@ export type apitypes_AccessState =
   | "ACCESS_STATE_PENDING"
   // The access is accepted and can be deleted.
   | "ACCESS_STATE_ACCEPTED";
+// The target of the accept action, or who can accept the access request
+export type apitypes_AcceptTarget =
+  // Acceptance not required or not applicable
+  | "ACCEPT_TARGET_UNSPECIFIED"
+  // The recipient or someone with correct access to the recipient can accept the access request
+  | "ACCEPT_TARGET_RECIPIENT"
+  // The resource owner or someone with correct access to the resource can accept the access request
+  | "ACCEPT_TARGET_RESOURCE";
 // the request to create a circle
 export type CreateCircleRequest = {
   // the circle to create
@@ -340,6 +352,10 @@ export type Access = {
   //
   // Behaviors: OUTPUT_ONLY
   state: apitypes_AccessState | undefined;
+  // the accept target of the access
+  //
+  // Behaviors: OUTPUT_ONLY
+  acceptTarget: apitypes_AcceptTarget | undefined;
 };
 
 // the requester of the access

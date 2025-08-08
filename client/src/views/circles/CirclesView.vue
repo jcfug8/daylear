@@ -38,11 +38,13 @@ import ListTabsPage from '@/components/common/ListTabsPage.vue'
 import CircleGrid from '@/components/CircleGrid.vue'
 import { circleAccessService } from '@/api/api'
 import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
+import { useAuthStore } from '@/stores/auth'
 
 const circlesStore = useCirclesStore()
 
 const acceptingCircleId = ref<string | null>(null)
 const tabsPage = ref()
+const authStore = useAuthStore()
 
 const tabs = [
   {
@@ -50,7 +52,7 @@ const tabs = [
     value: 'my',
     icon: 'mdi-account-circle',
     loader: async () => {
-      await circlesStore.loadMyCircles()
+      await circlesStore.loadMyCircles(authStore.user?.name || '')
       return [...circlesStore.myCircles]
     },
   },

@@ -8,40 +8,39 @@ import (
 )
 
 const (
-	UserAccessColumn_UserAccessId    = "user_access.user_access_id"
-	UserAccessColumn_UserId          = "user_access.user_id"
-	UserAccessColumn_RequesterUserId = "user_access.requester_user_id"
-	UserAccessColumn_RecipientUserId = "user_access.recipient_user_id"
-	UserAccessColumn_PermissionLevel = "user_access.permission_level"
-	UserAccessColumn_State           = "user_access.state"
+	UserAccessTable = "user_access"
 )
 
-var UserAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
-	cmodel.UserAccessField_Parent:          {UserAccessColumn_UserId},
-	cmodel.UserAccessField_Id:              {UserAccessColumn_UserAccessId},
-	cmodel.UserAccessField_PermissionLevel: {UserAccessColumn_PermissionLevel},
-	cmodel.UserAccessField_State:           {UserAccessColumn_State},
+const (
+	UserAccessColumn_UserAccessId    = "user_access_id"
+	UserAccessColumn_UserId          = "user_id"
+	UserAccessColumn_RequesterUserId = "requester_user_id"
+	UserAccessColumn_RecipientUserId = "recipient_user_id"
+	UserAccessColumn_PermissionLevel = "permission_level"
+	UserAccessColumn_State           = "state"
+)
+
+var UserAccessFieldMasker = fieldmask.NewSQLFieldMasker(UserAccess{}, map[string][]fieldmask.Field{
+	cmodel.UserAccessField_Parent:          {{Name: UserAccessColumn_UserId, Table: UserAccessTable}},
+	cmodel.UserAccessField_Id:              {{Name: UserAccessColumn_UserAccessId, Table: UserAccessTable}},
+	cmodel.UserAccessField_PermissionLevel: {{Name: UserAccessColumn_PermissionLevel, Table: UserAccessTable, Updatable: true}},
+	cmodel.UserAccessField_State:           {{Name: UserAccessColumn_State, Table: UserAccessTable, Updatable: true}},
 
 	cmodel.UserAccessField_Requester: {
-		UserAccessColumn_RequesterUserId,
+		{Name: UserAccessColumn_RequesterUserId, Table: UserAccessTable},
 	},
 	cmodel.UserAccessField_Recipient: {
-		UserAccessColumn_RecipientUserId,
-		UserColumn_Username + " as recipient_username",
-		UserColumn_GivenName + " as recipient_given_name",
-		UserColumn_FamilyName + " as recipient_family_name",
+		{Name: UserAccessColumn_RecipientUserId, Table: UserAccessTable},
+		{Name: UserColumn_Username, Table: UserTable, Alias: "recipient_username"},
+		{Name: UserColumn_GivenName, Table: UserTable, Alias: "recipient_given_name"},
+		{Name: UserColumn_FamilyName, Table: UserTable, Alias: "recipient_family_name"},
 	},
 })
 
-var UpdateUserAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
-	cmodel.UserField_AccessPermissionLevel: {UserAccessColumn_PermissionLevel},
-	cmodel.UserField_AccessState:           {UserAccessColumn_State},
-})
-
-var UserAccessSQLConverter = filter.NewSQLConverter(map[string]string{
-	"permission_level":  UserAccessColumn_PermissionLevel,
-	"state":             UserAccessColumn_State,
-	"recipient_user_id": UserAccessColumn_RecipientUserId,
+var UserAccessSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
+	"permission_level":  {Name: UserAccessColumn_PermissionLevel, Table: UserAccessTable},
+	"state":             {Name: UserAccessColumn_State, Table: UserAccessTable},
+	"recipient_user_id": {Name: UserAccessColumn_RecipientUserId, Table: UserAccessTable},
 }, true)
 
 // UserAccess -
@@ -53,12 +52,14 @@ type UserAccess struct {
 	PermissionLevel types.PermissionLevel `gorm:"not null"`
 	State           types.AccessState     `gorm:"not null"`
 
-	RecipientUsername string `gorm:"->;-:migration"` // read only from join
+	RecipientUsername   string `gorm:"->;-:migration"` // read only from join
+	RecipientGivenName  string `gorm:"->;-:migration"` // read only from join
+	RecipientFamilyName string `gorm:"->;-:migration"` // read only from join
 }
 
 // TableName -
 func (UserAccess) TableName() string {
-	return "user_access"
+	return UserAccessTable
 }
 
 type UA struct {

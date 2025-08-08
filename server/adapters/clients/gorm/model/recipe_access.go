@@ -8,44 +8,45 @@ import (
 )
 
 const (
-	RecipeAccessFields_RecipeAccessId    = "recipe_access.recipe_access_id"
-	RecipeAccessFields_RecipeId          = "recipe_access.recipe_id"
-	RecipeAccessFields_RequesterUserId   = "recipe_access.requester_user_id"
-	RecipeAccessFields_RequesterCircleId = "recipe_access.requester_circle_id"
-	RecipeAccessFields_RecipientUserId   = "recipe_access.recipient_user_id"
-	RecipeAccessFields_RecipientCircleId = "recipe_access.recipient_circle_id"
-	RecipeAccessFields_PermissionLevel   = "recipe_access.permission_level"
-	RecipeAccessFields_State             = "recipe_access.state"
+	RecipeAccessTable = "recipe_access"
 )
 
-var RecipeAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
-	model.RecipeAccessField_Parent:          {RecipeAccessFields_RecipeId},
-	model.RecipeAccessField_Id:              {RecipeAccessFields_RecipeAccessId},
-	model.RecipeAccessField_PermissionLevel: {RecipeAccessFields_PermissionLevel},
-	model.RecipeAccessField_State:           {RecipeAccessFields_State},
+const (
+	RecipeAccessFields_RecipeAccessId    = "recipe_access_id"
+	RecipeAccessFields_RecipeId          = "recipe_id"
+	RecipeAccessFields_RequesterUserId   = "requester_user_id"
+	RecipeAccessFields_RequesterCircleId = "requester_circle_id"
+	RecipeAccessFields_RecipientUserId   = "recipient_user_id"
+	RecipeAccessFields_RecipientCircleId = "recipient_circle_id"
+	RecipeAccessFields_PermissionLevel   = "permission_level"
+	RecipeAccessFields_State             = "state"
+)
+
+var RecipeAccessFieldMasker = fieldmask.NewSQLFieldMasker(RecipeAccess{}, map[string][]fieldmask.Field{
+	model.RecipeAccessField_Parent:          {{Name: RecipeAccessFields_RecipeId, Table: RecipeAccessTable}},
+	model.RecipeAccessField_Id:              {{Name: RecipeAccessFields_RecipeAccessId, Table: RecipeAccessTable}},
+	model.RecipeAccessField_PermissionLevel: {{Name: RecipeAccessFields_PermissionLevel, Table: RecipeAccessTable, Updatable: true}},
+	model.RecipeAccessField_State:           {{Name: RecipeAccessFields_State, Table: RecipeAccessTable, Updatable: true}},
 	model.RecipeAccessField_Requester: {
-		RecipeAccessFields_RequesterUserId,
-		RecipeAccessFields_RequesterCircleId,
+		{Name: RecipeAccessFields_RequesterUserId, Table: RecipeAccessTable},
+		{Name: RecipeAccessFields_RequesterCircleId, Table: RecipeAccessTable},
 	},
 	model.RecipeAccessField_Recipient: {
-		RecipeAccessFields_RecipientUserId,
-		RecipeAccessFields_RecipientCircleId,
-		UserColumn_Username + "as recipient_username",
-		UserColumn_GivenName + "as recipient_given_name",
-		UserColumn_FamilyName + "as recipient_family_name",
-		CircleColumn_Title + "as recipient_circle_title",
-		CircleColumn_Handle + "as recipient_circle_handle",
+		{Name: RecipeAccessFields_RecipientUserId, Table: RecipeAccessTable},
+		{Name: RecipeAccessFields_RecipientCircleId, Table: RecipeAccessTable},
+		{Name: UserColumn_Username, Table: UserTable, Alias: "recipient_username"},
+		{Name: UserColumn_GivenName, Table: UserTable, Alias: "recipient_given_name"},
+		{Name: UserColumn_FamilyName, Table: UserTable, Alias: "recipient_family_name"},
+		{Name: CircleColumn_Title, Table: CircleTable, Alias: "recipient_circle_title"},
+		{Name: CircleColumn_Handle, Table: CircleTable, Alias: "recipient_circle_handle"},
 	},
 })
-var UpdateRecipeAccessFieldMasker = fieldmask.NewFieldMasker(map[string][]string{
-	model.RecipeAccessField_PermissionLevel: {RecipeAccessFields_PermissionLevel},
-	model.RecipeAccessField_State:           {RecipeAccessFields_State},
-})
-var RecipeAccessSQLConverter = filter.NewSQLConverter(map[string]string{
-	model.RecipeAccessField_PermissionLevel: RecipeAccessFields_PermissionLevel,
-	model.RecipeAccessField_State:           RecipeAccessFields_State,
-	model.RecipeAccessField_Requester:       RecipeAccessFields_RecipientUserId,
-	model.RecipeAccessField_Recipient:       RecipeAccessFields_RecipientCircleId,
+
+var RecipeAccessSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
+	model.RecipeAccessField_PermissionLevel: {Name: RecipeAccessFields_PermissionLevel, Table: RecipeAccessTable},
+	model.RecipeAccessField_State:           {Name: RecipeAccessFields_State, Table: RecipeAccessTable},
+	model.RecipeAccessField_Requester:       {Name: RecipeAccessFields_RecipientUserId, Table: RecipeAccessTable},
+	model.RecipeAccessField_Recipient:       {Name: RecipeAccessFields_RecipientCircleId, Table: RecipeAccessTable},
 }, true)
 
 // RecipeAccess -
@@ -68,5 +69,5 @@ type RecipeAccess struct {
 
 // TableName -
 func (RecipeAccess) TableName() string {
-	return "recipe_access"
+	return RecipeAccessTable
 }

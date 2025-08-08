@@ -7,22 +7,22 @@ import (
 )
 
 func newTestConverter() *SQLConverter {
-	fieldMapping := map[string]string{
-		"user.profile.name":         "user_profile_name",
-		"user.profile.email":        "user_profile_email",
-		"user.profile.created_at":   "user_profile_created_at",
-		"user.profile.hex_value":    "user_profile_hex_value",
-		"user.profile.is_active":    "user_profile_is_active",
-		"user.profile.score":        "user_profile_score",
-		"user.profile.age":          "user_profile_age",
-		"user.profile.address.city": "user_profile_address_city",
-		"name":                      "user_name",
-		"age":                       "user_age",
-		"email":                     "user_email",
-		"created_at":                "created_at",
-		"is_active":                 "is_active",
-		"score":                     "user_score",
-		"hex_value":                 "hex_value",
+	fieldMapping := map[string]Field{
+		"user.profile.name":         Field{Name: "user_profile_name"},
+		"user.profile.email":        Field{Name: "user_profile_email"},
+		"user.profile.created_at":   Field{Name: "user_profile_created_at"},
+		"user.profile.hex_value":    Field{Name: "user_profile_hex_value"},
+		"user.profile.is_active":    Field{Name: "user_profile_is_active"},
+		"user.profile.score":        Field{Name: "user_profile_score"},
+		"user.profile.age":          Field{Name: "user_profile_age"},
+		"user.profile.address.city": Field{Name: "user_profile_address_city"},
+		"name":                      Field{Name: "user_name"},
+		"age":                       Field{Name: "user_age"},
+		"email":                     Field{Name: "user_email"},
+		"created_at":                Field{Name: "created_at"},
+		"is_active":                 Field{Name: "is_active"},
+		"score":                     Field{Name: "user_score"},
+		"hex_value":                 Field{Name: "hex_value"},
 	}
 	return NewSQLConverter(fieldMapping)
 }

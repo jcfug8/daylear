@@ -15,7 +15,6 @@ type userClient interface {
 	UpdateUser(ctx context.Context, authAccount model.AuthAccount, user model.User, fields []string) (model.User, error)
 
 	FindStandardUserUserAccess(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.UserAccess, error)
-	FindDelegatedCircleUserAccess(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.UserAccess, model.CircleAccess, error)
 	FindDelegatedUserUserAccess(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.UserAccess, model.UserAccess, error)
 
 	CreateUserAccess(ctx context.Context, access model.UserAccess, fields []string) (model.UserAccess, error)

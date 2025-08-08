@@ -3,10 +3,10 @@ package gorm
 import (
 	"context"
 	"errors"
-	"slices"
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	dbModel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/core/fieldmask"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/genapi/api/types"
@@ -104,14 +104,14 @@ func (repo *Client) GetCalendarAccess(ctx context.Context, parent cmodel.Calenda
 		Strs("fields", fields).
 		Logger()
 
-	fields = dbModel.CalendarAccessFieldMasker.Convert(fields)
+	dbFields := dbModel.CalendarAccessFieldMasker.Convert(fields)
 
 	var calendarAccess dbModel.CalendarAccess
-	tx := repo.db.WithContext(ctx).Select(fields)
-	if slices.Contains(fields, dbModel.UserColumn_Username) || slices.Contains(fields, dbModel.UserColumn_GivenName) || slices.Contains(fields, dbModel.UserColumn_FamilyName) {
+	tx := repo.db.WithContext(ctx).Select(dbFields)
+	if fieldmask.ContainsAny(dbFields, dbModel.UserColumn_Username, dbModel.UserColumn_GivenName, dbModel.UserColumn_FamilyName) {
 		tx = tx.Joins(`LEFT JOIN daylear_user ON calendar_access.recipient_user_id = daylear_user.user_id`)
 	}
-	if slices.Contains(fields, dbModel.CircleColumn_Title) || slices.Contains(fields, dbModel.CircleColumn_Handle) {
+	if fieldmask.ContainsAny(dbFields, dbModel.CircleColumn_Title, dbModel.CircleColumn_Handle) {
 		tx = tx.Joins(`LEFT JOIN circle ON calendar_access.recipient_circle_id = circle.circle_id`)
 	}
 
@@ -143,7 +143,7 @@ func (repo *Client) ListCalendarAccesses(ctx context.Context, authAccount cmodel
 		return nil, repository.ErrInvalidArgument{Msg: "user id or circle id is required"}
 	}
 
-	fields = dbModel.CalendarAccessFieldMasker.Convert(fields)
+	dbFields := dbModel.CalendarAccessFieldMasker.Convert(fields)
 
 	orders := []clause.OrderByColumn{{
 		Column: clause.Column{Name: "calendar_access.calendar_access_id"},
@@ -153,15 +153,15 @@ func (repo *Client) ListCalendarAccesses(ctx context.Context, authAccount cmodel
 	var calendarAccesses []dbModel.CalendarAccess
 	// Start building the query
 	tx := repo.db.WithContext(ctx).
-		Select(fields).
+		Select(dbFields).
 		Order(clause.OrderBy{Columns: orders}).
 		Limit(int(pageSize)).
 		Offset(int(pageOffset))
 
-	if slices.Contains(fields, dbModel.UserColumn_Username) || slices.Contains(fields, dbModel.UserColumn_GivenName) || slices.Contains(fields, dbModel.UserColumn_FamilyName) {
+	if fieldmask.ContainsAny(dbFields, dbModel.UserColumn_Username, dbModel.UserColumn_GivenName, dbModel.UserColumn_FamilyName) {
 		tx = tx.Joins(`LEFT JOIN daylear_user ON calendar_access.recipient_user_id = daylear_user.user_id`)
 	}
-	if slices.Contains(fields, dbModel.CircleColumn_Title) || slices.Contains(fields, dbModel.CircleColumn_Handle) {
+	if fieldmask.ContainsAny(dbFields, dbModel.CircleColumn_Title, dbModel.CircleColumn_Handle) {
 		tx = tx.Joins(`LEFT JOIN circle ON calendar_access.recipient_circle_id = circle.circle_id`)
 	}
 
@@ -216,7 +216,7 @@ func (repo *Client) UpdateCalendarAccess(ctx context.Context, access cmodel.Cale
 	dbAccess := convert.CalendarAccessToGorm(access)
 
 	res := repo.db.WithContext(ctx).
-		Select(dbModel.UpdateCalendarAccessFieldMasker.Convert(fields)).
+		Select(dbModel.CalendarAccessFieldMasker.Convert(fields, fieldmask.OnlyUpdatable())).
 		Clauses(&clause.Returning{}).
 		Where("calendar_access_id = ?", access.CalendarAccessId.CalendarAccessId).
 		Updates(&dbAccess)

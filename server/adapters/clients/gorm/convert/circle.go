@@ -36,6 +36,7 @@ func CircleToCoreModel(g gmodel.Circle) (cmodel.Circle, error) {
 			CircleAccessId:     cmodel.CircleAccessId{CircleAccessId: g.CircleAccessId},
 			PermissionLevel:    g.PermissionLevel,
 			State:              g.State,
+			AcceptTarget:       g.AcceptTarget,
 		},
 	}, nil
 }

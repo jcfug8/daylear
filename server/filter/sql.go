@@ -26,12 +26,25 @@ const (
 // SQLConverter converts AIP-160 filter expressions to SQL WHERE clauses
 type SQLConverter struct {
 	// FieldMapping maps AIP field names to SQL column names
-	FieldMapping    map[string]string
+	FieldMapping    map[string]Field
 	UseQuestionMark bool // if true, use ? placeholders (GORM style); else use $1, $2... (Postgres style)
 }
 
+type Field struct {
+	Name  string
+	Table string
+}
+
+func (f Field) String() string {
+	name := f.Name
+	if f.Table != "" {
+		name = f.Table + "." + name
+	}
+	return name
+}
+
 type Conversion struct {
-	FieldMapping    map[string]string
+	FieldMapping    map[string]Field
 	WhereClause     string
 	Params          []interface{}
 	UsedColumns     map[string]int
@@ -39,7 +52,7 @@ type Conversion struct {
 }
 
 // NewSQLConverter creates a new SQLConverter with the given field mapping and optional useQuestionMark flag
-func NewSQLConverter(fieldMapping map[string]string, useQuestionMark ...bool) *SQLConverter {
+func NewSQLConverter(fieldMapping map[string]Field, useQuestionMark ...bool) *SQLConverter {
 	useQM := false
 	if len(useQuestionMark) > 0 {
 		useQM = useQuestionMark[0]
@@ -371,11 +384,11 @@ func (c *Conversion) useField(field string) (string, error) {
 		return "", fmt.Errorf("field not found in field mapping: %s", field)
 	}
 
-	if _, ok := c.UsedColumns[sqlField]; !ok {
-		c.UsedColumns[sqlField] = 0
+	if _, ok := c.UsedColumns[sqlField.String()]; !ok {
+		c.UsedColumns[sqlField.String()] = 0
 	}
-	c.UsedColumns[sqlField]++
-	return sqlField, nil
+	c.UsedColumns[sqlField.String()]++
+	return sqlField.String(), nil
 }
 
 func (c *Conversion) convertFieldCallExpr(call *expr.Expr_Call) (string, error) {
