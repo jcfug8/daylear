@@ -19,12 +19,6 @@ func (d *Domain) CreateCircleAccess(ctx context.Context, authAccount model.AuthA
 		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "circle id required"}
 	}
 
-	// verify recipient is set
-	if access.Recipient.UserId == 0 {
-		log.Warn().Msg("recipient is required when creating a circle access")
-		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "recipient is required"}
-	}
-
 	determinedCircleAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, access)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine circle access ownership details when creating a circle access")
@@ -173,7 +167,13 @@ func (d *Domain) UpdateCircleAccess(ctx context.Context, authAccount model.AuthA
 		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "access id is required"}
 	}
 
-	determinedCircleAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, access)
+	dbAccess, err := d.repo.GetCircleAccess(ctx, access.CircleAccessParent, access.CircleAccessId, nil)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to get circle access")
+		return model.CircleAccess{}, err
+	}
+
+	determinedCircleAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, dbAccess)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine circle access ownership details when updating a circle access")
 		return model.CircleAccess{}, domain.ErrInternal{Msg: "unable to determine circle access ownership details"}

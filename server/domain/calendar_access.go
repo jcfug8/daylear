@@ -68,41 +68,13 @@ func (d *Domain) DeleteCalendarAccess(ctx context.Context, authAccount model.Aut
 		return domain.ErrInternal{Msg: "unable to get calendar access"}
 	}
 
-	isRecipientOwner := false
-	isResourceOwner := false
-
-	if dbAccess.Recipient.CircleId != 0 {
-		determinedCircleAccess, err := d.determineCircleAccess(
-			ctx, authAccount, model.CircleId{CircleId: dbAccess.Recipient.CircleId},
-			withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC),
-		)
-		if err != nil {
-			log.Error().Err(err).Msg("unable to determine circle access when deleting a calendar access")
-			return err
-		}
-		isRecipientOwner = determinedCircleAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_WRITE
-	} else if dbAccess.Recipient.UserId != 0 {
-		determinedUserAccess, err := d.determineUserAccess(
-			ctx, authAccount, model.UserId{UserId: dbAccess.Recipient.UserId},
-			withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC),
-		)
-		if err != nil {
-			log.Error().Err(err).Msg("unable to determine user access when deleting a calendar access")
-			return err
-		}
-		isRecipientOwner = determinedUserAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-	}
-	determinedCalendarAccess, err := d.determineCalendarAccess(
-		ctx, authAccount, model.CalendarId{CalendarId: parent.CalendarId},
-		withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC),
-	)
+	determinedCalendarAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, dbAccess)
 	if err != nil {
-		log.Error().Err(err).Msg("unable to determine calendar access when deleting a calendar access")
-		return err
+		log.Error().Err(err).Msg("unable to determine calendar access ownership details when deleting a calendar access")
+		return domain.ErrInternal{Msg: "unable to determine calendar access ownership details"}
 	}
-	isResourceOwner = determinedCalendarAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_WRITE
 
-	if !isRecipientOwner && !isResourceOwner {
+	if !determinedCalendarAccessOwnershipDetails.isRecipientOwner && !determinedCalendarAccessOwnershipDetails.isResourceOwner {
 		log.Warn().Msg("access denied when deleting a calendar access")
 		return domain.ErrPermissionDenied{Msg: "access denied"}
 	}
@@ -137,33 +109,15 @@ func (d *Domain) GetCalendarAccess(ctx context.Context, authAccount model.AuthAc
 		return model.CalendarAccess{}, domain.ErrInternal{Msg: "unable to get calendar access"}
 	}
 
-	if dbAccess.Recipient.CircleId != 0 {
-		_, err = d.determineCircleAccess(
-			ctx, authAccount, model.CircleId{CircleId: dbAccess.Recipient.CircleId},
-			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE),
-		)
-		if err != nil {
-			log.Error().Err(err).Msg("unable to determine circle access when getting a calendar access")
-			return model.CalendarAccess{}, err
-		}
-	} else if dbAccess.Recipient.UserId != 0 {
-		_, err = d.determineUserAccess(
-			ctx, authAccount, model.UserId{UserId: dbAccess.Recipient.UserId},
-			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN),
-		)
-		if err != nil {
-			log.Error().Err(err).Msg("unable to determine user access when getting a calendar access")
-			return model.CalendarAccess{}, err
-		}
-	} else {
-		_, err := d.determineCalendarAccess(
-			ctx, authAccount, model.CalendarId{CalendarId: parent.CalendarId},
-			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE),
-		)
-		if err != nil {
-			log.Error().Err(err).Msg("unable to determine calendar access when getting a calendar access")
-			return model.CalendarAccess{}, err
-		}
+	determinedCalendarAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, dbAccess)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine calendar access ownership details when getting a calendar access")
+		return model.CalendarAccess{}, domain.ErrInternal{Msg: "unable to determine calendar access ownership details"}
+	}
+
+	if !determinedCalendarAccessOwnershipDetails.isRecipientOwner && !determinedCalendarAccessOwnershipDetails.isResourceOwner {
+		log.Warn().Msg("access denied when getting a calendar access")
+		return model.CalendarAccess{}, domain.ErrPermissionDenied{Msg: "access denied"}
 	}
 
 	return dbAccess, nil
@@ -218,16 +172,24 @@ func (d *Domain) UpdateCalendarAccess(ctx context.Context, authAccount model.Aut
 		return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "access id is required"}
 	}
 
-	determinedCalendarAccess, err := d.determineCalendarAccess(
-		ctx, authAccount, model.CalendarId{CalendarId: access.CalendarAccessParent.CalendarId},
-		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE),
-	)
+	dbAccess, err := d.repo.GetCalendarAccess(ctx, access.CalendarAccessParent, access.CalendarAccessId, nil)
 	if err != nil {
-		log.Error().Err(err).Msg("unable to determine calendar access when getting a calendar access")
+		log.Error().Err(err).Msg("unable to get calendar access")
 		return model.CalendarAccess{}, err
 	}
 
-	if slices.Contains(fields, model.CalendarAccessField_PermissionLevel) && determinedCalendarAccess.PermissionLevel < access.PermissionLevel {
+	determinedCalendarAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, dbAccess)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine calendar access ownership details when updating a calendar access")
+		return model.CalendarAccess{}, domain.ErrInternal{Msg: "unable to determine calendar access ownership details"}
+	}
+
+	if !determinedCalendarAccessOwnershipDetails.isRecipientOwner && !determinedCalendarAccessOwnershipDetails.isResourceOwner {
+		log.Warn().Msg("access denied when updating a calendar access")
+		return model.CalendarAccess{}, domain.ErrPermissionDenied{Msg: "access denied"}
+	}
+
+	if slices.Contains(fields, model.CalendarAccessField_PermissionLevel) && determinedCalendarAccessOwnershipDetails.maximumPermissionLevel < access.PermissionLevel {
 		log.Warn().Msg("cannot update calendar access permission level to a higher level than your own")
 		return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "cannot update calendar access permission level to a higher level than your own"}
 	}
@@ -270,41 +232,21 @@ func (d *Domain) AcceptCalendarAccess(ctx context.Context, authAccount model.Aut
 		return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "access must be in pending state to be accepted"}
 	}
 
-	switch access.AcceptTarget {
-	case types.AcceptTarget_ACCEPT_TARGET_RESOURCE:
-		_, err = d.determineCalendarAccess(
-			ctx, authAccount, model.CalendarId{CalendarId: parent.CalendarId},
-			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE),
-		)
-		if err != nil {
-			log.Error().Err(err).Msg("unable to determine calendar access when accepting calendar access")
-			return model.CalendarAccess{}, err
-		}
-	case types.AcceptTarget_ACCEPT_TARGET_RECIPIENT:
-		if access.Recipient.CircleId != 0 {
-			_, err = d.determineCircleAccess(
-				ctx, authAccount, model.CircleId{CircleId: access.Recipient.CircleId},
-				withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE),
-			)
-			if err != nil {
-				log.Error().Err(err).Msg("unable to determine circle access when accepting calendar access")
-				return model.CalendarAccess{}, err
-			}
-		} else if access.Recipient.UserId != 0 {
-			_, err = d.determineUserAccess(
-				ctx, authAccount, model.UserId{UserId: access.Recipient.UserId},
-				withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN),
-			)
-			if err != nil {
-				log.Error().Err(err).Msg("unable to determine user access when accepting calendar access")
-				return model.CalendarAccess{}, err
-			}
-		} else {
-			return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "invalid recipient"}
-		}
-	default:
-		log.Warn().Msg("invalid accept target when accepting a calendar access")
-		return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "invalid accept target"}
+	determinedCalendarAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, access)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine calendar access ownership details when accepting a calendar access")
+		return model.CalendarAccess{}, domain.ErrInternal{Msg: "unable to determine calendar access ownership details"}
+	}
+
+	if determinedCalendarAccessOwnershipDetails.acceptTarget == types.AcceptTarget_ACCEPT_TARGET_RESOURCE && !determinedCalendarAccessOwnershipDetails.isResourceOwner {
+		log.Warn().Msg("must be resource owner to accept resourse targeted calendar access")
+		return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "must be resource owner to accept resourse targeted calendar access"}
+	} else if determinedCalendarAccessOwnershipDetails.acceptTarget == types.AcceptTarget_ACCEPT_TARGET_RECIPIENT && !determinedCalendarAccessOwnershipDetails.isRecipientOwner {
+		log.Warn().Msg("must be recipient owner to accept recipient targeted calendar access")
+		return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "must be recipient owner to accept recipient targeted calendar access"}
+	} else if determinedCalendarAccessOwnershipDetails.acceptTarget == types.AcceptTarget_ACCEPT_TARGET_UNSPECIFIED {
+		log.Warn().Msg("unspecified accept target when accepting a calendar access")
+		return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "unspecified accept target"}
 	}
 
 	// update the access state to accepted

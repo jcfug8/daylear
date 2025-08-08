@@ -87,6 +87,7 @@ func RecipeToProto(RecipeNamer namer.ReflectNamer, AccessNamer namer.ReflectName
 				Name:            name,
 				PermissionLevel: recipe.RecipeAccess.PermissionLevel,
 				State:           recipe.RecipeAccess.State,
+				AcceptTarget:    recipe.RecipeAccess.AcceptTarget,
 			}
 		}
 	}

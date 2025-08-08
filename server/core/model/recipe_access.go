@@ -11,6 +11,7 @@ const (
 	RecipeAccessField_Id              = "id"
 	RecipeAccessField_PermissionLevel = "permission_level"
 	RecipeAccessField_State           = "state"
+	RecipeAccessField_AcceptTarget    = "accept_target"
 	RecipeAccessField_Requester       = "requester"
 	RecipeAccessField_Recipient       = "recipient"
 )

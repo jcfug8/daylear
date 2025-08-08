@@ -246,11 +246,17 @@
         <v-icon>mdi-pencil</v-icon>
         Edit
       </v-btn>
+      <v-btn density="compact" v-if="!hasReadPermission(recipe.recipeAccess?.permissionLevel) && !recipe.recipeAccess" color="primary" @click="handleRequestAccess" :loading="requestingAccess">
+        <v-icon>mdi-account-plus</v-icon>Request Access
+      </v-btn>
       <v-btn v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel) && recipe.visibility !== 'VISIBILITY_LEVEL_HIDDEN'" color="primary" density="compact" @click="showShareDialog = true">
         <v-icon>mdi-share-variant</v-icon>
         Manage Access
       </v-btn>
-      <v-btn v-if="hasReadPermission(recipe.recipeAccess?.permissionLevel)" color="warning" density="compact" @click="showRemoveAccessDialog = true">
+      <v-btn density="compact" v-if="recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING' && recipe.recipeAccess?.acceptTarget !== 'ACCEPT_TARGET_RECIPIENT'" color="warning" @click="showCancelRequestDialog = true">
+          <v-icon>mdi-close</v-icon>Cancel Request
+        </v-btn>
+      <v-btn v-if="!hasAdminPermission(recipe.recipeAccess?.permissionLevel) && recipe.recipeAccess?.state === 'ACCESS_STATE_ACCEPTED'" color="warning" density="compact" @click="showRemoveAccessDialog = true">
         <v-icon>mdi-link-variant-off</v-icon>
         Remove Access
       </v-btn>
@@ -259,27 +265,26 @@
         Delete
       </v-btn>
     </div>
-
-    <v-btn
-      v-if="recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING'"
-      color="success"
-      class="mb-2"
-      block
-      :loading="acceptingRecipe"
-      @click="acceptRecipe"
-    >
-      Accept Recipe
-    </v-btn>
-    <v-btn
-      v-if="recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING'"
-      color="error"
-      class="mb-4"
-      block
-      :loading="decliningRecipe"
-      @click="declineRecipe"
-    >
-      Decline
-    </v-btn>
+    <template v-if="recipe.recipeAccess?.acceptTarget === 'ACCEPT_TARGET_RECIPIENT' && recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING'">
+      <v-btn
+        color="success"
+        class="mb-2"
+        block
+        :loading="acceptingRecipe"
+        @click="acceptRecipe(recipe.recipeAccess?.name)"
+      >
+        Accept Recipe
+      </v-btn>
+      <v-btn
+        color="error"
+        class="mb-4"
+        block
+        :loading="decliningRecipe"
+        @click="declineRecipe"
+      >
+        Decline
+      </v-btn>
+    </template>
 
     <!-- Share Dialog -->
     <ShareDialog
@@ -293,8 +298,9 @@
       :allowPermissionOptions="allowPermissionOptions"
       @share-user="shareWithUser"
       @share-circle="shareWithCircle"
-      @remove-share="unshareCircle"
+      @remove-access="unshareRecipe"
       @permission-change="updatePermission"
+      @approve-access="acceptRecipeFromShareDialog"
     />
   </div>
   <!-- Remove Access Dialog -->
@@ -339,7 +345,28 @@
         </v-btn>
       </v-card-actions>
     </v-card>
+
   </v-dialog>
+  <!-- Cancel Request Dialog -->
+  <v-dialog v-model="showCancelRequestDialog" max-width="500">
+  <v-card>
+    <v-card-title class="text-h5">
+      Cancel Access Request
+    </v-card-title>
+    <v-card-text>
+      Are you sure you want to cancel your access request to this recipe?
+    </v-card-text>
+    <v-card-actions>
+      <v-spacer></v-spacer>
+      <v-btn color="grey" variant="text" @click="showCancelRequestDialog = false">
+        Cancel
+      </v-btn>
+      <v-btn color="error" @click="handleCancelRequest" :loading="cancelingRequest">
+        Cancel Request
+      </v-btn>
+    </v-card-actions>
+  </v-card>
+</v-dialog>
 
   <!-- Add modal for generated image -->
   <v-dialog v-model="showGeneratedImageModal" max-width="600">
@@ -650,6 +677,31 @@ async function handleRemoveAccess() {
   }
 }
 
+// *** Cancel Request ***
+
+const showCancelRequestDialog = ref(false)
+const cancelingRequest = ref(false)
+
+async function handleCancelRequest() {
+  if (!recipe.value?.recipeAccess?.name) return
+
+  cancelingRequest.value = true
+  try {
+    const deleteRequest: DeleteAccessRequest = {
+      name: recipe.value.recipeAccess.name
+    }
+    
+    await recipeAccessService.DeleteAccess(deleteRequest)
+    await recipesStore.loadRecipe(recipe.value.name!)
+    alertsStore.addAlert('Access request cancelled.', 'info')
+  } catch (error) {
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
+  } finally {
+    cancelingRequest.value = false
+    showCancelRequestDialog.value = false
+  }
+}
+
 // *** Delete Recipe ***
 
 const showDeleteDialog = ref(false)
@@ -677,11 +729,19 @@ async function handleDelete() {
 const acceptingRecipe = ref(false)
 const decliningRecipe = ref(false)
 
-async function acceptRecipe() {
+async function acceptRecipeFromShareDialog(recipeAccessName: string | undefined) {
+  if (!recipe.value?.recipeAccess?.name) return
+  if (!recipeAccessName) return
+  await acceptRecipe(recipeAccessName)
+  await fetchRecipeRecipients()
+}
+
+async function acceptRecipe(recipeAccessName: string | undefined) {
   if (!recipe.value?.recipeAccess?.name || !authStore.user?.name) return
+  if (!recipeAccessName) return
   acceptingRecipe.value = true
   try {
-    await recipesStore.acceptRecipe(recipe.value.recipeAccess.name)
+    await recipesStore.acceptRecipe(recipeAccessName)
     recipesStore.loadRecipe(recipe.value?.name ?? '')
   } catch (error) {
     // Optionally show a notification
@@ -898,6 +958,7 @@ async function fetchRecipeRecipients() {
         state: access.state || 'ACCESS_STATE_PENDING',
         recipient: access.recipient,
         requester: access.requester || undefined,
+        acceptTarget: access.acceptTarget || 'ACCEPT_TARGET_UNSPECIFIED',
       }))
     }
   } catch (error) {
@@ -917,6 +978,7 @@ async function updatePermission({ access, newLevel }: { access: Access, newLevel
         state: undefined,
         recipient: undefined,
         requester: undefined,
+        acceptTarget: undefined,
       },
       updateMask: 'level',
     })
@@ -929,7 +991,7 @@ async function updatePermission({ access, newLevel }: { access: Access, newLevel
   }
 }
 
-async function unshareCircle(accessName: string) {
+async function unshareRecipe(accessName: string) {
   unsharing.value[accessName] = true
   try {
     const request: DeleteAccessRequest = {
@@ -964,6 +1026,7 @@ async function shareWithUser({ userName, permission }: { userName: string, permi
       name: undefined, // Will be set by the server
       requester: undefined, // Will be set by the server
       state: undefined, // Will be set by the server
+      acceptTarget: undefined, // Will be set by the server
     }
 
     const request: CreateAccessRequest = {
@@ -999,6 +1062,7 @@ async function shareWithCircle({ circleName, permission }: { circleName: string,
       name: undefined, // Will be set by the server
       requester: undefined, // Will be set by the server
       state: undefined, // Will be set by the server
+      acceptTarget: undefined, // Will be set by the server
     }
 
     const request: CreateAccessRequest = {
@@ -1013,6 +1077,46 @@ async function shareWithCircle({ circleName, permission }: { circleName: string,
     // You might want to show an error notification here
   } finally {
     sharing.value = false
+  }
+}
+
+const requestingAccess = ref(false)
+
+
+async function handleRequestAccess() {
+  if (!recipe.value?.name) return
+  if (!authStore.user?.name) return
+  
+  requestingAccess.value = true
+  try {
+    const access: Access = {
+       recipient: {
+        user: {
+          name: authStore.user?.name,
+          username: undefined,
+          givenName: undefined,
+          familyName: undefined,
+        }
+      },
+      level: 'PERMISSION_LEVEL_READ',
+      name: undefined, // Will be set by the server
+      requester: undefined, // Will be set by the server
+      state: undefined, // Will be set by the server
+      acceptTarget: undefined, // Will be set by the server
+    }
+
+    const request: CreateAccessRequest = {
+      parent: recipe.value.name,
+      access
+    }
+
+    await recipeAccessService.CreateAccess(request)
+    await recipesStore.loadRecipe(recipe.value.name)
+    alertsStore.addAlert('Access request sent.', 'info')
+  } catch (error) {
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
+  } finally {
+    requestingAccess.value = false
   }
 }
 

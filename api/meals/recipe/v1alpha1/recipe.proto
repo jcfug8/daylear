@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package api.meals.recipe.v1alpha1;
 
+import "api/types/accept_target.proto";
 import "api/types/access_state.proto";
 import "api/types/permission_level.proto";
 import "api/types/visibility_level.proto";
@@ -268,6 +269,9 @@ message Recipe {
 
     // the access state of the user to the recipe
     api.types.AccessState state = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the accept target of the recipe
+    api.types.AcceptTarget accept_target = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
   }
 }
 

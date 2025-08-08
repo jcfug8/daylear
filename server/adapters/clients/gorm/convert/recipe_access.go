@@ -14,6 +14,7 @@ func CoreRecipeAccessToRecipeAccess(access coreModel.RecipeAccess) dbModel.Recip
 		RecipientCircleId: access.Recipient.CircleId,
 		PermissionLevel:   access.PermissionLevel,
 		State:             access.State,
+		AcceptTarget:      access.AcceptTarget,
 	}
 }
 
@@ -39,5 +40,6 @@ func RecipeAccessToCoreRecipeAccess(dbAccess dbModel.RecipeAccess) coreModel.Rec
 		RecipientFamilyName:   dbAccess.RecipientFamilyName,
 		RecipientCircleTitle:  dbAccess.RecipientCircleTitle,
 		RecipientCircleHandle: dbAccess.RecipientCircleHandle,
+		AcceptTarget:          dbAccess.AcceptTarget,
 	}
 }

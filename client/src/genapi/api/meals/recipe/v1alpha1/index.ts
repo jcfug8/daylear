@@ -190,6 +190,10 @@ export type Recipe_RecipeAccess = {
   //
   // Behaviors: OUTPUT_ONLY
   state: apitypes_AccessState | undefined;
+  // the accept target of the recipe
+  //
+  // Behaviors: OUTPUT_ONLY
+  acceptTarget: apitypes_AcceptTarget | undefined;
 };
 
 // the permission levels
@@ -212,6 +216,14 @@ export type apitypes_AccessState =
   | "ACCESS_STATE_PENDING"
   // The access is accepted and can be deleted.
   | "ACCESS_STATE_ACCEPTED";
+// The target of the accept action, or who can accept the access request
+export type apitypes_AcceptTarget =
+  // Acceptance not required or not applicable
+  | "ACCEPT_TARGET_UNSPECIFIED"
+  // The recipient or someone with correct access to the recipient can accept the access request
+  | "ACCEPT_TARGET_RECIPIENT"
+  // The resource owner or someone with correct access to the resource can accept the access request
+  | "ACCEPT_TARGET_RESOURCE";
 // Generated output always contains 0, 3, 6, or 9 fractional digits,
 // depending on required precision, followed by the suffix "s".
 // Accepted are any fractional digits (also none) as long as they fit
@@ -521,6 +533,10 @@ export type Access = {
   //
   // Behaviors: OUTPUT_ONLY
   state: apitypes_AccessState | undefined;
+  // the accept target of the access
+  //
+  // Behaviors: OUTPUT_ONLY
+  acceptTarget: apitypes_AcceptTarget | undefined;
 };
 
 // the requester or recipient of the access

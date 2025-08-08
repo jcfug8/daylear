@@ -20,6 +20,7 @@ const (
 	RecipeAccessFields_RecipientCircleId = "recipient_circle_id"
 	RecipeAccessFields_PermissionLevel   = "permission_level"
 	RecipeAccessFields_State             = "state"
+	RecipeAccessFields_AcceptTarget      = "accept_target"
 )
 
 var RecipeAccessFieldMasker = fieldmask.NewSQLFieldMasker(RecipeAccess{}, map[string][]fieldmask.Field{
@@ -27,6 +28,7 @@ var RecipeAccessFieldMasker = fieldmask.NewSQLFieldMasker(RecipeAccess{}, map[st
 	model.RecipeAccessField_Id:              {{Name: RecipeAccessFields_RecipeAccessId, Table: RecipeAccessTable}},
 	model.RecipeAccessField_PermissionLevel: {{Name: RecipeAccessFields_PermissionLevel, Table: RecipeAccessTable, Updatable: true}},
 	model.RecipeAccessField_State:           {{Name: RecipeAccessFields_State, Table: RecipeAccessTable, Updatable: true}},
+	model.RecipeAccessField_AcceptTarget:    {{Name: RecipeAccessFields_AcceptTarget, Table: RecipeAccessTable, Updatable: true}},
 	model.RecipeAccessField_Requester: {
 		{Name: RecipeAccessFields_RequesterUserId, Table: RecipeAccessTable},
 		{Name: RecipeAccessFields_RequesterCircleId, Table: RecipeAccessTable},
@@ -59,6 +61,7 @@ type RecipeAccess struct {
 	RecipientCircleId int64                 `gorm:"index;uniqueIndex:idx_recipe_id_recipient_circle_id,where:recipient_circle_id <> null"`
 	PermissionLevel   types.PermissionLevel `gorm:"not null"`
 	State             types.AccessState     `gorm:"not null"`
+	AcceptTarget      types.AcceptTarget    `gorm:"not null;default:0"`
 
 	RecipientUsername     string `gorm:"->;-:migration"` // read only from join
 	RecipientGivenName    string `gorm:"->;-:migration"` // read only from join

@@ -19,11 +19,12 @@ var (
 )
 
 var recipeAccessFieldMap = map[string][]string{
-	"name":      {model.RecipeAccessField_Parent, model.RecipeAccessField_Id},
-	"level":     {model.RecipeAccessField_PermissionLevel},
-	"state":     {model.RecipeAccessField_State},
-	"requester": {model.RecipeAccessField_Requester},
-	"recipient": {model.RecipeAccessField_Recipient},
+	"name":          {model.RecipeAccessField_Parent, model.RecipeAccessField_Id},
+	"level":         {model.RecipeAccessField_PermissionLevel},
+	"state":         {model.RecipeAccessField_State},
+	"accept_target": {model.RecipeAccessField_AcceptTarget},
+	"requester":     {model.RecipeAccessField_Requester},
+	"recipient":     {model.RecipeAccessField_Recipient},
 }
 
 func (s *RecipeService) CreateAccess(ctx context.Context, request *pb.CreateAccessRequest) (*pb.Access, error) {
@@ -284,6 +285,7 @@ func (s *RecipeService) ProtoToRecipeAccess(pbAccess *pb.Access) (model.RecipeAc
 	modelAccess := model.RecipeAccess{
 		PermissionLevel: pbAccess.GetLevel(),
 		State:           pbAccess.GetState(),
+		AcceptTarget:    pbAccess.GetAcceptTarget(),
 	}
 
 	if pbAccess.GetName() != "" {
@@ -336,8 +338,9 @@ func (s *RecipeService) ProtoToRecipeAccess(pbAccess *pb.Access) (model.RecipeAc
 
 func (s *RecipeService) RecipeAccessToProto(modelAccess model.RecipeAccess) (*pb.Access, error) {
 	pbAccess := &pb.Access{
-		Level: modelAccess.PermissionLevel,
-		State: modelAccess.State,
+		Level:        modelAccess.PermissionLevel,
+		State:        modelAccess.State,
+		AcceptTarget: modelAccess.AcceptTarget,
 	}
 
 	if modelAccess.RecipeId.RecipeId != 0 && modelAccess.RecipeAccessId.RecipeAccessId != 0 {

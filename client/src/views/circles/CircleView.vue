@@ -99,7 +99,7 @@
           <v-btn density="compact" v-if="!hasReadPermission(circle.circleAccess?.permissionLevel) && !circle.circleAccess" color="primary" @click="handleRequestAccess" :loading="requestingAccess">
             <v-icon>mdi-account-plus</v-icon>Request Access
           </v-btn>
-          <v-btn density="compact" v-if="circle.circleAccess?.state === 'ACCESS_STATE_PENDING'" color="warning" @click="showCancelRequestDialog = true">
+          <v-btn density="compact" v-if="circle.circleAccess?.state === 'ACCESS_STATE_PENDING' && circle.circleAccess?.acceptTarget !== 'ACCEPT_TARGET_RECIPIENT'" color="warning" @click="showCancelRequestDialog = true">
             <v-icon>mdi-close</v-icon>Cancel Request
           </v-btn>
           <v-btn density="compact" v-if="!hasAdminPermission(circle.circleAccess?.permissionLevel) && circle.circleAccess?.state === 'ACCESS_STATE_ACCEPTED'" color="warning" @click="showRemoveAccessDialog = true">

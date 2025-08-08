@@ -1010,7 +1010,9 @@ type Recipe_RecipeAccess struct {
 	// the permission of the recipe
 	PermissionLevel types.PermissionLevel `protobuf:"varint,2,opt,name=permission_level,json=permissionLevel,proto3,enum=api.types.PermissionLevel" json:"permission_level,omitempty"`
 	// the access state of the user to the recipe
-	State         types.AccessState `protobuf:"varint,3,opt,name=state,proto3,enum=api.types.AccessState" json:"state,omitempty"`
+	State types.AccessState `protobuf:"varint,3,opt,name=state,proto3,enum=api.types.AccessState" json:"state,omitempty"`
+	// the accept target of the recipe
+	AcceptTarget  types.AcceptTarget `protobuf:"varint,4,opt,name=accept_target,json=acceptTarget,proto3,enum=api.types.AcceptTarget" json:"accept_target,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1066,11 +1068,18 @@ func (x *Recipe_RecipeAccess) GetState() types.AccessState {
 	return types.AccessState(0)
 }
 
+func (x *Recipe_RecipeAccess) GetAcceptTarget() types.AcceptTarget {
+	if x != nil {
+		return x.AcceptTarget
+	}
+	return types.AcceptTarget(0)
+}
+
 var File_api_meals_recipe_v1alpha1_recipe_proto protoreflect.FileDescriptor
 
 const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\n" +
-	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xc1\x13\n" +
+	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1dapi/types/accept_target.proto\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x84\x14\n" +
 	"\x06Recipe\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
@@ -1118,11 +1127,12 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"#MEASUREMENT_CONJUNCTION_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bMEASUREMENT_CONJUNCTION_AND\x10\x01\x12\x1e\n" +
 	"\x1aMEASUREMENT_CONJUNCTION_TO\x10\x02\x12\x1e\n" +
-	"\x1aMEASUREMENT_CONJUNCTION_OR\x10\x03\x1a\xa6\x01\n" +
+	"\x1aMEASUREMENT_CONJUNCTION_OR\x10\x03\x1a\xe9\x01\n" +
 	"\fRecipeAccess\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x03R\x04name\x12J\n" +
 	"\x10permission_level\x18\x02 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x03R\x0fpermissionLevel\x121\n" +
-	"\x05state\x18\x03 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state\"\x9d\x02\n" +
+	"\x05state\x18\x03 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state\x12A\n" +
+	"\raccept_target\x18\x04 \x01(\x0e2\x17.api.types.AcceptTargetB\x03\xe0A\x03R\facceptTarget\"\x9d\x02\n" +
 	"\x0fMeasurementType\x12 \n" +
 	"\x1cMEASUREMENT_TYPE_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bMEASUREMENT_TYPE_TABLESPOON\x10\x01\x12\x1d\n" +
@@ -1220,6 +1230,7 @@ var file_api_meals_recipe_v1alpha1_recipe_proto_goTypes = []any{
 	(*fieldmaskpb.FieldMask)(nil),                 // 18: google.protobuf.FieldMask
 	(types.PermissionLevel)(0),                    // 19: api.types.PermissionLevel
 	(types.AccessState)(0),                        // 20: api.types.AccessState
+	(types.AcceptTarget)(0),                       // 21: api.types.AcceptTarget
 }
 var file_api_meals_recipe_v1alpha1_recipe_proto_depIdxs = []int32{
 	11, // 0: api.meals.recipe.v1alpha1.Recipe.directions:type_name -> api.meals.recipe.v1alpha1.Recipe.Direction
@@ -1242,23 +1253,24 @@ var file_api_meals_recipe_v1alpha1_recipe_proto_depIdxs = []int32{
 	0,  // 17: api.meals.recipe.v1alpha1.Recipe.Ingredient.second_measurement_type:type_name -> api.meals.recipe.v1alpha1.Recipe.MeasurementType
 	19, // 18: api.meals.recipe.v1alpha1.Recipe.RecipeAccess.permission_level:type_name -> api.types.PermissionLevel
 	20, // 19: api.meals.recipe.v1alpha1.Recipe.RecipeAccess.state:type_name -> api.types.AccessState
-	3,  // 20: api.meals.recipe.v1alpha1.RecipeService.CreateRecipe:input_type -> api.meals.recipe.v1alpha1.CreateRecipeRequest
-	4,  // 21: api.meals.recipe.v1alpha1.RecipeService.ListRecipes:input_type -> api.meals.recipe.v1alpha1.ListRecipesRequest
-	6,  // 22: api.meals.recipe.v1alpha1.RecipeService.UpdateRecipe:input_type -> api.meals.recipe.v1alpha1.UpdateRecipeRequest
-	7,  // 23: api.meals.recipe.v1alpha1.RecipeService.DeleteRecipe:input_type -> api.meals.recipe.v1alpha1.DeleteRecipeRequest
-	8,  // 24: api.meals.recipe.v1alpha1.RecipeService.GetRecipe:input_type -> api.meals.recipe.v1alpha1.GetRecipeRequest
-	9,  // 25: api.meals.recipe.v1alpha1.RecipeService.ScrapeRecipe:input_type -> api.meals.recipe.v1alpha1.ScrapeRecipeRequest
-	2,  // 26: api.meals.recipe.v1alpha1.RecipeService.CreateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	5,  // 27: api.meals.recipe.v1alpha1.RecipeService.ListRecipes:output_type -> api.meals.recipe.v1alpha1.ListRecipesResponse
-	2,  // 28: api.meals.recipe.v1alpha1.RecipeService.UpdateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	2,  // 29: api.meals.recipe.v1alpha1.RecipeService.DeleteRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	2,  // 30: api.meals.recipe.v1alpha1.RecipeService.GetRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
-	10, // 31: api.meals.recipe.v1alpha1.RecipeService.ScrapeRecipe:output_type -> api.meals.recipe.v1alpha1.ScrapeRecipeResponse
-	26, // [26:32] is the sub-list for method output_type
-	20, // [20:26] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	21, // 20: api.meals.recipe.v1alpha1.Recipe.RecipeAccess.accept_target:type_name -> api.types.AcceptTarget
+	3,  // 21: api.meals.recipe.v1alpha1.RecipeService.CreateRecipe:input_type -> api.meals.recipe.v1alpha1.CreateRecipeRequest
+	4,  // 22: api.meals.recipe.v1alpha1.RecipeService.ListRecipes:input_type -> api.meals.recipe.v1alpha1.ListRecipesRequest
+	6,  // 23: api.meals.recipe.v1alpha1.RecipeService.UpdateRecipe:input_type -> api.meals.recipe.v1alpha1.UpdateRecipeRequest
+	7,  // 24: api.meals.recipe.v1alpha1.RecipeService.DeleteRecipe:input_type -> api.meals.recipe.v1alpha1.DeleteRecipeRequest
+	8,  // 25: api.meals.recipe.v1alpha1.RecipeService.GetRecipe:input_type -> api.meals.recipe.v1alpha1.GetRecipeRequest
+	9,  // 26: api.meals.recipe.v1alpha1.RecipeService.ScrapeRecipe:input_type -> api.meals.recipe.v1alpha1.ScrapeRecipeRequest
+	2,  // 27: api.meals.recipe.v1alpha1.RecipeService.CreateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	5,  // 28: api.meals.recipe.v1alpha1.RecipeService.ListRecipes:output_type -> api.meals.recipe.v1alpha1.ListRecipesResponse
+	2,  // 29: api.meals.recipe.v1alpha1.RecipeService.UpdateRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	2,  // 30: api.meals.recipe.v1alpha1.RecipeService.DeleteRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	2,  // 31: api.meals.recipe.v1alpha1.RecipeService.GetRecipe:output_type -> api.meals.recipe.v1alpha1.Recipe
+	10, // 32: api.meals.recipe.v1alpha1.RecipeService.ScrapeRecipe:output_type -> api.meals.recipe.v1alpha1.ScrapeRecipeResponse
+	27, // [27:33] is the sub-list for method output_type
+	21, // [21:27] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_api_meals_recipe_v1alpha1_recipe_proto_init() }

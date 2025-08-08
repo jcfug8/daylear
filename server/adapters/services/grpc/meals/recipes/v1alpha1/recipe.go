@@ -38,9 +38,7 @@ var recipeFieldMap = map[string][]string{
 	"create_time":       {model.RecipeField_CreateTime},
 	"update_time":       {model.RecipeField_UpdateTime},
 
-	"recipe_access.name":             {model.RecipeField_RecipeAccess},
-	"recipe_access.permission_level": {model.RecipeAccessField_PermissionLevel},
-	"recipe_access.state":            {model.RecipeAccessField_State},
+	"recipe_access": {model.RecipeField_RecipeAccess},
 }
 
 // CreateRecipe -
