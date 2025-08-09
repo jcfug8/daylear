@@ -39,12 +39,14 @@ import CircleGrid from '@/components/CircleGrid.vue'
 import { circleAccessService } from '@/api/api'
 import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
 import { useAuthStore } from '@/stores/auth'
+import { useAlertStore } from '@/stores/alerts'
 
 const circlesStore = useCirclesStore()
 
 const acceptingCircleId = ref<string | null>(null)
 const tabsPage = ref()
 const authStore = useAuthStore()
+const alertsStore = useAlertStore()
 
 const tabs = [
   {
@@ -83,7 +85,7 @@ async function acceptCircleAccess(circle: Circle) {
     await circleAccessService.AcceptAccess({ name: circle.circleAccess?.name })
     tabsPage.value?.reloadTab('pending')
   } catch (error) {
-    // Optionally show a notification
+    alertsStore.addAlert(`Failed to accept circle access: ${error}`)
   } finally {
     acceptingCircleId.value = null
   }
@@ -96,7 +98,7 @@ async function onDeclineCircle(circle: Circle) {
     // Reload only the pending subtab
     tabsPage.value?.reloadTab('pending')
   } catch (error) {
-    // Optionally show a notification
+    alertsStore.addAlert(`Failed to decline circle access: ${error}`)
   }
 }
 </script>

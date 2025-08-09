@@ -1,9 +1,9 @@
 import { createRecipeServiceClient, createRecipeAccessServiceClient } from '@/genapi/api/meals/recipe/v1alpha1'
 import { createUserServiceClient, createUserAccessServiceClient, createUserSettingsServiceClient } from '@/genapi/api/users/user/v1alpha1'
 import { createCircleServiceClient, createCircleAccessServiceClient } from '@/genapi/api/circles/circle/v1alpha1'
+import { createCalendarServiceClient, createCalendarAccessServiceClient } from '@/genapi/api/calendars/calendar/v1alpha1'
 import { createAuthServiceClient } from './auth'
 import { createFileServiceClient } from './files'
-import { AccountType, useAuthStore } from '@/stores/auth'
 import { API_BASE_URL } from '@/constants/api'
 
 // Type for API spec
@@ -18,7 +18,6 @@ export const authenticatedFetchHandler = function(contentType: string) {
     request: { path: string; method: string; body: T, signal?: AbortSignal, responseType?: string },
     _meta?: { service: string; method: string },
   ) {
-    const authStore = useAuthStore()
 
     const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt')
     const headers: Record<string, string> = {}
@@ -73,3 +72,5 @@ export const authService = createAuthServiceClient(authenticatedFetchHandler('ap
 export const circleService = createCircleServiceClient(authenticatedFetchHandler('application/json'))
 export const circleAccessService = createCircleAccessServiceClient(authenticatedFetchHandler('application/json'))
 export const fileService = createFileServiceClient(authenticatedFetchHandler(''))
+export const calendarService = createCalendarServiceClient(authenticatedFetchHandler('application/json'))
+export const calendarAccessService = createCalendarAccessServiceClient(authenticatedFetchHandler('application/json'))

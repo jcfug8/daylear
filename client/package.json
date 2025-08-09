@@ -14,6 +14,9 @@
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
+    "@schedule-x/calendar": "^2.36.0",
+    "@schedule-x/theme-default": "^2.36.0",
+    "@schedule-x/vue": "^2.34.0",
     "fuse.js": "^7.1.0",
     "pinia": "^3.0.1",
     "swagger-ui-dist": "^5.26.2",

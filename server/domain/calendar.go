@@ -16,6 +16,13 @@ func (d *Domain) CreateCalendar(ctx context.Context, authAccount model.AuthAccou
 		log.Warn().Msg("user id required when creating a calendar")
 		return model.Calendar{}, domain.ErrInvalidArgument{Msg: "user id required"}
 	}
+
+	if calendar.Parent.CircleId != 0 {
+		authAccount.CircleId = calendar.Parent.CircleId
+	} else if calendar.Parent.UserId != 0 {
+		authAccount.UserId = calendar.Parent.UserId
+	}
+
 	calendar.CalendarId.CalendarId = 0
 
 	if calendar.Parent.CircleId != 0 {

@@ -8,7 +8,6 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/model"
-	namer "github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -67,7 +66,7 @@ func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateReci
 		return nil, status.Error(codes.InvalidArgument, "invalid request data")
 	}
 
-	nameIndex, err := s.recipeNamer.ParseParent(request.GetParent(), &mRecipe.Parent)
+	_, err = s.recipeNamer.ParseParent(request.GetParent(), &mRecipe.Parent)
 	if err != nil {
 		log.Warn().Err(err).Msg("invalid parent")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", request.GetParent())
@@ -81,7 +80,7 @@ func (s *RecipeService) CreateRecipe(ctx context.Context, request *pb.CreateReci
 	}
 
 	// convert model to proto
-	pbRecipe, err = convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe, namer.AsPatternIndex(nameIndex))
+	pbRecipe, err = convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -104,7 +103,7 @@ func (s *RecipeService) DeleteRecipe(ctx context.Context, request *pb.DeleteReci
 	}
 
 	mRecipe := model.Recipe{}
-	nameIndex, err := s.recipeNamer.Parse(request.GetName(), &mRecipe)
+	_, err = s.recipeNamer.Parse(request.GetName(), &mRecipe)
 	if err != nil {
 		log.Warn().Err(err).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
@@ -116,7 +115,7 @@ func (s *RecipeService) DeleteRecipe(ctx context.Context, request *pb.DeleteReci
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe, namer.AsPatternIndex(nameIndex))
+	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -137,7 +136,7 @@ func (s *RecipeService) GetRecipe(ctx context.Context, request *pb.GetRecipeRequ
 	}
 
 	mRecipe := model.Recipe{}
-	nameIndex, err := s.recipeNamer.Parse(request.GetName(), &mRecipe)
+	_, err = s.recipeNamer.Parse(request.GetName(), &mRecipe)
 	if err != nil {
 		log.Warn().Err(err).Msg("invalid name")
 		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
@@ -149,7 +148,7 @@ func (s *RecipeService) GetRecipe(ctx context.Context, request *pb.GetRecipeRequ
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe, namer.AsPatternIndex(nameIndex))
+	pbRecipe, err := convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, "unable to prepare response")
@@ -173,7 +172,7 @@ func (s *RecipeService) UpdateRecipe(ctx context.Context, request *pb.UpdateReci
 	updateMask := s.recipeFieldMasker.Convert(fieldMask.GetPaths())
 
 	recipeProto := request.GetRecipe()
-	nameIndex, mRecipe, err := convert.ProtoToRecipe(s.recipeNamer, recipeProto)
+	_, mRecipe, err := convert.ProtoToRecipe(s.recipeNamer, recipeProto)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to convert proto to model")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -185,7 +184,7 @@ func (s *RecipeService) UpdateRecipe(ctx context.Context, request *pb.UpdateReci
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	recipeProto, err = convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe, namer.AsPatternIndex(nameIndex))
+	recipeProto, err = convert.RecipeToProto(s.recipeNamer, s.accessNamer, mRecipe)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to prepare response")
 		return nil, status.Error(codes.Internal, err.Error())

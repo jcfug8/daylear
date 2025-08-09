@@ -218,8 +218,8 @@ func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount,
 		authAccount.CircleId = parent.CircleId
 		dbCircle, err := d.repo.GetCircle(ctx, authAccount, model.CircleId{CircleId: parent.CircleId}, []string{model.CircleField_Visibility})
 		if err != nil {
-			log.Error().Err(err).Msg("unable to get circle when listing calendars")
-			return nil, domain.ErrInternal{Msg: "unable to get circle when listing calendars"}
+			log.Error().Err(err).Msg("unable to get circle when listing recipes")
+			return nil, domain.ErrInternal{Msg: "unable to get circle when listing recipes"}
 		}
 		determinedCircleAccess, err := d.determineCircleAccess(
 			ctx, authAccount, model.CircleId{CircleId: parent.CircleId},
@@ -227,7 +227,7 @@ func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount,
 			withResourceVisibilityLevel(dbCircle.VisibilityLevel),
 		)
 		if err != nil {
-			log.Error().Err(err).Msg("unable to determine access when listing calendars")
+			log.Error().Err(err).Msg("unable to determine access when listing recipes")
 			return nil, err
 		}
 		authAccount.PermissionLevel = determinedCircleAccess.GetPermissionLevel()

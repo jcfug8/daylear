@@ -6,7 +6,6 @@ import type {
   ListRecipesRequest,
   ListRecipesResponse,
   apitypes_VisibilityLevel,
-  apitypes_PermissionLevel,
 } from '@/genapi/api/meals/recipe/v1alpha1'
 import { recipeAccessService } from '@/api/api'
 

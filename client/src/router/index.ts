@@ -102,9 +102,41 @@ const router = createRouter({
       },
     },
     {
-      path: '/calendar',
+      path: '/calendars',
+      name: 'calendars',
+      component: () => import('../views/calendar/CalendarsView.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/calendars/create',
+      name: 'calendarCreate',
+      component: () => import('../views/calendar/CalendarCreateView.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/calendars/:calendarId',
       name: 'calendar',
       component: () => import('../views/calendar/CalendarView.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/calendars/:calendarId/edit',
+      name: 'calendarEdit',
+      component: () => import('../views/calendar/CalendarEditView.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/schedule',
+      name: 'schedule',
+      component: () => import('../views/calendar/ScheduleView.vue'),
       meta: {
         requiresAuth: true,
       },
