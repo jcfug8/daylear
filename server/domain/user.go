@@ -93,7 +93,10 @@ func (d *Domain) UpdateUser(ctx context.Context, authAccount model.AuthAccount, 
 		return model.User{}, domain.ErrInvalidArgument{Msg: "id required"}
 	}
 
-	_, err = d.determineUserAccess(ctx, authAccount, model.UserId{UserId: authAccount.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN))
+	_, err = d.determineUserAccess(
+		ctx, authAccount, model.UserId{UserId: authAccount.UserId},
+		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN),
+	)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine access when updating user")
 		return model.User{}, err
@@ -122,7 +125,11 @@ func (d *Domain) GetUser(ctx context.Context, authAccount model.AuthAccount, par
 		return model.User{}, err
 	}
 
-	dbUser.UserAccess, err = d.determineUserAccess(ctx, authAccount, id, withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC))
+	dbUser.UserAccess, err = d.determineUserAccess(
+		ctx, authAccount, id,
+		withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC),
+		withAllowPendingAccess(),
+	)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine access when getting user")
 		return model.User{}, err

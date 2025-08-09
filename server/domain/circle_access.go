@@ -228,7 +228,10 @@ func (d *Domain) AcceptCircleAccess(ctx context.Context, authAccount model.AuthA
 		return model.CircleAccess{}, domain.ErrInvalidArgument{Msg: "access must be in pending state to be accepted"}
 	}
 
-	determinedCircleAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, access)
+	determinedCircleAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(
+		ctx, authAccount, access,
+		withAllowAutoOmitAccessChecks(),
+	)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine circle access ownership details when accepting a circle access")
 		return model.CircleAccess{}, domain.ErrInternal{Msg: "unable to determine circle access ownership details"}

@@ -11,6 +11,7 @@ const (
 	UserAccessField_Id              = "id"
 	UserAccessField_PermissionLevel = "permission_level"
 	UserAccessField_State           = "state"
+	UserAccessField_AcceptTarget    = "accept_target"
 	UserAccessField_Requester       = "requester"
 	UserAccessField_Recipient       = "recipient"
 )

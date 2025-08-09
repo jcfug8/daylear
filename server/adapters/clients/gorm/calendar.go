@@ -123,18 +123,26 @@ func (repo *Client) ListCalendars(ctx context.Context, authAccount cmodel.AuthAc
 		Offset(int(offset))
 
 	if authAccount.CircleId != 0 {
-		tx = tx.Joins("LEFT JOIN calendar_access ON calendar.calendar_id = calendar_access.calendar_id AND calendar_access.recipient_circle_id = ?", authAccount.CircleId).
-			Joins("LEFT JOIN calendar_access as ca ON calendar.calendar_id = ca.calendar_id AND ca.recipient_user_id = ?", authAccount.AuthUserId).
-			Where("(calendar_access.recipient_circle_id = ? AND (calendar.visibility_level = ? OR ca.state = ?))",
-				authAccount.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.AccessState_ACCESS_STATE_ACCEPTED)
+		maxVisibilityLevel := types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC
+		if authAccount.PermissionLevel > types.PermissionLevel_PERMISSION_LEVEL_PUBLIC {
+			maxVisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_PRIVATE
+		}
+		tx = tx.Joins("LEFT JOIN calendar_access ON calendar.calendar_id = calendar_access.calendar_id AND calendar_access.recipient_circle_id = ? AND (calendar.visibility_level != ? OR calendar_access.permission_level = ?)", authAccount.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Joins("LEFT JOIN calendar_access as ca ON calendar.calendar_id = ca.calendar_id AND ca.recipient_user_id = ? AND (calendar.visibility_level != ? OR ca.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Where("(calendar.visibility_level <= ? OR (calendar_access.recipient_circle_id = ? AND ca.state = ?))",
+				maxVisibilityLevel, authAccount.CircleId, types.AccessState_ACCESS_STATE_ACCEPTED)
 	} else if authAccount.UserId != 0 {
-		tx = tx.Joins("LEFT JOIN calendar_access ON calendar.calendar_id = calendar_access.calendar_id AND calendar_access.recipient_user_id = ?", authAccount.UserId).
-			Joins("LEFT JOIN calendar_access as ca ON calendar.calendar_id = ca.calendar_id AND ca.recipient_user_id = ?", authAccount.AuthUserId).
-			Where("(calendar.visibility_level = ? OR (calendar_access.recipient_user_id = ? AND ca.state = ?))",
-				types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.UserId, types.AccessState_ACCESS_STATE_ACCEPTED)
+		maxVisibilityLevel := types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC
+		if authAccount.PermissionLevel > types.PermissionLevel_PERMISSION_LEVEL_PUBLIC {
+			maxVisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_RESTRICTED
+		}
+		tx = tx.Joins("LEFT JOIN calendar_access ON calendar.calendar_id = calendar_access.calendar_id AND calendar_access.recipient_user_id = ? AND (calendar.visibility_level != ? OR calendar_access.permission_level = ?)", authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Joins("LEFT JOIN calendar_access as ca ON calendar.calendar_id = ca.calendar_id AND ca.recipient_user_id = ? AND (calendar.visibility_level != ? OR ca.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Where("(calendar.visibility_level <= ? OR (calendar_access.recipient_user_id = ? AND ca.state = ?))",
+				maxVisibilityLevel, authAccount.UserId, types.AccessState_ACCESS_STATE_ACCEPTED)
 	} else {
-		tx = tx.Joins("LEFT JOIN calendar_access ON calendar.calendar_id = calendar_access.calendar_id AND calendar_access.recipient_user_id = ?", authAccount.AuthUserId).
-			Where("(calendar.visibility_level = ? OR calendar_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
+		tx = tx.Joins("LEFT JOIN calendar_access ON calendar.calendar_id = calendar_access.calendar_id AND calendar_access.recipient_user_id = ? AND (calendar.visibility_level != ? OR calendar_access.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Where("(calendar.visibility_level <= ? OR calendar_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
 	}
 
 	conversion, err := gmodel.CalendarSQLConverter.Convert(filter)

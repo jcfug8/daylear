@@ -165,8 +165,9 @@ func (d *Domain) GetCircle(ctx context.Context, authAccount model.AuthAccount, p
 
 	dbCircle.CircleAccess, err = d.determineCircleAccess(
 		ctx, authAccount, id,
-		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
 		withResourceVisibilityLevel(dbCircle.VisibilityLevel),
+		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
+		withAllowPendingAccess(),
 	)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine access when getting a circle")
@@ -187,11 +188,16 @@ func (d *Domain) ListCircles(ctx context.Context, authAccount model.AuthAccount,
 
 	if parent.UserId != 0 {
 		authAccount.UserId = parent.UserId
-		_, err = d.determineUserAccess(ctx, authAccount, model.UserId(parent), withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ))
+		determinedUserAccess, err := d.determineUserAccess(
+			ctx, authAccount, model.UserId(parent),
+			withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC),
+			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
+		)
 		if err != nil {
 			log.Error().Err(err).Msg("unable to determine access when listing circles")
 			return nil, err
 		}
+		authAccount.PermissionLevel = determinedUserAccess.GetPermissionLevel()
 	}
 
 	dbCircles, err = d.repo.ListCircles(ctx, authAccount, pageSize, pageOffset, filter, fieldMask)

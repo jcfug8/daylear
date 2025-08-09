@@ -23,6 +23,10 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 		Int64("offset", offset).
 		Logger()
 
+	if authAccount.PermissionLevel < types.PermissionLevel_PERMISSION_LEVEL_PUBLIC {
+		return nil, repository.ErrInvalidArgument{Msg: "invalid permission level"}
+	}
+
 	dbRecipes := []gmodel.Recipe{}
 
 	orders := []clause.OrderByColumn{{
@@ -37,17 +41,25 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 		Offset(int(offset))
 
 	if authAccount.CircleId != 0 {
-		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ?", authAccount.CircleId).
-			Joins("LEFT JOIN recipe_access as ra ON recipe.recipe_id = ra.recipe_id AND ra.recipient_user_id = ?", authAccount.AuthUserId).
-			Where("(recipe_access.recipient_circle_id = ? AND (recipe.visibility_level = ? OR ra.state = ?))",
-				authAccount.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.AccessState_ACCESS_STATE_ACCEPTED)
+		maxVisibilityLevel := types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC
+		if authAccount.PermissionLevel > types.PermissionLevel_PERMISSION_LEVEL_PUBLIC {
+			maxVisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_PRIVATE
+		}
+		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ? AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?)", authAccount.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Joins("LEFT JOIN recipe_access as ra ON recipe.recipe_id = ra.recipe_id AND ra.recipient_user_id = ? AND (recipe.visibility_level != ? OR ra.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Where("(recipe.visibility_level <= ? OR (recipe_access.recipient_circle_id = ? AND ra.state = ?))",
+				maxVisibilityLevel, authAccount.CircleId, types.AccessState_ACCESS_STATE_ACCEPTED)
 	} else if authAccount.UserId != 0 {
-		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.UserId).
-			Joins("LEFT JOIN recipe_access as ra ON recipe.recipe_id = ra.recipe_id AND ra.recipient_user_id = ?", authAccount.AuthUserId).
-			Where("(recipe.visibility_level = ? OR (recipe_access.recipient_user_id = ? AND ra.state = ?))",
-				types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.UserId, types.AccessState_ACCESS_STATE_ACCEPTED)
+		maxVisibilityLevel := types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC
+		if authAccount.PermissionLevel > types.PermissionLevel_PERMISSION_LEVEL_PUBLIC {
+			maxVisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_RESTRICTED
+		}
+		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ? AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?)", authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Joins("LEFT JOIN recipe_access as ra ON recipe.recipe_id = ra.recipe_id AND ra.recipient_user_id = ? AND (recipe.visibility_level != ? OR ra.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Where("(recipe.visibility_level <= ? OR (recipe_access.recipient_user_id = ? AND ra.state = ?))",
+				maxVisibilityLevel, authAccount.UserId, types.AccessState_ACCESS_STATE_ACCEPTED)
 	} else {
-		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ?", authAccount.AuthUserId).
+		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ? AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
 			Where("(recipe.visibility_level = ? OR recipe_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
 	}
 

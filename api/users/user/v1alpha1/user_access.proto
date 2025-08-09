@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package api.users.user.v1alpha1;
 
+import "api/types/accept_target.proto";
 import "api/types/access_state.proto";
 import "api/types/permission_level.proto";
 import "google/api/annotations.proto";
@@ -127,6 +128,9 @@ message Access {
 
   // the status of the access
   api.types.AccessState state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the accept target of the access
+  api.types.AcceptTarget accept_target = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // user data
   message User {

@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package api.users.user.v1alpha1;
 
+import "api/types/accept_target.proto";
 import "api/types/access_state.proto";
 import "api/types/permission_level.proto";
 import "api/types/visibility_level.proto";
@@ -120,6 +121,9 @@ message User {
 
     // the access state of the user to the access
     api.types.AccessState state = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the accept target of the access
+    api.types.AcceptTarget accept_target = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
   }
 }
 

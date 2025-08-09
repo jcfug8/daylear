@@ -40,14 +40,26 @@ func (d *Domain) CreateUserAccess(ctx context.Context, authAccount model.AuthAcc
 		State:            types.AccessState_ACCESS_STATE_PENDING,
 		Requester:        model.UserId{UserId: user1},
 		Recipient:        model.UserId{UserId: user1},
+		AcceptTarget:     types.AcceptTarget_ACCEPT_TARGET_UNSPECIFIED,
 	}
+
 	userB := model.UserAccess{
 		UserAccessParent: model.UserAccessParent{UserId: model.UserId{UserId: user1}},
 		PermissionLevel:  types.PermissionLevel_PERMISSION_LEVEL_WRITE,
-		State:            types.AccessState_ACCESS_STATE_PENDING,
 		Requester:        model.UserId{UserId: user1},
 		Recipient:        model.UserId{UserId: user2},
 	}
+
+	determinedUserAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(
+		ctx, authAccount, userB,
+		withMinimimRecipientPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
+	)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine user access ownership details when creating a user access")
+		return model.UserAccess{}, err
+	}
+	userB.AcceptTarget = determinedUserAccessOwnershipDetails.acceptTarget
+	userB.State = determinedUserAccessOwnershipDetails.accessState
 
 	// Create both accesses
 	dbUserAccessA, errA := d.repo.CreateUserAccess(ctx, userA, nil)
@@ -70,37 +82,46 @@ func (d *Domain) CreateUserAccess(ctx context.Context, authAccount model.AuthAcc
 // DeleteUserAccess -
 func (d *Domain) DeleteUserAccess(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, id model.UserAccessId) error {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
-	log.Info().Msg("Domain DeleteUserAccess called")
+
 	if parent.UserId.UserId == 0 {
-		log.Warn().Msg("user id is required")
+		log.Warn().Msg("user id is required when deleting a user access")
 		return domain.ErrInvalidArgument{Msg: "user id is required"}
 	}
 	if id.UserAccessId == 0 {
-		log.Warn().Msg("access id is required")
+		log.Warn().Msg("access id is required when deleting a user access")
 		return domain.ErrInvalidArgument{Msg: "access id is required"}
 	}
-	access, err := d.repo.GetUserAccess(ctx, parent, id, nil)
+	dbAccess, err := d.repo.GetUserAccess(ctx, parent, id, nil)
 	if err != nil {
-		log.Error().Err(err).Msg("repo.GetUserAccess failed")
-		return err
+		log.Error().Err(err).Msg("unable to get user access")
+		return domain.ErrInternal{Msg: "unable to get user access"}
 	}
 
-	if access.Recipient.UserId != authAccount.AuthUserId && access.Requester.UserId != authAccount.AuthUserId && access.UserAccessParent.UserId.UserId != authAccount.AuthUserId {
-		log.Warn().Msg("user does not have access to delete this user access")
-		return domain.ErrPermissionDenied{Msg: "user does not have access to delete this user access"}
+	determinedRecipeAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, dbAccess)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine user access ownership details when deleting a user access")
+		return domain.ErrInternal{Msg: "unable to determine recipe access ownership details"}
 	}
+
+	if !determinedRecipeAccessOwnershipDetails.isRecipientOwner && !determinedRecipeAccessOwnershipDetails.isResourceOwner {
+		log.Warn().Msg("access denied when deleting a user access")
+		return domain.ErrPermissionDenied{Msg: "access denied"}
+	}
+
 	// Delete the current access
 	err = d.repo.DeleteUserAccess(ctx, parent, id)
 	if err != nil {
-		log.Error().Err(err).Msg("repo.DeleteUserAccess failed")
-		return err
+		log.Error().Err(err).Msg("unable to delete user access")
+		return domain.ErrInternal{Msg: "unable to delete user access"}
 	}
 	// Delete the sister access (swap UserId and Recipient)
-	sisterParent := model.UserAccessParent{UserId: access.Recipient}
-	sisterFilter := fmt.Sprintf("requester_user_id=%d AND recipient_user_id=%d", access.Requester.UserId, parent.UserId.UserId)
+	sisterParent := model.UserAccessParent{UserId: dbAccess.Recipient}
+	sisterFilter := fmt.Sprintf("requester_user_id=%d AND recipient_user_id=%d", dbAccess.Requester.UserId, parent.UserId.UserId)
 	// Find the sister access id
 	accesses, err := d.repo.ListUserAccesses(ctx, authAccount, sisterParent, 1, 0, sisterFilter, []string{model.UserAccessField_Id})
 	if err != nil {
+		log.Error().Err(err).Msg("unable to list sister user access")
+		return domain.ErrInternal{Msg: "unable to list sister user access"}
 	}
 	if len(accesses) == 0 {
 		log.Warn().Msg("sister access not found on delete")
@@ -108,48 +129,51 @@ func (d *Domain) DeleteUserAccess(ctx context.Context, authAccount model.AuthAcc
 
 	err = d.repo.DeleteUserAccess(ctx, sisterParent, accesses[0].UserAccessId)
 	if err != nil {
-		log.Error().Err(err).Msg("repo.DeleteUserAccess failed (sister)")
-		return err
+		log.Error().Err(err).Msg("unable to delete sister user access")
+		return domain.ErrInternal{Msg: "unable to delete sister user access"}
 	}
 
-	log.Info().Msg("Domain DeleteUserAccess returning successfully (and deleted sister if found)")
 	return nil
 }
 
 // GetUserAccess -
 func (d *Domain) GetUserAccess(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, id model.UserAccessId, fields []string) (model.UserAccess, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
-	log.Info().Msg("Domain GetUserAccess called")
 	if parent.UserId.UserId == 0 {
-		log.Warn().Msg("user id is required")
+		log.Warn().Msg("user id is required when getting a user access")
 		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "user id is required"}
 	}
 	if id.UserAccessId == 0 {
-		log.Warn().Msg("access id is required")
+		log.Warn().Msg("access id is required when getting a user access")
 		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "access id is required"}
 	}
 
-	access, err := d.repo.GetUserAccess(ctx, parent, id, fields)
+	dbAccess, err := d.repo.GetUserAccess(ctx, parent, id, fields)
 	if err != nil {
-		log.Error().Err(err).Msg("repo.GetUserAccess failed")
-		return model.UserAccess{}, err
+		log.Error().Err(err).Msg("unable to get user access")
+		return model.UserAccess{}, domain.ErrInternal{Msg: "unable to get user access"}
 	}
 
-	if access.Recipient.UserId != authAccount.AuthUserId && access.Requester.UserId != authAccount.AuthUserId && access.UserAccessParent.UserId.UserId != authAccount.AuthUserId {
-		log.Warn().Msg("user does not have access to view this user access")
-		return model.UserAccess{}, domain.ErrPermissionDenied{Msg: "user does not have access to view this user access"}
+	determinedUserAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, dbAccess)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine user access ownership details when getting a user access")
+		return model.UserAccess{}, domain.ErrInternal{Msg: "unable to determine user access ownership details"}
 	}
 
-	log.Info().Msg("Domain GetUserAccess returning successfully")
-	return access, nil
+	if !determinedUserAccessOwnershipDetails.isRecipientOwner && !determinedUserAccessOwnershipDetails.isResourceOwner {
+		log.Warn().Msg("access denied when getting a user access")
+		return model.UserAccess{}, domain.ErrPermissionDenied{Msg: "access denied"}
+	}
+
+	return dbAccess, nil
 }
 
 // ListUserAccesses -
 func (d *Domain) ListUserAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, pageSize int32, pageOffset int64, filter string, fields []string) ([]model.UserAccess, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
-	log.Info().Msg("Domain ListUserAccesses called")
+
 	if authAccount.AuthUserId == 0 {
-		log.Warn().Msg("requester is required")
+		log.Warn().Msg("requester is required when listing user accesses")
 		return nil, domain.ErrInvalidArgument{Msg: "requester is required"}
 	}
 
@@ -164,52 +188,66 @@ func (d *Domain) ListUserAccesses(ctx context.Context, authAccount model.AuthAcc
 
 	accesses, err := d.repo.ListUserAccesses(ctx, authAccount, parent, pageSize, pageOffset, filter, fields)
 	if err != nil {
-		log.Error().Err(err).Msg("repo.ListUserAccesses failed")
-		return nil, err
+		log.Error().Err(err).Msg("unable to list user accesses")
+		return nil, domain.ErrInternal{Msg: "unable to list user accesses"}
 	}
-	log.Info().Msg("Domain ListUserAccesses returning successfully")
+
 	return accesses, nil
 }
 
 // AcceptUserAccess -
 func (d *Domain) AcceptUserAccess(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, id model.UserAccessId) (model.UserAccess, error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
-	log.Info().Msg("Domain AcceptUserAccess called")
+
 	if parent.UserId.UserId == 0 {
-		log.Warn().Msg("user id is required")
+		log.Warn().Msg("user id is required when accepting a user access")
 		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "user id is required"}
 	}
 	if id.UserAccessId == 0 {
-		log.Warn().Msg("access id is required")
+		log.Warn().Msg("access id is required when accepting a user access")
 		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "access id is required"}
 	}
-	access, err := d.repo.GetUserAccess(ctx, parent, id, nil)
+	dbAccess, err := d.repo.GetUserAccess(ctx, parent, id, nil)
 	if err != nil {
-		log.Error().Err(err).Msg("repo.GetUserAccess failed")
-		return model.UserAccess{}, err
+		log.Error().Err(err).Msg("unable to get user access")
+		return model.UserAccess{}, domain.ErrInternal{Msg: "unable to get user access"}
 	}
-	if access.State != types.AccessState_ACCESS_STATE_PENDING {
+	if dbAccess.State != types.AccessState_ACCESS_STATE_PENDING {
 		log.Warn().Msg("access must be in pending state to be accepted")
 		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "access must be in pending state to be accepted"}
 	}
-	if access.Recipient.UserId != authAccount.AuthUserId || access.UserAccessParent.UserId.UserId == access.Recipient.UserId {
-		log.Warn().Msg("only the recipient (B) can accept this access")
-		return model.UserAccess{}, domain.ErrPermissionDenied{Msg: "only the recipient (B) can accept this access"}
-	}
-	// Accept B
-	access.State = types.AccessState_ACCESS_STATE_ACCEPTED
-	updated, err := d.repo.UpdateUserAccess(ctx, access, []string{model.UserAccessField_State})
+
+	determinedRecipeAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, dbAccess)
 	if err != nil {
-		log.Error().Err(err).Msg("repo.UpdateUserAccess failed (B)")
-		return model.UserAccess{}, err
+		log.Error().Err(err).Msg("unable to determine user access ownership details when accepting a user access")
+		return model.UserAccess{}, domain.ErrInternal{Msg: "unable to determine user access ownership details"}
+	}
+
+	if determinedRecipeAccessOwnershipDetails.acceptTarget == types.AcceptTarget_ACCEPT_TARGET_RESOURCE && !determinedRecipeAccessOwnershipDetails.isResourceOwner {
+		log.Warn().Msg("must be resource owner to accept resourse targeted recipe access")
+		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "must be resource owner to accept resourse targeted recipe access"}
+	} else if determinedRecipeAccessOwnershipDetails.acceptTarget == types.AcceptTarget_ACCEPT_TARGET_RECIPIENT && !determinedRecipeAccessOwnershipDetails.isRecipientOwner {
+		log.Warn().Msg("must be recipient owner to accept recipient targeted recipe access")
+		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "must be recipient owner to accept recipient targeted recipe access"}
+	} else if determinedRecipeAccessOwnershipDetails.acceptTarget == types.AcceptTarget_ACCEPT_TARGET_UNSPECIFIED {
+		log.Warn().Msg("unspecified accept target when accepting a recipe access")
+		return model.UserAccess{}, domain.ErrInvalidArgument{Msg: "unspecified accept target"}
+	}
+
+	// Accept B
+	dbAccess.State = types.AccessState_ACCESS_STATE_ACCEPTED
+	updated, err := d.repo.UpdateUserAccess(ctx, dbAccess, []string{model.UserAccessField_State})
+	if err != nil {
+		log.Error().Err(err).Msg("unable to update user access")
+		return model.UserAccess{}, domain.ErrInternal{Msg: "unable to update user access"}
 	}
 	// Accept sister A (swap UserId and Recipient)
-	sisterParent := model.UserAccessParent{UserId: access.Recipient}
-	sisterFilter := fmt.Sprintf("requester_user_id=%d AND recipient_user_id=%d", access.Requester.UserId, parent.UserId.UserId)
+	sisterParent := model.UserAccessParent{UserId: dbAccess.Recipient}
+	sisterFilter := fmt.Sprintf("requester_user_id=%d AND recipient_user_id=%d", dbAccess.Requester.UserId, parent.UserId.UserId)
 	accesses, err := d.repo.ListUserAccesses(ctx, authAccount, sisterParent, 1, 0, sisterFilter, []string{model.UserAccessField_Id})
 	if err != nil {
-		log.Error().Err(err).Msg("repo.ListUserAccesses failed (sister)")
-		return model.UserAccess{}, err
+		log.Error().Err(err).Msg("unable to list sister user access")
+		return model.UserAccess{}, domain.ErrInternal{Msg: "unable to list sister user access"}
 	}
 	if len(accesses) == 0 {
 		log.Warn().Msg("sister access not found on accept")
@@ -218,10 +256,9 @@ func (d *Domain) AcceptUserAccess(ctx context.Context, authAccount model.AuthAcc
 	accesses[0].State = types.AccessState_ACCESS_STATE_ACCEPTED
 	_, err = d.repo.UpdateUserAccess(ctx, accesses[0], []string{model.UserAccessField_State})
 	if err != nil {
-		log.Error().Err(err).Msg("repo.UpdateUserAccess failed (sister)")
-		return model.UserAccess{}, err
+		log.Error().Err(err).Msg("unable to update sister user access")
+		return model.UserAccess{}, domain.ErrInternal{Msg: "unable to update user access"}
 	}
 
-	log.Info().Msg("Domain AcceptUserAccess returning successfully (and accepted sister if found)")
 	return updated, nil
 }

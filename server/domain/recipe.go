@@ -190,7 +190,12 @@ func (d *Domain) GetRecipe(ctx context.Context, authAccount model.AuthAccount, p
 		return model.Recipe{}, err
 	}
 
-	recipe.RecipeAccess, err = d.determineRecipeAccess(ctx, authAccount, id, withResourceVisibilityLevel(recipe.VisibilityLevel))
+	recipe.RecipeAccess, err = d.determineRecipeAccess(
+		ctx, authAccount, id,
+		withResourceVisibilityLevel(recipe.VisibilityLevel),
+		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
+		withAllowPendingAccess(),
+	)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine recipe access")
 		return model.Recipe{}, err
@@ -207,6 +212,8 @@ func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount,
 		return nil, domain.ErrInvalidArgument{Msg: "user_id required"}
 	}
 
+	authAccount.PermissionLevel = types.PermissionLevel_PERMISSION_LEVEL_ADMIN
+
 	if parent.CircleId != 0 {
 		authAccount.CircleId = parent.CircleId
 		dbCircle, err := d.repo.GetCircle(ctx, authAccount, model.CircleId{CircleId: parent.CircleId}, []string{model.CircleField_Visibility})
@@ -214,7 +221,7 @@ func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount,
 			log.Error().Err(err).Msg("unable to get circle when listing calendars")
 			return nil, domain.ErrInternal{Msg: "unable to get circle when listing calendars"}
 		}
-		_, err = d.determineCircleAccess(
+		determinedCircleAccess, err := d.determineCircleAccess(
 			ctx, authAccount, model.CircleId{CircleId: parent.CircleId},
 			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
 			withResourceVisibilityLevel(dbCircle.VisibilityLevel),
@@ -223,8 +230,18 @@ func (d *Domain) ListRecipes(ctx context.Context, authAccount model.AuthAccount,
 			log.Error().Err(err).Msg("unable to determine access when listing calendars")
 			return nil, err
 		}
+		authAccount.PermissionLevel = determinedCircleAccess.GetPermissionLevel()
 	} else if parent.UserId != 0 {
 		authAccount.UserId = parent.UserId
+		determinedUserAccess, err := d.determineUserAccess(
+			ctx, authAccount, model.UserId{UserId: authAccount.UserId},
+			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
+			withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC))
+		if err != nil {
+			log.Error().Err(err).Msg("unable to determine access when listing recipes")
+			return nil, err
+		}
+		authAccount.PermissionLevel = determinedUserAccess.GetPermissionLevel()
 	}
 
 	recipes, err = d.repo.ListRecipes(ctx, authAccount, pageSize, pageOffset, filter, fields)

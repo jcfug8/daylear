@@ -18,6 +18,7 @@ const (
 	UserAccessColumn_RecipientUserId = "recipient_user_id"
 	UserAccessColumn_PermissionLevel = "permission_level"
 	UserAccessColumn_State           = "state"
+	UserAccessColumn_AcceptTarget    = "accept_target"
 )
 
 var UserAccessFieldMasker = fieldmask.NewSQLFieldMasker(UserAccess{}, map[string][]fieldmask.Field{
@@ -25,7 +26,7 @@ var UserAccessFieldMasker = fieldmask.NewSQLFieldMasker(UserAccess{}, map[string
 	cmodel.UserAccessField_Id:              {{Name: UserAccessColumn_UserAccessId, Table: UserAccessTable}},
 	cmodel.UserAccessField_PermissionLevel: {{Name: UserAccessColumn_PermissionLevel, Table: UserAccessTable, Updatable: true}},
 	cmodel.UserAccessField_State:           {{Name: UserAccessColumn_State, Table: UserAccessTable, Updatable: true}},
-
+	cmodel.UserAccessField_AcceptTarget:    {{Name: UserAccessColumn_AcceptTarget, Table: UserAccessTable, Updatable: true}},
 	cmodel.UserAccessField_Requester: {
 		{Name: UserAccessColumn_RequesterUserId, Table: UserAccessTable},
 	},
@@ -51,6 +52,7 @@ type UserAccess struct {
 	RecipientUserId int64                 `gorm:"not null;index;uniqueIndex:idx_user_access_user_recipient_unique,priority:2"`
 	PermissionLevel types.PermissionLevel `gorm:"not null"`
 	State           types.AccessState     `gorm:"not null"`
+	AcceptTarget    types.AcceptTarget    `gorm:"not null;default:0"`
 
 	RecipientUsername   string `gorm:"->;-:migration"` // read only from join
 	RecipientGivenName  string `gorm:"->;-:migration"` // read only from join

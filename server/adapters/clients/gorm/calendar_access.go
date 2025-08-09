@@ -262,7 +262,7 @@ func (repo *Client) FindDelegatedCircleCalendarAccess(ctx context.Context, authA
 		Select("calendar_access.*, circle_access.*, LEAST(calendar_access.permission_level, circle_access.permission_level) as effective_permission_level").
 		Table("calendar_access").
 		Joins("JOIN circle_access ON circle_access.circle_id = calendar_access.recipient_circle_id").
-		Where("calendar_access.calendar_id = ? AND circle_access.recipient_user_id = ?", id.CalendarId, authAccount.AuthUserId).
+		Where("calendar_access.calendar_id = ? AND circle_access.recipient_user_id = ? AND calendar_access.state = ?", id.CalendarId, authAccount.AuthUserId, types.AccessState_ACCESS_STATE_ACCEPTED).
 		Order("effective_permission_level DESC").
 		First(&result)
 	if res.Error != nil {
@@ -292,7 +292,7 @@ func (repo *Client) FindDelegatedUserCalendarAccess(ctx context.Context, authAcc
 		Select("calendar_access.*, user_access.*").
 		Table("calendar_access").
 		Joins("JOIN user_access ON user_access.user_id = calendar_access.recipient_user_id").
-		Where("calendar_access.calendar_id = ? AND user_access.recipient_user_id = ?", id.CalendarId, authAccount.AuthUserId).
+		Where("calendar_access.calendar_id = ? AND user_access.recipient_user_id = ? AND calendar_access.state = ?", id.CalendarId, authAccount.AuthUserId, types.AccessState_ACCESS_STATE_ACCEPTED).
 		First(&result)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {

@@ -245,7 +245,7 @@ func (repo *Client) FindDelegatedUserCircleAccess(ctx context.Context, authAccou
 		Select("circle_access.*, user_access.*").
 		Table("circle_access").
 		Joins("JOIN user_access ON user_access.user_id = circle_access.recipient_user_id").
-		Where("circle_access.circle_id = ? AND user_access.recipient_user_id = ?", id.CircleId, authAccount.AuthUserId).
+		Where("circle_access.circle_id = ? AND user_access.recipient_user_id = ? AND circle_access.state = ?", id.CircleId, authAccount.AuthUserId, types.AccessState_ACCESS_STATE_ACCEPTED).
 		First(&result)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {

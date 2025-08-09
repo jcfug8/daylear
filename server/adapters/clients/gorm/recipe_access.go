@@ -267,7 +267,7 @@ func (repo *Client) FindDelegatedCircleRecipeAccess(ctx context.Context, authAcc
 		Select("recipe_access.*, circle_access.*").
 		Table("recipe_access").
 		Joins("JOIN circle_access ON circle_access.circle_id = recipe_access.recipient_circle_id").
-		Where("recipe_access.recipe_id = ? AND circle_access.recipient_user_id = ?", id.RecipeId, authAccount.AuthUserId).
+		Where("recipe_access.recipe_id = ? AND circle_access.recipient_user_id = ? AND recipe_access.state = ?", id.RecipeId, authAccount.AuthUserId, types.AccessState_ACCESS_STATE_ACCEPTED).
 		First(&result)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
@@ -296,7 +296,7 @@ func (repo *Client) FindDelegatedUserRecipeAccess(ctx context.Context, authAccou
 		Select("recipe_access.*, user_access.*").
 		Table("recipe_access").
 		Joins("JOIN user_access ON user_access.user_id = recipe_access.recipient_user_id").
-		Where("recipe_access.recipe_id = ? AND user_access.recipient_user_id = ?", id.RecipeId, authAccount.AuthUserId).
+		Where("recipe_access.recipe_id = ? AND user_access.recipient_user_id = ? AND recipe_access.state = ?", id.RecipeId, authAccount.AuthUserId, types.AccessState_ACCESS_STATE_ACCEPTED).
 		First(&result)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {

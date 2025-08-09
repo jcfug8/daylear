@@ -20,11 +20,12 @@ var (
 )
 
 var userAccessFieldMap = map[string][]string{
-	"name":      {model.UserField_Parent, model.UserField_Id},
-	"level":     {model.UserField_AccessPermissionLevel},
-	"state":     {model.UserField_AccessState},
-	"requester": {model.UserField_AccessName},
-	"recipient": {model.UserField_AccessName},
+	"name":          {model.UserAccessField_Parent, model.UserAccessField_Id},
+	"level":         {model.UserAccessField_PermissionLevel},
+	"state":         {model.UserAccessField_State},
+	"accept_target": {model.UserAccessField_AcceptTarget},
+	"requester":     {model.UserAccessField_Requester},
+	"recipient":     {model.UserAccessField_Recipient},
 }
 
 // CreateAccess -
@@ -241,6 +242,7 @@ func (s *UserService) ProtoToUserAccess(pbAccess *pb.Access) (model.UserAccess, 
 	mUserAccess := model.UserAccess{
 		PermissionLevel: pbAccess.GetLevel(),
 		State:           pbAccess.GetState(),
+		AcceptTarget:    pbAccess.GetAcceptTarget(),
 	}
 
 	if pbAccess.GetName() != "" {
@@ -270,8 +272,9 @@ func (s *UserService) ProtoToUserAccess(pbAccess *pb.Access) (model.UserAccess, 
 // UserAccessToProto converts a model UserAccess to a proto Access
 func (s *UserService) UserAccessToProto(mUserAccess model.UserAccess) (*pb.Access, error) {
 	pbAccess := &pb.Access{
-		Level: mUserAccess.PermissionLevel,
-		State: mUserAccess.State,
+		Level:        mUserAccess.PermissionLevel,
+		State:        mUserAccess.State,
+		AcceptTarget: mUserAccess.AcceptTarget,
 	}
 
 	if mUserAccess.UserId.UserId != 0 && mUserAccess.UserAccessId.UserAccessId != 0 {

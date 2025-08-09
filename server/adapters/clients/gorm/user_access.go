@@ -10,6 +10,7 @@ import (
 	"github.com/jcfug8/daylear/server/core/logutil"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 	model "github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
 	"github.com/jcfug8/daylear/server/ports/repository"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -211,7 +212,7 @@ func (repo *Client) FindDelegatedUserUserAccess(ctx context.Context, authAccount
 		Select("user_access.*, ua.*").
 		Table("user_access").
 		Joins("JOIN user_access AS ua ON user_access.user_id = ua.recipient_user_id").
-		Where("ua.user_id = ? AND user_access.recipient_user_id = ?", id.UserId, authAccount.AuthUserId).
+		Where("ua.user_id = ? AND user_access.recipient_user_id = ? AND ua.state = ?", id.UserId, authAccount.AuthUserId, types.AccessState_ACCESS_STATE_ACCEPTED).
 		First(&result)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {

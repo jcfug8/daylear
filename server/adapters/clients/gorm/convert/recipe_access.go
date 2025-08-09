@@ -10,6 +10,8 @@ func CoreRecipeAccessToRecipeAccess(access coreModel.RecipeAccess) dbModel.Recip
 	return dbModel.RecipeAccess{
 		RecipeAccessId:    access.RecipeAccessId.RecipeAccessId,
 		RecipeId:          access.RecipeAccessParent.RecipeId.RecipeId,
+		RequesterUserId:   access.Requester.UserId,
+		RequesterCircleId: access.Requester.CircleId,
 		RecipientUserId:   access.Recipient.UserId,
 		RecipientCircleId: access.Recipient.CircleId,
 		PermissionLevel:   access.PermissionLevel,

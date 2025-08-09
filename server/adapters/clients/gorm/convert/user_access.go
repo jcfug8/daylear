@@ -14,6 +14,7 @@ func CoreUserAccessToUserAccess(access cmodel.UserAccess) gmodel.UserAccess {
 		RecipientUserId: access.Recipient.UserId,
 		PermissionLevel: access.PermissionLevel,
 		State:           access.State,
+		AcceptTarget:    access.AcceptTarget,
 	}
 }
 
@@ -37,5 +38,6 @@ func UserAccessToCoreUserAccess(dbAccess gmodel.UserAccess) cmodel.UserAccess {
 			UserId: dbAccess.RecipientUserId,
 		},
 		RecipientUsername: dbAccess.RecipientUsername,
+		AcceptTarget:      dbAccess.AcceptTarget,
 	}
 }

@@ -17,6 +17,7 @@ type determinAccessConfig struct {
 	findStandardUserAccess    func() (model.Access, error)
 	findDelegatedCircleAccess func() (model.Access, model.CircleAccess, error)
 	findDelegatedUserAccess   func() (model.Access, model.UserAccess, error)
+	allowPendingAccess        bool
 }
 
 type determineAccessOption func(config *determinAccessConfig)
@@ -30,6 +31,12 @@ func withResourceVisibilityLevel(visibilityLevel types.VisibilityLevel) determin
 func withMinimumPermissionLevel(permissionLevel types.PermissionLevel) determineAccessOption {
 	return func(config *determinAccessConfig) {
 		config.minimumPermissionLevel = permissionLevel
+	}
+}
+
+func withAllowPendingAccess() determineAccessOption {
+	return func(config *determinAccessConfig) {
+		config.allowPendingAccess = true
 	}
 }
 
@@ -103,7 +110,7 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 	case model.UserId:
 		config.findStandardUserAccess = func() (model.Access, error) {
 			// if the user is requesting access to their own user, return the admin access
-			if authAccount.UserId == i.UserId {
+			if authAccount.AuthUserId == i.UserId {
 				return model.UserAccess{
 					UserAccessParent: model.UserAccessParent{
 						UserId: model.UserId{UserId: authAccount.UserId},
@@ -120,11 +127,7 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 			return model.UserAccess{}, model.CircleAccess{}, nil
 		}
 		config.findDelegatedUserAccess = func() (model.Access, model.UserAccess, error) {
-			// if the user is requesting access to their own user just return the admin access
-			if authAccount.UserId == i.UserId {
-				return model.UserAccess{}, model.UserAccess{}, nil
-			}
-			return d.repo.FindDelegatedUserUserAccess(ctx, authAccount, i)
+			return model.UserAccess{}, model.UserAccess{}, nil
 		}
 		determinedAccess = model.UserAccess{}
 	default:
@@ -138,7 +141,7 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 			log.Error().Err(err).Msg("error finding standard user resource access")
 			return nil, errors.New("unable to determine resource access")
 		}
-		if standardUserAccess.GetPermissionLevel() > types.PermissionLevel_PERMISSION_LEVEL_PUBLIC {
+		if standardUserAccess.GetPermissionLevel() > types.PermissionLevel_PERMISSION_LEVEL_PUBLIC && (config.allowPendingAccess || standardUserAccess.GetAccessState() == types.AccessState_ACCESS_STATE_ACCEPTED) {
 			determinedAccess = standardUserAccess
 		}
 	}
@@ -151,7 +154,7 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 			return nil, errors.New("unable to determine resource access")
 		}
 		effectivePermissionLevel := min(delegatedCircleAccess.GetPermissionLevel(), circleAccess.PermissionLevel)
-		if delegatedCircleAccess.GetPermissionLevel() < types.PermissionLevel_PERMISSION_LEVEL_PUBLIC && effectivePermissionLevel > determinedAccess.GetPermissionLevel() {
+		if effectivePermissionLevel > determinedAccess.GetPermissionLevel() && (config.allowPendingAccess || delegatedCircleAccess.GetAccessState() == types.AccessState_ACCESS_STATE_ACCEPTED) {
 			determinedAccess = delegatedCircleAccess.SetPermissionLevel(effectivePermissionLevel)
 		}
 	}
@@ -162,8 +165,8 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 			log.Error().Err(err).Msg("error finding delegated user resource access")
 			return nil, errors.New("unable to determine resource access")
 		}
-		effectivePermissionLevel := types.PermissionLevel_PERMISSION_LEVEL_READ
-		if delegatedUserAccess.GetPermissionLevel() < types.PermissionLevel_PERMISSION_LEVEL_PUBLIC && effectivePermissionLevel > determinedAccess.GetPermissionLevel() {
+		effectivePermissionLevel := min(delegatedUserAccess.GetPermissionLevel(), types.PermissionLevel_PERMISSION_LEVEL_READ)
+		if effectivePermissionLevel > determinedAccess.GetPermissionLevel() && (config.allowPendingAccess || delegatedUserAccess.GetAccessState() == types.AccessState_ACCESS_STATE_ACCEPTED) {
 			determinedAccess = delegatedUserAccess.SetPermissionLevel(effectivePermissionLevel)
 		}
 	}

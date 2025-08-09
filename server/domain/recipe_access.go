@@ -102,14 +102,6 @@ func (d *Domain) GetRecipeAccess(ctx context.Context, authAccount model.AuthAcco
 		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "access id is required"}
 	}
 
-	// get the access record
-	access, err := d.repo.GetRecipeAccess(ctx, parent, id, fields)
-	if err != nil {
-		log.Error().Err(err).Msg("unable to get recipe access")
-		return model.RecipeAccess{}, err
-	}
-
-	// get the dbAccess record
 	dbAccess, err := d.repo.GetRecipeAccess(ctx, parent, id, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get recipe access when getting a recipe access")
@@ -127,7 +119,7 @@ func (d *Domain) GetRecipeAccess(ctx context.Context, authAccount model.AuthAcco
 		return model.RecipeAccess{}, domain.ErrPermissionDenied{Msg: "access denied"}
 	}
 
-	return access, nil
+	return dbAccess, nil
 }
 
 func (d *Domain) ListRecipeAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeAccessParent, pageSize int32, pageOffset int64, filter string, fields []string) (recipeAccesses []model.RecipeAccess, err error) {
@@ -149,7 +141,7 @@ func (d *Domain) ListRecipeAccesses(ctx context.Context, authAccount model.AuthA
 	recipeAccesses, err = d.repo.ListRecipeAccesses(ctx, authAccount, parent, int32(pageSize), int64(pageOffset), filter, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to list recipe accesses")
-		return nil, err
+		return nil, domain.ErrInternal{Msg: "unable to list recipe accesses"}
 	}
 
 	return recipeAccesses, nil
@@ -173,7 +165,7 @@ func (d *Domain) UpdateRecipeAccess(ctx context.Context, authAccount model.AuthA
 	dbAccess, err := d.repo.GetRecipeAccess(ctx, access.RecipeAccessParent, access.RecipeAccessId, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get recipe access")
-		return model.RecipeAccess{}, err
+		return model.RecipeAccess{}, domain.ErrInternal{Msg: "unable to get recipe access"}
 	}
 
 	determinedRecipeAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, dbAccess)
@@ -196,7 +188,7 @@ func (d *Domain) UpdateRecipeAccess(ctx context.Context, authAccount model.AuthA
 	updatedAccess, err := d.repo.UpdateRecipeAccess(ctx, access, fields)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to update recipe access")
-		return model.RecipeAccess{}, err
+		return model.RecipeAccess{}, domain.ErrInternal{Msg: "unable to update recipe access"}
 	}
 
 	return updatedAccess, nil

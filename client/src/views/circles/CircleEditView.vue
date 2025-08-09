@@ -14,8 +14,7 @@ import { useCirclesStore } from '@/stores/circles'
 import { storeToRefs } from 'pinia'
 import { onMounted, ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import type { Circle, apitypes_VisibilityLevel, apitypes_PermissionLevel, apitypes_AccessState } from '@/genapi/api/circles/circle/v1alpha1'
-import { useAuthStore } from '@/stores/auth'
+import type { Circle, apitypes_VisibilityLevel } from '@/genapi/api/circles/circle/v1alpha1'
 import CircleForm from '@/views/circles/forms/CircleForm.vue'
 import { fileService } from '@/api/api'
 import { computed } from 'vue'
@@ -25,7 +24,6 @@ const router = useRouter()
 const route = useRoute()
 const circlesStore = useCirclesStore()
 const { circle } = storeToRefs(circlesStore)
-const authStore = useAuthStore()
 const alertsStore = useAlertStore()
 
 const editedCircle = ref<Circle>({
@@ -41,7 +39,7 @@ const editedCircle = ref<Circle>({
 const pendingImageFile = ref<File | null>(null)
 
 function navigateBack() {
-  router.push(circleName.value)
+  router.push('/'+circleName.value)
 }
 
 async function saveSettings() {

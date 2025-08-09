@@ -17,15 +17,54 @@ type accessOwnershipDetails struct {
 	accessState            types.AccessState
 }
 
-type determineAccessOwnershipDetailsConfig struct {
-	determineResourceAccess func() (model.Access, error)
+type determineAccessOwnershipDetailsOption func(config *determineAccessOwnershipDetailsConfig)
+
+func withAllowAutoOmitAccessChecks() determineAccessOwnershipDetailsOption {
+	return func(config *determineAccessOwnershipDetailsConfig) {
+		config.allowAutoOmitAccessChecks = true
+	}
 }
 
-func (d *Domain) determineAccessOwnershipDetails(ctx context.Context, authAccount model.AuthAccount, access model.Access) (details accessOwnershipDetails, err error) {
+func withForceOmitResourceCheck() determineAccessOwnershipDetailsOption {
+	return func(config *determineAccessOwnershipDetailsConfig) {
+		config.forceOmitResourceCheck = true
+	}
+}
+
+func withForceOmitRecipientCheck() determineAccessOwnershipDetailsOption {
+	return func(config *determineAccessOwnershipDetailsConfig) {
+		config.forceOmitRecipientCheck = true
+	}
+}
+
+func withMinimimRecipientPermissionLevel(permissionLevel types.PermissionLevel) determineAccessOwnershipDetailsOption {
+	return func(config *determineAccessOwnershipDetailsConfig) {
+		config.minimimRecipientPermissionLevel = permissionLevel
+	}
+}
+
+type determineAccessOwnershipDetailsConfig struct {
+	determineResourceAccess         func() (model.Access, error)
+	allowAutoOmitAccessChecks       bool
+	forceOmitResourceCheck          bool
+	forceOmitRecipientCheck         bool
+	minimimRecipientPermissionLevel types.PermissionLevel
+}
+
+func (d *Domain) determineAccessOwnershipDetails(ctx context.Context, authAccount model.AuthAccount, access model.Access, options ...determineAccessOwnershipDetailsOption) (details accessOwnershipDetails, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 
 	var determinedRecipientAccess model.Access
-	config := determineAccessOwnershipDetailsConfig{}
+	config := determineAccessOwnershipDetailsConfig{
+		minimimRecipientPermissionLevel: types.PermissionLevel_PERMISSION_LEVEL_READ,
+	}
+
+	for _, option := range options {
+		option(&config)
+	}
+
+	omitResourceCheck := config.forceOmitResourceCheck || (config.allowAutoOmitAccessChecks && access.GetAccessId() != 0 && access.GetAcceptTarget() == types.AcceptTarget_ACCEPT_TARGET_RECIPIENT)
+	omitRecipientCheck := config.forceOmitRecipientCheck || (config.allowAutoOmitAccessChecks && access.GetAccessId() != 0 && access.GetAcceptTarget() == types.AcceptTarget_ACCEPT_TARGET_RESOURCE)
 
 	switch a := access.(type) {
 	case model.CircleAccess:
@@ -48,7 +87,7 @@ func (d *Domain) determineAccessOwnershipDetails(ctx context.Context, authAccoun
 		}
 	case model.UserAccess:
 		config.determineResourceAccess = func() (model.Access, error) {
-			return d.determineUserAccess(ctx, authAccount, model.UserId{UserId: a.Recipient.UserId}, withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC), withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC))
+			return d.determineUserAccess(ctx, authAccount, a.UserAccessParent.UserId, withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC), withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC))
 		}
 	case model.RecipeAccess:
 		config.determineResourceAccess = func() (model.Access, error) {
@@ -64,38 +103,42 @@ func (d *Domain) determineAccessOwnershipDetails(ctx context.Context, authAccoun
 		return accessOwnershipDetails{}, domain.ErrInternal{Msg: "unable to determine access ownership details for unknown access type"}
 	}
 
-	if access.GetRecipientCircleId().CircleId != 0 {
-		dbCircle, err := d.repo.GetCircle(ctx, authAccount, access.GetRecipientCircleId(), []string{model.CircleField_Visibility})
-		if err != nil {
-			log.Error().Err(err).Msg("unable to get circle when creating a calendar access")
-			return accessOwnershipDetails{}, err
+	if !omitRecipientCheck {
+		if access.GetRecipientCircleId().CircleId != 0 {
+			dbCircle, err := d.repo.GetCircle(ctx, authAccount, access.GetRecipientCircleId(), []string{model.CircleField_Visibility})
+			if err != nil {
+				log.Error().Err(err).Msg("unable to get circle when creating a calendar access")
+				return accessOwnershipDetails{}, err
+			}
+			determinedRecipientAccess, err = d.determineCircleAccess(ctx, authAccount, access.GetRecipientCircleId(), withResourceVisibilityLevel(dbCircle.VisibilityLevel), withMinimumPermissionLevel(config.minimimRecipientPermissionLevel))
+			if err != nil {
+				log.Error().Err(err).Msg("unable to determine circle access when creating a calendar access")
+				return accessOwnershipDetails{}, err
+			}
+		} else if access.GetRecipientUserId().UserId != 0 {
+			determinedRecipientAccess, err = d.determineUserAccess(ctx, authAccount, access.GetRecipientUserId(), withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC), withMinimumPermissionLevel(config.minimimRecipientPermissionLevel))
+			if err != nil {
+				log.Error().Err(err).Msg("unable to determine user access when creating a calendar access")
+				return accessOwnershipDetails{}, err
+			}
+		} else {
+			log.Warn().Msg("no recipient provided when determining access ownership details")
+			return accessOwnershipDetails{}, domain.ErrInternal{Msg: "unable to determine recipient access when determining access ownership details"}
 		}
-		determinedRecipientAccess, err = d.determineCircleAccess(ctx, authAccount, access.GetRecipientCircleId(), withResourceVisibilityLevel(dbCircle.VisibilityLevel))
-		if err != nil {
-			log.Error().Err(err).Msg("unable to determine circle access when creating a calendar access")
-			return accessOwnershipDetails{}, err
-		}
-	} else if access.GetRecipientUserId().UserId != 0 {
-		determinedRecipientAccess, err = d.determineUserAccess(ctx, authAccount, access.GetRecipientUserId(), withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ))
-		if err != nil {
-			log.Error().Err(err).Msg("unable to determine user access when creating a calendar access")
-			return accessOwnershipDetails{}, err
-		}
-	} else {
-		log.Warn().Msg("no recipient provided when determining access ownership details")
-		return accessOwnershipDetails{}, domain.ErrInternal{Msg: "unable to determine recipient access when determining access ownership details"}
+
+		details.isRecipientOwner = determinedRecipientAccess.GetPermissionLevel() >= types.PermissionLevel_PERMISSION_LEVEL_ADMIN
 	}
 
-	details.isRecipientOwner = determinedRecipientAccess.GetPermissionLevel() >= types.PermissionLevel_PERMISSION_LEVEL_ADMIN
+	if !omitResourceCheck {
+		determinedResourceAccess, err := config.determineResourceAccess()
+		if err != nil {
+			log.Error().Err(err).Msg("unable to determine resource access when determining access ownership details")
+			return accessOwnershipDetails{}, err
+		}
 
-	determinedResourceAccess, err := config.determineResourceAccess()
-	if err != nil {
-		log.Error().Err(err).Msg("unable to determine resource access when determining access ownership details")
-		return accessOwnershipDetails{}, err
+		details.isResourceOwner = determinedResourceAccess.GetPermissionLevel() >= types.PermissionLevel_PERMISSION_LEVEL_ADMIN
+		details.maximumPermissionLevel = max(determinedResourceAccess.GetPermissionLevel(), types.PermissionLevel_PERMISSION_LEVEL_READ)
 	}
-
-	details.isResourceOwner = determinedResourceAccess.GetPermissionLevel() >= types.PermissionLevel_PERMISSION_LEVEL_ADMIN
-	details.maximumPermissionLevel = max(determinedResourceAccess.GetPermissionLevel(), types.PermissionLevel_PERMISSION_LEVEL_READ)
 
 	details.acceptTarget = access.GetAcceptTarget()
 	details.accessState = access.GetAccessState()

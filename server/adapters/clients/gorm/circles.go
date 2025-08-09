@@ -156,13 +156,17 @@ func (repo *Client) ListCircles(ctx context.Context, authAccount cmodel.AuthAcco
 		Offset(int(offset))
 
 	if authAccount.UserId != 0 {
-		tx = tx.Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.UserId).
-			Joins("LEFT JOIN circle_access as ca ON circle.circle_id = ca.circle_id AND ca.recipient_user_id = ?", authAccount.AuthUserId).
-			Where("(circle_access.recipient_user_id = ? AND (circle.visibility_level = ? OR ca.state = ?))",
-				authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, types.AccessState_ACCESS_STATE_ACCEPTED)
+		maxVisibilityLevel := types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC
+		if authAccount.PermissionLevel > types.PermissionLevel_PERMISSION_LEVEL_PUBLIC {
+			maxVisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_RESTRICTED
+		}
+		tx = tx.Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ? AND (circle.visibility_level != ? OR circle_access.permission_level = ?)", authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Joins("LEFT JOIN circle_access as ca ON circle.circle_id = ca.circle_id AND ca.recipient_user_id = ? AND (circle.visibility_level != ? OR ca.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Where("(circle.visibility_level <= ? OR (circle_access.recipient_user_id = ? AND ca.state = ?))",
+				maxVisibilityLevel, authAccount.UserId, types.AccessState_ACCESS_STATE_ACCEPTED)
 	} else {
-		tx = tx.Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ?", authAccount.AuthUserId).
-			Where("(circle.visibility_level = ? OR circle_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
+		tx = tx.Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ? AND (circle.visibility_level != ? OR circle_access.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Where("(circle.visibility_level <= ? OR circle_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
 	}
 
 	conversion, err := gmodel.CircleSQLConverter.Convert(filter)

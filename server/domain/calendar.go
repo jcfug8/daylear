@@ -154,8 +154,9 @@ func (d *Domain) GetCalendar(ctx context.Context, authAccount model.AuthAccount,
 
 	dbCalendar.CalendarAccess, err = d.determineCalendarAccess(
 		ctx, authAccount, id,
-		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ),
 		withResourceVisibilityLevel(dbCalendar.VisibilityLevel),
+		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
+		withAllowPendingAccess(),
 	)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine access when getting a calendar")
@@ -192,6 +193,15 @@ func (d *Domain) ListCalendars(ctx context.Context, authAccount model.AuthAccoun
 		}
 	} else if parent.UserId != 0 {
 		authAccount.UserId = parent.UserId
+		determinedUserAccess, err := d.determineUserAccess(
+			ctx, authAccount, model.UserId{UserId: authAccount.UserId},
+			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
+			withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC))
+		if err != nil {
+			log.Error().Err(err).Msg("unable to determine access when listing recipes")
+			return nil, err
+		}
+		authAccount.PermissionLevel = determinedUserAccess.GetPermissionLevel()
 	}
 
 	dbCalendars, err = d.repo.ListCalendars(ctx, authAccount, pageSize, offset, filter, fields)

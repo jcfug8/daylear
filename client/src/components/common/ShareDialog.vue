@@ -59,7 +59,7 @@
                 :search-input.sync="circleInput"
                 label="Search Circles"
                 item-title="displayName"
-                item-value="handle"
+                item-value="name"
                 :rules="[validateCircle]"
                 clearable
                 :input-attrs="{ autocapitalize: 'off', autocomplete: 'off', spellcheck: 'false' }"
@@ -478,7 +478,7 @@ function searchUsers(query: string) {
 }
 
 function searchCircles(query: string) {
-  if (!circleFuse.value || !query.trim()) {
+  if (!circleFuse.value || !query?.trim()) {
     circleSuggestions.value = allCircles.value.slice(0, 15)
     return
   }
