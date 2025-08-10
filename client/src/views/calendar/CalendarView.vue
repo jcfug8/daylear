@@ -73,6 +73,10 @@
           <v-btn density="compact" v-if="!hasReadPermission(calendar.calendarAccess?.permissionLevel) && !calendar.calendarAccess" color="primary" @click="handleRequestAccess" :loading="requestingAccess">
             <v-icon>mdi-account-plus</v-icon>Request Access
           </v-btn>
+          <v-btn v-if="hasWritePermission(calendar.calendarAccess?.permissionLevel) && calendar.visibility !== 'VISIBILITY_LEVEL_HIDDEN'" color="primary" density="compact" @click="showShareDialog = true">
+            <v-icon>mdi-share-variant</v-icon>
+            Manage Access
+          </v-btn>
           <v-btn density="compact" v-if="calendar.calendarAccess?.state === 'ACCESS_STATE_PENDING'" color="warning" @click="showCancelRequestDialog = true">
             <v-icon>mdi-close</v-icon>Cancel Request
           </v-btn>
@@ -93,24 +97,25 @@
         </div>
       </template>
       
-      <template #members>
-        <div class="text-center py-8">
-          <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-account-group</v-icon>
-          <h3 class="text-grey-lighten-1 mb-2">Members</h3>
-          <p class="text-grey-lighten-1">Calendar members will be displayed here.</p>
-        </div>
-        <v-btn
-          v-if="hasWritePermission(calendar.calendarAccess?.permissionLevel)"
-          color="primary"
-          density="compact"
-          style="position: fixed; bottom: 16px; right: 16px"
-          @click="showShareDialog = true"
-        >
-          <v-icon>mdi-share-variant</v-icon>
-          Manage Members
-        </v-btn>
-      </template>
+
     </ListTabsPage>
+
+    <!-- Share Dialog -->
+    <ShareDialog
+      v-model="showShareDialog"
+      title="Share Calendar"
+      :allowCircleShare="false"
+      :currentAccesses="currentAccesses"
+      :sharing="sharing"
+      :accessPermissionLoading="updatingPermission"
+      :userPermissionLevel="calendar.calendarAccess?.permissionLevel"
+      :allowPermissionOptions="allowPermissionOptions"
+      @share-user="shareWithUser"
+      @share-circle="shareWithCircle"
+      @remove-access="unshareCalendar"
+      @permission-change="updatePermission"
+      @approve-access="acceptCalendarFromShareDialog"
+    />
 
     <!-- Remove Access Dialog -->
     <v-dialog v-model="showRemoveAccessDialog" max-width="500">
@@ -128,6 +133,27 @@
           </v-btn>
           <v-btn color="error" @click="handleRemoveAccess" :loading="removingAccess">
             Remove Access
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Cancel Request Dialog -->
+    <v-dialog v-model="showCancelRequestDialog" max-width="500">
+      <v-card>
+        <v-card-title class="text-h5">
+          Cancel Access Request
+        </v-card-title>
+        <v-card-text>
+          Are you sure you want to cancel your access request to this calendar?
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="text" @click="showCancelRequestDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn color="warning" @click="handleCancelRequest" :loading="requestingAccess">
+            Cancel Request
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -163,11 +189,18 @@ import { useRoute, useRouter } from 'vue-router'
 import { useCalendarsStore } from '@/stores/calendar'
 import { storeToRefs } from 'pinia'
 import ListTabsPage from '@/components/common/ListTabsPage.vue'
-import type { apitypes_VisibilityLevel } from '@/genapi/api/calendars/calendar/v1alpha1'
+import ShareDialog from '@/components/common/ShareDialog.vue'
+import type { apitypes_VisibilityLevel, Access, apitypes_PermissionLevel, CreateAccessRequest, ListAccessesRequest, DeleteAccessRequest } from '@/genapi/api/calendars/calendar/v1alpha1'
+import { calendarAccessService } from '@/api/api'
+import { useAlertStore } from '@/stores/alerts'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
 const calendarsStore = useCalendarsStore()
+
+const alertsStore = useAlertStore()
+const authStore = useAuthStore()
 const { calendar } = storeToRefs(calendarsStore)
 
 const acceptingCalendar = ref(false)
@@ -180,6 +213,16 @@ const showDeleteDialog = ref(false)
 const showCancelRequestDialog = ref(false)
 const showShareDialog = ref(false)
 
+// *** Calendar Sharing ***
+const allowPermissionOptions: apitypes_PermissionLevel[] = [
+  'PERMISSION_LEVEL_READ',
+  'PERMISSION_LEVEL_WRITE',
+  'PERMISSION_LEVEL_ADMIN'
+]
+const currentAccesses = ref<Access[]>([])
+const sharing = ref(false)
+const updatingPermission = ref<Record<string, boolean>>({})
+
 const tabs = [
   {
     label: 'General',
@@ -190,11 +233,6 @@ const tabs = [
     label: 'Events',
     value: 'events',
     icon: 'mdi-calendar'
-  },
-  {
-    label: 'Members',
-    value: 'members',
-    icon: 'mdi-account-group'
   }
 ]
 
@@ -292,8 +330,36 @@ async function declineCalendar() {
 }
 
 async function handleRequestAccess() {
-  // TODO: Implement request access functionality
-  console.log('Request access not implemented yet')
+  if (!calendar.value?.name || !authStore.user?.name) return
+  
+  requestingAccess.value = true
+  try {
+    const access: Access = {
+      recipient: {
+        user: authStore.user.name,
+      },
+      permissionLevel: 'PERMISSION_LEVEL_READ',
+      name: undefined, // Will be set by the server
+      requester: undefined, // Will be set by the server
+      state: undefined, // Will be set by the server
+      acceptTarget: undefined, // Will be set by the server
+    }
+
+    const request: CreateAccessRequest = {
+      parent: calendar.value.name,
+      access
+    }
+
+    await calendarAccessService.CreateAccess(request)
+    alertsStore.addAlert('Access request sent successfully', 'success')
+    // Refresh the calendar to show the new access state
+    await loadCalendar()
+  } catch (error) {
+    console.error('Failed to request access:', error)
+    alertsStore.addAlert('Failed to request access', 'error')
+  } finally {
+    requestingAccess.value = false
+  }
 }
 
 async function handleRemoveAccess() {
@@ -316,8 +382,7 @@ async function handleDelete() {
   
   deleting.value = true
   try {
-    // TODO: Implement delete calendar functionality
-    console.log('Delete calendar not implemented yet')
+    await calendarsStore.deleteCalendar(calendar.value.name)
     router.push('/calendars')
   } catch (error) {
     console.error('Failed to delete calendar:', error)
@@ -327,9 +392,169 @@ async function handleDelete() {
   }
 }
 
+async function handleCancelRequest() {
+  if (!calendar.value?.calendarAccess?.name) return
+  
+  requestingAccess.value = true
+  try {
+    await calendarsStore.deleteCalendarAccess(calendar.value.calendarAccess.name)
+    alertsStore.addAlert('Access request cancelled.', 'info')
+    router.push('/calendars')
+  } catch (error) {
+    console.error('Failed to cancel access request:', error)
+    alertsStore.addAlert('Failed to cancel access request', 'error')
+  } finally {
+    requestingAccess.value = false
+    showCancelRequestDialog.value = false
+  }
+}
+
+// *** Calendar Sharing Functions ***
+
+// Function to fetch calendar recipients
+async function fetchCalendarRecipients() {
+  if (!calendar.value?.name) return
+
+  try {
+    const request: ListAccessesRequest = {
+      parent: calendar.value.name,
+      filter: undefined,
+      pageSize: undefined,
+      pageToken: undefined
+    }
+
+    const response = await calendarAccessService.ListAccesses(request)
+
+    if (response.accesses) {
+      currentAccesses.value = response.accesses.filter(access => {
+        // Filter out the current user's own access to avoid showing it in the shares list
+        return access.recipient?.user !== authStore.user?.name
+      })
+    }
+  } catch (error) {
+    console.error('Error fetching calendar recipients:', error)
+  }
+}
+
+async function shareWithUser({ userName, permission }: { userName: string, permission: apitypes_PermissionLevel }) {
+  if (!userName) return
+  if (!calendar.value?.name) return
+  
+  sharing.value = true
+  try {
+    const access: Access = {
+      recipient: {
+        user: userName,
+      },
+      permissionLevel: permission,
+      name: undefined, // Will be set by the server
+      requester: undefined, // Will be set by the server
+      state: undefined, // Will be set by the server
+      acceptTarget: undefined, // Will be set by the server
+    }
+
+    const request: CreateAccessRequest = {
+      parent: calendar.value.name,
+      access
+    }
+
+    await calendarAccessService.CreateAccess(request)
+    await fetchCalendarRecipients()
+  } catch (error) {
+    console.error('Error sharing calendar:', error)
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
+  } finally {
+    sharing.value = false
+  }
+}
+
+async function shareWithCircle() {
+  // Calendar access API doesn't support circles, only users
+  alertsStore.addAlert('Sharing with circles is not supported for calendars', 'warning')
+}
+
+async function unshareCalendar(accessName: string) {
+  try {
+    const request: DeleteAccessRequest = {
+      name: accessName
+    }
+    
+    await calendarAccessService.DeleteAccess(request)
+    await fetchCalendarRecipients()
+  } catch (error) {
+    console.error('Error removing share:', error)
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
+  }
+}
+
+async function updatePermission({ access, newLevel }: { access: Access, newLevel: apitypes_PermissionLevel }) {
+  if (access.permissionLevel === newLevel) return
+  if (!access.name) return
+  
+  updatingPermission.value[access.name] = true
+  try {
+    await calendarAccessService.UpdateAccess({
+      access: {
+        name: access.name,
+        permissionLevel: newLevel,
+        state: undefined,
+        recipient: undefined,
+        requester: undefined,
+        acceptTarget: undefined,
+      },
+      updateMask: 'permissionLevel',
+    })
+    // Update local state
+    access.permissionLevel = newLevel
+  } catch (error) {
+    console.error('Error updating permission:', error)
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
+  } finally {
+    updatingPermission.value[access.name] = false
+  }
+}
+
+async function acceptCalendarFromShareDialog(accessName: string) {
+  if (!accessName) return
+  
+  try {
+    await calendarsStore.acceptCalendar(accessName)
+    await fetchCalendarRecipients()
+  } catch (error) {
+    console.error('Error accepting calendar access:', error)
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
+  }
+}
+
+async function loadCurrentAccesses() {
+  if (!calendar.value?.name) return
+  
+  try {
+    const request: ListAccessesRequest = {
+      parent: calendar.value.name,
+      filter: undefined,
+      pageSize: undefined,
+      pageToken: undefined
+    }
+
+    const response = await calendarAccessService.ListAccesses(request)
+
+    if (response.accesses) {
+      currentAccesses.value = response.accesses.filter(access => {
+        // Filter out the current user's own access to avoid showing it in the shares list
+        return access.recipient?.user !== authStore.user?.name
+      })
+    }
+  } catch (error) {
+    console.error('Error loading current accesses:', error)
+  }
+}
+
 async function loadCalendar() {
   const calendarName = route.path.substring(1)
   await calendarsStore.loadCalendar(calendarName)
+  // Load current accesses for sharing
+  await loadCurrentAccesses()
 }
 
 onMounted(async () => {
@@ -344,6 +569,13 @@ watch(
     }
   }
 )
+
+// Watch for share dialog opening to load current accesses
+watch(showShareDialog, (isOpen) => {
+  if (isOpen && calendar.value && hasWritePermission(calendar.value.calendarAccess?.permissionLevel)) {
+    fetchCalendarRecipients()
+  }
+})
 </script>
 
 <style scoped>

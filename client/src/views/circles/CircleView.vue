@@ -252,7 +252,6 @@ const alertsStore = useAlertStore()
 
 const { circle } = storeToRefs(circlesStore)
 const { user } = storeToRefs(authStore)
-const speedDialOpen = ref(false)
 
 
 const trimmedCircleName = computed(() => {
@@ -515,7 +514,7 @@ async function declineCircle() {
     await circleAccessService.DeleteAccess({ name: circle.value.circleAccess.name })
     router.push({ name: 'circles' })
   } catch (error) {
-    // Optionally show a notification
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   } finally {
     decliningCircle.value = false
   }

@@ -114,6 +114,15 @@ export const useCalendarsStore = defineStore('calendars', () => {
     }
   }
 
+  async function deleteCalendar(calendarName: string) {
+    try {
+      await calendarService.DeleteCalendar({ name: calendarName })
+    } catch (error) {
+      console.error('Failed to delete calendar:', error)
+      throw error
+    }
+  }
+
   async function acceptCalendar(accessName: string) {
     try {
       await calendarAccessService.AcceptAccess({ name: accessName })
@@ -140,6 +149,7 @@ export const useCalendarsStore = defineStore('calendars', () => {
     initEmptyCalendar,
     createCalendar,
     updateCalendar,
+    deleteCalendar,
     acceptCalendar,
     deleteCalendarAccess,
     calendar,

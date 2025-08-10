@@ -494,16 +494,16 @@ function convertAmount(amount: number, from: Recipe_MeasurementType, to: Recipe_
   return amount
 }
 
-function getUnitGroup(unit: string) {
-  // For cycling logic compatibility
-  if (VOLUME_UNIT_MULTIPLIERS[unit as Recipe_MeasurementType] !== undefined) {
-    return { units: VOLUME_UNITS }
-  }
-  if (WEIGHT_UNIT_MULTIPLIERS[unit as Recipe_MeasurementType] !== undefined) {
-    return { units: WEIGHT_UNITS }
-  }
-  return undefined
-}
+// function getUnitGroup(unit: string) {
+//   // For cycling logic compatibility
+//   if (VOLUME_UNIT_MULTIPLIERS[unit as Recipe_MeasurementType] !== undefined) {
+//     return { units: VOLUME_UNITS }
+//   }
+//   if (WEIGHT_UNIT_MULTIPLIERS[unit as Recipe_MeasurementType] !== undefined) {
+//     return { units: WEIGHT_UNITS }
+//   }
+//   return undefined
+// }
 
 function getDisplayUnitKey(i: number, j: number, secondary = false) {
   return `${i}_${j}${secondary ? '_2' : ''}`
@@ -744,7 +744,7 @@ async function acceptRecipe(recipeAccessName: string | undefined) {
     await recipesStore.acceptRecipe(recipeAccessName)
     recipesStore.loadRecipe(recipe.value?.name ?? '')
   } catch (error) {
-    // Optionally show a notification
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   } finally {
     acceptingRecipe.value = false
   }
@@ -757,7 +757,7 @@ async function declineRecipe() {
     await recipesStore.deleteRecipeAccess(recipe.value.recipeAccess.name)
     router.push(route.params.circleId ? { name: 'circle', params: { circleId: route.params.circleId } } : { name: 'recipes' })
   } catch (error) {
-    // Optionally show a notification
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   } finally {
     decliningRecipe.value = false
   }
@@ -816,7 +816,7 @@ function isFranctional(type: Recipe_MeasurementType | undefined): boolean {
 function toFraction(amount: number): string {
   if (isNaN(amount)) return ''
   const whole = Math.floor(amount)
-  let frac = amount - whole
+  const frac = amount - whole
   // Find the closest common fraction denominator
   const denominators = [2, 3, 4, 8, 16]
   let best = { num: 0, den: 1, diff: 1 }
