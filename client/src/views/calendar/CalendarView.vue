@@ -90,7 +90,7 @@
       </template>
       
       <template #events="{ items, loading }">
-        <ScheduleCal :events="items" :loading="loading" />
+        <ScheduleCal :events="items" :calendars="[calendar]" :loading="loading" />
       </template>
       
 

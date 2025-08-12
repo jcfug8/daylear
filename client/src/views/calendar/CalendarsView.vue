@@ -2,6 +2,7 @@
   <ListTabsPage
     ref="tabsPage"
     :tabs="tabs"
+    v-model:activeTab="currentTab"
   >
     <template #filter>
       <v-row class="align-center" style="max-width: 900px; margin: 0 auto;">
@@ -56,13 +57,6 @@
                   prepend-icon="mdi-calendar"
                   :title="calendar.title"
                 />
-                <v-divider v-if="selectedAccount?.value === authStore.user?.name" />
-                <v-list-item
-                  v-if="selectedAccount?.value === authStore.user?.name"
-                  prepend-icon="mdi-calendar-plus"
-                  title="Create Calendar"
-                  :to="{ name: 'calendarCreate' }"
-                />
               </v-list>
             </v-menu>
           </template>
@@ -76,11 +70,13 @@
     </template>
     <template #my="{ items, loading }">
       <CalendarGrid v-if="viewMode === 'grid'" :calendars="getFilteredCalendars(items as Calendar[])" :loading="(loading as boolean)" />
-      <ScheduleCal v-else :events="events" :calendars="(items as Calendar[])" />
+      <template v-else>
+        <ScheduleCal v-if="!loading" :events="events" :calendars="(items as Calendar[])" />
+      </template>
       <!-- View mode toggle FAB -->
       <v-btn
         color="primary"
-        density="comfortable"
+        density="compact"
         class="text-none"
         style="position: fixed; bottom: 16px; left: 16px; z-index: 10;"
         @click="toggleViewMode"
@@ -97,6 +93,18 @@
       </div>
       <CalendarGrid :calendars="(items as Calendar[])" :loading="(loading as boolean)" />
     </template>
+    <template #fab>
+        <v-btn
+          v-if="selectedAccount?.value === authStore.user.name"
+          color="primary"
+          density="compact"
+          style="position: fixed; bottom: 16px; right: 16px"
+          :to="{ name: 'calendarCreate' }"
+        >
+          <v-icon>mdi-plus</v-icon>
+          <span>Create Calendar</span>
+        </v-btn>
+      </template>
   </ListTabsPage>
 
   <!-- Simple filter dialog for account selection -->
@@ -162,13 +170,7 @@ const viewMode = ref<'grid' | 'schedule'>('schedule')
 const events = ref<Event[]>([])
 const currentTab = ref<string>('my')
 const isMyTab = computed(() => currentTab.value === 'my')
-watch(
-  () => tabsPage.value?.activeTab?.value,
-  (v) => {
-    if (typeof v === 'string') currentTab.value = v
-  },
-  { immediate: true }
-)
+const loading = ref<boolean>(true)
 
 onMounted(() => {
   // Preload account selections (circles and friends) so the modal has all options
@@ -319,12 +321,14 @@ function toggleViewMode() {
 
 // Load events for all calendars currently in the "My" tab
 async function loadEventsForMyCalendars() {
+  loading.value = true
   events.value = []
   for (const calendar of calendarsStore.myCalendars) {
     if (!calendar?.name) continue
     const es = await calendarsStore.loadEvents(calendar.name)
     events.value.push(...es)
   }
+  loading.value = false
 }
 
 // Keep events in sync when the calendars list changes or when switching to schedule mode
@@ -336,6 +340,16 @@ watch(
     }
   },
   { deep: true }
+)
+
+// When switching tabs, ensure events are loaded if entering My tab in schedule mode
+watch(
+  () => tabsPage.value?.activeTab?.value,
+  async (tab) => {
+    if (tab === 'my' && viewMode.value === 'schedule') {
+      await loadEventsForMyCalendars()
+    }
+  }
 )
 
 </script>

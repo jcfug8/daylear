@@ -13,9 +13,8 @@
         <v-card
           :to="'/'+calendar.name"
           :title="calendar.title"
-          style="aspect-ratio: 8/6"
           hover
-          class="calendar-card"
+          class="calendar-card pb-10"
         >
           <v-card-subtitle>
             <div v-if="calendar.description" class="text-body-2 mb-1" style="max-height: 2.5em; overflow: hidden; text-overflow: ellipsis; white-space: pre-line;">

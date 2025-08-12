@@ -1,7 +1,7 @@
 <template>
 
     <v-app-bar elevation="0" density="compact">
-        <v-tabs v-model="activeTab" align-tabs="center" color="primary" grow>
+        <v-tabs v-model="internalActiveTab" align-tabs="center" color="primary" grow>
           <v-tab density="compact" v-for="tab in tabs" :key="tab.value" :value="tab.value">
             <template v-if="!tab.disabled">
               <v-icon v-if="tab.icon" left>{{ tab.icon }}</v-icon>
@@ -15,7 +15,7 @@
           <slot name="filter" />
         </div>
     </v-app-bar>
-      <v-tabs-window v-model="activeTab">
+      <v-tabs-window v-model="internalActiveTab">
         <v-tabs-window-item v-for="tab in tabs" :key="tab.value" :value="tab.value">
           <template v-if="tab.subTabs">
             <v-tabs v-model="subTab[tab.value]" density="compact" color="secondary">
@@ -32,7 +32,7 @@
           </template>
         </v-tabs-window-item>
       </v-tabs-window>
-    <slot name="fab" :tab="activeTab" />
+    <slot name="fab" :tab="internalActiveTab" />
 
 </template>
 
@@ -51,12 +51,18 @@ interface TabDef {
 const props = defineProps<{
   tabs: TabDef[]
   initialTab?: string
+  activeTab?: string
+}>()
+const emit = defineEmits<{
+  (e: 'update:activeTab', value: string): void
 }>()
 
-const activeTab = ref(props.initialTab ?? props.tabs[0]?.value ?? '')
+const internalActiveTab = ref(props.activeTab ?? props.initialTab ?? props.tabs[0]?.value ?? '')
 const subTab = ref<Record<string, string>>({})
-const items = ref<Record<string, unknown>>({})
-const loading = ref<Record<string, boolean | Record<string, boolean>>>({})
+type ItemsMap = Record<string, unknown | Record<string, unknown>>
+const items = ref<ItemsMap>({})
+type LoadingMap = Record<string, boolean | Record<string, boolean>>
+const loading = ref<LoadingMap>({})
 const slots = useSlots()
 
 function loadTab(tabValue: string) {
@@ -66,13 +72,17 @@ function loadTab(tabValue: string) {
     if (!subTab.value[tabValue]) subTab.value[tabValue] = tab.subTabs[0].value
     for (const sub of tab.subTabs) {
       if (sub.loader) {
-        loading.value[tabValue] = loading.value[tabValue] || {}
-        loading.value[tabValue][sub.value] = true
+         if (typeof loading.value[tabValue] !== 'object') {
+           loading.value[tabValue] = {}
+         }
+         ;(loading.value[tabValue] as Record<string, boolean>)[sub.value] = true
         sub.loader().then(data => {
-          items.value[tabValue] = items.value[tabValue] || {}
-          items.value[tabValue][sub.value] = data
+           if (typeof items.value[tabValue] !== 'object') {
+             items.value[tabValue] = {}
+           }
+           ;(items.value[tabValue] as Record<string, unknown>)[sub.value] = data
         }).finally(() => {
-          loading.value[tabValue][sub.value] = false
+           ;(loading.value[tabValue] as Record<string, boolean>)[sub.value] = false
         })
       }
     }
@@ -87,25 +97,35 @@ function loadTab(tabValue: string) {
 }
 
 onMounted(() => {
-  loadTab(activeTab.value)
+  loadTab(internalActiveTab.value)
 })
 
-watch(activeTab, (newTab) => {
+watch(internalActiveTab, (newTab) => {
+  emit('update:activeTab', newTab)
   loadTab(newTab)
 })
+watch(() => props.activeTab, (newVal) => {
+  if (typeof newVal === 'string' && newVal !== internalActiveTab.value) {
+    internalActiveTab.value = newVal
+  }
+})
 watch(subTab, (newSubTabs) => {
-  const tab = props.tabs.find(t => t.value === activeTab.value)
+  const tab = props.tabs.find(t => t.value === internalActiveTab.value)
   if (tab && tab.subTabs) {
-    const subValue = newSubTabs[activeTab.value]
+    const subValue = newSubTabs[internalActiveTab.value]
     const sub = tab.subTabs.find(s => s.value === subValue)
     if (sub && sub.loader) {
-      loading.value[activeTab.value] = loading.value[activeTab.value] || {}
-      loading.value[activeTab.value][subValue] = true
+      if (typeof loading.value[internalActiveTab.value] !== 'object') {
+        loading.value[internalActiveTab.value] = {}
+      }
+      ;(loading.value[internalActiveTab.value] as Record<string, boolean>)[subValue] = true
       sub.loader().then(data => {
-        items.value[activeTab.value] = items.value[activeTab.value] || {}
-        items.value[activeTab.value][subValue] = data
+        if (typeof items.value[internalActiveTab.value] !== 'object') {
+          items.value[internalActiveTab.value] = {}
+        }
+        ;(items.value[internalActiveTab.value] as Record<string, unknown>)[subValue] = data
       }).finally(() => {
-        loading.value[activeTab.value][subValue] = false
+        ;(loading.value[internalActiveTab.value] as Record<string, boolean>)[subValue] = false
       })
     }
   }
@@ -113,23 +133,27 @@ watch(subTab, (newSubTabs) => {
 
 // Expose a method to reload the current active tab and subtab
 function reloadActiveTab() {
-  const tab = props.tabs.find(t => t.value === activeTab.value)
+  const tab = props.tabs.find(t => t.value === internalActiveTab.value)
   if (!tab) return
   if (tab.subTabs) {
-    const subValue = subTab.value[activeTab.value] || tab.subTabs[0].value
+    const subValue = subTab.value[internalActiveTab.value] || tab.subTabs[0].value
     const sub = tab.subTabs.find(s => s.value === subValue)
     if (sub && sub.loader) {
-      loading.value[activeTab.value] = loading.value[activeTab.value] || {}
-      loading.value[activeTab.value][subValue] = true
+      if (typeof loading.value[internalActiveTab.value] !== 'object') {
+        loading.value[internalActiveTab.value] = {}
+      }
+      ;(loading.value[internalActiveTab.value] as Record<string, boolean>)[subValue] = true
       sub.loader().then(data => {
-        items.value[activeTab.value] = items.value[activeTab.value] || {}
-        items.value[activeTab.value][subValue] = data
+        if (typeof items.value[internalActiveTab.value] !== 'object') {
+          items.value[internalActiveTab.value] = {}
+        }
+        ;(items.value[internalActiveTab.value] as Record<string, unknown>)[subValue] = data
       }).finally(() => {
-        loading.value[activeTab.value][subValue] = false
+        ;(loading.value[internalActiveTab.value] as Record<string, boolean>)[subValue] = false
       })
     }
   } else {
-    loadTab(activeTab.value)
+    loadTab(internalActiveTab.value)
   }
 }
 
@@ -139,18 +163,22 @@ function reloadTab(tabValue: string, subTabValue?: string) {
   if (tab.subTabs && subTabValue) {
     const sub = tab.subTabs.find(s => s.value === subTabValue)
     if (sub && sub.loader) {
-      loading.value[tabValue] = loading.value[tabValue] || {}
-      loading.value[tabValue][subTabValue] = true
+      if (typeof loading.value[tabValue] !== 'object') {
+        loading.value[tabValue] = {}
+      }
+      ;(loading.value[tabValue] as Record<string, boolean>)[subTabValue] = true
       sub.loader().then(data => {
-        items.value[tabValue] = items.value[tabValue] || {}
-        items.value[tabValue][subTabValue] = data
+        if (typeof items.value[tabValue] !== 'object') {
+          items.value[tabValue] = {}
+        }
+        ;(items.value[tabValue] as Record<string, unknown>)[subTabValue] = data
       }).finally(() => {
-        loading.value[tabValue][subTabValue] = false
+        ;(loading.value[tabValue] as Record<string, boolean>)[subTabValue] = false
       })
     }
   } else {
     loadTab(tabValue)
   }
 }
-defineExpose({ reloadActiveTab, reloadTab, activeTab })
+defineExpose({ reloadActiveTab, reloadTab, activeTab: internalActiveTab })
 </script> 
