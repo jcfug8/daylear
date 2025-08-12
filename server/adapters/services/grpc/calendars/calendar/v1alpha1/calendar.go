@@ -306,6 +306,7 @@ func (s *CalendarService) CalendarToProto(calendar model.Calendar, options ...na
 				Name:            name,
 				PermissionLevel: calendar.CalendarAccess.PermissionLevel,
 				State:           calendar.CalendarAccess.State,
+				AcceptTarget:    calendar.CalendarAccess.AcceptTarget,
 			}
 		}
 	}

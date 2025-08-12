@@ -118,6 +118,14 @@ const router = createRouter({
       },
     },
     {
+      path: '/circles/:circleId/calendars/create',
+      name: 'circleCalendarCreate',
+      component: () => import('../views/calendar/CalendarCreateView.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
       path: '/calendars/:calendarId',
       name: 'calendar',
       component: () => import('../views/calendar/CalendarView.vue'),

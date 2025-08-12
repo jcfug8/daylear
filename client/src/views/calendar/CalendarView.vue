@@ -1,5 +1,5 @@
 <template>
-  <v-container v-if="calendar" class="pb-16">
+  <template v-if="calendar">
     <ListTabsPage
       :tabs="tabs"
       ref="tabsPage"
@@ -89,12 +89,8 @@
         </div>
       </template>
       
-      <template #events>
-        <div class="text-center py-8">
-          <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-calendar</v-icon>
-          <h3 class="text-grey-lighten-1 mb-2">Events</h3>
-          <p class="text-grey-lighten-1">Calendar events will be displayed here.</p>
-        </div>
+      <template #events="{ items, loading }">
+        <ScheduleCal :events="items" :loading="loading" />
       </template>
       
 
@@ -180,7 +176,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-container>
+  </template>
 </template>
 
 <script setup lang="ts">
@@ -194,6 +190,7 @@ import type { apitypes_VisibilityLevel, Access, apitypes_PermissionLevel, Create
 import { calendarAccessService } from '@/api/api'
 import { useAlertStore } from '@/stores/alerts'
 import { useAuthStore } from '@/stores/auth'
+import ScheduleCal from '@/components/ScheduleCal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -232,7 +229,10 @@ const tabs = [
   {
     label: 'Events',
     value: 'events',
-    icon: 'mdi-calendar'
+    icon: 'mdi-calendar',
+    loader: async () => {
+      return await calendarsStore.loadEvents(calendar.value?.name ?? '')
+    }
   }
 ]
 
@@ -336,9 +336,14 @@ async function handleRequestAccess() {
   try {
     const access: Access = {
       recipient: {
-        user: authStore.user.name,
+        user: {
+          name: authStore.user.name,
+          username: undefined,
+          givenName: undefined,
+          familyName: undefined,
+        },
       },
-      permissionLevel: 'PERMISSION_LEVEL_READ',
+      level: 'PERMISSION_LEVEL_READ',
       name: undefined, // Will be set by the server
       requester: undefined, // Will be set by the server
       state: undefined, // Will be set by the server
@@ -428,7 +433,7 @@ async function fetchCalendarRecipients() {
     if (response.accesses) {
       currentAccesses.value = response.accesses.filter(access => {
         // Filter out the current user's own access to avoid showing it in the shares list
-        return access.recipient?.user !== authStore.user?.name
+        return access.recipient?.user?.name !== authStore.user?.name
       })
     }
   } catch (error) {
@@ -444,9 +449,14 @@ async function shareWithUser({ userName, permission }: { userName: string, permi
   try {
     const access: Access = {
       recipient: {
-        user: userName,
+        user: {
+          name: userName,
+          username: undefined,
+          givenName: undefined,
+          familyName: undefined,
+        },
       },
-      permissionLevel: permission,
+      level: permission,
       name: undefined, // Will be set by the server
       requester: undefined, // Will be set by the server
       state: undefined, // Will be set by the server
@@ -488,7 +498,7 @@ async function unshareCalendar(accessName: string) {
 }
 
 async function updatePermission({ access, newLevel }: { access: Access, newLevel: apitypes_PermissionLevel }) {
-  if (access.permissionLevel === newLevel) return
+  if (access.level === newLevel) return
   if (!access.name) return
   
   updatingPermission.value[access.name] = true
@@ -496,7 +506,7 @@ async function updatePermission({ access, newLevel }: { access: Access, newLevel
     await calendarAccessService.UpdateAccess({
       access: {
         name: access.name,
-        permissionLevel: newLevel,
+        level: newLevel,
         state: undefined,
         recipient: undefined,
         requester: undefined,
@@ -505,7 +515,7 @@ async function updatePermission({ access, newLevel }: { access: Access, newLevel
       updateMask: 'permissionLevel',
     })
     // Update local state
-    access.permissionLevel = newLevel
+    access.level = newLevel
   } catch (error) {
     console.error('Error updating permission:', error)
     alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
@@ -526,35 +536,9 @@ async function acceptCalendarFromShareDialog(accessName: string) {
   }
 }
 
-async function loadCurrentAccesses() {
-  if (!calendar.value?.name) return
-  
-  try {
-    const request: ListAccessesRequest = {
-      parent: calendar.value.name,
-      filter: undefined,
-      pageSize: undefined,
-      pageToken: undefined
-    }
-
-    const response = await calendarAccessService.ListAccesses(request)
-
-    if (response.accesses) {
-      currentAccesses.value = response.accesses.filter(access => {
-        // Filter out the current user's own access to avoid showing it in the shares list
-        return access.recipient?.user !== authStore.user?.name
-      })
-    }
-  } catch (error) {
-    console.error('Error loading current accesses:', error)
-  }
-}
-
 async function loadCalendar() {
   const calendarName = route.path.substring(1)
   await calendarsStore.loadCalendar(calendarName)
-  // Load current accesses for sharing
-  await loadCurrentAccesses()
 }
 
 onMounted(async () => {

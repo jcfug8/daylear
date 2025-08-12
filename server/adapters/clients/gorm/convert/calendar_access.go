@@ -38,8 +38,13 @@ func CalendarAccessFromGorm(gormAccess gmodel.CalendarAccess) cmodel.CalendarAcc
 			UserId:   gormAccess.RecipientUserId,
 			CircleId: gormAccess.RecipientCircleId,
 		},
-		PermissionLevel: gormAccess.PermissionLevel,
-		State:           gormAccess.State,
-		AcceptTarget:    gormAccess.AcceptTarget,
+		PermissionLevel:       gormAccess.PermissionLevel,
+		State:                 gormAccess.State,
+		AcceptTarget:          gormAccess.AcceptTarget,
+		RecipientUsername:     gormAccess.RecipientUsername,
+		RecipientGivenName:    gormAccess.RecipientGivenName,
+		RecipientFamilyName:   gormAccess.RecipientFamilyName,
+		RecipientCircleTitle:  gormAccess.RecipientCircleTitle,
+		RecipientCircleHandle: gormAccess.RecipientCircleHandle,
 	}
 }

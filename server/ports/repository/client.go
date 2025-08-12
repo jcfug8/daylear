@@ -10,6 +10,7 @@ type Client interface {
 	recipeClient
 	userClient
 	calendarClient
+	eventClient
 
 	Begin(context.Context) (TxClient, error)
 	Migrate() error
@@ -21,6 +22,7 @@ type TxClient interface {
 	recipeClient
 	userClient
 	calendarClient
+	eventClient
 
 	Commit() error
 	Rollback()

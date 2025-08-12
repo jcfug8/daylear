@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <v-container>
     <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-4" />
     <div v-if="!loading && users.length === 0" class="text-center py-8">
       <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-account</v-icon>
@@ -75,14 +75,16 @@
         </template>
       </v-col>
     </v-row>
-  </div>
+  </v-container>
 </template>
 
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
-const props = defineProps({
-  users: { type: Array as () => any[], required: true },
+import type { User } from '@/genapi/api/users/user/v1alpha1'
+
+defineProps({
+  users: { type: Array as () => User[], required: true },
   loading: { type: Boolean, default: false },
   emptyText: { type: String, default: '' },
   showActions: { type: Boolean, default: false },
@@ -94,7 +96,7 @@ const { user: currentUser } = storeToRefs(authStore)
 
 defineEmits(['accept', 'decline'])
 
-function isRequester(user: any) {
+function isRequester(user: User) {
   return user.access?.requester === currentUser.value?.name
 }
 </script>

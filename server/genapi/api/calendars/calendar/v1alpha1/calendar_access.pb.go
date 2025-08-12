@@ -36,7 +36,7 @@ type Access struct {
 	// the name of the receiving user
 	Recipient *Access_RequesterOrRecipient `protobuf:"bytes,3,opt,name=recipient,proto3" json:"recipient,omitempty"`
 	// the permission level of the access
-	PermissionLevel types.PermissionLevel `protobuf:"varint,4,opt,name=permission_level,json=permissionLevel,proto3,enum=api.types.PermissionLevel" json:"permission_level,omitempty"`
+	Level types.PermissionLevel `protobuf:"varint,4,opt,name=level,proto3,enum=api.types.PermissionLevel" json:"level,omitempty"`
 	// the status of the access
 	State types.AccessState `protobuf:"varint,5,opt,name=state,proto3,enum=api.types.AccessState" json:"state,omitempty"`
 	// the target of the accept action
@@ -96,9 +96,9 @@ func (x *Access) GetRecipient() *Access_RequesterOrRecipient {
 	return nil
 }
 
-func (x *Access) GetPermissionLevel() types.PermissionLevel {
+func (x *Access) GetLevel() types.PermissionLevel {
 	if x != nil {
-		return x.PermissionLevel
+		return x.Level
 	}
 	return types.PermissionLevel(0)
 }
@@ -499,7 +499,7 @@ type Access_RequesterOrRecipient struct {
 	// Types that are valid to be assigned to Name:
 	//
 	//	*Access_RequesterOrRecipient_User
-	//	*Access_RequesterOrRecipient_Calendar
+	//	*Access_RequesterOrRecipient_Circle
 	Name          isAccess_RequesterOrRecipient_Name `protobuf_oneof:"name"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -542,22 +542,22 @@ func (x *Access_RequesterOrRecipient) GetName() isAccess_RequesterOrRecipient_Na
 	return nil
 }
 
-func (x *Access_RequesterOrRecipient) GetUser() string {
+func (x *Access_RequesterOrRecipient) GetUser() *Access_User {
 	if x != nil {
 		if x, ok := x.Name.(*Access_RequesterOrRecipient_User); ok {
 			return x.User
 		}
 	}
-	return ""
+	return nil
 }
 
-func (x *Access_RequesterOrRecipient) GetCalendar() string {
+func (x *Access_RequesterOrRecipient) GetCircle() *Access_Circle {
 	if x != nil {
-		if x, ok := x.Name.(*Access_RequesterOrRecipient_Calendar); ok {
-			return x.Calendar
+		if x, ok := x.Name.(*Access_RequesterOrRecipient_Circle); ok {
+			return x.Circle
 		}
 	}
-	return ""
+	return nil
 }
 
 type isAccess_RequesterOrRecipient_Name interface {
@@ -566,17 +566,17 @@ type isAccess_RequesterOrRecipient_Name interface {
 
 type Access_RequesterOrRecipient_User struct {
 	// the name of the user
-	User string `protobuf:"bytes,1,opt,name=user,proto3,oneof"`
+	User *Access_User `protobuf:"bytes,1,opt,name=user,proto3,oneof"`
 }
 
-type Access_RequesterOrRecipient_Calendar struct {
-	// the name of the calendar
-	Calendar string `protobuf:"bytes,2,opt,name=calendar,proto3,oneof"`
+type Access_RequesterOrRecipient_Circle struct {
+	// the name of the circle
+	Circle *Access_Circle `protobuf:"bytes,2,opt,name=circle,proto3,oneof"`
 }
 
 func (*Access_RequesterOrRecipient_User) isAccess_RequesterOrRecipient_Name() {}
 
-func (*Access_RequesterOrRecipient_Calendar) isAccess_RequesterOrRecipient_Name() {}
+func (*Access_RequesterOrRecipient_Circle) isAccess_RequesterOrRecipient_Name() {}
 
 // user data
 type Access_User struct {
@@ -651,21 +651,85 @@ func (x *Access_User) GetFamilyName() string {
 	return ""
 }
 
+// circle data
+type Access_Circle struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// the name of the circle
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// the title of the circle
+	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	// the handle of the circle
+	Handle        string `protobuf:"bytes,3,opt,name=handle,proto3" json:"handle,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Access_Circle) Reset() {
+	*x = Access_Circle{}
+	mi := &file_api_calendars_calendar_v1alpha1_calendar_access_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Access_Circle) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Access_Circle) ProtoMessage() {}
+
+func (x *Access_Circle) ProtoReflect() protoreflect.Message {
+	mi := &file_api_calendars_calendar_v1alpha1_calendar_access_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Access_Circle.ProtoReflect.Descriptor instead.
+func (*Access_Circle) Descriptor() ([]byte, []int) {
+	return file_api_calendars_calendar_v1alpha1_calendar_access_proto_rawDescGZIP(), []int{0, 2}
+}
+
+func (x *Access_Circle) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Access_Circle) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *Access_Circle) GetHandle() string {
+	if x != nil {
+		return x.Handle
+	}
+	return ""
+}
+
 var File_api_calendars_calendar_v1alpha1_calendar_access_proto protoreflect.FileDescriptor
 
 const file_api_calendars_calendar_v1alpha1_calendar_access_proto_rawDesc = "" +
 	"\n" +
-	"5api/calendars/calendar/v1alpha1/calendar_access.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1dapi/types/accept_target.proto\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xe0\x06\n" +
+	"5api/calendars/calendar/v1alpha1/calendar_access.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1dapi/types/accept_target.proto\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x81\b\n" +
 	"\x06Access\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12_\n" +
 	"\trequester\x18\x02 \x01(\v2<.api.calendars.calendar.v1alpha1.Access.RequesterOrRecipientB\x03\xe0A\x03R\trequester\x12b\n" +
-	"\trecipient\x18\x03 \x01(\v2<.api.calendars.calendar.v1alpha1.Access.RequesterOrRecipientB\x06\xe0A\x02\xe0A\x05R\trecipient\x12J\n" +
-	"\x10permission_level\x18\x04 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x02R\x0fpermissionLevel\x121\n" +
+	"\trecipient\x18\x03 \x01(\v2<.api.calendars.calendar.v1alpha1.Access.RequesterOrRecipientB\x06\xe0A\x02\xe0A\x05R\trecipient\x125\n" +
+	"\x05level\x18\x04 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x02R\x05level\x121\n" +
 	"\x05state\x18\x05 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state\x12A\n" +
-	"\raccept_target\x18\x06 \x01(\x0e2\x17.api.types.AcceptTargetB\x03\xe0A\x03R\facceptTarget\x1aR\n" +
-	"\x14RequesterOrRecipient\x12\x14\n" +
-	"\x04user\x18\x01 \x01(\tH\x00R\x04user\x12\x1c\n" +
-	"\bcalendar\x18\x02 \x01(\tH\x00R\bcalendarB\x06\n" +
+	"\raccept_target\x18\x06 \x01(\x0e2\x17.api.types.AcceptTargetB\x03\xe0A\x03R\facceptTarget\x1a\xac\x01\n" +
+	"\x14RequesterOrRecipient\x12B\n" +
+	"\x04user\x18\x01 \x01(\v2,.api.calendars.calendar.v1alpha1.Access.UserH\x00R\x04user\x12H\n" +
+	"\x06circle\x18\x02 \x01(\v2..api.calendars.calendar.v1alpha1.Access.CircleH\x00R\x06circleB\x06\n" +
 	"\x04name\x1a\x8a\x01\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name\x12\x1f\n" +
@@ -673,7 +737,11 @@ const file_api_calendars_calendar_v1alpha1_calendar_access_proto_rawDesc = "" +
 	"\n" +
 	"given_name\x18\x03 \x01(\tB\x03\xe0A\x03R\tgivenName\x12$\n" +
 	"\vfamily_name\x18\x04 \x01(\tB\x03\xe0A\x03R\n" +
-	"familyName:\xd4\x01\xeaA\xd0\x01\n" +
+	"familyName\x1aY\n" +
+	"\x06Circle\x12\x17\n" +
+	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name\x12\x19\n" +
+	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x03R\x05title\x12\x1b\n" +
+	"\x06handle\x18\x03 \x01(\tB\x03\xe0A\x03R\x06handle:\xd4\x01\xeaA\xd0\x01\n" +
 	"&api.calendars.calendar.v1alpha1/Access\x12&calendars/{calendar}/accesses/{access}\x123users/{user}/calendars/{calendar}/accesses/{access}\x127circles/{circle}/calendars/{calendar}/accesses/{access}*\baccesses2\x06access\"\xa5\x01\n" +
 	"\x13CreateAccessRequest\x12H\n" +
 	"\x06parent\x18\x01 \x01(\tB0\xe0A\x02\xfaA*\n" +
@@ -736,7 +804,7 @@ func file_api_calendars_calendar_v1alpha1_calendar_access_proto_rawDescGZIP() []
 	return file_api_calendars_calendar_v1alpha1_calendar_access_proto_rawDescData
 }
 
-var file_api_calendars_calendar_v1alpha1_calendar_access_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_api_calendars_calendar_v1alpha1_calendar_access_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_api_calendars_calendar_v1alpha1_calendar_access_proto_goTypes = []any{
 	(*Access)(nil),                      // 0: api.calendars.calendar.v1alpha1.Access
 	(*CreateAccessRequest)(nil),         // 1: api.calendars.calendar.v1alpha1.CreateAccessRequest
@@ -748,39 +816,42 @@ var file_api_calendars_calendar_v1alpha1_calendar_access_proto_goTypes = []any{
 	(*AcceptAccessRequest)(nil),         // 7: api.calendars.calendar.v1alpha1.AcceptAccessRequest
 	(*Access_RequesterOrRecipient)(nil), // 8: api.calendars.calendar.v1alpha1.Access.RequesterOrRecipient
 	(*Access_User)(nil),                 // 9: api.calendars.calendar.v1alpha1.Access.User
-	(types.PermissionLevel)(0),          // 10: api.types.PermissionLevel
-	(types.AccessState)(0),              // 11: api.types.AccessState
-	(types.AcceptTarget)(0),             // 12: api.types.AcceptTarget
-	(*fieldmaskpb.FieldMask)(nil),       // 13: google.protobuf.FieldMask
-	(*emptypb.Empty)(nil),               // 14: google.protobuf.Empty
+	(*Access_Circle)(nil),               // 10: api.calendars.calendar.v1alpha1.Access.Circle
+	(types.PermissionLevel)(0),          // 11: api.types.PermissionLevel
+	(types.AccessState)(0),              // 12: api.types.AccessState
+	(types.AcceptTarget)(0),             // 13: api.types.AcceptTarget
+	(*fieldmaskpb.FieldMask)(nil),       // 14: google.protobuf.FieldMask
+	(*emptypb.Empty)(nil),               // 15: google.protobuf.Empty
 }
 var file_api_calendars_calendar_v1alpha1_calendar_access_proto_depIdxs = []int32{
 	8,  // 0: api.calendars.calendar.v1alpha1.Access.requester:type_name -> api.calendars.calendar.v1alpha1.Access.RequesterOrRecipient
 	8,  // 1: api.calendars.calendar.v1alpha1.Access.recipient:type_name -> api.calendars.calendar.v1alpha1.Access.RequesterOrRecipient
-	10, // 2: api.calendars.calendar.v1alpha1.Access.permission_level:type_name -> api.types.PermissionLevel
-	11, // 3: api.calendars.calendar.v1alpha1.Access.state:type_name -> api.types.AccessState
-	12, // 4: api.calendars.calendar.v1alpha1.Access.accept_target:type_name -> api.types.AcceptTarget
+	11, // 2: api.calendars.calendar.v1alpha1.Access.level:type_name -> api.types.PermissionLevel
+	12, // 3: api.calendars.calendar.v1alpha1.Access.state:type_name -> api.types.AccessState
+	13, // 4: api.calendars.calendar.v1alpha1.Access.accept_target:type_name -> api.types.AcceptTarget
 	0,  // 5: api.calendars.calendar.v1alpha1.CreateAccessRequest.access:type_name -> api.calendars.calendar.v1alpha1.Access
 	0,  // 6: api.calendars.calendar.v1alpha1.ListAccessesResponse.accesses:type_name -> api.calendars.calendar.v1alpha1.Access
 	0,  // 7: api.calendars.calendar.v1alpha1.UpdateAccessRequest.access:type_name -> api.calendars.calendar.v1alpha1.Access
-	13, // 8: api.calendars.calendar.v1alpha1.UpdateAccessRequest.update_mask:type_name -> google.protobuf.FieldMask
-	1,  // 9: api.calendars.calendar.v1alpha1.CalendarAccessService.CreateAccess:input_type -> api.calendars.calendar.v1alpha1.CreateAccessRequest
-	2,  // 10: api.calendars.calendar.v1alpha1.CalendarAccessService.DeleteAccess:input_type -> api.calendars.calendar.v1alpha1.DeleteAccessRequest
-	3,  // 11: api.calendars.calendar.v1alpha1.CalendarAccessService.GetAccess:input_type -> api.calendars.calendar.v1alpha1.GetAccessRequest
-	4,  // 12: api.calendars.calendar.v1alpha1.CalendarAccessService.ListAccesses:input_type -> api.calendars.calendar.v1alpha1.ListAccessesRequest
-	6,  // 13: api.calendars.calendar.v1alpha1.CalendarAccessService.UpdateAccess:input_type -> api.calendars.calendar.v1alpha1.UpdateAccessRequest
-	7,  // 14: api.calendars.calendar.v1alpha1.CalendarAccessService.AcceptAccess:input_type -> api.calendars.calendar.v1alpha1.AcceptAccessRequest
-	0,  // 15: api.calendars.calendar.v1alpha1.CalendarAccessService.CreateAccess:output_type -> api.calendars.calendar.v1alpha1.Access
-	14, // 16: api.calendars.calendar.v1alpha1.CalendarAccessService.DeleteAccess:output_type -> google.protobuf.Empty
-	0,  // 17: api.calendars.calendar.v1alpha1.CalendarAccessService.GetAccess:output_type -> api.calendars.calendar.v1alpha1.Access
-	5,  // 18: api.calendars.calendar.v1alpha1.CalendarAccessService.ListAccesses:output_type -> api.calendars.calendar.v1alpha1.ListAccessesResponse
-	0,  // 19: api.calendars.calendar.v1alpha1.CalendarAccessService.UpdateAccess:output_type -> api.calendars.calendar.v1alpha1.Access
-	0,  // 20: api.calendars.calendar.v1alpha1.CalendarAccessService.AcceptAccess:output_type -> api.calendars.calendar.v1alpha1.Access
-	15, // [15:21] is the sub-list for method output_type
-	9,  // [9:15] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	14, // 8: api.calendars.calendar.v1alpha1.UpdateAccessRequest.update_mask:type_name -> google.protobuf.FieldMask
+	9,  // 9: api.calendars.calendar.v1alpha1.Access.RequesterOrRecipient.user:type_name -> api.calendars.calendar.v1alpha1.Access.User
+	10, // 10: api.calendars.calendar.v1alpha1.Access.RequesterOrRecipient.circle:type_name -> api.calendars.calendar.v1alpha1.Access.Circle
+	1,  // 11: api.calendars.calendar.v1alpha1.CalendarAccessService.CreateAccess:input_type -> api.calendars.calendar.v1alpha1.CreateAccessRequest
+	2,  // 12: api.calendars.calendar.v1alpha1.CalendarAccessService.DeleteAccess:input_type -> api.calendars.calendar.v1alpha1.DeleteAccessRequest
+	3,  // 13: api.calendars.calendar.v1alpha1.CalendarAccessService.GetAccess:input_type -> api.calendars.calendar.v1alpha1.GetAccessRequest
+	4,  // 14: api.calendars.calendar.v1alpha1.CalendarAccessService.ListAccesses:input_type -> api.calendars.calendar.v1alpha1.ListAccessesRequest
+	6,  // 15: api.calendars.calendar.v1alpha1.CalendarAccessService.UpdateAccess:input_type -> api.calendars.calendar.v1alpha1.UpdateAccessRequest
+	7,  // 16: api.calendars.calendar.v1alpha1.CalendarAccessService.AcceptAccess:input_type -> api.calendars.calendar.v1alpha1.AcceptAccessRequest
+	0,  // 17: api.calendars.calendar.v1alpha1.CalendarAccessService.CreateAccess:output_type -> api.calendars.calendar.v1alpha1.Access
+	15, // 18: api.calendars.calendar.v1alpha1.CalendarAccessService.DeleteAccess:output_type -> google.protobuf.Empty
+	0,  // 19: api.calendars.calendar.v1alpha1.CalendarAccessService.GetAccess:output_type -> api.calendars.calendar.v1alpha1.Access
+	5,  // 20: api.calendars.calendar.v1alpha1.CalendarAccessService.ListAccesses:output_type -> api.calendars.calendar.v1alpha1.ListAccessesResponse
+	0,  // 21: api.calendars.calendar.v1alpha1.CalendarAccessService.UpdateAccess:output_type -> api.calendars.calendar.v1alpha1.Access
+	0,  // 22: api.calendars.calendar.v1alpha1.CalendarAccessService.AcceptAccess:output_type -> api.calendars.calendar.v1alpha1.Access
+	17, // [17:23] is the sub-list for method output_type
+	11, // [11:17] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_api_calendars_calendar_v1alpha1_calendar_access_proto_init() }
@@ -790,7 +861,7 @@ func file_api_calendars_calendar_v1alpha1_calendar_access_proto_init() {
 	}
 	file_api_calendars_calendar_v1alpha1_calendar_access_proto_msgTypes[8].OneofWrappers = []any{
 		(*Access_RequesterOrRecipient_User)(nil),
-		(*Access_RequesterOrRecipient_Calendar)(nil),
+		(*Access_RequesterOrRecipient_Circle)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -798,7 +869,7 @@ func file_api_calendars_calendar_v1alpha1_calendar_access_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_calendars_calendar_v1alpha1_calendar_access_proto_rawDesc), len(file_api_calendars_calendar_v1alpha1_calendar_access_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

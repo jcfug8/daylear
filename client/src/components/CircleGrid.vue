@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <v-container>
     <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-4"></v-progress-linear>
     
     <div v-if="!loading && circles.length === 0" class="text-center py-8">
@@ -67,7 +67,7 @@
         </v-btn>
       </v-col>
     </v-row>
-  </div>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -81,7 +81,7 @@ interface Props {
 }
 
 defineProps<Props>()
-const emit = defineEmits(['accept', 'decline'])
+defineEmits(['accept', 'decline'])
 
 function getPermissionColor(permission: string) {
   switch (permission) {

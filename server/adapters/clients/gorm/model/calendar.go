@@ -33,6 +33,7 @@ var CalendarFieldMasker = fieldmask.NewSQLFieldMasker(Calendar{}, map[string][]f
 		{Name: CalendarAccessColumn_CalendarAccessId, Table: CalendarAccessTable},
 		{Name: CalendarAccessColumn_PermissionLevel, Table: CalendarAccessTable},
 		{Name: CalendarAccessColumn_State, Table: CalendarAccessTable},
+		{Name: CalendarAccessColumn_AcceptTarget, Table: CalendarAccessTable},
 	},
 })
 var CalendarSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
@@ -54,6 +55,7 @@ type Calendar struct {
 	CalendarAccessId int64                 `gorm:"->;-:migration"`
 	PermissionLevel  types.PermissionLevel `gorm:"->;-:migration"`
 	State            types.AccessState     `gorm:"->;-:migration"`
+	AcceptTarget     types.AcceptTarget    `gorm:"->;-:migration"`
 }
 
 // TableName sets the table name for the Calendar model.

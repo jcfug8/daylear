@@ -29,6 +29,10 @@ var CalendarAccessFieldMasker = fieldmask.NewSQLFieldMasker(CalendarAccess{}, ma
 	cmodel.CalendarAccessField_PermissionLevel: {{Name: CalendarAccessColumn_PermissionLevel, Table: CalendarAccessTable, Updatable: true}},
 	cmodel.CalendarAccessField_State:           {{Name: CalendarAccessColumn_State, Table: CalendarAccessTable, Updatable: true}},
 	cmodel.CalendarAccessField_AcceptTarget:    {{Name: CalendarAccessColumn_AcceptTarget, Table: CalendarAccessTable, Updatable: true}},
+	cmodel.CalendarAccessField_Requester: {
+		{Name: CalendarAccessColumn_RequesterUserId, Table: CalendarAccessTable},
+		{Name: CalendarAccessColumn_RequesterCircleId, Table: CalendarAccessTable},
+	},
 	cmodel.CalendarAccessField_Recipient: {
 		{Name: CalendarAccessColumn_RecipientUserId, Table: CalendarAccessTable},
 		{Name: CalendarAccessColumn_RecipientCircleId, Table: CalendarAccessTable},
@@ -38,13 +42,9 @@ var CalendarAccessFieldMasker = fieldmask.NewSQLFieldMasker(CalendarAccess{}, ma
 		{Name: CircleColumn_Title, Table: CircleTable, Alias: "recipient_circle_title"},
 		{Name: CircleColumn_Handle, Table: CircleTable, Alias: "recipient_circle_handle"},
 	},
-	cmodel.CalendarAccessField_Requester: {
-		{Name: CalendarAccessColumn_RequesterUserId, Table: CalendarAccessTable},
-		{Name: CalendarAccessColumn_RequesterCircleId, Table: CalendarAccessTable},
-	},
 })
 var CalendarAccessSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
-	"permission_level":    {Name: CalendarAccessColumn_PermissionLevel, Table: "calendar_access"},
+	"level":               {Name: CalendarAccessColumn_PermissionLevel, Table: "calendar_access"},
 	"state":               {Name: CalendarAccessColumn_State, Table: "calendar_access"},
 	"recipient.user_id":   {Name: CalendarAccessColumn_RecipientUserId, Table: "calendar_access"},
 	"recipient.circle_id": {Name: CalendarAccessColumn_RecipientCircleId, Table: "calendar_access"},

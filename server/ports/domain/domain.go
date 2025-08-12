@@ -7,4 +7,5 @@ type Domain interface {
 	userDomain
 	tokenDomain
 	calendarDomain
+	eventDomain
 }

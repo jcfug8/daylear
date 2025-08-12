@@ -1,5 +1,5 @@
 <template>
-  <v-container class="pt-0">
+
     <v-app-bar elevation="0" density="compact">
         <v-tabs v-model="activeTab" align-tabs="center" color="primary" grow>
           <v-tab density="compact" v-for="tab in tabs" :key="tab.value" :value="tab.value">
@@ -15,7 +15,6 @@
           <slot name="filter" />
         </div>
     </v-app-bar>
-    <v-card-text>
       <v-tabs-window v-model="activeTab">
         <v-tabs-window-item v-for="tab in tabs" :key="tab.value" :value="tab.value">
           <template v-if="tab.subTabs">
@@ -33,9 +32,8 @@
           </template>
         </v-tabs-window-item>
       </v-tabs-window>
-    </v-card-text>
     <slot name="fab" :tab="activeTab" />
-  </v-container>
+
 </template>
 
 <script setup lang="ts">
@@ -44,8 +42,8 @@ import { ref, watch, onMounted, defineExpose, useSlots } from 'vue'
 interface TabDef {
   label: string
   value: string
-  loader?: () => Promise<any>
-  subTabs?: Array<{ label: string; value: string; loader?: () => Promise<any> }>
+  loader?: () => Promise<unknown>
+  subTabs?: Array<{ label: string; value: string; loader?: () => Promise<unknown> }>
   icon?: string
   disabled?: boolean
 }
@@ -57,8 +55,8 @@ const props = defineProps<{
 
 const activeTab = ref(props.initialTab ?? props.tabs[0]?.value ?? '')
 const subTab = ref<Record<string, string>>({})
-const items = ref<Record<string, any>>({})
-const loading = ref<Record<string, any>>({})
+const items = ref<Record<string, unknown>>({})
+const loading = ref<Record<string, boolean | Record<string, boolean>>>({})
 const slots = useSlots()
 
 function loadTab(tabValue: string) {

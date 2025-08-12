@@ -25,6 +25,8 @@ type Service struct {
 	circleV1alpha1Service       circleV1alpha1.CircleServiceServer
 	circleAccessService         circleV1alpha1.CircleAccessServiceServer
 	calendarV1alpha1Service     calendarV1alpha1.CalendarServiceServer
+	calendarAccessService       calendarV1alpha1.CalendarAccessServiceServer
+	eventV1alpha1Service        calendarV1alpha1.EventServiceServer
 	domain                      domain.Domain
 }
 
@@ -39,6 +41,8 @@ type NewServiceParams struct {
 	CircleV1alpha1Service       circleV1alpha1.CircleServiceServer
 	CircleAccessService         circleV1alpha1.CircleAccessServiceServer
 	CalendarV1alpha1Service     calendarV1alpha1.CalendarServiceServer
+	CalendarAccessService       calendarV1alpha1.CalendarAccessServiceServer
+	EventV1alpha1Service        calendarV1alpha1.EventServiceServer
 	Domain                      domain.Domain
 }
 
@@ -52,6 +56,8 @@ func NewService(params NewServiceParams) *Service {
 		circleV1alpha1Service:       params.CircleV1alpha1Service,
 		circleAccessService:         params.CircleAccessService,
 		calendarV1alpha1Service:     params.CalendarV1alpha1Service,
+		calendarAccessService:       params.CalendarAccessService,
+		eventV1alpha1Service:        params.EventV1alpha1Service,
 		domain:                      params.Domain,
 	}
 }
@@ -102,7 +108,16 @@ func (s *Service) Register(m *http.ServeMux) error {
 		log.Printf("Failed to register gRPC gateway: %v", err)
 		return err
 	}
-
+	err = calendarV1alpha1.RegisterCalendarAccessServiceHandlerServer(ctx, mux, s.calendarAccessService)
+	if err != nil {
+		log.Printf("Failed to register gRPC gateway: %v", err)
+		return err
+	}
+	err = calendarV1alpha1.RegisterEventServiceHandlerServer(ctx, mux, s.eventV1alpha1Service)
+	if err != nil {
+		log.Printf("Failed to register gRPC gateway: %v", err)
+		return err
+	}
 	m.Handle("/", headers.NewAuthTokenMiddleware(s.domain)(mux))
 	return nil
 }

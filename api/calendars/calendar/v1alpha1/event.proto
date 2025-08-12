@@ -36,15 +36,74 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 };
 
 // the event service
-service EventService {}
+service EventService {
+  // CreateEvent creates a new event
+  rpc CreateEvent(CreateEventRequest) returns (Event) {
+    option (google.api.http) = {
+      post: "/calendars/v1alpha1/{parent=calendars/*}/events"
+      body: "event"
+    };
+    option (google.api.method_signature) = "parent,event";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Create an event"
+      description: "Creates a new event in the specified calendar."
+      tags: "EventService"
+    };
+  }
+
+  // GetEvent gets an event
+  rpc GetEvent(GetEventRequest) returns (Event) {
+    option (google.api.http) = {get: "/calendars/v1alpha1/{name=calendars/*/events/*}"};
+    option (google.api.method_signature) = "name";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get an event"
+      description: "Retrieves details about a specific event."
+      tags: "EventService"
+    };
+  }
+
+  // ListEvents lists events
+  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
+    option (google.api.http) = {get: "/calendars/v1alpha1/{parent=calendars/*}/events"};
+    option (google.api.method_signature) = "parent";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "List events"
+      description: "Lists all events in the specified calendar."
+      tags: "EventService"
+    };
+  }
+
+  // UpdateEvent updates an event
+  rpc UpdateEvent(UpdateEventRequest) returns (Event) {
+    option (google.api.http) = {
+      patch: "/calendars/v1alpha1/{event.name=calendars/*/events/*}"
+      body: "event"
+    };
+    option (google.api.method_signature) = "event,update_mask";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Update an event"
+      description: "Updates an existing event with the specified fields."
+      tags: "EventService"
+    };
+  }
+
+  // DeleteEvent deletes an event
+  rpc DeleteEvent(DeleteEventRequest) returns (Event) {
+    option (google.api.http) = {delete: "/calendars/v1alpha1/{name=calendars/*/events/*}"};
+    option (google.api.method_signature) = "name";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Delete an event"
+      description: "Deletes an event from the calendar."
+      tags: "EventService"
+    };
+  }
+}
 
 // the main user event
 message Event {
   option (google.api.resource) = {
     type: "api.events.event.v1alpha1/Event"
     pattern: "calendars/{calendar}/events/{event}"
-    pattern: "users/{user}/calendars/{calendar}/events/{event}"
-    pattern: "circles/{circle}/calendars/{calendar}/events/{event}"
     plural: "events"
     singular: "event"
   };
@@ -67,56 +126,26 @@ message Event {
   // the location of the event
   google.type.LatLng location = 6 [(google.api.field_behavior) = OPTIONAL];
 
-  // the state of the event
-  State state = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // the class of the event
-  Class event_class = 8 [(google.api.field_behavior) = REQUIRED];
-
   // the url of the event
-  string uri = 9 [(google.api.field_behavior) = OPTIONAL];
+  string uri = 7 [(google.api.field_behavior) = OPTIONAL];
 
   // the recurrence rule of the event
-  string recurrence_rule = 10 [(google.api.field_behavior) = OPTIONAL];
+  string recurrence_rule = 8 [(google.api.field_behavior) = OPTIONAL];
 
-  // the recurrence time of the event
-  google.protobuf.Timestamp recurrence_time = 11 [(google.api.field_behavior) = OPTIONAL];
+  // the start time of the event in the set of recurring events that was overidden
+  google.protobuf.Timestamp overriden_start_time = 9 [(google.api.field_behavior) = OPTIONAL];
 
   // the excluded dates of the event
-  repeated google.protobuf.Timestamp excluded_times = 12 [(google.api.field_behavior) = OPTIONAL];
+  repeated google.protobuf.Timestamp excluded_times = 10 [(google.api.field_behavior) = OPTIONAL];
 
   // the additional dates of the event
-  repeated google.protobuf.Timestamp additional_times = 13 [(google.api.field_behavior) = OPTIONAL];
+  repeated google.protobuf.Timestamp additional_times = 11 [(google.api.field_behavior) = OPTIONAL];
 
   // the parent event id of the event
-  int64 recurring_event_id = 14 [(google.api.field_behavior) = OPTIONAL];
+  int64 parent_event_id = 12 [(google.api.field_behavior) = OPTIONAL];
 
   // the alarms of the event
-  repeated Alarm alarms = 15 [(google.api.field_behavior) = OPTIONAL];
-
-  // the class of the event
-  enum Class {
-    // the class is unspecified
-    CLASS_UNSPECIFIED = 0;
-    // the class is public
-    CLASS_PUBLIC = 1;
-    // the class is private
-    CLASS_PRIVATE = 2;
-    // the class is confidential
-    CLASS_CONFIDENTIAL = 3;
-  }
-
-  // the state of the event
-  enum State {
-    // the state is unspecified
-    STATE_UNSPECIFIED = 0;
-    // the state is confirmed
-    STATE_CONFIRMED = 1;
-    // the state is tentative
-    STATE_TENTATIVE = 2;
-    // the state is cancelled
-    STATE_CANCELLED = 3;
-  }
+  repeated Alarm alarms = 13 [(google.api.field_behavior) = OPTIONAL];
 
   // the alarms of the event
   message Alarm {
@@ -137,4 +166,67 @@ message Event {
       }
     }
   }
+}
+
+// CreateEventRequest is the request message for creating an event
+message CreateEventRequest {
+  // The parent resource name
+  string parent = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // The event to create
+  Event event = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// GetEventRequest is the request message for getting an event
+message GetEventRequest {
+  // The name of the event to retrieve
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.calendars.calendar.v1alpha1/Event"
+  ];
+}
+
+// ListEventsRequest is the request message for listing events
+message ListEventsRequest {
+  // The parent resource name
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.calendars.calendar.v1alpha1/Calendar"
+  ];
+
+  // The maximum number of events to return
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // The next_page_token value returned from a previous List request, if any
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // A filter expression that filters events listed in the response
+  string filter = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// ListEventsResponse is the response message for listing events
+message ListEventsResponse {
+  // The list of events
+  repeated Event events = 1;
+
+  // Token to retrieve the next page of results, or empty if there are no more results
+  string next_page_token = 2;
+}
+
+// UpdateEventRequest is the request message for updating an event
+message UpdateEventRequest {
+  // The event to update
+  Event event = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // The list of fields to update
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// DeleteEventRequest is the request message for deleting an event
+message DeleteEventRequest {
+  // The name of the event to delete
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.calendars.calendar.v1alpha1/Event"
+  ];
 }

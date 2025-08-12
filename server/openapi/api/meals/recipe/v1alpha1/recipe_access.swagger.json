@@ -630,6 +630,29 @@
         "level"
       ]
     },
+    "mealsrecipev1alpha1AccessCircle": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the circle"
+        },
+        "title": {
+          "type": "string",
+          "title": "the title of the circle",
+          "readOnly": true
+        },
+        "handle": {
+          "type": "string",
+          "title": "the handle of the circle",
+          "readOnly": true
+        }
+      },
+      "title": "circle data",
+      "required": [
+        "name"
+      ]
+    },
     "mealsrecipev1alpha1AccessRequesterOrRecipient": {
       "type": "object",
       "properties": {
@@ -638,7 +661,7 @@
           "title": "the name of the user"
         },
         "circle": {
-          "$ref": "#/definitions/v1alpha1AccessCircle",
+          "$ref": "#/definitions/mealsrecipev1alpha1AccessCircle",
           "title": "the name of the circle"
         }
       },
@@ -756,29 +779,6 @@
     "v1alpha1AcceptRecipeAccessResponse": {
       "type": "object",
       "title": "The response to accept a recipe access"
-    },
-    "v1alpha1AccessCircle": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "title": "the name of the circle"
-        },
-        "title": {
-          "type": "string",
-          "title": "the title of the circle",
-          "readOnly": true
-        },
-        "handle": {
-          "type": "string",
-          "title": "the handle of the circle",
-          "readOnly": true
-        }
-      },
-      "title": "circle data",
-      "required": [
-        "name"
-      ]
     }
   },
   "securityDefinitions": {

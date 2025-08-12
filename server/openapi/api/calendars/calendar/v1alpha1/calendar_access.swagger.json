@@ -66,7 +66,7 @@
                   "$ref": "#/definitions/calendarscalendarv1alpha1AccessRequesterOrRecipient",
                   "title": "the name of the receiving user"
                 },
-                "permissionLevel": {
+                "level": {
                   "$ref": "#/definitions/typesPermissionLevel",
                   "title": "the permission level of the access"
                 },
@@ -84,7 +84,7 @@
               "title": "access",
               "required": [
                 "recipient",
-                "permissionLevel",
+                "level",
                 "access"
               ]
             }
@@ -434,7 +434,7 @@
           "$ref": "#/definitions/calendarscalendarv1alpha1AccessRequesterOrRecipient",
           "title": "the name of the receiving user"
         },
-        "permissionLevel": {
+        "level": {
           "$ref": "#/definitions/typesPermissionLevel",
           "title": "the permission level of the access"
         },
@@ -452,22 +452,73 @@
       "title": "This represents the data about a user's access to a calendar",
       "required": [
         "recipient",
-        "permissionLevel"
+        "level"
+      ]
+    },
+    "calendarscalendarv1alpha1AccessCircle": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the circle"
+        },
+        "title": {
+          "type": "string",
+          "title": "the title of the circle",
+          "readOnly": true
+        },
+        "handle": {
+          "type": "string",
+          "title": "the handle of the circle",
+          "readOnly": true
+        }
+      },
+      "title": "circle data",
+      "required": [
+        "name"
       ]
     },
     "calendarscalendarv1alpha1AccessRequesterOrRecipient": {
       "type": "object",
       "properties": {
         "user": {
-          "type": "string",
+          "$ref": "#/definitions/calendarscalendarv1alpha1AccessUser",
           "title": "the name of the user"
         },
-        "calendar": {
-          "type": "string",
-          "title": "the name of the calendar"
+        "circle": {
+          "$ref": "#/definitions/calendarscalendarv1alpha1AccessCircle",
+          "title": "the name of the circle"
         }
       },
       "title": "the requester of the access"
+    },
+    "calendarscalendarv1alpha1AccessUser": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the user"
+        },
+        "username": {
+          "type": "string",
+          "title": "the username of the user",
+          "readOnly": true
+        },
+        "givenName": {
+          "type": "string",
+          "title": "the full name of the user",
+          "readOnly": true
+        },
+        "familyName": {
+          "type": "string",
+          "title": "the last name of the user",
+          "readOnly": true
+        }
+      },
+      "title": "user data",
+      "required": [
+        "name"
+      ]
     },
     "calendarscalendarv1alpha1ListAccessesResponse": {
       "type": "object",

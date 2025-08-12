@@ -58,6 +58,9 @@ func (d *Domain) CreateCalendar(ctx context.Context, authAccount model.AuthAccou
 		},
 		PermissionLevel: types.PermissionLevel_PERMISSION_LEVEL_ADMIN,
 		State:           types.AccessState_ACCESS_STATE_ACCEPTED,
+		Requester: model.CalendarRecipientOrRequester{
+			UserId: authAccount.AuthUserId,
+		},
 	}
 
 	if authAccount.CircleId != 0 {

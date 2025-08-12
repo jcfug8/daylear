@@ -4,14 +4,335 @@
     "title": "api/calendars/calendar/v1alpha1/event.proto",
     "version": "version not set"
   },
+  "tags": [
+    {
+      "name": "EventService"
+    }
+  ],
   "consumes": [
     "application/json"
   ],
   "produces": [
     "application/json"
   ],
-  "paths": {},
+  "paths": {
+    "/calendars/v1alpha1/{event.name}": {
+      "patch": {
+        "summary": "Update an event",
+        "description": "Updates an existing event with the specified fields.",
+        "operationId": "EventService_UpdateEvent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Event"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "event.name",
+            "description": "the name of the event",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "calendars/[^/]+/events/[^/]+"
+          },
+          {
+            "name": "event",
+            "description": "The event to update",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "title": "the title of the event"
+                },
+                "startTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "the start time of the event"
+                },
+                "endTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "the end time of the event"
+                },
+                "description": {
+                  "type": "string",
+                  "title": "the description of the event"
+                },
+                "location": {
+                  "$ref": "#/definitions/typeLatLng",
+                  "title": "the location of the event"
+                },
+                "uri": {
+                  "type": "string",
+                  "title": "the url of the event"
+                },
+                "recurrenceRule": {
+                  "type": "string",
+                  "title": "the recurrence rule of the event"
+                },
+                "overridenStartTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "the start time of the event in the set of recurring events that was overidden"
+                },
+                "excludedTimes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "title": "the excluded dates of the event"
+                },
+                "additionalTimes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "title": "the additional dates of the event"
+                },
+                "parentEventId": {
+                  "type": "string",
+                  "format": "int64",
+                  "title": "the parent event id of the event"
+                },
+                "alarms": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/EventAlarm"
+                  },
+                  "title": "the alarms of the event"
+                }
+              },
+              "title": "The event to update",
+              "required": [
+                "title",
+                "startTime",
+                "endTime",
+                "event"
+              ]
+            }
+          }
+        ],
+        "tags": [
+          "EventService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{name}": {
+      "get": {
+        "summary": "Get an event",
+        "description": "Retrieves details about a specific event.",
+        "operationId": "EventService_GetEvent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Event"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "The name of the event to retrieve",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "calendars/[^/]+/events/[^/]+"
+          }
+        ],
+        "tags": [
+          "EventService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete an event",
+        "description": "Deletes an event from the calendar.",
+        "operationId": "EventService_DeleteEvent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Event"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "The name of the event to delete",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "calendars/[^/]+/events/[^/]+"
+          }
+        ],
+        "tags": [
+          "EventService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{parent}/events": {
+      "get": {
+        "summary": "List events",
+        "description": "Lists all events in the specified calendar.",
+        "operationId": "EventService_ListEvents",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListEventsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "The parent resource name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "calendars/[^/]+"
+          },
+          {
+            "name": "pageSize",
+            "description": "The maximum number of events to return",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "The next_page_token value returned from a previous List request, if any",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "A filter expression that filters events listed in the response",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "EventService"
+        ]
+      },
+      "post": {
+        "summary": "Create an event",
+        "description": "Creates a new event in the specified calendar.",
+        "operationId": "EventService_CreateEvent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Event"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "The parent resource name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "calendars/[^/]+"
+          },
+          {
+            "name": "event",
+            "description": "The event to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1Event",
+              "required": [
+                "event"
+              ]
+            }
+          }
+        ],
+        "tags": [
+          "EventService"
+        ]
+      }
+    }
+  },
   "definitions": {
+    "AlarmTrigger": {
+      "type": "object",
+      "properties": {
+        "duration": {
+          "type": "string",
+          "title": "the duration of the alarm"
+        },
+        "dateTime": {
+          "type": "string",
+          "format": "date-time",
+          "title": "the date time of the alarm"
+        }
+      },
+      "title": "the trigger of the alarm"
+    },
+    "EventAlarm": {
+      "type": "object",
+      "properties": {
+        "alarmId": {
+          "type": "string",
+          "title": "the alarm id"
+        },
+        "trigger": {
+          "$ref": "#/definitions/AlarmTrigger",
+          "title": "the trigger of the alarm"
+        }
+      },
+      "title": "the alarms of the event",
+      "required": [
+        "alarmId",
+        "trigger"
+      ]
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -39,6 +360,119 @@
           }
         }
       }
+    },
+    "typeLatLng": {
+      "type": "object",
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "format": "double",
+          "description": "The latitude in degrees. It must be in the range [-90.0, +90.0]."
+        },
+        "longitude": {
+          "type": "number",
+          "format": "double",
+          "description": "The longitude in degrees. It must be in the range [-180.0, +180.0]."
+        }
+      },
+      "description": "An object that represents a latitude/longitude pair. This is expressed as a\npair of doubles to represent degrees latitude and degrees longitude. Unless\nspecified otherwise, this must conform to the\n\u003ca href=\"http://www.unoosa.org/pdf/icg/2012/template/WGS_84.pdf\"\u003eWGS84\nstandard\u003c/a\u003e. Values must be within normalized ranges."
+    },
+    "v1alpha1Event": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the event"
+        },
+        "title": {
+          "type": "string",
+          "title": "the title of the event"
+        },
+        "startTime": {
+          "type": "string",
+          "format": "date-time",
+          "title": "the start time of the event"
+        },
+        "endTime": {
+          "type": "string",
+          "format": "date-time",
+          "title": "the end time of the event"
+        },
+        "description": {
+          "type": "string",
+          "title": "the description of the event"
+        },
+        "location": {
+          "$ref": "#/definitions/typeLatLng",
+          "title": "the location of the event"
+        },
+        "uri": {
+          "type": "string",
+          "title": "the url of the event"
+        },
+        "recurrenceRule": {
+          "type": "string",
+          "title": "the recurrence rule of the event"
+        },
+        "overridenStartTime": {
+          "type": "string",
+          "format": "date-time",
+          "title": "the start time of the event in the set of recurring events that was overidden"
+        },
+        "excludedTimes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "title": "the excluded dates of the event"
+        },
+        "additionalTimes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "title": "the additional dates of the event"
+        },
+        "parentEventId": {
+          "type": "string",
+          "format": "int64",
+          "title": "the parent event id of the event"
+        },
+        "alarms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/EventAlarm"
+          },
+          "title": "the alarms of the event"
+        }
+      },
+      "title": "the main user event",
+      "required": [
+        "title",
+        "startTime",
+        "endTime"
+      ]
+    },
+    "v1alpha1ListEventsResponse": {
+      "type": "object",
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1Event"
+          },
+          "title": "The list of events"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "title": "Token to retrieve the next page of results, or empty if there are no more results"
+        }
+      },
+      "title": "ListEventsResponse is the response message for listing events"
     }
   },
   "securityDefinitions": {

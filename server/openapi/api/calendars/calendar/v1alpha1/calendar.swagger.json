@@ -691,6 +691,11 @@
           "$ref": "#/definitions/typesAccessState",
           "title": "the access state of the user to the calendar",
           "readOnly": true
+        },
+        "acceptTarget": {
+          "$ref": "#/definitions/typesAcceptTarget",
+          "title": "the target of the accept action",
+          "readOnly": true
         }
       },
       "title": "the calendar access details"
@@ -722,6 +727,17 @@
           }
         }
       }
+    },
+    "typesAcceptTarget": {
+      "type": "string",
+      "enum": [
+        "ACCEPT_TARGET_UNSPECIFIED",
+        "ACCEPT_TARGET_RECIPIENT",
+        "ACCEPT_TARGET_RESOURCE"
+      ],
+      "default": "ACCEPT_TARGET_UNSPECIFIED",
+      "description": "- ACCEPT_TARGET_UNSPECIFIED: Acceptance not required or not applicable\n - ACCEPT_TARGET_RECIPIENT: The recipient or someone with correct access to the recipient can accept the access request\n - ACCEPT_TARGET_RESOURCE: The resource owner or someone with correct access to the resource can accept the access request",
+      "title": "The target of the accept action, or who can accept the access request"
     },
     "typesAccessState": {
       "type": "string",

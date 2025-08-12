@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <v-container>
     <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-4"></v-progress-linear>
     
     <div v-if="!loading && calendars.length === 0" class="text-center py-8">
@@ -22,19 +22,6 @@
               {{ calendar.description.length > 80 ? calendar.description.slice(0, 80) + '…' : calendar.description }}
             </div>
           </v-card-subtitle>
-          <v-img
-            class="mt-4"
-            style="background-color: lightgray"
-            height="100%"
-            :src="calendar.imageUri || ''"
-            cover
-          >
-            <template v-slot:placeholder>
-              <v-row class="fill-height ma-0" align="center" justify="center">
-                <v-icon size="48" color="grey-lighten-1">mdi-calendar</v-icon>
-              </v-row>
-            </template>
-          </v-img>
           
           <!-- Permission level indicator -->
           <v-chip
@@ -67,7 +54,7 @@
         </v-btn>
       </v-col>
     </v-row>
-  </div>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -81,7 +68,7 @@ interface Props {
 }
 
 defineProps<Props>()
-const emit = defineEmits(['accept', 'decline'])
+defineEmits(['accept', 'decline'])
 
 function getPermissionColor(permission: string) {
   switch (permission) {

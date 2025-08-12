@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { calendarService } from '@/api/api'
+import { calendarService, eventService } from '@/api/api'
 import type {
   Calendar,
   ListCalendarsRequest,
@@ -141,6 +141,21 @@ export const useCalendarsStore = defineStore('calendars', () => {
     }
   }
 
+  async function loadEvents(calendarName: string) {
+    try {
+      const res = await eventService.ListEvents({
+        parent: calendarName,
+        pageSize: undefined,
+        pageToken: undefined,
+        filter: undefined,
+      })
+      return res.events ?? []
+    } catch (error) {
+      console.error('Failed to load events:', error)
+      throw error
+    }
+  }
+
   return {
     loadMyCalendars,
     loadPendingCalendars,
@@ -157,5 +172,6 @@ export const useCalendarsStore = defineStore('calendars', () => {
     sharedAcceptedCalendars,
     sharedPendingCalendars,
     publicCalendars,
+    loadEvents,
   }
 })

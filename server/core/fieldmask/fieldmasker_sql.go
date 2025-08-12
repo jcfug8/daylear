@@ -8,6 +8,10 @@ import (
 	"gorm.io/gorm/schema"
 )
 
+const (
+	AlwaysIncludeKey = "__always_include__"
+)
+
 // NewSQLFieldMasker initializes a FieldMasker and ensures all field values are valid column names for the given table struct.
 // It uses GORM's schema reflection to extract column names from the struct and validate the field mapping.
 func NewSQLFieldMasker(tableStruct any, mapping map[string][]Field) FieldMasker {

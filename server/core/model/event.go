@@ -4,8 +4,27 @@ import (
 	"fmt"
 	"time"
 
-	pb "github.com/jcfug8/daylear/server/genapi/api/calendars/calendar/v1alpha1"
 	"github.com/teambition/rrule-go"
+)
+
+const (
+	EventField_Parent             = "parent"
+	EventField_EventId            = "event_id"
+	EventField_RecurrenceRule     = "recurrence_rule"
+	EventField_ExcludedDates      = "excluded_dates"
+	EventField_AdditionalDates    = "additional_dates"
+	EventField_ParentEventId      = "parent_event_id"
+	EventField_OverridenStartTime = "overriden_start_time"
+	EventField_CreateTime         = "create_time"
+	EventField_UpdateTime         = "update_time"
+	EventField_StartTime          = "start_time"
+	EventField_EndTime            = "end_time"
+	EventField_IsAllDay           = "is_all_day"
+	EventField_Title              = "title"
+	EventField_Description        = "description"
+	EventField_Location           = "location"
+	EventField_URL                = "url"
+	EventField_Alarms             = "alarms"
 )
 
 // Event represents a VEVENT component in iCalendar.
@@ -15,7 +34,7 @@ type Event struct {
 	Id     EventId
 
 	// these are set if the event is part of a recurring event set
-	// if they are set, and the RecurringEventId is not set, then
+	// if they are set, and the ParentEventId is not set, then
 	// you treat this as the parent event of a recurring event set
 	// and you should get the instances or generate the instances
 	// from the recurrence rule
@@ -24,41 +43,44 @@ type Event struct {
 	AdditionalDates []time.Time
 	// this is set if the event is an instance of a recurring event set
 	// it points to the parent event id of the recurring event set
-	RecurringEventId int64
+	ParentEventId *int64
 
 	// this is set if the event is an override of an event in
 	// the recurring event set
-	RecurrenceTime *time.Time
+	OverridenStartTime *time.Time
 
-	CreateTime  *time.Time
-	UpdateTime  *time.Time
+	CreateTime  time.Time
+	UpdateTime  time.Time
 	StartTime   time.Time
 	EndTime     *time.Time
 	IsAllDay    bool
-	Title       *string
-	Description *string
-	Location    *string
-	Status      pb.Event_State
-	Class       pb.Event_Class
-	URL         *string
+	Title       string
+	Description string
+	Location    LatLng
+	URL         string
 
 	Alarms []*Alarm
 }
 
+type LatLng struct {
+	Latitude  float64
+	Longitude float64
+}
+
 type EventParent struct {
-	UserId     int64 `aip_pattern:"user"`
-	CircleId   int64 `aip_pattern:"circle"`
-	CalendarId int64 `aip_pattern:"calendar"`
+	UserId     int64 `aip_pattern:"key=user"`
+	CircleId   int64 `aip_pattern:"key=circle"`
+	CalendarId int64 `aip_pattern:"key=calendar"`
 }
 
 type EventId struct {
 	// the event id
-	EventId int64 `aip_pattern:"event"`
+	EventId int64 `aip_pattern:"key=event"`
 }
 
-// GenerateInstances generates a list of event instances based on the event's RecurrenceRule ExcludedDates AdditionalDates.
+// GenerateClones generates a list of event instances based on the event's RecurrenceRule ExcludedDates AdditionalDates.
 // It should generate instance within now and now + duration.
-func (r Event) GenerateInstances(startingTime, endingTime time.Time) ([]Event, error) {
+func (r Event) GenerateClones(startingTime, endingTime time.Time) ([]Event, error) {
 	var eventDuration time.Duration
 	if r.EndTime != nil {
 		eventDuration = r.EndTime.Sub(r.StartTime)
@@ -67,19 +89,13 @@ func (r Event) GenerateInstances(startingTime, endingTime time.Time) ([]Event, e
 
 	// If no recurrence rule, this is a single event
 	if r.RecurrenceRule == nil || *r.RecurrenceRule == "" {
-		// Check if the event falls within the specified duration
-		if r.StartTime.After(startingTime) && r.StartTime.Before(endingTime) {
-			instance := Event{
-				Parent: r.Parent,
-				Id:     r.Id,
-			}
-			instances = append(instances, instance)
-		}
 		return instances, nil
 	}
 
+	recurrenceRule := "RRULE:" + *r.RecurrenceRule
+
 	// Parse the recurrence rule
-	rule, err := rrule.StrToRRuleSet(*r.RecurrenceRule)
+	rule, err := rrule.StrToRRuleSet(recurrenceRule)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse recurrence rule: %w", err)
 	}
@@ -94,9 +110,13 @@ func (r Event) GenerateInstances(startingTime, endingTime time.Time) ([]Event, e
 
 	// Process each occurrence
 	for _, occurrence := range occurrences {
+		if occurrence.Unix() == r.StartTime.Unix() {
+			continue
+		}
+
 		instance := Event{
-			Parent:           r.Parent,
-			RecurringEventId: r.RecurringEventId,
+			Parent:        r.Parent,
+			ParentEventId: &r.Id.EventId,
 		}
 		instance.StartTime = occurrence
 		if r.EndTime != nil {

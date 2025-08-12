@@ -176,11 +176,42 @@ func (d *Domain) CreateUser(ctx context.Context, user model.User) (model.User, e
 		user.Username = username
 	}
 
-	dbUser, err := d.repo.CreateUser(ctx, user, nil)
+	tx, err := d.repo.Begin(ctx)
+	if err != nil {
+		d.log.Error().Err(err).Msg("failed to begin transaction")
+		return model.User{}, domain.ErrInternal{Msg: "failed to begin transaction"}
+	}
+	defer tx.Rollback()
+
+	dbUser, err := tx.CreateUser(ctx, user, nil)
 	if err != nil {
 		d.log.Error().Err(err).Msg("failed to create user")
 		return model.User{}, domain.ErrInternal{Msg: "failed to create user"}
 	}
+
+	userAccess := model.UserAccess{
+		UserAccessParent: model.UserAccessParent{
+			UserId: dbUser.Id,
+		},
+		Requester:       dbUser.Id,
+		Recipient:       dbUser.Id,
+		PermissionLevel: types.PermissionLevel_PERMISSION_LEVEL_ADMIN,
+		State:           types.AccessState_ACCESS_STATE_ACCEPTED,
+	}
+
+	dbUserAccess, err := tx.CreateUserAccess(ctx, userAccess, nil)
+	if err != nil {
+		d.log.Error().Err(err).Msg("failed to create user access")
+		return model.User{}, domain.ErrInternal{Msg: "failed to create user access"}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		d.log.Error().Err(err).Msg("failed to commit transaction")
+		return model.User{}, domain.ErrInternal{Msg: "failed to commit transaction"}
+	}
+
+	dbUser.UserAccess = dbUserAccess
 
 	return dbUser, nil
 }

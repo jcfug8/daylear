@@ -31,6 +31,7 @@ func CalendarToCoreModel(gormCalendar gmodel.Calendar) (cmodel.Calendar, error) 
 			CalendarAccessId:     cmodel.CalendarAccessId{CalendarAccessId: gormCalendar.CalendarAccessId},
 			PermissionLevel:      gormCalendar.PermissionLevel,
 			State:                gormCalendar.State,
+			AcceptTarget:         gormCalendar.AcceptTarget,
 		},
 	}
 

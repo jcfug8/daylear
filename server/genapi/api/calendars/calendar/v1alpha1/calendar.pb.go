@@ -445,7 +445,9 @@ type Calendar_CalendarAccess struct {
 	// the permission of the calendar
 	PermissionLevel types.PermissionLevel `protobuf:"varint,2,opt,name=permission_level,json=permissionLevel,proto3,enum=api.types.PermissionLevel" json:"permission_level,omitempty"`
 	// the access state of the user to the calendar
-	State         types.AccessState `protobuf:"varint,3,opt,name=state,proto3,enum=api.types.AccessState" json:"state,omitempty"`
+	State types.AccessState `protobuf:"varint,3,opt,name=state,proto3,enum=api.types.AccessState" json:"state,omitempty"`
+	// the target of the accept action
+	AcceptTarget  types.AcceptTarget `protobuf:"varint,4,opt,name=accept_target,json=acceptTarget,proto3,enum=api.types.AcceptTarget" json:"accept_target,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -501,11 +503,18 @@ func (x *Calendar_CalendarAccess) GetState() types.AccessState {
 	return types.AccessState(0)
 }
 
+func (x *Calendar_CalendarAccess) GetAcceptTarget() types.AcceptTarget {
+	if x != nil {
+		return x.AcceptTarget
+	}
+	return types.AcceptTarget(0)
+}
+
 var File_api_calendars_calendar_v1alpha1_calendar_proto protoreflect.FileDescriptor
 
 const file_api_calendars_calendar_v1alpha1_calendar_proto_rawDesc = "" +
 	"\n" +
-	".api/calendars/calendar/v1alpha1/calendar.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xdf\x04\n" +
+	".api/calendars/calendar/v1alpha1/calendar.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1dapi/types/accept_target.proto\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xa2\x05\n" +
 	"\bCalendar\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
@@ -513,11 +522,12 @@ const file_api_calendars_calendar_v1alpha1_calendar_proto_rawDesc = "" +
 	"\n" +
 	"visibility\x18\x04 \x01(\x0e2\x1a.api.types.VisibilityLevelB\x03\xe0A\x02R\n" +
 	"visibility\x12f\n" +
-	"\x0fcalendar_access\x18\x05 \x01(\v28.api.calendars.calendar.v1alpha1.Calendar.CalendarAccessB\x03\xe0A\x03R\x0ecalendarAccess\x1a\xa8\x01\n" +
+	"\x0fcalendar_access\x18\x05 \x01(\v28.api.calendars.calendar.v1alpha1.Calendar.CalendarAccessB\x03\xe0A\x03R\x0ecalendarAccess\x1a\xeb\x01\n" +
 	"\x0eCalendarAccess\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x03R\x04name\x12J\n" +
 	"\x10permission_level\x18\x02 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x03R\x0fpermissionLevel\x121\n" +
-	"\x05state\x18\x03 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state:\xa3\x01\xeaA\x9f\x01\n" +
+	"\x05state\x18\x03 \x01(\x0e2\x16.api.types.AccessStateB\x03\xe0A\x03R\x05state\x12A\n" +
+	"\raccept_target\x18\x04 \x01(\x0e2\x17.api.types.AcceptTargetB\x03\xe0A\x03R\facceptTarget:\xa3\x01\xeaA\x9f\x01\n" +
 	"(api.calendars.calendar.v1alpha1/Calendar\x12\x14calendars/{calendar}\x12!users/{user}/calendars/{calendar}\x12%circles/{circle}/calendars/{calendar}*\tcalendars2\bcalendar\"\xa1\x01\n" +
 	"\x15CreateCalendarRequest\x12<\n" +
 	"\x06parent\x18\x01 \x01(\tB$\xe0A\x01\xfaA\x1e\n" +
@@ -588,6 +598,7 @@ var file_api_calendars_calendar_v1alpha1_calendar_proto_goTypes = []any{
 	(*fieldmaskpb.FieldMask)(nil),   // 9: google.protobuf.FieldMask
 	(types.PermissionLevel)(0),      // 10: api.types.PermissionLevel
 	(types.AccessState)(0),          // 11: api.types.AccessState
+	(types.AcceptTarget)(0),         // 12: api.types.AcceptTarget
 }
 var file_api_calendars_calendar_v1alpha1_calendar_proto_depIdxs = []int32{
 	8,  // 0: api.calendars.calendar.v1alpha1.Calendar.visibility:type_name -> api.types.VisibilityLevel
@@ -598,21 +609,22 @@ var file_api_calendars_calendar_v1alpha1_calendar_proto_depIdxs = []int32{
 	9,  // 5: api.calendars.calendar.v1alpha1.UpdateCalendarRequest.update_mask:type_name -> google.protobuf.FieldMask
 	10, // 6: api.calendars.calendar.v1alpha1.Calendar.CalendarAccess.permission_level:type_name -> api.types.PermissionLevel
 	11, // 7: api.calendars.calendar.v1alpha1.Calendar.CalendarAccess.state:type_name -> api.types.AccessState
-	1,  // 8: api.calendars.calendar.v1alpha1.CalendarService.CreateCalendar:input_type -> api.calendars.calendar.v1alpha1.CreateCalendarRequest
-	2,  // 9: api.calendars.calendar.v1alpha1.CalendarService.ListCalendars:input_type -> api.calendars.calendar.v1alpha1.ListCalendarsRequest
-	4,  // 10: api.calendars.calendar.v1alpha1.CalendarService.UpdateCalendar:input_type -> api.calendars.calendar.v1alpha1.UpdateCalendarRequest
-	5,  // 11: api.calendars.calendar.v1alpha1.CalendarService.DeleteCalendar:input_type -> api.calendars.calendar.v1alpha1.DeleteCalendarRequest
-	6,  // 12: api.calendars.calendar.v1alpha1.CalendarService.GetCalendar:input_type -> api.calendars.calendar.v1alpha1.GetCalendarRequest
-	0,  // 13: api.calendars.calendar.v1alpha1.CalendarService.CreateCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
-	3,  // 14: api.calendars.calendar.v1alpha1.CalendarService.ListCalendars:output_type -> api.calendars.calendar.v1alpha1.ListCalendarsResponse
-	0,  // 15: api.calendars.calendar.v1alpha1.CalendarService.UpdateCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
-	0,  // 16: api.calendars.calendar.v1alpha1.CalendarService.DeleteCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
-	0,  // 17: api.calendars.calendar.v1alpha1.CalendarService.GetCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
-	13, // [13:18] is the sub-list for method output_type
-	8,  // [8:13] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	12, // 8: api.calendars.calendar.v1alpha1.Calendar.CalendarAccess.accept_target:type_name -> api.types.AcceptTarget
+	1,  // 9: api.calendars.calendar.v1alpha1.CalendarService.CreateCalendar:input_type -> api.calendars.calendar.v1alpha1.CreateCalendarRequest
+	2,  // 10: api.calendars.calendar.v1alpha1.CalendarService.ListCalendars:input_type -> api.calendars.calendar.v1alpha1.ListCalendarsRequest
+	4,  // 11: api.calendars.calendar.v1alpha1.CalendarService.UpdateCalendar:input_type -> api.calendars.calendar.v1alpha1.UpdateCalendarRequest
+	5,  // 12: api.calendars.calendar.v1alpha1.CalendarService.DeleteCalendar:input_type -> api.calendars.calendar.v1alpha1.DeleteCalendarRequest
+	6,  // 13: api.calendars.calendar.v1alpha1.CalendarService.GetCalendar:input_type -> api.calendars.calendar.v1alpha1.GetCalendarRequest
+	0,  // 14: api.calendars.calendar.v1alpha1.CalendarService.CreateCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
+	3,  // 15: api.calendars.calendar.v1alpha1.CalendarService.ListCalendars:output_type -> api.calendars.calendar.v1alpha1.ListCalendarsResponse
+	0,  // 16: api.calendars.calendar.v1alpha1.CalendarService.UpdateCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
+	0,  // 17: api.calendars.calendar.v1alpha1.CalendarService.DeleteCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
+	0,  // 18: api.calendars.calendar.v1alpha1.CalendarService.GetCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
+	14, // [14:19] is the sub-list for method output_type
+	9,  // [9:14] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_api_calendars_calendar_v1alpha1_calendar_proto_init() }

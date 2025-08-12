@@ -147,7 +147,7 @@ message Access {
   ];
 
   // the permission level of the access
-  api.types.PermissionLevel permission_level = 4 [(google.api.field_behavior) = REQUIRED];
+  api.types.PermissionLevel level = 4 [(google.api.field_behavior) = REQUIRED];
 
   // the status of the access
   api.types.AccessState state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
@@ -159,9 +159,9 @@ message Access {
   message RequesterOrRecipient {
     oneof name {
       // the name of the user
-      string user = 1;
-      // the name of the calendar
-      string calendar = 2;
+      User user = 1;
+      // the name of the circle
+      Circle circle = 2;
     }
   }
 
@@ -178,6 +178,18 @@ message Access {
 
     // the last name of the user
     string family_name = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+
+  // circle data
+  message Circle {
+    // the name of the circle
+    string name = 1 [(google.api.field_behavior) = REQUIRED];
+
+    // the title of the circle
+    string title = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the handle of the circle
+    string handle = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
   }
 }
 

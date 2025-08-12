@@ -21,6 +21,10 @@ type NewCalendarServiceParams struct {
 	CalendarAccessNamer       namer.ReflectNamer    `name:"v1alpha1CalendarAccessNamer"`
 	CalendarFieldMasker       fieldmask.FieldMasker `name:"v1alpha1CalendarFieldMasker"`
 	CalendarAccessFieldMasker fieldmask.FieldMasker `name:"v1alpha1CalendarAccessFieldMasker"`
+	EventFieldMasker          fieldmask.FieldMasker `name:"v1alpha1EventFieldMasker"`
+	UserNamer                 namer.ReflectNamer    `name:"v1alpha1UserNamer"`
+	CircleNamer               namer.ReflectNamer    `name:"v1alpha1CircleNamer"`
+	EventNamer                namer.ReflectNamer    `name:"v1alpha1EventNamer"`
 }
 
 // NewCalendarService creates a new CalendarService.
@@ -32,22 +36,34 @@ func NewCalendarService(params NewCalendarServiceParams) (*CalendarService, erro
 		calendarAccessNamer:       params.CalendarAccessNamer,
 		calendarFieldMasker:       params.CalendarFieldMasker,
 		calendarAccessFieldMasker: params.CalendarAccessFieldMasker,
+		eventFieldMasker:          params.EventFieldMasker,
+		userNamer:                 params.UserNamer,
+		circleNamer:               params.CircleNamer,
+		eventNamer:                params.EventNamer,
 	}, nil
 }
 
 // CalendarService defines the grpc handlers for the CalendarService.
 type CalendarService struct {
 	pb.UnimplementedCalendarServiceServer
+	pb.UnimplementedCalendarAccessServiceServer
+	pb.UnimplementedEventServiceServer
 	domain                    domain.Domain
 	log                       zerolog.Logger
 	calendarNamer             namer.ReflectNamer
 	calendarAccessNamer       namer.ReflectNamer
 	calendarFieldMasker       fieldmask.FieldMasker
 	calendarAccessFieldMasker fieldmask.FieldMasker
+	eventFieldMasker          fieldmask.FieldMasker
+	userNamer                 namer.ReflectNamer
+	circleNamer               namer.ReflectNamer
+	eventNamer                namer.ReflectNamer
 }
 
 // Register registers s to the grpc implementation of the service.
 func (s *CalendarService) Register(server *grpc.Server) error {
 	pb.RegisterCalendarServiceServer(server, s)
+	pb.RegisterCalendarAccessServiceServer(server, s)
+	pb.RegisterEventServiceServer(server, s)
 	return nil
 }

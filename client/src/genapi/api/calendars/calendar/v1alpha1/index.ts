@@ -52,6 +52,10 @@ export type Calendar_CalendarAccess = {
   //
   // Behaviors: OUTPUT_ONLY
   state: apitypes_AccessState | undefined;
+  // the target of the accept action
+  //
+  // Behaviors: OUTPUT_ONLY
+  acceptTarget: apitypes_AcceptTarget | undefined;
 };
 
 // the permission levels
@@ -74,6 +78,14 @@ export type apitypes_AccessState =
   | "ACCESS_STATE_PENDING"
   // The access is accepted and can be deleted.
   | "ACCESS_STATE_ACCEPTED";
+// The target of the accept action, or who can accept the access request
+export type apitypes_AcceptTarget =
+  // Acceptance not required or not applicable
+  | "ACCEPT_TARGET_UNSPECIFIED"
+  // The recipient or someone with correct access to the recipient can accept the access request
+  | "ACCEPT_TARGET_RECIPIENT"
+  // The resource owner or someone with correct access to the resource can accept the access request
+  | "ACCEPT_TARGET_RESOURCE";
 // the request to create a calendar
 export type CreateCalendarRequest = {
   // the parent of the calendar
@@ -327,7 +339,7 @@ export type Access = {
   // the permission level of the access
   //
   // Behaviors: REQUIRED
-  permissionLevel: apitypes_PermissionLevel | undefined;
+  level: apitypes_PermissionLevel | undefined;
   // the status of the access
   //
   // Behaviors: OUTPUT_ONLY
@@ -341,19 +353,11 @@ export type Access = {
 // the requester of the access
 export type Access_RequesterOrRecipient = {
   // the name of the user
-  user?: string;
-  // the name of the calendar
-  calendar?: string;
+  user?: Access_User;
+  // the name of the circle
+  circle?: Access_Circle;
 };
 
-// The target of the accept action, or who can accept the access request
-export type apitypes_AcceptTarget =
-  // Acceptance not required or not applicable
-  | "ACCEPT_TARGET_UNSPECIFIED"
-  // The recipient or someone with correct access to the recipient can accept the access request
-  | "ACCEPT_TARGET_RECIPIENT"
-  // The resource owner or someone with correct access to the resource can accept the access request
-  | "ACCEPT_TARGET_RESOURCE";
 // user data
 export type Access_User = {
   // the name of the user
@@ -372,6 +376,22 @@ export type Access_User = {
   //
   // Behaviors: OUTPUT_ONLY
   familyName: string | undefined;
+};
+
+// circle data
+export type Access_Circle = {
+  // the name of the circle
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+  // the title of the circle
+  //
+  // Behaviors: OUTPUT_ONLY
+  title: string | undefined;
+  // the handle of the circle
+  //
+  // Behaviors: OUTPUT_ONLY
+  handle: string | undefined;
 };
 
 // The request to create an access to a calendar
@@ -633,14 +653,6 @@ export type Event = {
   //
   // Behaviors: OPTIONAL
   location: googletype_LatLng | undefined;
-  // the state of the event
-  //
-  // Behaviors: OUTPUT_ONLY
-  state: Event_State | undefined;
-  // the class of the event
-  //
-  // Behaviors: REQUIRED
-  eventClass: Event_Class | undefined;
   // the url of the event
   //
   // Behaviors: OPTIONAL
@@ -649,10 +661,10 @@ export type Event = {
   //
   // Behaviors: OPTIONAL
   recurrenceRule: string | undefined;
-  // the recurrence time of the event
+  // the start time of the event in the set of recurring events that was overidden
   //
   // Behaviors: OPTIONAL
-  recurrenceTime: wellKnownTimestamp | undefined;
+  overridenStartTime: wellKnownTimestamp | undefined;
   // the excluded dates of the event
   //
   // Behaviors: OPTIONAL
@@ -664,7 +676,7 @@ export type Event = {
   // the parent event id of the event
   //
   // Behaviors: OPTIONAL
-  recurringEventId: number | undefined;
+  parentEventId: number | undefined;
   // the alarms of the event
   //
   // Behaviors: OPTIONAL
@@ -688,26 +700,6 @@ export type googletype_LatLng = {
   longitude: number | undefined;
 };
 
-// the state of the event
-export type Event_State =
-  // the state is unspecified
-  | "STATE_UNSPECIFIED"
-  // the state is confirmed
-  | "STATE_CONFIRMED"
-  // the state is tentative
-  | "STATE_TENTATIVE"
-  // the state is cancelled
-  | "STATE_CANCELLED";
-// the class of the event
-export type Event_Class =
-  // the class is unspecified
-  | "CLASS_UNSPECIFIED"
-  // the class is public
-  | "CLASS_PUBLIC"
-  // the class is private
-  | "CLASS_PRIVATE"
-  // the class is confidential
-  | "CLASS_CONFIDENTIAL";
 // the alarms of the event
 export type Event_Alarm = {
   // the alarm id
@@ -734,14 +726,204 @@ export type Event_Alarm_Trigger = {
 // into nano-seconds precision and the suffix "s" is required.
 type wellKnownDuration = string;
 
+// CreateEventRequest is the request message for creating an event
+export type CreateEventRequest = {
+  // The parent resource name
+  //
+  // Behaviors: REQUIRED
+  parent: string | undefined;
+  // The event to create
+  //
+  // Behaviors: REQUIRED
+  event: Event | undefined;
+};
+
+// GetEventRequest is the request message for getting an event
+export type GetEventRequest = {
+  // The name of the event to retrieve
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// ListEventsRequest is the request message for listing events
+export type ListEventsRequest = {
+  // The parent resource name
+  //
+  // Behaviors: REQUIRED
+  parent: string | undefined;
+  // The maximum number of events to return
+  //
+  // Behaviors: OPTIONAL
+  pageSize: number | undefined;
+  // The next_page_token value returned from a previous List request, if any
+  //
+  // Behaviors: OPTIONAL
+  pageToken: string | undefined;
+  // A filter expression that filters events listed in the response
+  //
+  // Behaviors: OPTIONAL
+  filter: string | undefined;
+};
+
+// ListEventsResponse is the response message for listing events
+export type ListEventsResponse = {
+  // The list of events
+  events: Event[] | undefined;
+  // Token to retrieve the next page of results, or empty if there are no more results
+  nextPageToken: string | undefined;
+};
+
+// UpdateEventRequest is the request message for updating an event
+export type UpdateEventRequest = {
+  // The event to update
+  //
+  // Behaviors: REQUIRED
+  event: Event | undefined;
+  // The list of fields to update
+  //
+  // Behaviors: OPTIONAL
+  updateMask: wellKnownFieldMask | undefined;
+};
+
+// DeleteEventRequest is the request message for deleting an event
+export type DeleteEventRequest = {
+  // The name of the event to delete
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
 // the event service
 export interface EventService {
+  // CreateEvent creates a new event
+  CreateEvent(request: CreateEventRequest): Promise<Event>;
+  // GetEvent gets an event
+  GetEvent(request: GetEventRequest): Promise<Event>;
+  // ListEvents lists events
+  ListEvents(request: ListEventsRequest): Promise<ListEventsResponse>;
+  // UpdateEvent updates an event
+  UpdateEvent(request: UpdateEventRequest): Promise<Event>;
+  // DeleteEvent deletes an event
+  DeleteEvent(request: DeleteEventRequest): Promise<Event>;
 }
 
 export function createEventServiceClient(
   handler: RequestHandler
 ): EventService {
   return {
+    CreateEvent(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.parent) {
+        throw new Error("missing required field request.parent");
+      }
+      const path = `calendars/v1alpha1/${request.parent}/events`; // eslint-disable-line quotes
+      const body = JSON.stringify(request?.event ?? {});
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "EventService",
+        method: "CreateEvent",
+      }) as Promise<Event>;
+    },
+    GetEvent(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `calendars/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "EventService",
+        method: "GetEvent",
+      }) as Promise<Event>;
+    },
+    ListEvents(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.parent) {
+        throw new Error("missing required field request.parent");
+      }
+      const path = `calendars/v1alpha1/${request.parent}/events`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.pageSize) {
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
+      }
+      if (request.pageToken) {
+        queryParams.push(`pageToken=${encodeURIComponent(request.pageToken.toString())}`)
+      }
+      if (request.filter) {
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "EventService",
+        method: "ListEvents",
+      }) as Promise<ListEventsResponse>;
+    },
+    UpdateEvent(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.event?.name) {
+        throw new Error("missing required field request.event.name");
+      }
+      const path = `calendars/v1alpha1/${request.event.name}`; // eslint-disable-line quotes
+      const body = JSON.stringify(request?.event ?? {});
+      const queryParams: string[] = [];
+      if (request.updateMask) {
+        queryParams.push(`updateMask=${encodeURIComponent(request.updateMask.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "PATCH",
+        body,
+      }, {
+        service: "EventService",
+        method: "UpdateEvent",
+      }) as Promise<Event>;
+    },
+    DeleteEvent(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `calendars/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "EventService",
+        method: "DeleteEvent",
+      }) as Promise<Event>;
+    },
   };
 }
 

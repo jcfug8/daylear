@@ -8,7 +8,6 @@ import (
 
 	ical "github.com/arran4/golang-ical"
 	"github.com/jcfug8/daylear/server/core/model"
-	pb "github.com/jcfug8/daylear/server/genapi/api/calendars/calendar/v1alpha1"
 )
 
 // ToICalendar converts a Calendar model to iCalendar format
@@ -54,13 +53,13 @@ func toICalEvent(event model.Event) *ical.VEvent {
 		icalEvent.AddRdate(date.Format("20060102T150405Z"))
 	}
 
-	if event.RecurrenceTime != nil {
-		icalEvent.SetProperty(ical.ComponentProperty(ical.PropertyRecurrenceId), event.RecurrenceTime.Format("20060102T150405Z"))
+	if event.OverridenStartTime != nil {
+		icalEvent.SetProperty(ical.ComponentProperty(ical.PropertyRecurrenceId), event.OverridenStartTime.Format("20060102T150405Z"))
 	}
 
 	// Set creation time
-	if event.CreateTime != nil {
-		icalEvent.SetCreatedTime(*event.CreateTime)
+	if event.CreateTime.IsZero() {
+		icalEvent.SetCreatedTime(event.CreateTime)
 	} else {
 		icalEvent.SetCreatedTime(time.Now())
 	}
@@ -82,33 +81,23 @@ func toICalEvent(event model.Event) *ical.VEvent {
 	}
 
 	// Set summary
-	if event.Title != nil {
-		icalEvent.SetSummary(*event.Title)
+	if event.Title != "" {
+		icalEvent.SetSummary(event.Title)
 	}
 
 	// Set description
-	if event.Description != nil {
-		icalEvent.SetDescription(*event.Description)
+	if event.Description != "" {
+		icalEvent.SetDescription(event.Description)
 	}
 
 	// Set location
-	if event.Location != nil {
-		icalEvent.SetLocation(*event.Location)
-	}
-
-	// Set status
-	if event.Status != pb.Event_STATE_UNSPECIFIED {
-		icalEvent.SetStatus(ical.ObjectStatus(event.Status))
-	}
-
-	// Set class
-	if event.Class != pb.Event_CLASS_UNSPECIFIED {
-		icalEvent.SetClass(ical.Classification(event.Class))
+	if event.Location.Latitude != 0 && event.Location.Longitude != 0 {
+		icalEvent.SetLocation(fmt.Sprintf("%f,%f", event.Location.Latitude, event.Location.Longitude))
 	}
 
 	// Set URL
-	if event.URL != nil {
-		icalEvent.SetURL(*event.URL)
+	if event.URL != "" {
+		icalEvent.SetURL(event.URL)
 	}
 	// Add alarms
 	for _, alarm := range event.Alarms {
@@ -183,7 +172,7 @@ func FromICalendar(icalString string) (model.Calendar, []model.Event, error) {
 		// Parse creation time
 		if created := icalEvent.GetProperty(ical.ComponentProperty(ical.PropertyCreated)); created != nil {
 			if t, err := time.Parse("20060102T150405Z", created.Value); err == nil {
-				event.CreateTime = &t
+				event.CreateTime = t
 			}
 		}
 
@@ -207,38 +196,40 @@ func FromICalendar(icalString string) (model.Calendar, []model.Event, error) {
 
 		// Parse summary
 		if summary := icalEvent.GetProperty(ical.ComponentProperty(ical.PropertySummary)); summary != nil {
-			event.Title = &summary.Value
+			event.Title = summary.Value
 		}
 
 		// Parse description
 		if description := icalEvent.GetProperty(ical.ComponentProperty(ical.PropertyDescription)); description != nil {
-			event.Description = &description.Value
+			event.Description = description.Value
 		}
 
 		// Parse location
 		if location := icalEvent.GetProperty(ical.ComponentProperty(ical.PropertyLocation)); location != nil {
-			event.Location = &location.Value
-		}
-
-		// Parse status
-		if status := icalEvent.GetProperty(ical.ComponentProperty(ical.PropertyStatus)); status != nil {
-			event.Status = parseEventStatus(status.Value)
-		}
-
-		// Parse class
-		if class := icalEvent.GetProperty(ical.ComponentProperty(ical.PropertyClass)); class != nil {
-			event.Class = parseEventClass(class.Value)
+			splitLatLng := strings.Split(location.Value, ",")
+			if len(splitLatLng) == 2 {
+				latitude, err := strconv.ParseFloat(splitLatLng[0], 64)
+				if err == nil {
+					longitude, err := strconv.ParseFloat(splitLatLng[1], 64)
+					if err == nil {
+						event.Location = model.LatLng{
+							Latitude:  latitude,
+							Longitude: longitude,
+						}
+					}
+				}
+			}
 		}
 
 		// Parse URL
 		if url := icalEvent.GetProperty(ical.ComponentProperty(ical.PropertyUrl)); url != nil {
-			event.URL = &url.Value
+			event.URL = url.Value
 		}
 
 		// Parse recurrence ID
 		if rid := icalEvent.GetProperty(ical.ComponentProperty(ical.PropertyRecurrenceId)); rid != nil {
 			if t, err := time.Parse("20060102T150405Z", rid.Value); err == nil {
-				event.RecurrenceTime = &t
+				event.OverridenStartTime = &t
 			}
 			events = append(events, event)
 		} else {
@@ -425,57 +416,5 @@ func parseWeekday(value string) *time.Weekday {
 		return &wd
 	default:
 		return nil
-	}
-}
-
-func parseEventStatus(status string) pb.Event_State {
-	switch status {
-	case "CONFIRMED":
-		return pb.Event_STATE_CONFIRMED
-	case "TENTATIVE":
-		return pb.Event_STATE_TENTATIVE
-	case "CANCELLED":
-		return pb.Event_STATE_CANCELLED
-	default:
-		return pb.Event_STATE_UNSPECIFIED
-	}
-}
-
-func formEventStatus(status pb.Event_State) string {
-	switch status {
-	case pb.Event_STATE_CONFIRMED:
-		return "CONFIRMED"
-	case pb.Event_STATE_TENTATIVE:
-		return "TENTATIVE"
-	case pb.Event_STATE_CANCELLED:
-		return "CANCELLED"
-	default:
-		return "UNSPECIFIED"
-	}
-}
-
-func parseEventClass(class string) pb.Event_Class {
-	switch class {
-	case "PUBLIC":
-		return pb.Event_CLASS_PUBLIC
-	case "PRIVATE":
-		return pb.Event_CLASS_PRIVATE
-	case "CONFIDENTIAL":
-		return pb.Event_CLASS_CONFIDENTIAL
-	default:
-		return pb.Event_CLASS_UNSPECIFIED
-	}
-}
-
-func formEventClass(class pb.Event_Class) string {
-	switch class {
-	case pb.Event_CLASS_PUBLIC:
-		return "PUBLIC"
-	case pb.Event_CLASS_PRIVATE:
-		return "PRIVATE"
-	case pb.Event_CLASS_CONFIDENTIAL:
-		return "CONFIDENTIAL"
-	default:
-		return "UNSPECIFIED"
 	}
 }

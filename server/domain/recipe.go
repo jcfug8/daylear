@@ -86,6 +86,9 @@ func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount
 		},
 		PermissionLevel: types.PermissionLevel_PERMISSION_LEVEL_ADMIN,
 		State:           types.AccessState_ACCESS_STATE_ACCEPTED,
+		Requester: model.RecipeRecipientOrRequester{
+			UserId: authAccount.AuthUserId,
+		},
 	}
 
 	if authAccount.CircleId != 0 {

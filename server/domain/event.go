@@ -1,0 +1,174 @@
+package domain
+
+import (
+	"context"
+	"time"
+
+	"github.com/jcfug8/daylear/server/core/logutil"
+	"github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/genapi/api/types"
+	domain "github.com/jcfug8/daylear/server/ports/domain"
+)
+
+// CreateEvent creates a new event
+func (d *Domain) CreateEvent(ctx context.Context, authAccount model.AuthAccount, event model.Event) (dbEvent model.Event, err error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+
+	if authAccount.AuthUserId == 0 {
+		log.Error().Msg("user id is required when creating event")
+		return model.Event{}, domain.ErrInvalidArgument{Msg: "user id is required"}
+	}
+
+	if event.Parent.CalendarId == 0 {
+		log.Error().Msg("calendar id is required when creating event")
+		return model.Event{}, domain.ErrInvalidArgument{Msg: "calendar id is required"}
+	}
+
+	if event.StartTime.IsZero() {
+		log.Error().Msg("start time is required when creating event")
+		return model.Event{}, domain.ErrInvalidArgument{Msg: "start time is required"}
+	}
+
+	if event.EndTime == nil || event.EndTime.IsZero() {
+		log.Error().Msg("end time is required when creating event")
+		return model.Event{}, domain.ErrInvalidArgument{Msg: "end time is required"}
+	}
+
+	_, err = d.determineCalendarAccess(ctx, authAccount, model.CalendarId{CalendarId: event.Parent.CalendarId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine access when creating event")
+		return model.Event{}, err
+	}
+
+	tx, err := d.repo.Begin(ctx)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to begin creating event")
+		return model.Event{}, domain.ErrInternal{Msg: "unable to begin creating event"}
+	}
+	defer tx.Rollback()
+
+	dbEvent, err = tx.CreateEvent(ctx, event, []string{})
+	if err != nil {
+		log.Error().Err(err).Msg("unable to create event")
+		return model.Event{}, domain.ErrInternal{Msg: "unable to create event"}
+	}
+
+	if event.RecurrenceRule != nil {
+		eventClones, err := dbEvent.GenerateClones(event.StartTime, event.EndTime.Add(time.Hour*24*365))
+		if err != nil {
+			log.Error().Err(err).Msg("unable to generate event instances")
+			return model.Event{}, domain.ErrInternal{Msg: "unable to generate event instances"}
+		}
+
+		if len(eventClones) > 0 {
+			_, err := tx.CreateEventClones(ctx, eventClones)
+			if err != nil {
+				log.Error().Err(err).Msg("unable to create event clones")
+				return model.Event{}, domain.ErrInternal{Msg: "unable to create event clones"}
+			}
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Error().Err(err).Msg("unable to finish creating event")
+		return model.Event{}, domain.ErrInternal{Msg: "unable to finish creating event"}
+	}
+
+	return dbEvent, nil
+}
+
+// DeleteEvent deletes an event
+func (d *Domain) DeleteEvent(ctx context.Context, authAccount model.AuthAccount, parent model.EventParent, id model.EventId) (dbEvent model.Event, err error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+
+	// TODO: Implement event deletion logic
+	// This is a stub implementation - actual business logic will be added later
+
+	log.Info().Msg("DeleteEvent called - stub implementation")
+	return model.Event{}, nil
+}
+
+// GetEvent retrieves an event
+func (d *Domain) GetEvent(ctx context.Context, authAccount model.AuthAccount, parent model.EventParent, id model.EventId, fields []string) (dbEvent model.Event, err error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+
+	if authAccount.AuthUserId == 0 {
+		log.Error().Msg("user id is required when creating event")
+		return model.Event{}, domain.ErrInvalidArgument{Msg: "user id is required"}
+	}
+
+	if parent.CalendarId == 0 {
+		log.Error().Msg("calendar id is required when creating event")
+		return model.Event{}, domain.ErrInvalidArgument{Msg: "calendar id is required"}
+	}
+
+	if id.EventId == 0 {
+		log.Error().Msg("event id is required when getting event")
+		return model.Event{}, domain.ErrInvalidArgument{Msg: "event id is required"}
+	}
+
+	_, err = d.determineCalendarAccess(ctx, authAccount, model.CalendarId{CalendarId: parent.CalendarId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ))
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine access when creating event")
+		return model.Event{}, err
+	}
+
+	dbEvent, err = d.repo.GetEvent(ctx, authAccount, id, fields)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to get event")
+		return model.Event{}, domain.ErrInternal{Msg: "unable to get event"}
+	}
+
+	return dbEvent, nil
+}
+
+// ListEvents lists events with pagination and filtering
+func (d *Domain) ListEvents(ctx context.Context, authAccount model.AuthAccount, parent model.EventParent, pageSize int32, offset int64, filter string, fields []string) (dbEvents []model.Event, err error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+
+	if authAccount.AuthUserId == 0 {
+		log.Error().Msg("user id is required when listing events")
+		return []model.Event{}, domain.ErrInvalidArgument{Msg: "user id is required"}
+	}
+
+	if parent.CalendarId == 0 {
+		log.Error().Msg("calendar id is required when listing events")
+		return []model.Event{}, domain.ErrInvalidArgument{Msg: "calendar id is required"}
+	}
+
+	dbCalendar, err := d.GetCalendar(ctx, authAccount, model.CalendarParent{}, model.CalendarId{CalendarId: parent.CalendarId}, []string{model.CalendarField_Visibility})
+	if err != nil {
+		log.Error().Err(err).Msg("unable to get calendar")
+		return []model.Event{}, domain.ErrInternal{Msg: "unable to get calendar"}
+	}
+
+	_, err = d.determineCalendarAccess(
+		ctx, authAccount, model.CalendarId{CalendarId: parent.CalendarId},
+		withResourceVisibilityLevel(dbCalendar.VisibilityLevel),
+		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ),
+	)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine access when listing events")
+		return []model.Event{}, err
+	}
+
+	dbEvents, err = d.repo.ListEvents(ctx, authAccount, parent, pageSize, offset, filter, fields)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to list events")
+		return []model.Event{}, domain.ErrInternal{Msg: "unable to list events"}
+	}
+
+	return dbEvents, nil
+}
+
+// UpdateEvent updates an existing event
+func (d *Domain) UpdateEvent(ctx context.Context, authAccount model.AuthAccount, event model.Event, fields []string) (dbEvent model.Event, err error) {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+
+	// TODO: Implement event update logic
+	// This is a stub implementation - actual business logic will be added later
+
+	log.Info().Msg("UpdateEvent called - stub implementation")
+	return event, nil
+}

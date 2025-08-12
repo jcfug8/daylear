@@ -4,7 +4,7 @@
       ref="tabsPage"
       :tabs="tabs"
     >
-    <template #filter style="max-width: 1000px; margin: 0 auto;">
+    <template #filter>
       <v-row class="align-center" style="max-width: 600px; margin: 0 auto;">
         <!-- Left: Search -->
         <v-col cols="3" class="pa-0 d-flex align-center justify-start">

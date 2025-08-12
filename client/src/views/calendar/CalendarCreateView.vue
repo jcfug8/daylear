@@ -10,33 +10,43 @@
 
 <script setup lang="ts">
 import { useCalendarsStore } from '@/stores/calendar'
-import { useRouter } from 'vue-router'
-import { onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import CalendarForm from '@/views/calendar/forms/CalendarForm.vue'
 import type { apitypes_VisibilityLevel } from '@/genapi/api/calendars/calendar/v1alpha1'
 import { useAlertStore } from '@/stores/alerts'
 
 const router = useRouter()
+const route = useRoute()
 const calendarsStore = useCalendarsStore()
 const authStore = useAuthStore()
 const alertsStore = useAlertStore()
 
 function navigateBack() {
-  router.push({ name: 'calendars' })
+  if (route.params.circleId) {
+    router.push({ name: 'circle', params: { circleId: route.params.circleId } })
+  } else {
+    router.push({ name: 'calendars' })
+  }
 }
 
 async function saveCalendar() {
-  if (!authStore.user || !authStore.user.name) {
+  if (!authStore.user?.name && !route.params.circleId) {
     throw new Error('User not authenticated')
   }
   try {
-    const calendar = await calendarsStore.createCalendar(authStore.user.name)
+    const parent = circleName.value ? circleName.value : authStore.user!.name!
+    const calendar = await calendarsStore.createCalendar(parent)
     router.push('/'+calendar.name)
   } catch (err) {
     alertsStore.addAlert(err instanceof Error ? err.message : String(err),'error')
   }
 }
+
+const circleName = computed(() => {
+  return route.path.replace('/calendars/create', '').slice(1)
+})
 
 onMounted(() => {
   calendarsStore.calendar = {
