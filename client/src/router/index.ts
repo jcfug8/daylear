@@ -142,14 +142,6 @@ const router = createRouter({
       },
     },
     {
-      path: '/schedule',
-      name: 'schedule',
-      component: () => import('../views/calendar/ScheduleView.vue'),
-      meta: {
-        requiresAuth: true,
-      },
-    },
-    {
       path: '/users/:userId/edit',
       name: 'user-edit',
       component: () => import('../views/users/UserEditView.vue'),

@@ -131,7 +131,7 @@ func (repo *Client) ListCalendars(ctx context.Context, authAccount cmodel.AuthAc
 			Joins("LEFT JOIN calendar_access as ca ON calendar.calendar_id = ca.calendar_id AND ca.recipient_user_id = ? AND (calendar.visibility_level != ? OR ca.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
 			Where("(calendar.visibility_level <= ? OR (calendar_access.recipient_circle_id = ? AND ca.state = ?))",
 				maxVisibilityLevel, authAccount.CircleId, types.AccessState_ACCESS_STATE_ACCEPTED)
-	} else if authAccount.UserId != 0 {
+	} else if authAccount.UserId != 0 && authAccount.UserId != authAccount.AuthUserId {
 		maxVisibilityLevel := types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC
 		if authAccount.PermissionLevel > types.PermissionLevel_PERMISSION_LEVEL_PUBLIC {
 			maxVisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_RESTRICTED

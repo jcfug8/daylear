@@ -166,9 +166,39 @@ func (d *Domain) ListEvents(ctx context.Context, authAccount model.AuthAccount, 
 func (d *Domain) UpdateEvent(ctx context.Context, authAccount model.AuthAccount, event model.Event, fields []string) (dbEvent model.Event, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 
-	// TODO: Implement event update logic
-	// This is a stub implementation - actual business logic will be added later
+	if authAccount.AuthUserId == 0 {
+		log.Error().Msg("user id is required when creating event")
+		return model.Event{}, domain.ErrInvalidArgument{Msg: "user id is required"}
+	}
 
-	log.Info().Msg("UpdateEvent called - stub implementation")
-	return event, nil
+	if event.Parent.CalendarId == 0 {
+		log.Error().Msg("calendar id is required when creating event")
+		return model.Event{}, domain.ErrInvalidArgument{Msg: "calendar id is required"}
+	}
+
+	if event.StartTime.IsZero() {
+		log.Error().Msg("start time is required when creating event")
+		return model.Event{}, domain.ErrInvalidArgument{Msg: "start time is required"}
+	}
+
+	if event.EndTime == nil || event.EndTime.IsZero() {
+		log.Error().Msg("end time is required when creating event")
+		return model.Event{}, domain.ErrInvalidArgument{Msg: "end time is required"}
+	}
+
+	_, err = d.determineCalendarAccess(ctx, authAccount, model.CalendarId{CalendarId: event.Parent.CalendarId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine access when creating event")
+		return model.Event{}, err
+	}
+
+	//TODO: need to eventually add recurring logic
+
+	dbEvent, err = d.repo.UpdateEvent(ctx, authAccount, event, fields)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to update event")
+		return model.Event{}, domain.ErrInternal{Msg: "unable to update event"}
+	}
+
+	return dbEvent, nil
 }

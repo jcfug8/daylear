@@ -232,7 +232,10 @@ func (d *Domain) AcceptCalendarAccess(ctx context.Context, authAccount model.Aut
 		return model.CalendarAccess{}, domain.ErrInvalidArgument{Msg: "access must be in pending state to be accepted"}
 	}
 
-	determinedCalendarAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, access)
+	determinedCalendarAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(
+		ctx, authAccount, access,
+		withAllowAutoOmitAccessChecks(),
+	)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine calendar access ownership details when accepting a calendar access")
 		return model.CalendarAccess{}, domain.ErrInternal{Msg: "unable to determine calendar access ownership details"}

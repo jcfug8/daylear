@@ -222,7 +222,10 @@ func (d *Domain) AcceptRecipeAccess(ctx context.Context, authAccount model.AuthA
 		return model.RecipeAccess{}, domain.ErrInvalidArgument{Msg: "access must be in pending state to be accepted"}
 	}
 
-	determinedRecipeAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(ctx, authAccount, dbAccess)
+	determinedRecipeAccessOwnershipDetails, err := d.determineAccessOwnershipDetails(
+		ctx, authAccount, dbAccess,
+		withAllowAutoOmitAccessChecks(),
+	)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine recipe access ownership details when accepting a recipe access")
 		return model.RecipeAccess{}, domain.ErrInternal{Msg: "unable to determine recipe access ownership details"}

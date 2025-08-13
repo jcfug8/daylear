@@ -90,7 +90,18 @@
       </template>
       
       <template #events="{ items, loading }">
-        <ScheduleCal :events="items" :calendars="[calendar]" :loading="loading" />
+        <ScheduleCal :events="(items as Event[])" :calendars="[calendar]" :loading="(loading as boolean)" />
+        <v-btn
+          v-if="hasWritePermission(calendar.calendarAccess?.permissionLevel)"
+          color="primary"
+          density="compact"
+          class="text-none"
+          style="position: fixed; bottom: 16px; right: 16px; z-index: 10;"
+          @click="showCreateEventDialog = true"
+        >
+          <v-icon class="mr-1">mdi-plus</v-icon>
+          <span>Create Event</span>
+        </v-btn>
       </template>
       
 
@@ -176,6 +187,14 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Create Event Dialog for this calendar -->
+    <EventCreateDialog
+      v-model="showCreateEventDialog"
+      :calendars="[calendar]"
+      :defaultCalendarName="calendar.name"
+      @created="onEventCreated"
+    />
   </template>
 </template>
 
@@ -190,7 +209,9 @@ import type { apitypes_VisibilityLevel, Access, apitypes_PermissionLevel, Create
 import { calendarAccessService } from '@/api/api'
 import { useAlertStore } from '@/stores/alerts'
 import { useAuthStore } from '@/stores/auth'
-import ScheduleCal from '@/components/ScheduleCal.vue'
+import ScheduleCal from '@/views/calendar/event/ScheduleCal.vue'
+import type { Event } from '@/genapi/api/calendars/calendar/v1alpha1'
+import EventCreateDialog from '@/views/calendar/event/EventCreateDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -209,6 +230,7 @@ const showRemoveAccessDialog = ref(false)
 const showDeleteDialog = ref(false)
 const showCancelRequestDialog = ref(false)
 const showShareDialog = ref(false)
+const showCreateEventDialog = ref(false)
 
 // *** Calendar Sharing ***
 const allowPermissionOptions: apitypes_PermissionLevel[] = [
@@ -560,6 +582,11 @@ watch(showShareDialog, (isOpen) => {
     fetchCalendarRecipients()
   }
 })
+
+async function onEventCreated() {
+  if (!calendar.value?.name) return
+  await calendarsStore.loadEvents(calendar.value.name)
+}
 </script>
 
 <style scoped>

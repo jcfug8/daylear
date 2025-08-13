@@ -6,6 +6,7 @@ import (
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
+	"github.com/jcfug8/daylear/server/core/fieldmask"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/model"
 	"github.com/jcfug8/daylear/server/ports/repository"
@@ -212,7 +213,58 @@ func (c *Client) ListEvents(ctx context.Context, authAccount model.AuthAccount, 
 
 // UpdateEvent updates an existing event in the database
 func (c *Client) UpdateEvent(ctx context.Context, authAccount model.AuthAccount, event model.Event, fields []string) (model.Event, error) {
-	// TODO: Implement event update logic
-	// This is a stub implementation - actual database logic will be added later
+	log := logutil.EnrichLoggerWithContext(c.log, ctx).With().
+		Strs("fields", fields).
+		Logger()
+
+	mEvent, mEventData, err := convert.EventFromCoreModel(event)
+	if err != nil {
+		log.Error().Err(err).Msg("invalid event when updating event row")
+		return model.Event{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid event: %v", err)}
+	}
+
+	eventFields := gmodel.EventFieldMasker.Convert(fields, fieldmask.OnlyUpdatable())
+
+	if len(eventFields) > 0 {
+		res := c.db.WithContext(ctx).
+			Select(eventFields).
+			Where("event_id = ?", mEvent.EventId).
+			Clauses(clause.Returning{}).
+			Updates(&mEvent)
+		if res.Error != nil {
+			log.Error().Err(res.Error).Msg("unable to update event row")
+			return model.Event{}, ConvertGormError(res.Error)
+		}
+	}
+
+	dataFields := gmodel.EventDataFieldMasker.Convert(fields, fieldmask.OnlyUpdatable())
+
+	if len(dataFields) > 0 {
+		if mEvent.EventDataId == 0 {
+			res := c.db.WithContext(ctx).
+				Select(gmodel.EventField_EventDataId).
+				Where("event_id = ?", mEvent.EventId).
+				First(&mEvent)
+			if res.Error != nil {
+				log.Error().Err(res.Error).Msg("unable to get event data row")
+			}
+		}
+		res := c.db.WithContext(ctx).
+			Select(dataFields).
+			Where("event_data_id = ?", mEvent.EventDataId).
+			Clauses(clause.Returning{}).
+			Updates(&mEventData)
+		if res.Error != nil {
+			log.Error().Err(res.Error).Msg("unable to update event data row")
+			return model.Event{}, ConvertGormError(res.Error)
+		}
+	}
+
+	event, err = convert.EventToCoreModel(mEvent, mEventData)
+	if err != nil {
+		log.Error().Err(err).Msg("invalid event row when updating event")
+		return model.Event{}, fmt.Errorf("unable to read event: %v", err)
+	}
+
 	return event, nil
 }

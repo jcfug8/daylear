@@ -49,7 +49,7 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 			Joins("LEFT JOIN recipe_access as ra ON recipe.recipe_id = ra.recipe_id AND ra.recipient_user_id = ? AND (recipe.visibility_level != ? OR ra.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
 			Where("(recipe.visibility_level <= ? OR (recipe_access.recipient_circle_id = ? AND ra.state = ?))",
 				maxVisibilityLevel, authAccount.CircleId, types.AccessState_ACCESS_STATE_ACCEPTED)
-	} else if authAccount.UserId != 0 {
+	} else if authAccount.UserId != 0 && authAccount.UserId != authAccount.AuthUserId {
 		maxVisibilityLevel := types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC
 		if authAccount.PermissionLevel > types.PermissionLevel_PERMISSION_LEVEL_PUBLIC {
 			maxVisibilityLevel = types.VisibilityLevel_VISIBILITY_LEVEL_RESTRICTED

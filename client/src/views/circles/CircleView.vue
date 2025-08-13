@@ -111,7 +111,7 @@
         </div>
       </template>
       <template #recipes-circleRecipes="{ items, loading }">
-        <RecipeGrid :recipes="items" :loading="loading" />
+        <RecipeGrid :recipes="(items as Recipe[])" :loading="(loading as boolean)" />
         <v-btn
           v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
           color="primary"
@@ -124,13 +124,13 @@
         </v-btn>
       </template>
       <template #recipes-pending="{ items, loading }">
-        <RecipeGrid :recipes="items" :loading="loading" />
+        <RecipeGrid :recipes="(items as Recipe[])" :loading="(loading as boolean)" />
       </template>
       <template #recipes="{ items, loading }">
-        <RecipeGrid :recipes="items" :loading="loading" />
+        <RecipeGrid :recipes="(items as Recipe[])" :loading="(loading as boolean)" />
       </template>
       <template #members="{ items, loading }">
-        <UserGrid :users="items" :loading="loading" empty-text="No members found." />
+        <UserGrid :users="(items as User[])" :loading="(loading as boolean)" empty-text="No members found." />
         <v-btn
           v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
           color="primary"
@@ -142,7 +142,52 @@
           Manage Members
         </v-btn>
       </template>
+      <template #calendars="{ items, loading }">
+        <CalendarGrid v-if="viewMode === 'grid'" :calendars="(items as Calendar[])" :loading="(loading as boolean)" />
+        <template v-else>
+          <ScheduleCal v-if="!loading" :events="events" :calendars="(items as Calendar[])" />
+        </template>
+        <!-- View mode toggle FAB -->
+        <v-btn
+          color="primary"
+          density="compact"
+          class="text-none"
+          style="position: fixed; bottom: 16px; left: 16px; z-index: 10;"
+          @click="toggleViewMode"
+        >
+          <v-icon class="mr-1">{{ viewMode === 'grid' ? 'mdi-calendar-month' : 'mdi-view-grid' }}</v-icon>
+          <span>{{ viewMode === 'grid' ? 'Schedule' : 'Grid' }}</span>
+        </v-btn>
+        <!-- Create Calendar FAB -->
+        <v-btn
+          v-if="hasWritePermission(circle.circleAccess?.permissionLevel) && viewMode === 'grid'"
+          color="primary"
+          density="compact"
+          style="position: fixed; bottom: 16px; right: 16px"
+          :to="{ name: 'circleCalendarCreate', params: { circleId: circle.name?.split('/').pop() } }"
+        >
+          <v-icon>mdi-plus</v-icon>
+          <span>Create Calendar</span>
+        </v-btn>
+        <!-- Create Event FAB -->
+        <v-btn
+          v-if="hasWritePermission(circle.circleAccess?.permissionLevel) && viewMode === 'schedule'"
+          color="primary"
+          density="compact"
+          style="position: fixed; bottom: 16px; right: 16px"
+          @click="openCreateEventDialog()"
+        >
+          <v-icon>mdi-plus</v-icon>
+          <span>Create Event</span>
+        </v-btn>
+      </template>
     </ListTabsPage>
+
+    <EventCreateDialog
+      v-model="showCreateEventDialog"
+      :calendars="circleCalendarChoices"
+      @created="onEventCreated"
+    />
 
     <!-- Remove Access Dialog -->
     <v-dialog v-model="showRemoveAccessDialog" max-width="500">
@@ -239,8 +284,15 @@ import ListTabsPage from '@/components/common/ListTabsPage.vue'
 import RecipeGrid from '@/components/RecipeGrid.vue'
 import UserGrid from '@/components/UserGrid.vue'
 import { useRecipesStore } from '@/stores/recipes'
+import type { Recipe } from '@/genapi/api/meals/recipe/v1alpha1'
+import type { User } from '@/genapi/api/users/user/v1alpha1'
 import ShareDialog from '@/components/common/ShareDialog.vue'
 import { useAlertStore } from '@/stores/alerts'
+import { useCalendarsStore } from '@/stores/calendar'
+import CalendarGrid from '@/components/CalendarGrid.vue'
+import ScheduleCal from '@/views/calendar/event/ScheduleCal.vue'
+import type { Calendar, Event } from '@/genapi/api/calendars/calendar/v1alpha1'
+import EventCreateDialog from '@/views/calendar/event/EventCreateDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -249,6 +301,7 @@ const recipesStore = useRecipesStore()
 const circlesStore = useCirclesStore()
 const usersStore = useUsersStore()
 const alertsStore = useAlertStore()
+const calendarsStore = useCalendarsStore()
 
 const { circle } = storeToRefs(circlesStore)
 const { user } = storeToRefs(authStore)
@@ -316,6 +369,15 @@ const tabs = computed(() => [
       if (!circle.value?.name) return []
       await usersStore.loadFriends(circle.value.name)
       return [...usersStore.friends]
+    },
+  },
+  {
+    label: 'Calendars',
+    value: 'calendars',
+    loader: async () => {
+      if (!circle.value?.name) return []
+      await calendarsStore.loadMyCalendars(circle.value.name)
+      return [...calendarsStore.myCalendars]
     },
   },
 ])
@@ -572,7 +634,7 @@ async function fetchCircleRecipients() {
   }
 }
 
-async function updatePermission({ access, newLevel }: { access: any, newLevel: PermissionLevel }) {
+async function updatePermission({ access, newLevel }: { access: Access, newLevel: PermissionLevel }) {
   if (access.level === newLevel) return
   if (!access.name) return
   updatingPermission.value[access.name] = true
@@ -645,6 +707,58 @@ async function shareWithUser({ userName, permission }: { userName: string, permi
     alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
   } finally {
     sharing.value = false
+  }
+}
+
+// Calendars tab state and helpers
+const viewMode = ref<'grid' | 'schedule'>('grid')
+const events = ref<Event[]>([])
+
+function toggleViewMode() {
+  viewMode.value = viewMode.value === 'grid' ? 'schedule' : 'grid'
+  if (viewMode.value === 'schedule' && tabsPage.value?.activeTab?.value === 'calendars') {
+    void loadEventsForCalendars()
+  }
+}
+
+async function loadEventsForCalendars() {
+  events.value = []
+  for (const calendar of calendarsStore.myCalendars) {
+    if (!calendar?.name) continue
+    const es = await calendarsStore.loadEvents(calendar.name)
+    events.value.push(...es)
+  }
+}
+
+watch(
+  () => calendarsStore.myCalendars,
+  async () => {
+    if (viewMode.value === 'schedule' && tabsPage.value?.activeTab?.value === 'calendars') {
+      await loadEventsForCalendars()
+    }
+  },
+  { deep: true }
+)
+
+watch(
+  () => tabsPage.value?.activeTab?.value,
+  async (tab) => {
+    if (tab === 'calendars' && viewMode.value === 'schedule') {
+      await loadEventsForCalendars()
+    }
+  }
+)
+// Create Event dialog state for circle calendars
+const showCreateEventDialog = ref(false)
+const circleCalendarChoices = computed(() => (calendarsStore.myCalendars || []).filter(c => Boolean(c?.name)))
+
+function openCreateEventDialog() {
+  showCreateEventDialog.value = true
+}
+
+async function onEventCreated() {
+  if (viewMode.value === 'schedule' && tabsPage.value?.activeTab?.value === 'calendars') {
+    await loadEventsForCalendars()
   }
 }
 

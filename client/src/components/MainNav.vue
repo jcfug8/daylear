@@ -16,42 +16,30 @@
   </v-app-bar>
   <v-navigation-drawer temporary v-if="isLoggedIn" v-model="navDrawer" density="compact">
     <v-list nav>
-      <!-- <v-list-item
+      <v-list-item
+        prepend-icon="mdi-book-open-page-variant"
+        title="Recipes"
+        value="recipes"
+        :to="{ name: 'recipes' }"
+      ></v-list-item>
+      <v-list-item
         prepend-icon="mdi-calendar"
-        title="Calendar"
-        value="calendar"
-        :to="{ name: 'calendar' }"
-      ></v-list-item> -->
-      <!-- <v-list-group value="Meals">
-        <template v-slot:activator="{ props }">
-          <v-list-item v-bind="props" title="Meals" prepend-icon="mdi-food"></v-list-item>
-        </template> -->
-
-        <v-list-item
-          prepend-icon="mdi-book-open-page-variant"
-          title="Recipes"
-          value="recipes"
-          :to="{ name: 'recipes' }"
-        ></v-list-item>
-        <!-- <v-list-item
-        prepend-icon="mdi-food-apple"
-        title="Ingredients"
-        value="ingredients"
-        :to="{ name: 'ingredients' }"
-        ></v-list-item> -->
-        <v-list-item
-          prepend-icon="mdi-account"
-          title="Users"
-          value="users"
-          :to="{ name: 'users' }"
-        ></v-list-item>
-        <v-list-item
+        title="Calendars"
+        value="calendars"
+        :to="{ name: 'calendars' }"
+      ></v-list-item>
+      <v-list-item
+        prepend-icon="mdi-account"
+        title="Users"
+        value="users"
+        :to="{ name: 'users' }"
+      ></v-list-item>
+      <v-list-item
         prepend-icon="mdi-account-group"
         title="Circles"
         value="circles"
         :to="{ name: 'circles' }"
       ></v-list-item>
-      <!-- </v-list-group> -->
     </v-list>
   </v-navigation-drawer>
   <v-navigation-drawer temporary location="right" v-model="accountDrawer" v-if="isLoggedIn">
@@ -74,12 +62,10 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore, AccountType } from '@/stores/auth'
+import { useAuthStore } from '@/stores/auth'
 import { VNavigationDrawer } from 'vuetify/components'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
-import type { User } from '@/genapi/api/users/user/v1alpha1'
-import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
 
 import { ref } from 'vue'
 import AlertStack from './common/AlertStack.vue'

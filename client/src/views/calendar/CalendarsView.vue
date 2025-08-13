@@ -94,8 +94,9 @@
       <CalendarGrid :calendars="(items as Calendar[])" :loading="(loading as boolean)" />
     </template>
     <template #fab>
+        <!-- Create Calendar (only in grid view) -->
         <v-btn
-          v-if="selectedAccount?.value === authStore.user.name"
+          v-if="selectedAccount?.value === authStore.user.name && viewMode === 'grid'"
           color="primary"
           density="compact"
           style="position: fixed; bottom: 16px; right: 16px"
@@ -103,6 +104,17 @@
         >
           <v-icon>mdi-plus</v-icon>
           <span>Create Calendar</span>
+        </v-btn>
+        <!-- Create Event (only in schedule view) -->
+        <v-btn
+          v-if="selectedAccount?.value === authStore.user.name && viewMode === 'schedule'"
+          color="primary"
+          density="compact"
+          style="position: fixed; bottom: 16px; right: 16px"
+          @click="openCreateEventDialog()"
+        >
+          <v-icon>mdi-plus</v-icon>
+          <span>Create Event</span>
         </v-btn>
       </template>
   </ListTabsPage>
@@ -143,6 +155,12 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <EventCreateDialog
+    v-model="showCreateEventDialog"
+    :calendars="calendarChoices"
+    @created="onEventCreated"
+  />
 </template>
 
 <script setup lang="ts">
@@ -155,8 +173,9 @@ import { useAlertStore } from '@/stores/alerts'
 import { useCirclesStore } from '@/stores/circles'
 import { useUsersStore } from '@/stores/users'
 import type { Calendar } from '@/genapi/api/calendars/calendar/v1alpha1'
-import ScheduleCal from '@/components/ScheduleCal.vue'
+import ScheduleCal from '@/views/calendar/event/ScheduleCal.vue'
 import type { Event } from '@/genapi/api/calendars/calendar/v1alpha1'
+import EventCreateDialog from '@/views/calendar/event/EventCreateDialog.vue'
 
 const calendarsStore = useCalendarsStore()
 const authStore = useAuthStore()
@@ -171,6 +190,10 @@ const events = ref<Event[]>([])
 const currentTab = ref<string>('my')
 const isMyTab = computed(() => currentTab.value === 'my')
 const loading = ref<boolean>(true)
+
+// Create Event dialog state
+const showCreateEventDialog = ref(false)
+const calendarChoices = computed(() => calendarsStore.myCalendars.filter(c => Boolean(c?.name)))
 
 onMounted(() => {
   // Preload account selections (circles and friends) so the modal has all options
@@ -291,7 +314,7 @@ async function acceptCalendarAccess(calendar: Calendar) {
   
   acceptingCalendarId.value = calendar.name
   try {
-    await calendarsStore.acceptCalendar(calendar.name)
+    await calendarsStore.acceptCalendar(calendar.calendarAccess?.name || '')
     tabsPage.value?.reloadTab('pending')
   } catch (error) {
     alertsStore.addAlert(`Failed to accept calendar access: ${error}`)
@@ -329,6 +352,16 @@ async function loadEventsForMyCalendars() {
     events.value.push(...es)
   }
   loading.value = false
+}
+
+function openCreateEventDialog() {
+  showCreateEventDialog.value = true
+}
+
+async function onEventCreated() {
+  if (viewMode.value === 'schedule' && isMyTab.value) {
+    await loadEventsForMyCalendars()
+  }
 }
 
 // Keep events in sync when the calendars list changes or when switching to schedule mode

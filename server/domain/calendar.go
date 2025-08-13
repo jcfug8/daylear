@@ -192,7 +192,7 @@ func (d *Domain) ListCalendars(ctx context.Context, authAccount model.AuthAccoun
 			log.Error().Err(err).Msg("unable to get circle when listing calendars")
 			return nil, domain.ErrInternal{Msg: "unable to get circle when listing calendars"}
 		}
-		_, err = d.determineCircleAccess(
+		determinedCircleAccess, err := d.determineCircleAccess(
 			ctx, authAccount, model.CircleId{CircleId: parent.CircleId},
 			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
 			withResourceVisibilityLevel(dbCircle.VisibilityLevel),
@@ -201,6 +201,7 @@ func (d *Domain) ListCalendars(ctx context.Context, authAccount model.AuthAccoun
 			log.Error().Err(err).Msg("unable to determine access when listing calendars")
 			return nil, err
 		}
+		authAccount.PermissionLevel = determinedCircleAccess.GetPermissionLevel()
 	} else if parent.UserId != 0 {
 		authAccount.UserId = parent.UserId
 		determinedUserAccess, err := d.determineUserAccess(
