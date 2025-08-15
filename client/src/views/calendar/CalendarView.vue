@@ -90,7 +90,7 @@
       </template>
       
       <template #events="{ items, loading }">
-        <ScheduleCal :events="(items as Event[])" :calendars="[calendar]" :loading="(loading as boolean)" />
+        <ScheduleCal :events="(items as Event[])" :calendars="[calendar]" :loading="(loading as boolean)" @created="onEventCreated" @updated="onEventUpdated" />
         <v-btn
           v-if="hasWritePermission(calendar.calendarAccess?.permissionLevel)"
           color="primary"
@@ -584,6 +584,11 @@ watch(showShareDialog, (isOpen) => {
 })
 
 async function onEventCreated() {
+  if (!calendar.value?.name) return
+  await calendarsStore.loadEvents(calendar.value.name)
+}
+
+async function onEventUpdated() {
   if (!calendar.value?.name) return
   await calendarsStore.loadEvents(calendar.value.name)
 }

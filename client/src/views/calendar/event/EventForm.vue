@@ -92,7 +92,6 @@ const emit = defineEmits<{
 
 // Function to update individual fields without causing recursive updates
 function updateField(field: keyof EventFormData, value: EventFormData[keyof EventFormData]) {
-  console.log('updateField', field, value)
   const updatedData = { ...props.modelValue, [field]: value }
   emit('update:modelValue', updatedData)
 }

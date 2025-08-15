@@ -134,6 +134,7 @@
     v-if="showEditDialog && event && calendar"
     :key="`edit-${event?.name || 'unknown'}`"
     v-model="showEditDialog"
+    :display-event="eventOccurrence"
     :event="event"
     :calendars="[calendar]"
     @updated="handleEventUpdated"
@@ -145,11 +146,12 @@ import { ref, watch, computed } from 'vue'
 import type { Calendar, Event } from '@/genapi/api/calendars/calendar/v1alpha1'
 import EventEditDialog from './EventEditDialog.vue'
 import { RecurrenceRuleDisplay } from '@/components/calendar'
+import type { CalendarEventExternal } from '@schedule-x/calendar'
 
 const props = withDefaults(defineProps<{
   modelValue: boolean
   event: Event | null
-  eventOccurrence: { start?: string; end?: string } | null
+  eventOccurrence: CalendarEventExternal | null
   calendar: Calendar | null
 }>(), {
   modelValue: false,

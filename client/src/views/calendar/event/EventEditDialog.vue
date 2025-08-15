@@ -29,13 +29,17 @@ import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import type { Calendar, Event } from '@/genapi/api/calendars/calendar/v1alpha1'
 import { eventService } from '@/api/api'
 import EventForm, { type EventFormData } from './EventForm.vue'
+import type { CalendarEventExternal } from '@schedule-x/calendar'
+import { RRule } from 'rrule'
 
 const props = withDefaults(defineProps<{
   modelValue: boolean
+  displayEvent: CalendarEventExternal | null
   event: Event | null
   calendars: Calendar[]
 }>(), {
   modelValue: false,
+  displayEvent: null,
   event: null,
   calendars: () => [],
 })
@@ -74,9 +78,9 @@ const writableCalendars = computed(() => {
 watch(() => props.modelValue, (newValue) => {
   console.log('EventEditDialog modelValue changed:', newValue)
   internalOpen.value = newValue
-  if (newValue && props.event) {
+  if (props.event && props.displayEvent && newValue) {
     console.log('Populating form from modelValue change')
-    populateForm(props.event)
+    populateForm(props.event, props.displayEvent)
   }
 })
 
@@ -89,18 +93,18 @@ watch(internalOpen, (newValue) => {
 // Watch for event changes and populate form
 watch(() => props.event, (event) => {
   console.log('EventEditDialog event changed:', event)
-  if (event && internalOpen.value) {
+  if (event && props.displayEvent && internalOpen.value) {
     console.log('Populating form from event change')
-    populateForm(event)
+    populateForm(event, props.displayEvent)
   }
 }, { immediate: true })
 
 // Also watch for when dialog opens to populate form if event is available
 watch(internalOpen, (isOpen) => {
   console.log('EventEditDialog internalOpen changed (form population):', isOpen)
-  if (isOpen && props.event) {
+  if (props.event && props.displayEvent && isOpen) {
     console.log('Populating form from dialog open')
-    populateForm(props.event)
+    populateForm(props.event, props.displayEvent)
   }
 })
 
@@ -110,7 +114,7 @@ onBeforeUnmount(() => {
   updating.value = false
 })
 
-function populateForm(event: Event) {
+function populateForm(event: Event, displayEvent: CalendarEventExternal) {
   console.log('Populating form with event:', event)
   
   // Extract calendar name from event name (assuming format: calendars/{calendarId}/events/{eventId})
@@ -158,8 +162,8 @@ function populateForm(event: Event) {
   const formData = {
     calendarName: calendarName || null,
     title: event.title || '',
-    start: toLocalInput(event.startTime as unknown as string),
-    end: toLocalInput(event.endTime as unknown as string),
+    start: toLocalInput(displayEvent.start),
+    end: toLocalInput(displayEvent.end),
     description: event.description || '',
     recurrenceRule: event.recurrenceRule || '',
   }
@@ -176,38 +180,87 @@ function onDialogModel(value: boolean) {
   internalOpen.value = value
 }
 
+const futureOnlyRecurringEditFields: string[] = [
+  'recurrenceRule'
+]
+
 async function update() {
-  if (!form.value.calendarName || !props.event?.name) return
-  
+  if (!form.value.calendarName || !props.event ||!props.event?.name || !props.displayEvent) return
+  const oldEvent = props.event
   updating.value = true
   try {
-    const startIso = new Date(form.value.start).toISOString()
-    const endIso = new Date(form.value.end || form.value.start).toISOString()
+    // determine the time difference old start and end with the new start and end
+    const displayStart = new Date(props.displayEvent.start)
+    const displayEnd = new Date(props.displayEvent.end)
+    const newStart = new Date(form.value.start)
+    const newEnd = new Date(form.value.end)
+    const endTimeDiff = newEnd.getTime() - displayEnd.getTime()
+    const startTimeDiff = newStart.getTime() - displayStart.getTime()
+
+    // create new event start and event end times by adding the time difference to the props.event start and end
+    const calculatedStart = new Date(props.event.startTime as string)
+    const calculatedEnd = new Date(props.event.endTime as string)
+    calculatedStart.setTime(calculatedStart.getTime() + startTimeDiff)
+    calculatedEnd.setTime(calculatedEnd.getTime() + endTimeDiff)
+
+    const startIso = new Date(calculatedStart).toISOString()
+    const endIso = new Date(calculatedEnd).toISOString()
     
-    const updatedEvent = await eventService.UpdateEvent({
-      event: {
-        name: props.event.name,
-        title: form.value.title || 'Updated Event',
-        startTime: startIso as unknown as string,
-        endTime: endIso as unknown as string,
-        description: form.value.description || undefined,
-        // Update recurrence rule if specified
-        recurrenceRule: form.value.recurrenceRule || undefined,
-        // Preserve other fields from original event
-        location: props.event.location,
-        uri: props.event.uri,
-        overridenStartTime: props.event.overridenStartTime,
-        excludedTimes: props.event.excludedTimes,
-        additionalTimes: props.event.additionalTimes,
-        parentEventId: props.event.parentEventId,
-        alarms: props.event.alarms,
-        geo: props.event.geo,
-        recurrenceEndTime: props.event.recurrenceEndTime,
-      },
+    let updatedEvent: Event | null = null
+
+    const newEvent = {
+      name: props.event.name,
+      title: form.value.title || 'Updated Event',
+      startTime: startIso as unknown as string,
+      endTime: endIso as unknown as string,
+      description: form.value.description || undefined,
+      // Update recurrence rule if specified
+      recurrenceRule: form.value.recurrenceRule || undefined,
+      // Preserve other fields from original event
+      location: props.event.location,
+      uri: props.event.uri,
+      overridenStartTime: props.event.overridenStartTime,
+      excludedTimes: props.event.excludedTimes,
+      additionalTimes: props.event.additionalTimes,
+      parentEventId: props.event.parentEventId,
+      alarms: props.event.alarms,
+      geo: props.event.geo,
+      recurrenceEndTime: props.event.recurrenceEndTime,
+    }
+    
+    // normalize event times
+    oldEvent.startTime = new Date(oldEvent.startTime as string).toISOString()
+    oldEvent.endTime = new Date(oldEvent.endTime as string).toISOString()
+    const diff = Object.keys(newEvent).filter(key => newEvent[key as keyof Event] !== oldEvent[key as keyof Event])
+    console.log('diff', diff)
+    if (diff.length === 0) { // no changes
+
+    } else if (props.event.recurrenceRule !== undefined) { // this event was recurring
+      // log out the fields that are different between the new event and the old event
+      if (!newEvent.recurrenceRule) {
+        alert('only allow all events')
+        // if this isn't the first event, then actually take the old recurrence rule
+        // and tack on the until with the new start time
+        if (displayStart.toISOString() != oldEvent.startTime) {
+          const rrule = RRule.fromString(props.event.recurrenceRule)
+          rrule.options.until = displayStart
+          newEvent.recurrenceRule = rrule.toString().replace('RRULE:', '')
+        }
+      } else if (futureOnlyRecurringEditFields.some(field => diff.includes(field))) {
+        alert('only allow all future events')
+      } else {
+        alert('allow this event or all future events')
+      }
+    }
+
+    updatedEvent = await eventService.UpdateEvent({
+      event: newEvent,
       updateMask: undefined
     })
     
-    emit('updated', updatedEvent)
+    if (updatedEvent) {
+      emit('updated', updatedEvent)
+    }
     close()
   } finally {
     updating.value = false

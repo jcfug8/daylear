@@ -71,7 +71,7 @@
     <template #my="{ items, loading }">
       <CalendarGrid v-if="viewMode === 'grid'" :calendars="getFilteredCalendars(items as Calendar[])" :loading="(loading as boolean)" />
       <template v-else>
-        <ScheduleCal v-if="!loading" :events="events" :calendars="(items as Calendar[])" />
+        <ScheduleCal v-if="!loading" :events="events" :calendars="(items as Calendar[])" @created="onEventCreated" @updated="onEventUpdated" />
       </template>
       <!-- View mode toggle FAB -->
       <v-btn
@@ -357,6 +357,12 @@ async function loadEventsForMyCalendars() {
 
 function openCreateEventDialog() {
   showCreateEventDialog.value = true
+}
+
+async function onEventUpdated() {
+  if (viewMode.value === 'schedule' && isMyTab.value) {
+    await loadEventsForMyCalendars()
+  }
 }
 
 async function onEventCreated() {

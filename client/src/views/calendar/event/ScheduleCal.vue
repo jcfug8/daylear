@@ -47,12 +47,13 @@ import { computed, watch, ref, onMounted, onBeforeUnmount } from 'vue'
 import type { CSSProperties } from 'vue'
 import type { Event, Calendar } from '@/genapi/api/calendars/calendar/v1alpha1/index'
 import type { CalendarEventExternal, CalendarType } from '@schedule-x/calendar'
-import { createEventsServicePlugin } from '@schedule-x/events-service'
+import { createEventRecurrencePlugin, createEventsServicePlugin } from "@schedule-x/event-recurrence";
 import EventViewDialog from './EventViewDialog.vue'
 import EventCreateDialog from './EventCreateDialog.vue'
-import { datetime, RRule } from 'rrule'
+// Removed RRule and Luxon imports - using Schedule-X built-in recurrence
 
 const eventsServicePlugin = createEventsServicePlugin();
+const eventRecurrencePlugin = createEventRecurrencePlugin();
 
 const props = withDefaults(defineProps<{
   events?: Event[]
@@ -73,6 +74,11 @@ const selectedCalendar = ref<Calendar | null>(null)
 // Event create dialog state
 const showCreateDialog = ref(false)
 
+const emit = defineEmits<{
+  (e: 'updated', event: Event): void
+  (e: 'created', event: Event): void
+}>()
+
 // Handle event updated from dialog
 function handleEventUpdated(event: Event) {
   console.log('Event updated:', event)
@@ -80,8 +86,8 @@ function handleEventUpdated(event: Event) {
   showEventDialog.value = false
   selectedEvent.value = null
   selectedCalendar.value = null
-  // TODO: Refresh events list or update the specific event
-  // This could trigger a refresh of the events data
+
+  emit('updated', event)
 }
 
 // Handle event created from dialog
@@ -89,8 +95,7 @@ function handleEventCreated(event: Event) {
   console.log('Event created:', event)
   // Close the dialog after creation
   showCreateDialog.value = false
-  // TODO: Refresh events list or update the specific event
-  // This could trigger a refresh of the events data
+  emit('created', event)
 }
 
 // Clean up dialog state when dialog closes
@@ -190,103 +195,32 @@ function colorThemeForId(id: string): { lightColors: ColorDef; darkColors: Color
 
 const scheduleEvents = computed<CalendarEventExternal[]>(() => {
   const source = props.events ?? []
-  const oneYearBeforeToday = new Date()
-  oneYearBeforeToday.setFullYear(oneYearBeforeToday.getFullYear() - 1)
-  const oneYearFromToday = new Date()
-  oneYearFromToday.setFullYear(oneYearFromToday.getFullYear() + 1)
   
-  const expandedEvents: CalendarEventExternal[] = []
-  
-  source
+  return source
     .filter((event): event is Event => Boolean(event))
-    .forEach((event) => {
+    .map((event) => {
       const { id, calendarId } = parseName(event.name)
       const start = toScheduleXDateTime(event.startTime as string)
-      const end = toScheduleXDateTime(event.endTime as string)
+      const end = toScheduleXDateTime(event.endTime as string) || ''
+
+      if (!id || !calendarId || !start) return null
+
+      const rrule = event.recurrenceRule ? event.recurrenceRule.replace('RRULE:', '') : null
       
-      if (!id || !calendarId || !start) return
-      
-      if (event.recurrenceRule) {
-        try {
-          const rule = RRule.fromString(event.recurrenceRule)
-          rule.options.dtstart = new Date(event.startTime as string)
-          
-          // Get all occurrences from today to one year from today
-          const occurrences = rule.between(oneYearBeforeToday, oneYearFromToday, true)
-          
-          occurrences.forEach(occurrence => {
-            occurrence.setHours(rule.options.dtstart.getHours(), rule.options.dtstart.getMinutes(), rule.options.dtstart.getSeconds())
-            // Calculate the end time for this occurrence
-            const occurrenceEnd = new Date(occurrence)
-            if (end) {
-              const originalStart = new Date(start)
-              const originalEnd = new Date(end)
-              const duration = originalEnd.getTime() - originalStart.getTime()
-              occurrenceEnd.setTime(occurrence.getTime() + duration)
-            } else {
-              // Default to 1 hour if no end time specified
-              occurrenceEnd.setHours(occurrenceEnd.getHours() + 1)
-            }
-            
-            // Convert dates to Schedule-X format
-            const occurrenceStartFormatted = toScheduleXDateTime(occurrence.toISOString())
-            const occurrenceEndFormatted = toScheduleXDateTime(occurrenceEnd.toISOString())
-            
-            if (!occurrenceStartFormatted || !occurrenceEndFormatted) {
-              console.warn('Could not format occurrence dates:', { occurrence, occurrenceEnd })
-              return
-            }
-            
-            expandedEvents.push({
-              name: event.name,
-              id: `${id}_${occurrence.getTime()}`, // Unique ID for each occurrence
-              parentStart: event.startTime as string,
-              parentEnd: event.endTime as string,
-              start: occurrenceStartFormatted,
-              end: occurrenceEndFormatted,
-              title: event.title ?? '',
-              description: event.description ?? '',
-              calendarId,
-            } as CalendarEventExternal)
-          })
-        } catch (error) {
-          console.warn('Error parsing RRULE:', event.recurrenceRule, error)
-          // Fall back to single event if RRULE parsing fails
-          expandedEvents.push({
-            name: event.name,
-            id,
-            start,
-            end: end || (() => {
-              const endTime = new Date(start)
-              endTime.setHours(endTime.getHours() + 1)
-              return endTime.toISOString()
-            })(),
-            title: event.title ?? '',
-            description: event.description ?? '',
-            calendarId,
-          } as CalendarEventExternal)
-        }
-      } else {
-        // Non-recurring event
-        expandedEvents.push({
-          name: event.name,
-          id,
-          parentStart: event.startTime as string,
-          parentEnd: event.endTime as string,
-          start,
-          end: end || (() => {
-            const endTime = new Date(start)
-            endTime.setHours(endTime.getHours() + 1)
-            return endTime.toISOString()
-          })(),
-          title: event.title ?? '',
-          description: event.description ?? '',
-          calendarId,
-        } as CalendarEventExternal)
+      const baseEvent: CalendarEventExternal = {
+        name: event.name,
+        id,
+        start,
+        end,
+        title: event.title ?? '',
+        description: event.description ?? '',
+        calendarId,
+        rrule,
       }
+      
+      return baseEvent
     })
-  
-  return expandedEvents
+    .filter((event): event is CalendarEventExternal => event !== null)
 })
 
 const scheduleCalendars = computed<Record<string, CalendarType>>(() => {
@@ -321,7 +255,10 @@ const calendarApp = createCalendar({
   ],
   firstDayOfWeek: 0,
   events: scheduleEvents.value,
-  plugins: [eventsServicePlugin],
+  plugins: [
+    eventsServicePlugin,
+    eventRecurrencePlugin,
+  ],
   calendars: scheduleCalendars.value,
   callbacks: {
     onEventClick: (event) => {
@@ -351,6 +288,8 @@ const calendarApp = createCalendar({
         })
         
         if (foundEvent && foundCalendar) {
+          console.log('foundEvent', foundEvent)
+          console.log('foundCalendar', foundCalendar)
           selectedEvent.value = foundEvent
           selectedEventOccurrence.value = event
           selectedCalendar.value = foundCalendar
