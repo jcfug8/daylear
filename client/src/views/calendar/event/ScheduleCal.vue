@@ -16,19 +16,17 @@
   
   <!-- Event View Dialog -->
   <EventViewDialog
-    :key="`event-view-${selectedEvent?.name || 'none'}`"
     v-model="showEventDialog"
     :event="selectedEvent"
     :calendar="selectedCalendar"
+    :event-occurrence="selectedEventOccurrence"
     @updated="handleEventUpdated"
   />
   
   <!-- Event Create Dialog -->
   <EventCreateDialog
     v-if="showCreateDialog"
-    :key="`create-dialog-${defaultCalendar?.name || 'default'}`"
     v-model="showCreateDialog"
-    :default-calendar="defaultCalendar"
     :calendars="writableCalendars"
     @created="handleEventCreated"
   />
@@ -52,6 +50,7 @@ import type { CalendarEventExternal, CalendarType } from '@schedule-x/calendar'
 import { createEventsServicePlugin } from '@schedule-x/events-service'
 import EventViewDialog from './EventViewDialog.vue'
 import EventCreateDialog from './EventCreateDialog.vue'
+import { datetime, RRule } from 'rrule'
 
 const eventsServicePlugin = createEventsServicePlugin();
 
@@ -68,13 +67,11 @@ const props = withDefaults(defineProps<{
 // Event dialog state
 const showEventDialog = ref(false)
 const selectedEvent = ref<Event | null>(null)
+const selectedEventOccurrence = ref<CalendarEventExternal | null>(null)
 const selectedCalendar = ref<Calendar | null>(null)
 
 // Event create dialog state
 const showCreateDialog = ref(false)
-const defaultCalendar = computed(() => {
-  return writableCalendars.value[0] || null
-})
 
 // Handle event updated from dialog
 function handleEventUpdated(event: Event) {
@@ -104,15 +101,6 @@ watch(showEventDialog, (isOpen) => {
     selectedCalendar.value = null
   }
 })
-
-// Clean up dialog state when dialog closes
-watch(showCreateDialog, (isOpen) => {
-  if (!isOpen) {
-    // Reset state when dialog closes
-    // defaultCalendar is computed, no need to reset
-  }
-})
-
 
 function toScheduleXDateTime(value?: string | null): string | undefined {
   if (!value || typeof value !== 'string') return undefined
@@ -202,24 +190,103 @@ function colorThemeForId(id: string): { lightColors: ColorDef; darkColors: Color
 
 const scheduleEvents = computed<CalendarEventExternal[]>(() => {
   const source = props.events ?? []
-  return source
+  const oneYearBeforeToday = new Date()
+  oneYearBeforeToday.setFullYear(oneYearBeforeToday.getFullYear() - 1)
+  const oneYearFromToday = new Date()
+  oneYearFromToday.setFullYear(oneYearFromToday.getFullYear() + 1)
+  
+  const expandedEvents: CalendarEventExternal[] = []
+  
+  source
     .filter((event): event is Event => Boolean(event))
-    .map((event) => {
+    .forEach((event) => {
       const { id, calendarId } = parseName(event.name)
-      const start = toScheduleXDateTime(event.startTime as unknown as string)
-      const end = toScheduleXDateTime(event.endTime as unknown as string)
-      if (!id || !calendarId || !start) return undefined
-      return {
-        name: event.name,
-        id,
-        start,
-        end,
-        title: event.title ?? '',
-        description: event.description ?? '',
-        calendarId,
-      } as CalendarEventExternal
+      const start = toScheduleXDateTime(event.startTime as string)
+      const end = toScheduleXDateTime(event.endTime as string)
+      
+      if (!id || !calendarId || !start) return
+      
+      if (event.recurrenceRule) {
+        try {
+          const rule = RRule.fromString(event.recurrenceRule)
+          rule.options.dtstart = new Date(event.startTime as string)
+          
+          // Get all occurrences from today to one year from today
+          const occurrences = rule.between(oneYearBeforeToday, oneYearFromToday, true)
+          
+          occurrences.forEach(occurrence => {
+            occurrence.setHours(rule.options.dtstart.getHours(), rule.options.dtstart.getMinutes(), rule.options.dtstart.getSeconds())
+            // Calculate the end time for this occurrence
+            const occurrenceEnd = new Date(occurrence)
+            if (end) {
+              const originalStart = new Date(start)
+              const originalEnd = new Date(end)
+              const duration = originalEnd.getTime() - originalStart.getTime()
+              occurrenceEnd.setTime(occurrence.getTime() + duration)
+            } else {
+              // Default to 1 hour if no end time specified
+              occurrenceEnd.setHours(occurrenceEnd.getHours() + 1)
+            }
+            
+            // Convert dates to Schedule-X format
+            const occurrenceStartFormatted = toScheduleXDateTime(occurrence.toISOString())
+            const occurrenceEndFormatted = toScheduleXDateTime(occurrenceEnd.toISOString())
+            
+            if (!occurrenceStartFormatted || !occurrenceEndFormatted) {
+              console.warn('Could not format occurrence dates:', { occurrence, occurrenceEnd })
+              return
+            }
+            
+            expandedEvents.push({
+              name: event.name,
+              id: `${id}_${occurrence.getTime()}`, // Unique ID for each occurrence
+              parentStart: event.startTime as string,
+              parentEnd: event.endTime as string,
+              start: occurrenceStartFormatted,
+              end: occurrenceEndFormatted,
+              title: event.title ?? '',
+              description: event.description ?? '',
+              calendarId,
+            } as CalendarEventExternal)
+          })
+        } catch (error) {
+          console.warn('Error parsing RRULE:', event.recurrenceRule, error)
+          // Fall back to single event if RRULE parsing fails
+          expandedEvents.push({
+            name: event.name,
+            id,
+            start,
+            end: end || (() => {
+              const endTime = new Date(start)
+              endTime.setHours(endTime.getHours() + 1)
+              return endTime.toISOString()
+            })(),
+            title: event.title ?? '',
+            description: event.description ?? '',
+            calendarId,
+          } as CalendarEventExternal)
+        }
+      } else {
+        // Non-recurring event
+        expandedEvents.push({
+          name: event.name,
+          id,
+          parentStart: event.startTime as string,
+          parentEnd: event.endTime as string,
+          start,
+          end: end || (() => {
+            const endTime = new Date(start)
+            endTime.setHours(endTime.getHours() + 1)
+            return endTime.toISOString()
+          })(),
+          title: event.title ?? '',
+          description: event.description ?? '',
+          calendarId,
+        } as CalendarEventExternal)
+      }
     })
-    .filter((e): e is CalendarEventExternal => Boolean(e))
+  
+  return expandedEvents
 })
 
 const scheduleCalendars = computed<Record<string, CalendarType>>(() => {
@@ -252,6 +319,7 @@ const calendarApp = createCalendar({
     createViewMonthAgenda(),
     createViewList(),
   ],
+  firstDayOfWeek: 0,
   events: scheduleEvents.value,
   plugins: [eventsServicePlugin],
   calendars: scheduleCalendars.value,
@@ -284,6 +352,7 @@ const calendarApp = createCalendar({
         
         if (foundEvent && foundCalendar) {
           selectedEvent.value = foundEvent
+          selectedEventOccurrence.value = event
           selectedCalendar.value = foundCalendar
           showEventDialog.value = true
         } else {
@@ -352,7 +421,6 @@ onBeforeUnmount(() => {
     selectedEvent.value = null
     selectedCalendar.value = null
     showCreateDialog.value = false
-    // defaultCalendar is computed, no need to reset
     
     // Clean up calendar app if needed
     if (calendarApp && typeof calendarApp.destroy === 'function') {

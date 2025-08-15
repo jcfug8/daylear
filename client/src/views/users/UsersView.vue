@@ -1,11 +1,11 @@
 <template>
   <ListTabsPage :tabs="tabs" ref="tabsPage">
     <template #friends="{ items, loading }">
-      <UserGrid :users="items" :loading="usersStore.loading" empty-text="No friends found." />
+      <UserGrid :users="items as User[]" :loading="usersStore.loading" empty-text="No friends found." />
     </template>
     <template #pending="{ items, loading }">
       <UserGrid
-        :users="items"
+        :users="items as User[]"
         :loading="usersStore.loading"
         empty-text="No pending requests found."
         show-actions
@@ -15,7 +15,7 @@
       />
     </template>
     <template #explore="{ items, loading }">
-      <UserGrid :users="items" :loading="usersStore.loading" empty-text="No users found." />
+      <UserGrid :users="items as User[]" :loading="usersStore.loading" empty-text="No users found." />
     </template>
   </ListTabsPage>
 </template>
@@ -26,6 +26,7 @@ import ListTabsPage from '@/components/common/ListTabsPage.vue'
 import { useUsersStore } from '@/stores/users'
 import UserGrid from '@/components/UserGrid.vue'
 import { useAuthStore } from '@/stores/auth'
+import type { User } from '@/genapi/api/users/user/v1alpha1'
 
 const usersStore = useUsersStore()
 const tabsPage = ref()
@@ -62,8 +63,8 @@ const tabs = [
   },
 ]
 
-async function onAcceptUser(user: any) {
-  if (!user.access?.name) return
+async function onAcceptUser(user: User) {
+  if (!user.access?.name || !user.name) return
   acceptingUserId.value = user.name
   try {
     await usersStore.acceptUserAccess(user.access.name)
@@ -75,7 +76,7 @@ async function onAcceptUser(user: any) {
   }
 }
 
-async function onDeclineUser(user: any) {
+async function onDeclineUser(user: User) {
   if (!user.access?.name) return
   try {
     await usersStore.declineUserAccess(user.access.name)

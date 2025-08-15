@@ -90,9 +90,13 @@ func toICalEvent(event model.Event) *ical.VEvent {
 		icalEvent.SetDescription(event.Description)
 	}
 
+	if event.Location != "" {
+		icalEvent.SetLocation(event.Location)
+	}
+
 	// Set location
-	if event.Location.Latitude != 0 && event.Location.Longitude != 0 {
-		icalEvent.SetLocation(fmt.Sprintf("%f,%f", event.Location.Latitude, event.Location.Longitude))
+	if event.Geo.Latitude != 0 && event.Geo.Longitude != 0 {
+		icalEvent.SetGeo(event.Geo.Latitude, event.Geo.Longitude)
 	}
 
 	// Set URL
@@ -204,21 +208,26 @@ func FromICalendar(icalString string) (model.Calendar, []model.Event, error) {
 			event.Description = description.Value
 		}
 
-		// Parse location
-		if location := icalEvent.GetProperty(ical.ComponentProperty(ical.PropertyLocation)); location != nil {
-			splitLatLng := strings.Split(location.Value, ",")
+		// Parse geo
+		if geo := icalEvent.GetProperty(ical.ComponentProperty(ical.PropertyGeo)); geo != nil {
+			splitLatLng := strings.Split(geo.Value, ";")
 			if len(splitLatLng) == 2 {
 				latitude, err := strconv.ParseFloat(splitLatLng[0], 64)
 				if err == nil {
 					longitude, err := strconv.ParseFloat(splitLatLng[1], 64)
 					if err == nil {
-						event.Location = model.LatLng{
+						event.Geo = model.LatLng{
 							Latitude:  latitude,
 							Longitude: longitude,
 						}
 					}
 				}
 			}
+		}
+
+		// Parse location
+		if location := icalEvent.GetProperty(ical.ComponentProperty(ical.PropertyLocation)); location != nil {
+			event.Location = location.Value
 		}
 
 		// Parse URL

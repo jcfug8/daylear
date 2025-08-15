@@ -42,7 +42,7 @@ type Event struct {
 	// the description of the event
 	Description string `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
 	// the location of the event
-	Location *latlng.LatLng `protobuf:"bytes,6,opt,name=location,proto3" json:"location,omitempty"`
+	Location string `protobuf:"bytes,6,opt,name=location,proto3" json:"location,omitempty"`
 	// the url of the event
 	Uri string `protobuf:"bytes,7,opt,name=uri,proto3" json:"uri,omitempty"`
 	// the recurrence rule of the event
@@ -56,9 +56,13 @@ type Event struct {
 	// the parent event id of the event
 	ParentEventId int64 `protobuf:"varint,12,opt,name=parent_event_id,json=parentEventId,proto3" json:"parent_event_id,omitempty"`
 	// the alarms of the event
-	Alarms        []*Event_Alarm `protobuf:"bytes,13,rep,name=alarms,proto3" json:"alarms,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Alarms []*Event_Alarm `protobuf:"bytes,13,rep,name=alarms,proto3" json:"alarms,omitempty"`
+	// geo location of the event
+	Geo *latlng.LatLng `protobuf:"bytes,14,opt,name=geo,proto3" json:"geo,omitempty"`
+	// the recurrence end time of the event
+	RecurrenceEndTime *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=recurrence_end_time,json=recurrenceEndTime,proto3" json:"recurrence_end_time,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *Event) Reset() {
@@ -126,11 +130,11 @@ func (x *Event) GetDescription() string {
 	return ""
 }
 
-func (x *Event) GetLocation() *latlng.LatLng {
+func (x *Event) GetLocation() string {
 	if x != nil {
 		return x.Location
 	}
-	return nil
+	return ""
 }
 
 func (x *Event) GetUri() string {
@@ -178,6 +182,20 @@ func (x *Event) GetParentEventId() int64 {
 func (x *Event) GetAlarms() []*Event_Alarm {
 	if x != nil {
 		return x.Alarms
+	}
+	return nil
+}
+
+func (x *Event) GetGeo() *latlng.LatLng {
+	if x != nil {
+		return x.Geo
+	}
+	return nil
+}
+
+func (x *Event) GetRecurrenceEndTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RecurrenceEndTime
 	}
 	return nil
 }
@@ -656,15 +674,15 @@ var File_api_calendars_calendar_v1alpha1_event_proto protoreflect.FileDescriptor
 
 const file_api_calendars_calendar_v1alpha1_event_proto_rawDesc = "" +
 	"\n" +
-	"+api/calendars/calendar/v1alpha1/event.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18google/type/latlng.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x9c\b\n" +
+	"+api/calendars/calendar/v1alpha1/event.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18google/type/latlng.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x84\t\n" +
 	"\x05Event\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12>\n" +
 	"\n" +
 	"start_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x02R\tstartTime\x12:\n" +
 	"\bend_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x02R\aendTime\x12%\n" +
-	"\vdescription\x18\x05 \x01(\tB\x03\xe0A\x01R\vdescription\x124\n" +
-	"\blocation\x18\x06 \x01(\v2\x13.google.type.LatLngB\x03\xe0A\x01R\blocation\x12\x15\n" +
+	"\vdescription\x18\x05 \x01(\tB\x03\xe0A\x01R\vdescription\x12\x1f\n" +
+	"\blocation\x18\x06 \x01(\tB\x03\xe0A\x01R\blocation\x12\x15\n" +
 	"\x03uri\x18\a \x01(\tB\x03\xe0A\x01R\x03uri\x12,\n" +
 	"\x0frecurrence_rule\x18\b \x01(\tB\x03\xe0A\x01R\x0erecurrenceRule\x12Q\n" +
 	"\x14overriden_start_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x01R\x12overridenStartTime\x12F\n" +
@@ -672,7 +690,9 @@ const file_api_calendars_calendar_v1alpha1_event_proto_rawDesc = "" +
 	" \x03(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x01R\rexcludedTimes\x12J\n" +
 	"\x10additional_times\x18\v \x03(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x01R\x0fadditionalTimes\x12+\n" +
 	"\x0fparent_event_id\x18\f \x01(\x03B\x03\xe0A\x01R\rparentEventId\x12I\n" +
-	"\x06alarms\x18\r \x03(\v2,.api.calendars.calendar.v1alpha1.Event.AlarmB\x03\xe0A\x01R\x06alarms\x1a\x87\x02\n" +
+	"\x06alarms\x18\r \x03(\v2,.api.calendars.calendar.v1alpha1.Event.AlarmB\x03\xe0A\x01R\x06alarms\x12*\n" +
+	"\x03geo\x18\x0e \x01(\v2\x13.google.type.LatLngB\x03\xe0A\x01R\x03geo\x12O\n" +
+	"\x13recurrence_end_time\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\x11recurrenceEndTime\x1a\x87\x02\n" +
 	"\x05Alarm\x12\x1e\n" +
 	"\balarm_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aalarmId\x12S\n" +
 	"\atrigger\x18\x02 \x01(\v24.api.calendars.calendar.v1alpha1.Event.Alarm.TriggerB\x03\xe0A\x02R\atrigger\x1a\x88\x01\n" +
@@ -757,33 +777,34 @@ var file_api_calendars_calendar_v1alpha1_event_proto_goTypes = []any{
 var file_api_calendars_calendar_v1alpha1_event_proto_depIdxs = []int32{
 	9,  // 0: api.calendars.calendar.v1alpha1.Event.start_time:type_name -> google.protobuf.Timestamp
 	9,  // 1: api.calendars.calendar.v1alpha1.Event.end_time:type_name -> google.protobuf.Timestamp
-	10, // 2: api.calendars.calendar.v1alpha1.Event.location:type_name -> google.type.LatLng
-	9,  // 3: api.calendars.calendar.v1alpha1.Event.overriden_start_time:type_name -> google.protobuf.Timestamp
-	9,  // 4: api.calendars.calendar.v1alpha1.Event.excluded_times:type_name -> google.protobuf.Timestamp
-	9,  // 5: api.calendars.calendar.v1alpha1.Event.additional_times:type_name -> google.protobuf.Timestamp
-	7,  // 6: api.calendars.calendar.v1alpha1.Event.alarms:type_name -> api.calendars.calendar.v1alpha1.Event.Alarm
-	0,  // 7: api.calendars.calendar.v1alpha1.CreateEventRequest.event:type_name -> api.calendars.calendar.v1alpha1.Event
-	0,  // 8: api.calendars.calendar.v1alpha1.ListEventsResponse.events:type_name -> api.calendars.calendar.v1alpha1.Event
-	0,  // 9: api.calendars.calendar.v1alpha1.UpdateEventRequest.event:type_name -> api.calendars.calendar.v1alpha1.Event
-	11, // 10: api.calendars.calendar.v1alpha1.UpdateEventRequest.update_mask:type_name -> google.protobuf.FieldMask
-	8,  // 11: api.calendars.calendar.v1alpha1.Event.Alarm.trigger:type_name -> api.calendars.calendar.v1alpha1.Event.Alarm.Trigger
-	12, // 12: api.calendars.calendar.v1alpha1.Event.Alarm.Trigger.duration:type_name -> google.protobuf.Duration
-	9,  // 13: api.calendars.calendar.v1alpha1.Event.Alarm.Trigger.date_time:type_name -> google.protobuf.Timestamp
-	1,  // 14: api.calendars.calendar.v1alpha1.EventService.CreateEvent:input_type -> api.calendars.calendar.v1alpha1.CreateEventRequest
-	2,  // 15: api.calendars.calendar.v1alpha1.EventService.GetEvent:input_type -> api.calendars.calendar.v1alpha1.GetEventRequest
-	3,  // 16: api.calendars.calendar.v1alpha1.EventService.ListEvents:input_type -> api.calendars.calendar.v1alpha1.ListEventsRequest
-	5,  // 17: api.calendars.calendar.v1alpha1.EventService.UpdateEvent:input_type -> api.calendars.calendar.v1alpha1.UpdateEventRequest
-	6,  // 18: api.calendars.calendar.v1alpha1.EventService.DeleteEvent:input_type -> api.calendars.calendar.v1alpha1.DeleteEventRequest
-	0,  // 19: api.calendars.calendar.v1alpha1.EventService.CreateEvent:output_type -> api.calendars.calendar.v1alpha1.Event
-	0,  // 20: api.calendars.calendar.v1alpha1.EventService.GetEvent:output_type -> api.calendars.calendar.v1alpha1.Event
-	4,  // 21: api.calendars.calendar.v1alpha1.EventService.ListEvents:output_type -> api.calendars.calendar.v1alpha1.ListEventsResponse
-	0,  // 22: api.calendars.calendar.v1alpha1.EventService.UpdateEvent:output_type -> api.calendars.calendar.v1alpha1.Event
-	0,  // 23: api.calendars.calendar.v1alpha1.EventService.DeleteEvent:output_type -> api.calendars.calendar.v1alpha1.Event
-	19, // [19:24] is the sub-list for method output_type
-	14, // [14:19] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	9,  // 2: api.calendars.calendar.v1alpha1.Event.overriden_start_time:type_name -> google.protobuf.Timestamp
+	9,  // 3: api.calendars.calendar.v1alpha1.Event.excluded_times:type_name -> google.protobuf.Timestamp
+	9,  // 4: api.calendars.calendar.v1alpha1.Event.additional_times:type_name -> google.protobuf.Timestamp
+	7,  // 5: api.calendars.calendar.v1alpha1.Event.alarms:type_name -> api.calendars.calendar.v1alpha1.Event.Alarm
+	10, // 6: api.calendars.calendar.v1alpha1.Event.geo:type_name -> google.type.LatLng
+	9,  // 7: api.calendars.calendar.v1alpha1.Event.recurrence_end_time:type_name -> google.protobuf.Timestamp
+	0,  // 8: api.calendars.calendar.v1alpha1.CreateEventRequest.event:type_name -> api.calendars.calendar.v1alpha1.Event
+	0,  // 9: api.calendars.calendar.v1alpha1.ListEventsResponse.events:type_name -> api.calendars.calendar.v1alpha1.Event
+	0,  // 10: api.calendars.calendar.v1alpha1.UpdateEventRequest.event:type_name -> api.calendars.calendar.v1alpha1.Event
+	11, // 11: api.calendars.calendar.v1alpha1.UpdateEventRequest.update_mask:type_name -> google.protobuf.FieldMask
+	8,  // 12: api.calendars.calendar.v1alpha1.Event.Alarm.trigger:type_name -> api.calendars.calendar.v1alpha1.Event.Alarm.Trigger
+	12, // 13: api.calendars.calendar.v1alpha1.Event.Alarm.Trigger.duration:type_name -> google.protobuf.Duration
+	9,  // 14: api.calendars.calendar.v1alpha1.Event.Alarm.Trigger.date_time:type_name -> google.protobuf.Timestamp
+	1,  // 15: api.calendars.calendar.v1alpha1.EventService.CreateEvent:input_type -> api.calendars.calendar.v1alpha1.CreateEventRequest
+	2,  // 16: api.calendars.calendar.v1alpha1.EventService.GetEvent:input_type -> api.calendars.calendar.v1alpha1.GetEventRequest
+	3,  // 17: api.calendars.calendar.v1alpha1.EventService.ListEvents:input_type -> api.calendars.calendar.v1alpha1.ListEventsRequest
+	5,  // 18: api.calendars.calendar.v1alpha1.EventService.UpdateEvent:input_type -> api.calendars.calendar.v1alpha1.UpdateEventRequest
+	6,  // 19: api.calendars.calendar.v1alpha1.EventService.DeleteEvent:input_type -> api.calendars.calendar.v1alpha1.DeleteEventRequest
+	0,  // 20: api.calendars.calendar.v1alpha1.EventService.CreateEvent:output_type -> api.calendars.calendar.v1alpha1.Event
+	0,  // 21: api.calendars.calendar.v1alpha1.EventService.GetEvent:output_type -> api.calendars.calendar.v1alpha1.Event
+	4,  // 22: api.calendars.calendar.v1alpha1.EventService.ListEvents:output_type -> api.calendars.calendar.v1alpha1.ListEventsResponse
+	0,  // 23: api.calendars.calendar.v1alpha1.EventService.UpdateEvent:output_type -> api.calendars.calendar.v1alpha1.Event
+	0,  // 24: api.calendars.calendar.v1alpha1.EventService.DeleteEvent:output_type -> api.calendars.calendar.v1alpha1.Event
+	20, // [20:25] is the sub-list for method output_type
+	15, // [15:20] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_api_calendars_calendar_v1alpha1_event_proto_init() }

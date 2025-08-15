@@ -185,6 +185,7 @@
 
     <EventCreateDialog
       v-model="showCreateEventDialog"
+      :default-calendar="circleCalendarChoices[0] || null"
       :calendars="circleCalendarChoices"
       @created="onEventCreated"
     />

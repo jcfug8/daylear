@@ -1,6 +1,8 @@
 package convert
 
 import (
+	"time"
+
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
 	cmodel "github.com/jcfug8/daylear/server/core/model"
 )
@@ -8,10 +10,10 @@ import (
 func EventFromCoreModel(mEvent cmodel.Event) (gmodel.Event, gmodel.EventData, error) {
 	// Convert location to Point type
 	var locationPoint *gmodel.Point
-	if mEvent.Location.Latitude != 0 || mEvent.Location.Longitude != 0 {
+	if mEvent.Geo.Latitude != 0 || mEvent.Geo.Longitude != 0 {
 		locationPoint = &gmodel.Point{
-			Longitude: mEvent.Location.Longitude,
-			Latitude:  mEvent.Location.Latitude,
+			Longitude: mEvent.Geo.Longitude,
+			Latitude:  mEvent.Geo.Latitude,
 		}
 	}
 
@@ -20,7 +22,8 @@ func EventFromCoreModel(mEvent cmodel.Event) (gmodel.Event, gmodel.EventData, er
 		CalendarId:  mEvent.Parent.CalendarId,
 		Title:       &mEvent.Title,
 		Description: &mEvent.Description,
-		Location:    locationPoint,
+		Location:    &mEvent.Location,
+		Geo:         locationPoint,
 		URL:         &mEvent.URL,
 		CreateTime:  &mEvent.CreateTime,
 		UpdateTime:  &mEvent.UpdateTime,
@@ -37,6 +40,7 @@ func EventFromCoreModel(mEvent cmodel.Event) (gmodel.Event, gmodel.EventData, er
 		StartTime:          mEvent.StartTime,
 		EndTime:            mEvent.EndTime,
 		IsAllDay:           mEvent.IsAllDay,
+		RecurrenceEndTime:  mEvent.RecurrenceEndTime,
 	}
 
 	// Handle recurring event logic
@@ -59,12 +63,47 @@ func EventFromCoreModel(mEvent cmodel.Event) (gmodel.Event, gmodel.EventData, er
 
 func EventToCoreModel(mEvent gmodel.Event, mEventData gmodel.EventData) (cmodel.Event, error) {
 	// Convert Point to LatLng
-	var location cmodel.LatLng
-	if mEventData.Location != nil {
-		location = cmodel.LatLng{
-			Longitude: mEventData.Location.Longitude,
-			Latitude:  mEventData.Location.Latitude,
+	var geo cmodel.LatLng
+	if mEventData.Geo != nil {
+		geo = cmodel.LatLng{
+			Longitude: mEventData.Geo.Longitude,
+			Latitude:  mEventData.Geo.Latitude,
 		}
+	}
+
+	createTime := time.Time{}
+	if mEventData.CreateTime != nil {
+		createTime = *mEventData.CreateTime
+	}
+
+	updateTime := time.Time{}
+	if mEventData.UpdateTime != nil {
+		updateTime = *mEventData.UpdateTime
+	}
+
+	title := ""
+	if mEventData.Title != nil {
+		title = *mEventData.Title
+	}
+
+	description := ""
+	if mEventData.Description != nil {
+		description = *mEventData.Description
+	}
+
+	location := ""
+	if mEventData.Location != nil {
+		location = *mEventData.Location
+	}
+
+	url := ""
+	if mEventData.URL != nil {
+		url = *mEventData.URL
+	}
+
+	recurrenceEndTime := time.Time{}
+	if mEvent.RecurrenceEndTime != nil {
+		recurrenceEndTime = *mEvent.RecurrenceEndTime
 	}
 
 	// Create core Event
@@ -80,15 +119,17 @@ func EventToCoreModel(mEvent gmodel.Event, mEventData gmodel.EventData) (cmodel.
 		AdditionalDates:    mEvent.AdditionalDates,
 		ParentEventId:      mEvent.ParentEventId,
 		OverridenStartTime: mEvent.OverridenStartTime,
-		CreateTime:         *mEventData.CreateTime,
-		UpdateTime:         *mEventData.UpdateTime,
+		CreateTime:         createTime,
+		UpdateTime:         updateTime,
 		StartTime:          mEvent.StartTime,
 		EndTime:            mEvent.EndTime,
 		IsAllDay:           mEvent.IsAllDay,
-		Title:              *mEventData.Title,
-		Description:        *mEventData.Description,
+		Title:              title,
+		Description:        description,
 		Location:           location,
-		URL:                *mEventData.URL,
+		Geo:                geo,
+		URL:                url,
+		RecurrenceEndTime:  &recurrenceEndTime,
 	}
 
 	return event, nil

@@ -124,7 +124,7 @@ message Event {
   string description = 5 [(google.api.field_behavior) = OPTIONAL];
 
   // the location of the event
-  google.type.LatLng location = 6 [(google.api.field_behavior) = OPTIONAL];
+  string location = 6 [(google.api.field_behavior) = OPTIONAL];
 
   // the url of the event
   string uri = 7 [(google.api.field_behavior) = OPTIONAL];
@@ -146,6 +146,12 @@ message Event {
 
   // the alarms of the event
   repeated Alarm alarms = 13 [(google.api.field_behavior) = OPTIONAL];
+
+  // geo location of the event
+  google.type.LatLng geo = 14 [(google.api.field_behavior) = OPTIONAL];
+
+  // the recurrence end time of the event
+  google.protobuf.Timestamp recurrence_end_time = 15 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // the alarms of the event
   message Alarm {

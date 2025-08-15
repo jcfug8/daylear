@@ -2,7 +2,7 @@ package domain
 
 import (
 	"context"
-	"time"
+	"slices"
 
 	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/model"
@@ -40,39 +40,14 @@ func (d *Domain) CreateEvent(ctx context.Context, authAccount model.AuthAccount,
 		return model.Event{}, err
 	}
 
-	tx, err := d.repo.Begin(ctx)
-	if err != nil {
-		log.Error().Err(err).Msg("unable to begin creating event")
-		return model.Event{}, domain.ErrInternal{Msg: "unable to begin creating event"}
+	if event.RecurrenceRule != nil && *event.RecurrenceRule != "" {
+		event.RecurrenceEndTime = event.GetUntil()
 	}
-	defer tx.Rollback()
 
-	dbEvent, err = tx.CreateEvent(ctx, event, []string{})
+	dbEvent, err = d.repo.CreateEvent(ctx, event, []string{})
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create event")
 		return model.Event{}, domain.ErrInternal{Msg: "unable to create event"}
-	}
-
-	if event.RecurrenceRule != nil {
-		eventClones, err := dbEvent.GenerateClones(event.StartTime, event.EndTime.Add(time.Hour*24*365))
-		if err != nil {
-			log.Error().Err(err).Msg("unable to generate event instances")
-			return model.Event{}, domain.ErrInternal{Msg: "unable to generate event instances"}
-		}
-
-		if len(eventClones) > 0 {
-			_, err := tx.CreateEventClones(ctx, eventClones)
-			if err != nil {
-				log.Error().Err(err).Msg("unable to create event clones")
-				return model.Event{}, domain.ErrInternal{Msg: "unable to create event clones"}
-			}
-		}
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		log.Error().Err(err).Msg("unable to finish creating event")
-		return model.Event{}, domain.ErrInternal{Msg: "unable to finish creating event"}
 	}
 
 	return dbEvent, nil
@@ -193,6 +168,12 @@ func (d *Domain) UpdateEvent(ctx context.Context, authAccount model.AuthAccount,
 	}
 
 	//TODO: need to eventually add recurring logic
+
+	if slices.Contains(fields, model.EventField_RecurrenceRule) {
+		if event.RecurrenceRule != nil && *event.RecurrenceRule != "" {
+			event.RecurrenceEndTime = event.GetUntil()
+		}
+	}
 
 	dbEvent, err = d.repo.UpdateEvent(ctx, authAccount, event, fields)
 	if err != nil {

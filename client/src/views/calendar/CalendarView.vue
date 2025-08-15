@@ -191,8 +191,8 @@
     <!-- Create Event Dialog for this calendar -->
     <EventCreateDialog
       v-model="showCreateEventDialog"
+      :default-calendar="calendar"
       :calendars="[calendar]"
-      :defaultCalendarName="calendar.name"
       @created="onEventCreated"
     />
   </template>

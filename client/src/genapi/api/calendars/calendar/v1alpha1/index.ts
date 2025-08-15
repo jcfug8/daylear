@@ -652,7 +652,7 @@ export type Event = {
   // the location of the event
   //
   // Behaviors: OPTIONAL
-  location: googletype_LatLng | undefined;
+  location: string | undefined;
   // the url of the event
   //
   // Behaviors: OPTIONAL
@@ -681,24 +681,20 @@ export type Event = {
   //
   // Behaviors: OPTIONAL
   alarms: Event_Alarm[] | undefined;
+  // geo location of the event
+  //
+  // Behaviors: OPTIONAL
+  geo: googletype_LatLng | undefined;
+  // the recurrence end time of the event
+  //
+  // Behaviors: OUTPUT_ONLY
+  recurrenceEndTime: wellKnownTimestamp | undefined;
 };
 
 // Encoded using RFC 3339, where generated output will always be Z-normalized
 // and uses 0, 3, 6 or 9 fractional digits.
 // Offsets other than "Z" are also accepted.
 type wellKnownTimestamp = string;
-
-// An object that represents a latitude/longitude pair. This is expressed as a
-// pair of doubles to represent degrees latitude and degrees longitude. Unless
-// specified otherwise, this must conform to the
-// <a href="http://www.unoosa.org/pdf/icg/2012/template/WGS_84.pdf">WGS84
-// standard</a>. Values must be within normalized ranges.
-export type googletype_LatLng = {
-  // The latitude in degrees. It must be in the range [-90.0, +90.0].
-  latitude: number | undefined;
-  // The longitude in degrees. It must be in the range [-180.0, +180.0].
-  longitude: number | undefined;
-};
 
 // the alarms of the event
 export type Event_Alarm = {
@@ -725,6 +721,18 @@ export type Event_Alarm_Trigger = {
 // Accepted are any fractional digits (also none) as long as they fit
 // into nano-seconds precision and the suffix "s" is required.
 type wellKnownDuration = string;
+
+// An object that represents a latitude/longitude pair. This is expressed as a
+// pair of doubles to represent degrees latitude and degrees longitude. Unless
+// specified otherwise, this must conform to the
+// <a href="http://www.unoosa.org/pdf/icg/2012/template/WGS_84.pdf">WGS84
+// standard</a>. Values must be within normalized ranges.
+export type googletype_LatLng = {
+  // The latitude in degrees. It must be in the range [-90.0, +90.0].
+  latitude: number | undefined;
+  // The longitude in degrees. It must be in the range [-180.0, +180.0].
+  longitude: number | undefined;
+};
 
 // CreateEventRequest is the request message for creating an event
 export type CreateEventRequest = {

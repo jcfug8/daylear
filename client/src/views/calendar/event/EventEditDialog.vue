@@ -53,6 +53,7 @@ const form = ref<EventFormData>({
   start: '',
   end: '',
   description: '',
+  recurrenceRule: '',
 })
 
 // Filter calendars to only show those where user has write access
@@ -160,6 +161,7 @@ function populateForm(event: Event) {
     start: toLocalInput(event.startTime as unknown as string),
     end: toLocalInput(event.endTime as unknown as string),
     description: event.description || '',
+    recurrenceRule: event.recurrenceRule || '',
   }
   
   console.log('Setting form data:', formData)
@@ -189,17 +191,20 @@ async function update() {
         startTime: startIso as unknown as string,
         endTime: endIso as unknown as string,
         description: form.value.description || undefined,
+        // Update recurrence rule if specified
+        recurrenceRule: form.value.recurrenceRule || undefined,
         // Preserve other fields from original event
         location: props.event.location,
         uri: props.event.uri,
-        recurrenceRule: props.event.recurrenceRule,
         overridenStartTime: props.event.overridenStartTime,
         excludedTimes: props.event.excludedTimes,
         additionalTimes: props.event.additionalTimes,
         parentEventId: props.event.parentEventId,
         alarms: props.event.alarms,
+        geo: props.event.geo,
+        recurrenceEndTime: props.event.recurrenceEndTime,
       },
-      updateMask: 'title,startTime,endTime,description'
+      updateMask: undefined
     })
     
     emit('updated', updatedEvent)

@@ -6,16 +6,16 @@
     <template #my="{ items, loading }">
       <div class="d-flex justify-space-between align-center mb-4">
       </div>
-      <CircleGrid :circles="items" :loading="loading" />
+      <CircleGrid :circles="items as Circle[]" :loading="loading as boolean" />
     </template>
     <template #pending="{ items, loading }">
-      <CircleGrid :circles="items" :loading="loading" @accept="acceptCircleAccess" :acceptingCircleId="acceptingCircleId" @decline="onDeclineCircle" />
-      <div v-if="!loading && items.length === 0">No pending shared circles found.</div>
+      <CircleGrid :circles="items as Circle[]" :loading="loading as boolean" @accept="acceptCircleAccess" :acceptingCircleId="acceptingCircleId" @decline="onDeclineCircle" />
+      <div v-if="!loading && (items as Circle[]).length === 0">No pending shared circles found.</div>
     </template>
     <template #explore="{ items, loading }">
       <div class="d-flex justify-space-between align-center mb-4">
       </div>
-      <CircleGrid :circles="items" :loading="loading" />
+      <CircleGrid :circles="items as Circle[]" :loading="loading as boolean" />
     </template>
     <template #fab>
       <v-btn

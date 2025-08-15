@@ -1,6 +1,5 @@
 <template>
   <v-dialog 
-    :key="`create-dialog-${defaultCalendar?.name || 'unknown'}`"
     v-model="internalOpen" 
     max-width="520" 
     @update:modelValue="onDialogModel"
@@ -9,7 +8,6 @@
       <v-card-title>Create New Event</v-card-title>
       <v-card-text>
         <EventForm
-          :key="`create-form-${defaultCalendar?.name || 'unknown'}`"
           v-model="form"
           :calendars="writableCalendars"
           :disabled="creating"
@@ -32,13 +30,11 @@ import EventForm, { type EventFormData } from './EventForm.vue'
 
 const props = withDefaults(defineProps<{
   modelValue: boolean
-  defaultCalendar: Calendar | null
   defaultStartTime?: string | null
   defaultEndTime?: string | null
   calendars: Calendar[]
 }>(), {
   modelValue: false,
-  defaultCalendar: null,
   defaultStartTime: null,
   defaultEndTime: null,
   calendars: () => [],
@@ -57,6 +53,7 @@ const form = ref<EventFormData>({
   start: '',
   end: '',
   description: '',
+  recurrenceRule: '',
 })
 
 // Filter calendars to only show those where user has write access
@@ -86,13 +83,6 @@ watch(internalOpen, (newValue) => {
   emit('update:modelValue', newValue)
 })
 
-// Watch for default calendar changes and repopulate form
-watch(() => props.defaultCalendar, () => {
-  if (internalOpen.value) {
-    populateForm()
-  }
-})
-
 // Cleanup on unmount
 onBeforeUnmount(() => {
   internalOpen.value = false
@@ -101,9 +91,6 @@ onBeforeUnmount(() => {
 
 function populateForm() {
   console.log('Populating form for new event')
-  
-  // Set default calendar
-  const calendarName = props.defaultCalendar?.name || null
   
   // Set default times
   let startTime = ''
@@ -128,11 +115,12 @@ function populateForm() {
   }
 
   const formData = {
-    calendarName,
+    calendarName: null,
     title: '',
     start: startTime,
     end: endTime,
     description: '',
+    recurrenceRule: '',
   }
   
   console.log('Setting form data:', formData)
@@ -188,16 +176,19 @@ async function create() {
         startTime: startIso as unknown as string,
         endTime: endIso as unknown as string,
         description: form.value.description || undefined,
+        // Add recurrence rule if specified
+        recurrenceRule: form.value.recurrenceRule || undefined,
         // Add required fields with default values
         name: undefined,
         location: undefined,
         uri: undefined,
-        recurrenceRule: undefined,
         overridenStartTime: undefined,
         excludedTimes: undefined,
         additionalTimes: undefined,
         parentEventId: undefined,
         alarms: undefined,
+        geo: undefined,
+        recurrenceEndTime: undefined,
       },
       parent: form.value.calendarName
     })

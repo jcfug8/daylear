@@ -23,12 +23,12 @@
             </v-tabs>
             <v-tabs-window v-model="subTab[tab.value]">
               <v-tabs-window-item v-for="sub in tab.subTabs" :key="sub.value" :value="sub.value">
-                <slot :name="`${tab.value}-${sub.value}`" :items="items[tab.value]?.[sub.value] || []" :loading="loading[tab.value]?.[sub.value] || false" />
+                <slot :name="`${tab.value}-${sub.value}`" :items="getItems(tab.value, sub.value)" :loading="getLoading(tab.value, sub.value)" />
               </v-tabs-window-item>
             </v-tabs-window>
           </template>
           <template v-else>
-            <slot :name="tab.value" :items="items[tab.value] || []" :loading="loading[tab.value] || false" />
+            <slot :name="tab.value" :items="getItems(tab.value)" :loading="getLoading(tab.value)" />
           </template>
         </v-tabs-window-item>
       </v-tabs-window>
@@ -64,6 +64,32 @@ const items = ref<ItemsMap>({})
 type LoadingMap = Record<string, boolean | Record<string, boolean>>
 const loading = ref<LoadingMap>({})
 const slots = useSlots()
+
+// Helper functions to safely access nested properties with proper typing
+function getItems(tabValue: string, subValue?: string): unknown[] {
+  if (subValue) {
+    const tabItems = items.value[tabValue]
+    if (typeof tabItems === 'object' && tabItems !== null) {
+      const subItems = (tabItems as Record<string, unknown>)[subValue]
+      return Array.isArray(subItems) ? subItems : []
+    }
+    return []
+  }
+  const tabItems = items.value[tabValue]
+  return Array.isArray(tabItems) ? tabItems : []
+}
+
+function getLoading(tabValue: string, subValue?: string): boolean {
+  if (subValue) {
+    const tabLoading = loading.value[tabValue]
+    if (typeof tabLoading === 'object' && tabLoading !== null) {
+      return (tabLoading as Record<string, boolean>)[subValue] || false
+    }
+    return false
+  }
+  const tabLoading = loading.value[tabValue]
+  return typeof tabLoading === 'boolean' ? tabLoading : false
+}
 
 function loadTab(tabValue: string) {
   const tab = props.tabs.find(t => t.value === tabValue)

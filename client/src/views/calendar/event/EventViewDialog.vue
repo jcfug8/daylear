@@ -23,9 +23,9 @@
         <div class="mb-4">
           <div class="text-caption text-medium-emphasis mb-1">Time</div>
           <div class="text-body-1">
-            <div>{{ formatDateTime(event.startTime) }}</div>
-            <div v-if="event.endTime && event.endTime !== event.startTime">
-              to {{ formatDateTime(event.endTime) }}
+            <div>{{ formatDateTime(eventOccurrence?.start) }}</div>
+            <div v-if="eventOccurrence?.end && eventOccurrence?.end !== eventOccurrence?.start">
+              to {{ formatDateTime(eventOccurrence?.end) }}
             </div>
           </div>
         </div>
@@ -36,14 +36,20 @@
           <div class="text-body-1">{{ event.description }}</div>
         </div>
 
-        <!-- Location -->
-        <div v-if="event.location" class="mb-4">
-          <div class="text-caption text-medium-emphasis mb-1">Location</div>
+        <!-- geo -->
+        <div v-if="event.geo" class="mb-4">
+          <div class="text-caption text-medium-emphasis mb-1">geo</div>
           <div class="text-body-1">
-            <div v-if="event.location.latitude && event.location.longitude">
-              {{ event.location.latitude.toFixed(6) }}, {{ event.location.longitude.toFixed(6) }}
+            <div v-if="event.geo.latitude && event.geo.longitude">
+              {{ event.geo.latitude.toFixed(6) }}, {{ event.geo.longitude.toFixed(6) }}
             </div>
           </div>
+        </div>
+
+        <!-- location -->
+        <div v-if="event.location" class="mb-4">
+          <div class="text-caption text-medium-emphasis mb-1">Location</div>
+          <div class="text-body-1">{{ event.location }}</div>
         </div>
 
         <!-- URL -->
@@ -58,8 +64,10 @@
 
         <!-- Recurrence -->
         <div v-if="event.recurrenceRule" class="mb-4">
-          <div class="text-caption text-medium-emphasis mb-1">Recurrence</div>
-          <div class="text-body-1">{{ event.recurrenceRule }}</div>
+          <RecurrenceRuleDisplay 
+            :recurrence-rule="event.recurrenceRule"
+            :start-date="event.startTime as unknown as string"
+          />
         </div>
 
         <!-- Alarms -->
@@ -136,10 +144,12 @@
 import { ref, watch, computed } from 'vue'
 import type { Calendar, Event } from '@/genapi/api/calendars/calendar/v1alpha1'
 import EventEditDialog from './EventEditDialog.vue'
+import { RecurrenceRuleDisplay } from '@/components/calendar'
 
 const props = withDefaults(defineProps<{
   modelValue: boolean
   event: Event | null
+  eventOccurrence: { start?: string; end?: string } | null
   calendar: Calendar | null
 }>(), {
   modelValue: false,

@@ -51,16 +51,16 @@
       </v-row>
     </template>
       <template #my="{ items, loading }">
-        <RecipeGrid :recipes="getFilteredRecipes(items)" :loading="loading" />
+        <RecipeGrid :recipes="getFilteredRecipes(items as Recipe[])" :loading="loading as boolean" />
       </template>
       <template #pending="{ items, loading }">
-        <RecipeGrid :recipes="getFilteredRecipes(items)" :loading="loading" @accept="onAcceptRecipe" @decline="onDeclineRecipe" />
-        <div v-if="!loading && getFilteredRecipes(items).length === 0">No pending shared recipes found.</div>
+        <RecipeGrid :recipes="getFilteredRecipes(items as Recipe[])" :loading="loading as boolean" @accept="onAcceptRecipe" @decline="onDeclineRecipe" />
+        <div v-if="!loading && getFilteredRecipes(items as Recipe[]).length === 0">No pending shared recipes found.</div>
       </template>
       <template #explore="{ items, loading }">
         <div class="d-flex justify-space-between align-center mb-4">
         </div>
-        <RecipeGrid :recipes="getFilteredRecipes(items)" :loading="loading" />
+        <RecipeGrid :recipes="getFilteredRecipes(items as Recipe[])" :loading="loading as boolean" />
       </template>
       <template #fab>
         <v-btn

@@ -23,6 +23,7 @@ const (
 	EventField_StartTime          = "start_time"
 	EventField_EndTime            = "end_time"
 	EventField_IsAllDay           = "is_all_day"
+	EventField_RecurrenceEndTime  = "recurrence_end_time"
 )
 
 var EventFieldMasker = fieldmask.NewSQLFieldMasker(Event{}, map[string][]fieldmask.Field{
@@ -32,6 +33,7 @@ var EventFieldMasker = fieldmask.NewSQLFieldMasker(Event{}, map[string][]fieldma
 	fieldmask.AlwaysIncludeKey: {
 		{Name: EventField_EventDataId, Table: EventTable},
 		{Name: EventField_ParentEventId, Table: EventTable},
+		{Name: EventField_RecurrenceEndTime, Table: EventTable},
 	},
 	model.EventField_RecurrenceRule:  {{Name: EventField_RecurrenceRule, Table: EventTable, Updatable: true}},
 	model.EventField_ExcludedDates:   {{Name: EventField_ExcludedDates, Table: EventTable, Updatable: true}},
@@ -42,8 +44,8 @@ var EventFieldMasker = fieldmask.NewSQLFieldMasker(Event{}, map[string][]fieldma
 })
 
 var EventSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
-	"start_time": {Name: EventField_StartTime, Table: EventTable},
-	"end_time":   {Name: EventField_EndTime, Table: EventTable},
+	"start_time":          {Name: EventField_StartTime, Table: EventTable},
+	"recurrence_end_time": {Name: EventField_RecurrenceEndTime, Table: EventTable},
 }, true)
 
 // Event is the GORM model for an event.
@@ -58,9 +60,10 @@ type Event struct {
 	ExcludedDates   []time.Time `gorm:"column:excluded_dates;serializer:json"`   // only set for parent events
 	AdditionalDates []time.Time `gorm:"column:additional_dates;serializer:json"` // only set for parent events
 
-	StartTime time.Time  `gorm:"column:start_time;not null;index"`
-	EndTime   *time.Time `gorm:"column:end_time;index"`
-	IsAllDay  bool       `gorm:"column:is_all_day;not null;default:false"`
+	StartTime         time.Time  `gorm:"column:start_time;not null;index"`
+	EndTime           *time.Time `gorm:"column:end_time;index"`
+	IsAllDay          bool       `gorm:"column:is_all_day;not null;default:false"`
+	RecurrenceEndTime *time.Time `gorm:"column:recurrence_end_time;index"` // only set for recurring events
 }
 
 // TableName sets the table name for the Event model.

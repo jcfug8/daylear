@@ -23,8 +23,10 @@ const (
 	EventField_Title              = "title"
 	EventField_Description        = "description"
 	EventField_Location           = "location"
+	EventField_Geo                = "geo"
 	EventField_URL                = "url"
 	EventField_Alarms             = "alarms"
+	EventField_RecurrenceEndTime  = "recurrence_end_time"
 )
 
 // Event represents a VEVENT component in iCalendar.
@@ -49,15 +51,17 @@ type Event struct {
 	// the recurring event set
 	OverridenStartTime *time.Time
 
-	CreateTime  time.Time
-	UpdateTime  time.Time
-	StartTime   time.Time
-	EndTime     *time.Time
-	IsAllDay    bool
-	Title       string
-	Description string
-	Location    LatLng
-	URL         string
+	CreateTime        time.Time
+	UpdateTime        time.Time
+	StartTime         time.Time
+	EndTime           *time.Time
+	IsAllDay          bool
+	Title             string
+	Description       string
+	Location          string
+	Geo               LatLng
+	URL               string
+	RecurrenceEndTime *time.Time
 
 	Alarms []*Alarm
 }
@@ -127,4 +131,22 @@ func (r Event) GenerateClones(startingTime, endingTime time.Time) ([]Event, erro
 	}
 
 	return instances, nil
+}
+
+func (r Event) GetUntil() *time.Time {
+	if r.RecurrenceRule == nil || *r.RecurrenceRule == "" {
+		return r.EndTime
+	}
+
+	rr, err := rrule.StrToRRuleSet("RRULE:" + *r.RecurrenceRule)
+	if err != nil {
+		return r.EndTime
+	}
+
+	until := rr.GetRRule().GetUntil()
+	if until.IsZero() {
+		return nil
+	}
+
+	return &until
 }

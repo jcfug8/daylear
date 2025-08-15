@@ -101,7 +101,8 @@ type EventData struct {
 	// Event content
 	Title       *string `gorm:"column:title"`
 	Description *string `gorm:"column:description"`
-	Location    *Point  `gorm:"column:location;type:point"`
+	Location    *string `gorm:"column:location"`
+	Geo         *Point  `gorm:"column:geo;type:point"`
 	URL         *string `gorm:"column:url"`
 
 	// Timestamps

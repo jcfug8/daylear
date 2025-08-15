@@ -71,7 +71,7 @@
                   "title": "the description of the event"
                 },
                 "location": {
-                  "$ref": "#/definitions/typeLatLng",
+                  "type": "string",
                   "title": "the location of the event"
                 },
                 "uri": {
@@ -115,6 +115,16 @@
                     "$ref": "#/definitions/EventAlarm"
                   },
                   "title": "the alarms of the event"
+                },
+                "geo": {
+                  "$ref": "#/definitions/typeLatLng",
+                  "title": "geo location of the event"
+                },
+                "recurrenceEndTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "the recurrence end time of the event",
+                  "readOnly": true
                 }
               },
               "title": "The event to update",
@@ -403,7 +413,7 @@
           "title": "the description of the event"
         },
         "location": {
-          "$ref": "#/definitions/typeLatLng",
+          "type": "string",
           "title": "the location of the event"
         },
         "uri": {
@@ -447,6 +457,16 @@
             "$ref": "#/definitions/EventAlarm"
           },
           "title": "the alarms of the event"
+        },
+        "geo": {
+          "$ref": "#/definitions/typeLatLng",
+          "title": "geo location of the event"
+        },
+        "recurrenceEndTime": {
+          "type": "string",
+          "format": "date-time",
+          "title": "the recurrence end time of the event",
+          "readOnly": true
         }
       },
       "title": "the main user event",

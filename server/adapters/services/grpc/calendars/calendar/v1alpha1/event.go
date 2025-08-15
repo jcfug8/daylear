@@ -30,12 +30,13 @@ var eventFieldMap = map[string][]string{
 	"description":          {model.EventField_Description},
 	"location":             {model.EventField_Location},
 	"uri":                  {model.EventField_URL},
-	"recurrence_rule":      {model.EventField_RecurrenceRule},
+	"recurrence_rule":      {model.EventField_RecurrenceRule, model.EventField_RecurrenceEndTime},
 	"overriden_start_time": {model.EventField_OverridenStartTime},
 	"excluded_times":       {model.EventField_ExcludedDates},
 	"additional_times":     {model.EventField_AdditionalDates},
 	"parent_event_id":      {model.EventField_ParentEventId},
 	"alarms":               {model.EventField_Alarms},
+	"recurrence_end_time":  {model.EventField_RecurrenceEndTime},
 }
 
 // CreateEvent creates a new event
@@ -299,12 +300,17 @@ func (s *CalendarService) ProtoToEvent(proto *pb.Event) (nameIndex int, event mo
 		event.EndTime = &endTime
 	}
 
-	// Handle location (convert LatLng to string for now)
-	if proto.GetLocation() != nil {
-		event.Location = model.LatLng{
-			Latitude:  proto.GetLocation().GetLatitude(),
-			Longitude: proto.GetLocation().GetLongitude(),
+	// Handle geo (convert LatLng to string for now)
+	if proto.GetGeo() != nil {
+		event.Geo = model.LatLng{
+			Latitude:  proto.GetGeo().GetLatitude(),
+			Longitude: proto.GetGeo().GetLongitude(),
 		}
+	}
+
+	// Handle location
+	if proto.GetLocation() != "" {
+		event.Location = proto.GetLocation()
 	}
 
 	// Handle recurrence rule
@@ -406,13 +412,21 @@ func (s *CalendarService) EventToProto(event model.Event, options ...namer.Forma
 		proto.EndTime = timestamppb.New(*event.EndTime)
 	}
 
-	// Handle location (convert string to LatLng for now)
-	if event.Location.Latitude != 0 && event.Location.Longitude != 0 {
-		// Basic parsing of "lat,lng" format
-		proto.Location = &latlng.LatLng{
-			Latitude:  event.Location.Latitude,
-			Longitude: event.Location.Longitude,
+	// Handle geo
+	if event.Geo.Latitude != 0 && event.Geo.Longitude != 0 {
+		proto.Geo = &latlng.LatLng{
+			Latitude:  event.Geo.Latitude,
+			Longitude: event.Geo.Longitude,
 		}
+	}
+
+	// Handle location
+	if event.Location != "" {
+		proto.Location = event.Location
+	}
+
+	if event.RecurrenceEndTime != nil {
+		proto.RecurrenceEndTime = timestamppb.New(*event.RecurrenceEndTime)
 	}
 
 	// Handle recurrence rule
