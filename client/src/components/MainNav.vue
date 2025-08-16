@@ -22,12 +22,12 @@
         value="recipes"
         :to="{ name: 'recipes' }"
       ></v-list-item>
-      <v-list-item
+      <!-- <v-list-item
         prepend-icon="mdi-calendar"
         title="Calendars"
         value="calendars"
         :to="{ name: 'calendars' }"
-      ></v-list-item>
+      ></v-list-item> -->
       <v-list-item
         prepend-icon="mdi-account"
         title="Users"
