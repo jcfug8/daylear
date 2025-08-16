@@ -56,7 +56,7 @@ async function saveRecipe(pendingImageFile: File | null) {
 
 onMounted(async () => {
   // Load the recipe based on the route parameter
-  await recipesStore.loadRecipe(recipeName.value)
+  await recipesStore.loadRecipe(trimmedRecipeName.value)
 })
 </script>
 
