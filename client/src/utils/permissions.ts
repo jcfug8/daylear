@@ -38,6 +38,14 @@ export function hasWritePermission(level: PermissionLevel | undefined): boolean 
 }
 
 /**
+ * Check if user has write permissions (WRITE but not ADMIN)
+ */
+export function hasWriteOnlyPermission(level: PermissionLevel | undefined): boolean {
+  return hasPermissionLevel(level, 'PERMISSION_LEVEL_WRITE') && 
+         !hasPermissionLevel(level, 'PERMISSION_LEVEL_ADMIN')
+}
+
+/**
  * Check if user has read permissions (READ, WRITE, or ADMIN)
  */
 export function hasReadPermission(level: PermissionLevel | undefined): boolean {

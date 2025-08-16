@@ -99,7 +99,7 @@
           <v-btn density="compact" v-if="user.access?.state === 'ACCESS_STATE_PENDING'" color="warning" @click="showCancelRequestDialog = true">
             <v-icon>mdi-close</v-icon>Cancel Request
           </v-btn>
-          <v-btn density="compact" v-if="hasWritePermission(user.access?.permissionLevel) && user.access?.state === 'ACCESS_STATE_ACCEPTED'" color="warning" @click="showRemoveAccessDialog = true">
+          <v-btn density="compact" v-if="hasWriteOnlyPermission(user.access?.permissionLevel) && user.access?.state === 'ACCESS_STATE_ACCEPTED'" color="warning" @click="showRemoveAccessDialog = true">
             <v-icon>mdi-account-remove</v-icon>Remove Access
           </v-btn>
         </div>
@@ -263,7 +263,7 @@ import { useRoute } from 'vue-router'
 import ListTabsPage from '@/components/common/ListTabsPage.vue'
 import RecipeGrid from '@/components/RecipeGrid.vue'
 import { useAuthStore } from '@/stores/auth'
-import { hasWritePermission, hasAdminPermission } from '@/utils/permissions'
+import { hasWritePermission, hasAdminPermission, hasWriteOnlyPermission } from '@/utils/permissions'
 import { userAccessService } from '@/api/api'
 import type { DeleteAccessRequest, ListAccessesRequest } from '@/genapi/api/meals/recipe/v1alpha1'
 import type { CreateAccessRequest, Access, User } from '@/genapi/api/users/user/v1alpha1'
