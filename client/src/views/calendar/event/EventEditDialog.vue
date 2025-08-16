@@ -22,6 +22,41 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <!-- Recurring Event Update Choice Modal -->
+  <v-dialog v-model="showRecurringChoiceModal" max-width="400" persistent>
+    <v-card>
+      <v-card-title>Update Recurring Event</v-card-title>
+      <v-card-text>
+        <p class="mb-4">This is a recurring event. How would you like to apply the changes?</p>
+        <v-radio-group v-model="selectedUpdateOption" class="mt-4">
+          <v-radio
+            v-if="pendingUpdateData?.availableOptions?.includes('this-event')"
+            value="this-event"
+            label="This event only"
+            class="mb-2"
+          />
+          <v-radio
+            v-if="pendingUpdateData?.availableOptions?.includes('all-future')"
+            value="all-future"
+            label="This and all future events"
+            class="mb-2"
+          />
+          <v-radio
+            v-if="pendingUpdateData?.availableOptions?.includes('all-events')"
+            value="all-events"
+            label="All events in the series"
+            class="mb-2"
+          />
+        </v-radio-group>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="cancelRecurringUpdate()">Cancel</v-btn>
+        <v-btn color="primary" @click="confirmRecurringUpdate()">Confirm</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -51,6 +86,15 @@ const emit = defineEmits<{
 
 const internalOpen = ref<boolean>(props.modelValue)
 const updating = ref(false)
+const showRecurringChoiceModal = ref(false)
+const selectedUpdateOption = ref<'this-event' | 'all-future' | 'all-events'>('this-event')
+const pendingUpdateData = ref<{
+  newEvent: Event
+  oldEvent: Event
+  displayEvent: CalendarEventExternal
+  availableOptions?: ('this-event' | 'all-future' | 'all-events')[]
+} | null>(null)
+
 const form = ref<EventFormData>({
   calendarName: null,
   title: '',
@@ -235,35 +279,194 @@ async function update() {
     console.log('diff', diff)
     if (diff.length === 0) { // no changes
 
-    } else if (props.event.recurrenceRule !== undefined) { // this event was recurring
+    } else if (props.event.recurrenceRule !== undefined && props.event.recurrenceRule !== '') { // this event was recurring
       // log out the fields that are different between the new event and the old event
       if (!newEvent.recurrenceRule) {
-        alert('only allow all events')
         // if this isn't the first event, then actually take the old recurrence rule
         // and tack on the until with the new start time
         if (displayStart.toISOString() != oldEvent.startTime) {
           const rrule = RRule.fromString(props.event.recurrenceRule)
-          rrule.options.until = displayStart
-          newEvent.recurrenceRule = rrule.toString().replace('RRULE:', '')
+          rrule.origOptions.until = new Date(displayStart.getUTCFullYear(), displayStart.getUTCMonth(), displayStart.getUTCDate(), displayStart.getUTCHours(), displayStart.getUTCMinutes(), displayStart.getUTCSeconds())
+          rrule.origOptions.count = null
+          newEvent.recurrenceRule = RRule.optionsToString(rrule.origOptions)
         }
+        
+        // Removing recurrence rule - only show "all events" option
+        pendingUpdateData.value = {
+          newEvent,
+          oldEvent,
+          displayEvent: props.displayEvent,
+          availableOptions: ['all-events']
+        }
+        selectedUpdateOption.value = 'all-events' // Set default for this case
+        showRecurringChoiceModal.value = true
+        updating.value = false // Reset updating state since we're waiting for user choice
+        return // Don't proceed with update yet, wait for user choice
       } else if (futureOnlyRecurringEditFields.some(field => diff.includes(field))) {
-        alert('only allow all future events')
+        // Changing future-only fields - only show "all future events" option
+        pendingUpdateData.value = {
+          newEvent,
+          oldEvent,
+          displayEvent: props.displayEvent,
+          availableOptions: ['all-future']
+        }
+        selectedUpdateOption.value = 'all-future' // Set default for this case
+        showRecurringChoiceModal.value = true
+        updating.value = false // Reset updating state since we're waiting for user choice
+        return // Don't proceed with update yet, wait for user choice
       } else {
-        alert('allow this event or all future events')
+        // Other changes - show all three options
+        pendingUpdateData.value = {
+          newEvent,
+          oldEvent,
+          displayEvent: props.displayEvent,
+          availableOptions: ['this-event', 'all-future', 'all-events']
+        }
+        selectedUpdateOption.value = 'this-event' // Set default for this case
+        showRecurringChoiceModal.value = true
+        updating.value = false // Reset updating state since we're waiting for user choice
+        return // Don't proceed with update yet, wait for user choice
       }
+    } else {
+      // Non-recurring event or no recurrence rule, proceed with normal update
+      updatedEvent = await updateEvent(newEvent)
     }
 
-    updatedEvent = await eventService.UpdateEvent({
-      event: newEvent,
-      updateMask: undefined
-    })
     
     if (updatedEvent) {
       emit('updated', updatedEvent)
     }
     close()
+  } catch (error) {
+    console.error('Error updating event:', error)
   } finally {
     updating.value = false
+  }
+}
+
+
+async function updateEvent(event: Event): Promise<Event> {
+  try {
+    const updatedEvent = await eventService.UpdateEvent({
+        event: event,
+        updateMask: undefined
+      })
+      return updatedEvent
+  } catch (error) {
+    throw error
+  }
+}
+
+async function createEvent(event: Event, parent: string): Promise<Event> {
+  try {
+    const createdEvent = await eventService.CreateEvent({
+      event: event,
+      parent: parent,
+    })
+    return createdEvent
+  } catch (error) {
+    throw error
+  }
+}
+
+function cancelRecurringUpdate() {
+  showRecurringChoiceModal.value = false
+  pendingUpdateData.value = null
+  selectedUpdateOption.value = 'this-event'
+  updating.value = false // Reset updating state
+}
+
+async function confirmRecurringUpdate() {
+  if (!pendingUpdateData.value) return
+  
+  updating.value = true // Set updating state for the actual update
+  
+  const { newEvent, oldEvent, displayEvent } = pendingUpdateData.value
+  let updatedEvent: Event | null = null
+
+  if (!oldEvent.recurrenceRule) {
+    console.error('No recurrence rule found for event')
+    return
+  }
+
+  if (!newEvent.name) {
+    console.error('No name found for event')
+    return
+  }
+
+  if (!newEvent.startTime || !newEvent.endTime) {
+    console.log('no start or end time found for event')
+    return
+  }
+  
+  try {
+    switch (selectedUpdateOption.value) {
+      case 'this-event':
+        // if the parent event id is set then just update the event
+        if (newEvent.parentEventId) {
+          updatedEvent = await updateEvent(newEvent)
+        } else {
+          newEvent.startTime = new Date(displayEvent.start).toISOString()
+          newEvent.endTime = new Date(displayEvent.end).toISOString()
+          // update the old event's excluded times the the start time of
+          // the new event
+          oldEvent.excludedTimes?.push(newEvent.startTime)
+          updatedEvent = await updateEvent(oldEvent)
+
+          // if the parent event id is not set then create a new event
+          const calendarName = newEvent.name?.substring(0, newEvent.name.indexOf('/events/'))
+          updatedEvent = await createEvent(newEvent, calendarName)
+        }
+        break
+        
+      case 'all-future':
+        // TODO: this is close. Need to fix
+        // - be sure end of old recurrence rule is before the new start time so the event being editted doesn't "show" twice
+        // - what to do if the one being editted is the first occurence?
+        const displayStartTime = new Date(displayEvent.start)
+        // Update this and all future events by modifying the old recurrence rule to end
+        // before the new start time
+        const rrule = RRule.fromString(oldEvent.recurrenceRule)
+        const options = rrule.origOptions
+        options.dtstart = new Date(oldEvent.startTime as string)
+        const before = new Date(displayStartTime.getUTCFullYear(), displayStartTime.getUTCMonth(), displayStartTime.getUTCDate(), displayStartTime.getUTCHours(), displayStartTime.getUTCMinutes(), displayStartTime.getUTCSeconds())
+        const previousOccurence = rrule.before(before)
+        if (previousOccurence) {
+          options.until = previousOccurence
+        } else {
+          console.log('no previous occurence found, setting until to before')
+          options.until = before
+        }
+        options.count = null
+        oldEvent.recurrenceRule = RRule.optionsToString(options)
+        return
+        updatedEvent = await updateEvent(oldEvent)
+
+        newEvent.startTime = new Date(displayEvent.start).toISOString()
+        newEvent.endTime = new Date(displayEvent.end).toISOString()
+
+        // create new event
+        const calendarName = newEvent.name?.substring(0, newEvent.name.indexOf('/events/'))
+        await createEvent(newEvent, calendarName)
+        break
+        
+      case 'all-events':
+        // Update all events in the series
+        updatedEvent = await updateEvent(newEvent)
+        break
+    }
+    
+    if (updatedEvent) {
+      emit('updated', updatedEvent)
+    }
+    close()
+  } catch (error) {
+    console.error('Error updating recurring event:', error)
+  } finally {
+    updating.value = false
+    showRecurringChoiceModal.value = false
+    pendingUpdateData.value = null
+    selectedUpdateOption.value = 'this-event'
   }
 }
 </script>
