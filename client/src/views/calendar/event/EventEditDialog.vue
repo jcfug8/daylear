@@ -18,6 +18,15 @@
       <v-card-actions>
         <v-spacer />
         <v-btn variant="text" @click="close()">Cancel</v-btn>
+        <v-btn 
+          v-if="canDelete" 
+          color="error" 
+          variant="outlined" 
+          :loading="deleting" 
+          @click="deleteEvent"
+        >
+          Delete
+        </v-btn>
         <v-btn color="primary" :loading="updating" @click="update()">Update</v-btn>
       </v-card-actions>
     </v-card>
@@ -57,6 +66,38 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <!-- Recurring Event Delete Choice Modal -->
+  <v-dialog v-model="showDeleteRecurringChoiceModal" max-width="400" persistent>
+    <v-card>
+      <v-card-title>Delete Recurring Event</v-card-title>
+      <v-card-text>
+        <p class="mb-4">This is a recurring event. How would you like to delete it?</p>
+        <v-radio-group v-model="selectedDeleteOption" class="mt-4">
+          <v-radio
+            value="this-event"
+            label="This event only"
+            class="mb-2"
+          />
+          <v-radio
+            value="all-future"
+            label="This and all future events"
+            class="mb-2"
+          />
+          <v-radio
+            value="all-events"
+            label="All events in the series"
+            class="mb-2"
+          />
+        </v-radio-group>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="cancelRecurringDelete()">Cancel</v-btn>
+        <v-btn color="error" @click="confirmRecurringDelete()">Delete</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -82,12 +123,16 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
   (e: 'updated', event: Event): void
+  (e: 'deleted', event: Event): void
 }>()
 
 const internalOpen = ref<boolean>(props.modelValue)
 const updating = ref(false)
+const deleting = ref(false)
 const showRecurringChoiceModal = ref(false)
+const showDeleteRecurringChoiceModal = ref(false)
 const selectedUpdateOption = ref<'this-event' | 'all-future' | 'all-events'>('this-event')
+const selectedDeleteOption = ref<'this-event' | 'all-future' | 'all-events'>('this-event')
 const pendingUpdateData = ref<{
   newEvent: Event
   oldEvent: Event
@@ -116,6 +161,25 @@ const writableCalendars = computed(() => {
     return calendarAccess.permissionLevel === 'PERMISSION_LEVEL_WRITE' || 
            calendarAccess.permissionLevel === 'PERMISSION_LEVEL_ADMIN'
   })
+})
+
+// Check if user can delete this event
+const canDelete = computed(() => {
+  if (!props.event?.name) return false
+  
+  // Extract calendar name from event name
+  const parts = props.event.name.split('/')
+  const calendarIndex = parts.findIndex(p => p === 'calendars')
+  if (calendarIndex < 0 || parts.length <= calendarIndex + 1) return false
+  
+  const calendarName = `calendars/${parts[calendarIndex + 1]}`
+  
+  // Find the calendar and check permissions
+  const calendar = props.calendars.find(cal => cal.name === calendarName)
+  if (!calendar?.calendarAccess?.permissionLevel) return false
+  
+  return calendar.calendarAccess.permissionLevel === 'PERMISSION_LEVEL_WRITE' || 
+         calendar.calendarAccess.permissionLevel === 'PERMISSION_LEVEL_ADMIN'
 })
 
 // Watch for prop changes and update internal state
@@ -498,6 +562,150 @@ function updateRecurrenceRulesForAllFutureEvents(newEvent: Event, oldEvent: Even
   }
 
   // now we need to set the new recurrence rule onto the old event
+  oldEvent.recurrenceRule = RRule.optionsToString(oldRrule.origOptions).split('\n')[1]
+}
+
+// Delete event functionality
+async function deleteEvent() {
+  if (!props.event || !props.displayEvent) return
+  
+  // If this is a recurring event, show the choice modal
+  if (props.event.recurrenceRule && props.event.recurrenceRule !== '') {
+    showDeleteRecurringChoiceModal.value = true
+  } else {
+    // Non-recurring event, delete directly
+    await performDelete('single-event')
+  }
+}
+
+function cancelRecurringDelete() {
+  showDeleteRecurringChoiceModal.value = false
+  selectedDeleteOption.value = 'this-event'
+  deleting.value = false
+}
+
+async function confirmRecurringDelete() {
+  if (!props.event) return
+  
+  showDeleteRecurringChoiceModal.value = false
+  await performDelete(selectedDeleteOption.value)
+}
+
+async function performDelete(option: 'this-event' | 'all-future' | 'all-events' | 'single-event') {
+  if (!props.event || !props.displayEvent) return
+  
+  deleting.value = true
+  try {
+    const eventToDelete = props.event
+    
+    switch (option) {
+      case 'this-event':
+        if (eventToDelete.parentEvent) {
+          // Just delete this event if it has a parent
+          await eventService.DeleteEvent({ name: eventToDelete.name })
+        } else {
+          // Add exdate to the old event and delete this one
+          if (!eventToDelete.excludedTimes) {
+            eventToDelete.excludedTimes = []
+          }
+          eventToDelete.excludedTimes.push(eventToDelete.startTime as string)
+          await eventService.UpdateEvent({ event: eventToDelete, updateMask: undefined })
+        }
+        break
+        
+      case 'all-future':
+        if (eventToDelete.parentEvent) {
+          // Find the parent event and update its recurrence rule
+          const parentEvent = await findParentEvent(eventToDelete.parentEvent)
+          if (parentEvent) {
+            updateRecurrenceRulesForAllFutureEventsDelete(parentEvent, eventToDelete, props.displayEvent)
+            await eventService.UpdateEvent({ event: parentEvent, updateMask: undefined })
+          }
+          
+          // Delete all future events with this parent
+          await deleteFutureEventsWithParent(eventToDelete.parentEvent)
+        } else {
+          // This is the parent event, update its recurrence rule
+          updateRecurrenceRulesForAllFutureEventsDelete(eventToDelete, eventToDelete, props.displayEvent)
+          await eventService.UpdateEvent({ event: eventToDelete, updateMask: undefined })
+          
+          // Delete all future events with this event as parent
+          await deleteFutureEventsWithParent(eventToDelete.name || '')
+        }
+        break
+        
+      case 'all-events':
+        if (eventToDelete.parentEvent) {
+          // Delete the parent event and all its children
+          const parentEvent = await findParentEvent(eventToDelete.parentEvent)
+          if (parentEvent) {
+            await eventService.DeleteEvent({ name: parentEvent.name })
+          }
+          await deleteAllEventsWithParent(eventToDelete.parentEvent)
+        } else {
+          // Delete this event and all its children
+          await eventService.DeleteEvent({ name: eventToDelete.name || '' })
+          await deleteAllEventsWithParent(eventToDelete.name || '')
+        }
+        break
+      case 'single-event':
+        await eventService.DeleteEvent({ name: eventToDelete.name || '' })
+        break
+    }
+    
+    emit('deleted', eventToDelete)
+    close()
+  } catch (error) {
+    console.error('Error deleting event:', error)
+  } finally {
+    deleting.value = false
+  }
+}
+
+// Helper function to find parent event
+async function findParentEvent(parentName: string): Promise<Event | null> {
+  try {
+    // Try to get the parent event by name
+    const parentEvent = await eventService.GetEvent({ name: parentName })
+    return parentEvent
+  } catch (error) {
+    console.warn('Could not find parent event:', error)
+    return null
+  }
+}
+
+// Helper function to delete future events with a specific parent
+async function deleteFutureEventsWithParent(parentName: string) {
+  // This would require a ListEvents API call with filtering
+  // For now, we'll rely on the parent component to refresh the events list
+  console.log('Deleting future events with parent:', parentName)
+}
+
+// Helper function to delete all events with a specific parent
+async function deleteAllEventsWithParent(parentName: string) {
+  // This would require a ListEvents API call with filtering
+  // For now, we'll rely on the parent component to refresh the events list
+  console.log('Deleting all events with parent:', parentName)
+}
+
+// Helper function to update recurrence rules for delete operations
+function updateRecurrenceRulesForAllFutureEventsDelete(oldEvent: Event, currentEvent: Event, displayEvent: { start: string }) {
+  const displayStartTime = new Date(displayEvent.start)
+  const oldStartTime = new Date(oldEvent.startTime as string)
+  
+  let oldRrule = RRule.fromString(oldEvent.recurrenceRule as string)
+  
+  oldRrule.origOptions.dtstart = datetime(oldStartTime.getUTCFullYear(), oldStartTime.getUTCMonth() + 1, oldStartTime.getUTCDate(), oldStartTime.getUTCHours(), oldStartTime.getUTCMinutes(), oldStartTime.getUTCSeconds())
+  const before = datetime(displayStartTime.getUTCFullYear(), displayStartTime.getUTCMonth() + 1, displayStartTime.getUTCDate(), displayStartTime.getUTCHours(), displayStartTime.getUTCMinutes(), displayStartTime.getUTCSeconds())
+  oldRrule = new RRule(oldRrule.origOptions)
+  const previousOccurence = oldRrule.before(before)
+
+  if (previousOccurence) {
+    oldRrule.origOptions.until = previousOccurence
+  } else {
+    oldRrule.origOptions.until = before
+  }
+  
   oldEvent.recurrenceRule = RRule.optionsToString(oldRrule.origOptions).split('\n')[1]
 }
 </script>

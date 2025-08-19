@@ -110,9 +110,40 @@ func (c *Client) CreateEventClones(ctx context.Context, events []model.Event) ([
 
 // DeleteEvent deletes an event from the database
 func (c *Client) DeleteEvent(ctx context.Context, id model.EventId) (model.Event, error) {
-	// TODO: Implement event deletion logic
-	// This is a stub implementation - actual database logic will be added later
-	return model.Event{}, nil
+	log := logutil.EnrichLoggerWithContext(c.log, ctx).With().
+		Int64("event_id", id.EventId).
+		Logger()
+
+	var event gmodel.Event
+	var eventData gmodel.EventData
+
+	eventRes := c.db.WithContext(ctx).
+		Where("event_id = ?", id.EventId).
+		Clauses(clause.Returning{}).
+		Delete(&event)
+
+	if eventRes.Error != nil {
+		log.Error().Err(eventRes.Error).Msg("unable to delete event")
+		return model.Event{}, ConvertGormError(eventRes.Error)
+	}
+
+	eventDataRes := c.db.WithContext(ctx).
+		Where("event_data_id = ?", event.EventDataId).
+		Clauses(clause.Returning{}).
+		Delete(&eventData)
+
+	if eventDataRes.Error != nil {
+		log.Error().Err(eventDataRes.Error).Msg("unable to delete event data")
+		return model.Event{}, ConvertGormError(eventDataRes.Error)
+	}
+
+	m, err := convert.EventToCoreModel(event, eventData)
+	if err != nil {
+		log.Error().Err(err).Msg("invalid event row when deleting event")
+		return model.Event{}, fmt.Errorf("unable to read event: %v", err)
+	}
+
+	return m, nil
 }
 
 // GetEvent retrieves an event from the database

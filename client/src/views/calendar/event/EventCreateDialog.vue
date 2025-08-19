@@ -30,8 +30,8 @@ import EventForm, { type EventFormData } from './EventForm.vue'
 
 const props = withDefaults(defineProps<{
   modelValue: boolean
-  defaultStartTime?: string | null
-  defaultEndTime?: string | null
+  defaultStartTime?: Date | null
+  defaultEndTime?: Date | null
   calendars: Calendar[]
 }>(), {
   modelValue: false,
@@ -97,7 +97,7 @@ function populateForm() {
   let endTime = ''
   
   if (props.defaultStartTime) {
-    startTime = toLocalInput(props.defaultStartTime)
+    startTime = toLocalInput(props.defaultStartTime.toISOString())
   } else {
     // Default to current time rounded to next 15 minutes
     const now = new Date()
@@ -106,7 +106,7 @@ function populateForm() {
   }
   
   if (props.defaultEndTime) {
-    endTime = toLocalInput(props.defaultEndTime)
+    endTime = toLocalInput(props.defaultEndTime.toISOString())
   } else if (startTime) {
     // Default to 1 hour after start time
     const startDate = new Date(startTime)

@@ -57,11 +57,29 @@ func (d *Domain) CreateEvent(ctx context.Context, authAccount model.AuthAccount,
 func (d *Domain) DeleteEvent(ctx context.Context, authAccount model.AuthAccount, parent model.EventParent, id model.EventId) (dbEvent model.Event, err error) {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 
-	// TODO: Implement event deletion logic
-	// This is a stub implementation - actual business logic will be added later
+	if authAccount.AuthUserId == 0 {
+		log.Error().Msg("user id is required when deleting event")
+		return model.Event{}, domain.ErrInvalidArgument{Msg: "user id is required"}
+	}
 
-	log.Info().Msg("DeleteEvent called - stub implementation")
-	return model.Event{}, nil
+	if parent.CalendarId == 0 {
+		log.Error().Msg("calendar id is required when deleting event")
+		return model.Event{}, domain.ErrInvalidArgument{Msg: "calendar id is required"}
+	}
+
+	_, err = d.determineCalendarAccess(ctx, authAccount, model.CalendarId{CalendarId: parent.CalendarId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine access when deleting event")
+		return model.Event{}, err
+	}
+
+	dbEvent, err = d.repo.DeleteEvent(ctx, id)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to delete event")
+		return model.Event{}, domain.ErrInternal{Msg: "unable to delete event"}
+	}
+
+	return dbEvent, nil
 }
 
 // GetEvent retrieves an event

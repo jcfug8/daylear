@@ -6,7 +6,7 @@
         v-if="canCreateEvents"
         color="primary" 
         prepend-icon="mdi-plus"
-        @click="showCreateDialog = true"
+        @click="showCreateEventDialog"
       >
         Create Event
       </v-btn>
@@ -21,6 +21,7 @@
     :calendar="selectedCalendar"
     :event-occurrence="selectedEventOccurrence"
     @updated="handleEventUpdated"
+    @deleted="handleEventDeleted"
   />
   
   <!-- Event Create Dialog -->
@@ -28,6 +29,8 @@
     v-if="showCreateDialog"
     v-model="showCreateDialog"
     :calendars="writableCalendars"
+    :default-start-time="defaultStartTime"
+    :default-end-time="defaultEndTime"
     @created="handleEventCreated"
   />
 </template>
@@ -73,10 +76,13 @@ const selectedCalendar = ref<Calendar | null>(null)
 
 // Event create dialog state
 const showCreateDialog = ref(false)
+const defaultStartTime = ref<Date | null>(null)
+const defaultEndTime = ref<Date | null>(null)
 
 const emit = defineEmits<{
   (e: 'updated', event: Event): void
   (e: 'created', event: Event): void
+  (e: 'deleted', event: Event): void
 }>()
 
 // Handle event updated from dialog
@@ -98,12 +104,48 @@ function handleEventCreated(event: Event) {
   emit('created', event)
 }
 
+// Show create event dialog with current time
+function showCreateEventDialog(startTime?: Date) {
+  // Set default start time to current time rounded to next 15 minutes
+  if (!startTime) {
+   startTime = new Date()
+  }
+  startTime.setMinutes(Math.ceil(startTime.getMinutes() / 15) * 15, 0, 0)
+  defaultStartTime.value = startTime
+  
+  // Set end time to 1 hour after start time
+  const endDate = new Date(startTime.getTime() + 60 * 60 * 1000)
+  defaultEndTime.value = endDate
+  
+  showCreateDialog.value = true
+}
+
+// Handle event deleted from dialog
+function handleEventDeleted(event: Event) {
+  console.log('Event deleted:', event)
+  // Close the dialog after deletion
+  showEventDialog.value = false
+  selectedEvent.value = null
+  selectedCalendar.value = null
+
+  emit('deleted', event)
+}
+
 // Clean up dialog state when dialog closes
 watch(showEventDialog, (isOpen) => {
   if (!isOpen) {
     // Reset state when dialog closes
     selectedEvent.value = null
     selectedCalendar.value = null
+  }
+})
+
+// Clean up create dialog state when it closes
+watch(showCreateDialog, (isOpen) => {
+  if (!isOpen) {
+    // Reset default times when create dialog closes
+    defaultStartTime.value = null
+    defaultEndTime.value = null
   }
 })
 
@@ -307,7 +349,27 @@ const calendarApp = createCalendar({
       } catch (error) {
         console.error('Error in event click handler:', error)
       }
-    }
+    },
+    onClickDateTime(dateTime: string) {
+      // Round the date time to the nearest 15 minutes
+      const date = new Date(dateTime)
+      const minutes = date.getMinutes()
+      const roundedMinutes = Math.round(minutes / 15) * 15
+      
+      // Handle edge case where rounding goes to 60 minutes (next hour)
+      if (roundedMinutes === 60) {
+        date.setHours(date.getHours() + 1)
+        date.setMinutes(0)
+      } else {
+        date.setMinutes(roundedMinutes)
+      }
+      
+      // Reset seconds and milliseconds to 0
+      date.setSeconds(0)
+      date.setMilliseconds(0)
+      
+      showCreateEventDialog(date)
+    },
   }
 })
 

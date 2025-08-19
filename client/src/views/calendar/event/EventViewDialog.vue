@@ -138,6 +138,7 @@
     :event="event"
     :calendars="[calendar]"
     @updated="handleEventUpdated"
+    @deleted="handleEventDeleted"
   />
 </template>
 
@@ -163,6 +164,7 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
   (e: 'edit', event: Event): void
   (e: 'updated', event: Event): void
+  (e: 'deleted', event: Event): void
 }>()
 
 const internalOpen = ref<boolean>(props.modelValue)
@@ -244,6 +246,11 @@ function editEvent() {
 
 function handleEventUpdated(event: Event) {
   emit('updated', event)
+  showEditDialog.value = false
+}
+
+function handleEventDeleted(event: Event) {
+  emit('deleted', event)
   showEditDialog.value = false
 }
 </script>
