@@ -103,10 +103,9 @@
                   },
                   "title": "the additional dates of the event"
                 },
-                "parentEventId": {
+                "parentEvent": {
                   "type": "string",
-                  "format": "int64",
-                  "title": "the parent event id of the event"
+                  "title": "the name of the parent event"
                 },
                 "alarms": {
                   "type": "array",
@@ -445,10 +444,9 @@
           },
           "title": "the additional dates of the event"
         },
-        "parentEventId": {
+        "parentEvent": {
           "type": "string",
-          "format": "int64",
-          "title": "the parent event id of the event"
+          "title": "the name of the parent event"
         },
         "alarms": {
           "type": "array",

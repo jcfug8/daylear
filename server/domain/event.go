@@ -167,6 +167,16 @@ func (d *Domain) UpdateEvent(ctx context.Context, authAccount model.AuthAccount,
 		return model.Event{}, err
 	}
 
+	// remove duplicate excluded dates
+	if event.ExcludedDates != nil {
+		event.ExcludedDates = slices.Compact(event.ExcludedDates)
+	}
+
+	// remove duplicate additional dates
+	if event.AdditionalDates != nil {
+		event.AdditionalDates = slices.Compact(event.AdditionalDates)
+	}
+
 	//TODO: need to eventually add recurring logic
 
 	if slices.Contains(fields, model.EventField_RecurrenceRule) {

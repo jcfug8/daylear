@@ -34,7 +34,7 @@ var eventFieldMap = map[string][]string{
 	"overriden_start_time": {model.EventField_OverridenStartTime},
 	"excluded_times":       {model.EventField_ExcludedDates},
 	"additional_times":     {model.EventField_AdditionalDates},
-	"parent_event_id":      {model.EventField_ParentEventId},
+	"parent_event":         {model.EventField_ParentEventId},
 	"alarms":               {model.EventField_Alarms},
 	"recurrence_end_time":  {model.EventField_RecurrenceEndTime},
 }
@@ -218,7 +218,7 @@ func (s *CalendarService) UpdateEvent(ctx context.Context, request *pb.UpdateEve
 	// get fields to update
 	var fields []string
 	if request.GetUpdateMask() != nil {
-		fields = request.GetUpdateMask().GetPaths()
+		fields = s.eventFieldMasker.Convert(request.GetUpdateMask().GetPaths())
 	}
 
 	// update event
@@ -342,12 +342,6 @@ func (s *CalendarService) ProtoToEvent(proto *pb.Event) (nameIndex int, event mo
 		event.AdditionalDates = additionalDates
 	}
 
-	// Handle recurring event id
-	if proto.GetParentEventId() != 0 {
-		recurringEventId := proto.GetParentEventId()
-		event.ParentEventId = &recurringEventId
-	}
-
 	// Handle alarms (basic conversion for now)
 	if len(proto.GetAlarms()) > 0 {
 		alarms := make([]*model.Alarm, len(proto.GetAlarms()))
@@ -378,6 +372,16 @@ func (s *CalendarService) ProtoToEvent(proto *pb.Event) (nameIndex int, event mo
 		if err != nil {
 			return 0, model.Event{}, err
 		}
+	}
+
+	// Handle recurring event id
+	if proto.GetParentEvent() != "" {
+		e := model.Event{}
+		_, err = s.eventNamer.Parse(proto.GetParentEvent(), &e)
+		if err != nil {
+			return 0, model.Event{}, err
+		}
+		event.ParentEventId = &e.Id.EventId
 	}
 
 	return nameIndex, event, nil
@@ -457,11 +461,6 @@ func (s *CalendarService) EventToProto(event model.Event, options ...namer.Forma
 		proto.AdditionalTimes = additionalTimes
 	}
 
-	// Handle recurring event id
-	if event.ParentEventId != nil {
-		proto.ParentEventId = *event.ParentEventId
-	}
-
 	// Handle alarms
 	if len(event.Alarms) > 0 {
 		alarms := make([]*pb.Event_Alarm, len(event.Alarms))
@@ -494,6 +493,23 @@ func (s *CalendarService) EventToProto(event model.Event, options ...namer.Forma
 			return nil, err
 		}
 		proto.Name = name
+	}
+
+	// Handle parent event
+	if event.ParentEventId != nil {
+		e := model.Event{
+			Parent: model.EventParent{
+				CalendarId: event.Parent.CalendarId,
+			},
+			Id: model.EventId{
+				EventId: *event.ParentEventId,
+			},
+		}
+		name, err := s.eventNamer.Format(e, options...)
+		if err != nil {
+			return nil, err
+		}
+		proto.ParentEvent = name
 	}
 
 	return proto, nil

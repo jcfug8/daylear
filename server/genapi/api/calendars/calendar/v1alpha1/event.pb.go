@@ -53,8 +53,8 @@ type Event struct {
 	ExcludedTimes []*timestamppb.Timestamp `protobuf:"bytes,10,rep,name=excluded_times,json=excludedTimes,proto3" json:"excluded_times,omitempty"`
 	// the additional dates of the event
 	AdditionalTimes []*timestamppb.Timestamp `protobuf:"bytes,11,rep,name=additional_times,json=additionalTimes,proto3" json:"additional_times,omitempty"`
-	// the parent event id of the event
-	ParentEventId int64 `protobuf:"varint,12,opt,name=parent_event_id,json=parentEventId,proto3" json:"parent_event_id,omitempty"`
+	// the name of the parent event
+	ParentEvent string `protobuf:"bytes,12,opt,name=parent_event,json=parentEvent,proto3" json:"parent_event,omitempty"`
 	// the alarms of the event
 	Alarms []*Event_Alarm `protobuf:"bytes,13,rep,name=alarms,proto3" json:"alarms,omitempty"`
 	// geo location of the event
@@ -172,11 +172,11 @@ func (x *Event) GetAdditionalTimes() []*timestamppb.Timestamp {
 	return nil
 }
 
-func (x *Event) GetParentEventId() int64 {
+func (x *Event) GetParentEvent() string {
 	if x != nil {
-		return x.ParentEventId
+		return x.ParentEvent
 	}
-	return 0
+	return ""
 }
 
 func (x *Event) GetAlarms() []*Event_Alarm {
@@ -674,7 +674,7 @@ var File_api_calendars_calendar_v1alpha1_event_proto protoreflect.FileDescriptor
 
 const file_api_calendars_calendar_v1alpha1_event_proto_rawDesc = "" +
 	"\n" +
-	"+api/calendars/calendar/v1alpha1/event.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18google/type/latlng.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x84\t\n" +
+	"+api/calendars/calendar/v1alpha1/event.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18google/type/latlng.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xff\b\n" +
 	"\x05Event\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12>\n" +
@@ -688,8 +688,8 @@ const file_api_calendars_calendar_v1alpha1_event_proto_rawDesc = "" +
 	"\x14overriden_start_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x01R\x12overridenStartTime\x12F\n" +
 	"\x0eexcluded_times\x18\n" +
 	" \x03(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x01R\rexcludedTimes\x12J\n" +
-	"\x10additional_times\x18\v \x03(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x01R\x0fadditionalTimes\x12+\n" +
-	"\x0fparent_event_id\x18\f \x01(\x03B\x03\xe0A\x01R\rparentEventId\x12I\n" +
+	"\x10additional_times\x18\v \x03(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x01R\x0fadditionalTimes\x12&\n" +
+	"\fparent_event\x18\f \x01(\tB\x03\xe0A\x01R\vparentEvent\x12I\n" +
 	"\x06alarms\x18\r \x03(\v2,.api.calendars.calendar.v1alpha1.Event.AlarmB\x03\xe0A\x01R\x06alarms\x12*\n" +
 	"\x03geo\x18\x0e \x01(\v2\x13.google.type.LatLngB\x03\xe0A\x01R\x03geo\x12O\n" +
 	"\x13recurrence_end_time\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\x11recurrenceEndTime\x1a\x87\x02\n" +

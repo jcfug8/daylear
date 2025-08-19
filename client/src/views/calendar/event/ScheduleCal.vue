@@ -206,6 +206,7 @@ const scheduleEvents = computed<CalendarEventExternal[]>(() => {
       if (!id || !calendarId || !start) return null
 
       const rrule = event.recurrenceRule ? event.recurrenceRule.replace('RRULE:', '') : null
+      const exdate = event.excludedTimes ? event.excludedTimes.map(time => toScheduleXDateTime(time as string)) : null
       
       const baseEvent: CalendarEventExternal = {
         name: event.name,
@@ -216,6 +217,7 @@ const scheduleEvents = computed<CalendarEventExternal[]>(() => {
         description: event.description ?? '',
         calendarId,
         rrule,
+        exdate,
       }
       
       return baseEvent

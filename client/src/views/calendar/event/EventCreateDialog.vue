@@ -185,7 +185,7 @@ async function create() {
         overridenStartTime: undefined,
         excludedTimes: undefined,
         additionalTimes: undefined,
-        parentEventId: undefined,
+        parentEvent: undefined,
         alarms: undefined,
         geo: undefined,
         recurrenceEndTime: undefined,

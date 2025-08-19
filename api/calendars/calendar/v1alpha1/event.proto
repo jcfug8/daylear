@@ -141,8 +141,8 @@ message Event {
   // the additional dates of the event
   repeated google.protobuf.Timestamp additional_times = 11 [(google.api.field_behavior) = OPTIONAL];
 
-  // the parent event id of the event
-  int64 parent_event_id = 12 [(google.api.field_behavior) = OPTIONAL];
+  // the name of the parent event
+  string parent_event = 12 [(google.api.field_behavior) = OPTIONAL];
 
   // the alarms of the event
   repeated Alarm alarms = 13 [(google.api.field_behavior) = OPTIONAL];

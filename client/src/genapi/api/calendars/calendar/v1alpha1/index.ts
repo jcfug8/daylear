@@ -673,10 +673,10 @@ export type Event = {
   //
   // Behaviors: OPTIONAL
   additionalTimes: wellKnownTimestamp[] | undefined;
-  // the parent event id of the event
+  // the name of the parent event
   //
   // Behaviors: OPTIONAL
-  parentEventId: number | undefined;
+  parentEvent: string | undefined;
   // the alarms of the event
   //
   // Behaviors: OPTIONAL
