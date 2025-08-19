@@ -13,6 +13,7 @@
           v-model="form"
           :calendars="writableCalendars"
           :disabled="updating"
+          @validation-change="onValidationChange"
         />
       </v-card-text>
       <v-card-actions>
@@ -27,7 +28,14 @@
         >
           Delete
         </v-btn>
-        <v-btn color="primary" :loading="updating" @click="update()">Update</v-btn>
+        <v-btn 
+          color="primary" 
+          :loading="updating" 
+          :disabled="isUpdateButtonDisabled"
+          @click="update()"
+        >
+          Update
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -129,6 +137,7 @@ const emit = defineEmits<{
 const internalOpen = ref<boolean>(props.modelValue)
 const updating = ref(false)
 const deleting = ref(false)
+const hasValidationErrors = ref(false)
 const showRecurringChoiceModal = ref(false)
 const showDeleteRecurringChoiceModal = ref(false)
 const selectedUpdateOption = ref<'this-event' | 'all-future' | 'all-events'>('this-event')
@@ -180,6 +189,15 @@ const canDelete = computed(() => {
   
   return calendar.calendarAccess.permissionLevel === 'PERMISSION_LEVEL_WRITE' || 
          calendar.calendarAccess.permissionLevel === 'PERMISSION_LEVEL_ADMIN'
+})
+
+// Computed property to check if the update button should be disabled
+const isUpdateButtonDisabled = computed(() => {
+  return updating.value || 
+         !hasValidationErrors.value || 
+         !form.value.calendarName || 
+         !form.value.title || 
+         !form.value.start
 })
 
 // Watch for prop changes and update internal state
@@ -707,6 +725,10 @@ function updateRecurrenceRulesForAllFutureEventsDelete(oldEvent: Event, currentE
   }
   
   oldEvent.recurrenceRule = RRule.optionsToString(oldRrule.origOptions).split('\n')[1]
+}
+
+function onValidationChange(isValid: boolean) {
+  hasValidationErrors.value = !isValid
 }
 </script>
 

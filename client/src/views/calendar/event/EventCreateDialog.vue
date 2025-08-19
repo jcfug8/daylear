@@ -11,12 +11,20 @@
           v-model="form"
           :calendars="writableCalendars"
           :disabled="creating"
+          @validation-change="onValidationChange"
         />
       </v-card-text>
       <v-card-actions>
         <v-spacer />
         <v-btn variant="text" @click="close()">Cancel</v-btn>
-        <v-btn color="primary" :loading="creating" @click="create()">Create</v-btn>
+        <v-btn 
+          color="primary" 
+          :loading="creating" 
+          :disabled="isCreateButtonDisabled"
+          @click="create()"
+        >
+          Create
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -47,6 +55,7 @@ const emit = defineEmits<{
 
 const internalOpen = ref<boolean>(props.modelValue)
 const creating = ref(false)
+const hasValidationErrors = ref(false)
 const form = ref<EventFormData>({
   calendarName: null,
   title: '',
@@ -68,6 +77,15 @@ const writableCalendars = computed(() => {
     return calendarAccess.permissionLevel === 'PERMISSION_LEVEL_WRITE' || 
            calendarAccess.permissionLevel === 'PERMISSION_LEVEL_ADMIN'
   })
+})
+
+// Computed property to check if the create button should be disabled
+const isCreateButtonDisabled = computed(() => {
+  return creating.value || 
+         !hasValidationErrors.value || 
+         !form.value.calendarName || 
+         !form.value.title || 
+         !form.value.start
 })
 
 // Watch for prop changes and update internal state
@@ -153,9 +171,12 @@ function onDialogModel(value: boolean) {
   internalOpen.value = value
 }
 
+function onValidationChange(hasErrors: boolean) {
+  hasValidationErrors.value = hasErrors
+}
+
 async function create() {
   if (!form.value.calendarName || !form.value.title || !form.value.start) {
-    // TODO: Show validation error
     return
   }
   
@@ -197,7 +218,6 @@ async function create() {
     close()
   } catch (error) {
     console.error('Error creating event:', error)
-    // TODO: Show error message to user
   } finally {
     creating.value = false
   }

@@ -34,6 +34,12 @@ func (d *Domain) CreateEvent(ctx context.Context, authAccount model.AuthAccount,
 		return model.Event{}, domain.ErrInvalidArgument{Msg: "end time is required"}
 	}
 
+	// Validate that start time is before end time
+	if event.StartTime.After(*event.EndTime) || event.StartTime.Equal(*event.EndTime) {
+		log.Error().Msg("start time must be before end time")
+		return model.Event{}, domain.ErrInvalidArgument{Msg: "start time must be before end time"}
+	}
+
 	_, err = d.determineCalendarAccess(ctx, authAccount, model.CalendarId{CalendarId: event.Parent.CalendarId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine access when creating event")
@@ -177,6 +183,12 @@ func (d *Domain) UpdateEvent(ctx context.Context, authAccount model.AuthAccount,
 	if event.EndTime == nil || event.EndTime.IsZero() {
 		log.Error().Msg("end time is required when creating event")
 		return model.Event{}, domain.ErrInvalidArgument{Msg: "end time is required"}
+	}
+
+	// Validate that start time is before end time
+	if event.StartTime.After(*event.EndTime) || event.StartTime.Equal(*event.EndTime) {
+		log.Error().Msg("start time must be before end time")
+		return model.Event{}, domain.ErrInvalidArgument{Msg: "start time must be before end time"}
 	}
 
 	_, err = d.determineCalendarAccess(ctx, authAccount, model.CalendarId{CalendarId: event.Parent.CalendarId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
