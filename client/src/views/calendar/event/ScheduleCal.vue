@@ -3,10 +3,12 @@
     <div class="d-flex align-center mb-2">
       <v-spacer />
       <v-btn 
-        v-if="canCreateEvents"
+        v-if="canCreateEvents && showCreateButton"
         color="primary" 
+        density="compact"
         prepend-icon="mdi-plus"
-        @click="showCreateEventDialog"
+        style="position: fixed; bottom: 16px; right: 16px;z-index: 1000;"
+        @click="showCreateEventDialog(new Date())"
       >
         Create Event
       </v-btn>
@@ -26,9 +28,8 @@
   
   <!-- Event Create Dialog -->
   <EventCreateDialog
-    v-if="showCreateDialog"
     v-model="showCreateDialog"
-    :calendars="writableCalendars"
+    :calendars="calendarChoices"
     :default-start-time="defaultStartTime"
     :default-end-time="defaultEndTime"
     @created="handleEventCreated"
@@ -62,11 +63,21 @@ const props = withDefaults(defineProps<{
   events?: Event[]
   loading?: boolean
   calendars?: Calendar[]
+  showCreateButton?: boolean // Whether to show the create button
 }>(), {
   events: () => [],
   calendars: () => [],
   loading: false,
+  showCreateButton: true,
 })
+
+watch(() => props.showCreateButton, (newVal) => {
+  console.log('showCreateButton changed to:', newVal)
+}, { immediate: true })
+
+watch(() => props.showCreateButton, (newVal) => {
+  console.log('calendars changed to:', newVal)
+}, { immediate: true })
 
 // Event dialog state
 const showEventDialog = ref(false)
@@ -460,10 +471,20 @@ const wrapperStyle = computed<CSSProperties>(() => {
 })
 
 const canCreateEvents = computed(() => {
-  return writableCalendars.value.length > 0
+  const calendarsToCheck = props.calendars?.filter(calendar => {
+    if (!calendar) return false
+    
+    // Check if user has write permission to this specific calendar
+    const calendarAccess = calendar.calendarAccess
+    if (!calendarAccess?.permissionLevel) return false
+    
+    return calendarAccess.permissionLevel === 'PERMISSION_LEVEL_WRITE' || 
+           calendarAccess.permissionLevel === 'PERMISSION_LEVEL_ADMIN'
+  }) ?? []
+  return calendarsToCheck.length > 0
 })
 
-const writableCalendars = computed(() => {
+const calendarChoices = computed(() => {
   return props.calendars?.filter(calendar => {
     if (!calendar) return false
     

@@ -90,18 +90,15 @@
       </template>
       
       <template #events="{ items, loading }">
-        <ScheduleCal :events="(items as Event[])" :calendars="[calendar]" :loading="(loading as boolean)" @created="onEventCreated" @updated="onEventUpdated" />
-        <v-btn
-          v-if="hasWritePermission(calendar.calendarAccess?.permissionLevel)"
-          color="primary"
-          density="compact"
-          class="text-none"
-          style="position: fixed; bottom: 16px; right: 16px; z-index: 10;"
-          @click="showCreateEventDialog = true"
-        >
-          <v-icon class="mr-1">mdi-plus</v-icon>
-          <span>Create Event</span>
-        </v-btn>
+        <ScheduleCal 
+          :events="(items as Event[])" 
+          :calendars="[calendar]" 
+          :loading="(loading as boolean)" 
+          :show-create-button="true"
+          @created="onEventCreated" 
+          @updated="onEventUpdated" 
+          @deleted="onEventDeleted"
+        />
       </template>
       
 
@@ -187,14 +184,6 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <!-- Create Event Dialog for this calendar -->
-    <EventCreateDialog
-      v-model="showCreateEventDialog"
-      :default-calendar="calendar"
-      :calendars="[calendar]"
-      @created="onEventCreated"
-    />
   </template>
 </template>
 
@@ -211,7 +200,6 @@ import { useAlertStore } from '@/stores/alerts'
 import { useAuthStore } from '@/stores/auth'
 import ScheduleCal from '@/views/calendar/event/ScheduleCal.vue'
 import type { Event } from '@/genapi/api/calendars/calendar/v1alpha1'
-import EventCreateDialog from '@/views/calendar/event/EventCreateDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -230,7 +218,6 @@ const showRemoveAccessDialog = ref(false)
 const showDeleteDialog = ref(false)
 const showCancelRequestDialog = ref(false)
 const showShareDialog = ref(false)
-const showCreateEventDialog = ref(false)
 
 // *** Calendar Sharing ***
 const allowPermissionOptions: apitypes_PermissionLevel[] = [
@@ -589,6 +576,11 @@ async function onEventCreated() {
 }
 
 async function onEventUpdated() {
+  if (!calendar.value?.name) return
+  await calendarsStore.loadEvents(calendar.value.name)
+}
+
+async function onEventDeleted() {
   if (!calendar.value?.name) return
   await calendarsStore.loadEvents(calendar.value.name)
 }

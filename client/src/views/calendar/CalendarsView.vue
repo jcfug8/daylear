@@ -71,7 +71,14 @@
     <template #my="{ items, loading }">
       <CalendarGrid v-if="viewMode === 'grid'" :calendars="getFilteredCalendars(items as Calendar[])" :loading="(loading as boolean)" />
       <template v-else>
-        <ScheduleCal v-if="!loading" :events="events" :calendars="(items as Calendar[])" @created="onEventCreated" @updated="onEventUpdated" />
+        <ScheduleCal 
+          v-if="!loading" 
+          :events="events" :calendars="(items as Calendar[])" 
+          :show-create-button="true" 
+          @created="onEventCreated" 
+          @updated="onEventUpdated"
+          @deleted="onEventDeleted"
+        />
       </template>
       <!-- View mode toggle FAB -->
       <v-btn
@@ -104,17 +111,6 @@
         >
           <v-icon>mdi-plus</v-icon>
           <span>Create Calendar</span>
-        </v-btn>
-        <!-- Create Event (only in schedule view) -->
-        <v-btn
-          v-if="selectedAccount?.value === authStore.user.name && viewMode === 'schedule'"
-          color="primary"
-          density="compact"
-          style="position: fixed; bottom: 16px; right: 16px"
-          @click="openCreateEventDialog()"
-        >
-          <v-icon>mdi-plus</v-icon>
-          <span>Create Event</span>
         </v-btn>
       </template>
   </ListTabsPage>
@@ -155,17 +151,10 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-
-  <EventCreateDialog
-    v-model="showCreateEventDialog"
-    :default-calendar="calendarChoices[0] || null"
-    :calendars="calendarChoices"
-    @created="onEventCreated"
-  />
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { useCalendarsStore } from '@/stores/calendar'
 import { useAuthStore } from '@/stores/auth'
 import ListTabsPage from '@/components/common/ListTabsPage.vue'
@@ -176,7 +165,6 @@ import { useUsersStore } from '@/stores/users'
 import type { Calendar } from '@/genapi/api/calendars/calendar/v1alpha1'
 import ScheduleCal from '@/views/calendar/event/ScheduleCal.vue'
 import type { Event } from '@/genapi/api/calendars/calendar/v1alpha1'
-import EventCreateDialog from '@/views/calendar/event/EventCreateDialog.vue'
 
 const calendarsStore = useCalendarsStore()
 const authStore = useAuthStore()
@@ -191,18 +179,6 @@ const events = ref<Event[]>([])
 const currentTab = ref<string>('my')
 const isMyTab = computed(() => currentTab.value === 'my')
 const loading = ref<boolean>(true)
-
-// Create Event dialog state
-const showCreateEventDialog = ref(false)
-const calendarChoices = computed(() => calendarsStore.myCalendars.filter(c => Boolean(c?.name)))
-
-onMounted(() => {
-  // Preload account selections (circles and friends) so the modal has all options
-  if (authStore.user?.name) {
-    circlesStore.loadMyCircles(authStore.user.name)
-    usersStore.loadFriends(authStore.user.name)
-  }
-})
 
 // Account selection like RecipesView
 type NamedEntity = { name: string }
@@ -355,11 +331,13 @@ async function loadEventsForMyCalendars() {
   loading.value = false
 }
 
-function openCreateEventDialog() {
-  showCreateEventDialog.value = true
+async function onEventUpdated() {
+  if (viewMode.value === 'schedule' && isMyTab.value) {
+    await loadEventsForMyCalendars()
+  }
 }
 
-async function onEventUpdated() {
+async function onEventDeleted() {
   if (viewMode.value === 'schedule' && isMyTab.value) {
     await loadEventsForMyCalendars()
   }

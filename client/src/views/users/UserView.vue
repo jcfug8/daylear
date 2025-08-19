@@ -149,7 +149,15 @@
       <template #calendars="{ items, loading }">
         <CalendarGrid v-if="viewMode === 'grid'" :calendars="(items as Calendar[])" :loading="(loading as boolean)" />
         <template v-else>
-          <ScheduleCal v-if="!loading" :events="events" :calendars="(items as Calendar[])" @created="onEventCreated" @updated="onEventUpdated" />
+          <ScheduleCal 
+            v-if="!loading" 
+            :events="events" 
+            :calendars="(items as Calendar[])" 
+            :show-create-button="hasAdminPermission(user.access?.permissionLevel)" 
+            @created="onEventCreated" 
+            @updated="onEventUpdated" 
+            @deleted="onEventDeleted"
+          />
         </template>
         <!-- View mode toggle FAB -->
         <v-btn
@@ -161,28 +169,6 @@
         >
           <v-icon class="mr-1">{{ viewMode === 'grid' ? 'mdi-calendar-month' : 'mdi-view-grid' }}</v-icon>
           <span>{{ viewMode === 'grid' ? 'Schedule' : 'Grid' }}</span>
-        </v-btn>
-        <!-- Create Calendar FAB -->
-        <v-btn
-          v-if="hasAdminPermission(user.access?.permissionLevel) && viewMode === 'grid'"
-          color="primary"
-          density="compact"
-          style="position: fixed; bottom: 16px; right: 16px"
-          :to="{ name: 'calendarCreate' }"
-        >
-          <v-icon>mdi-plus</v-icon>
-          <span>Create Calendar</span>
-        </v-btn>
-        <!-- Create Event FAB -->
-        <v-btn
-          v-if="hasAdminPermission(user.access?.permissionLevel) && viewMode === 'schedule'"
-          color="primary"
-          density="compact"
-          style="position: fixed; bottom: 16px; right: 16px"
-          @click="openCreateEventDialog()"
-        >
-          <v-icon>mdi-plus</v-icon>
-          <span>Create Event</span>
         </v-btn>
       </template>
     </ListTabsPage>
@@ -229,13 +215,6 @@
     </v-card>
   </v-dialog>
 
-  <EventCreateDialog
-    v-model="showCreateEventDialog"
-    :default-calendar="userCalendarChoices[0] || null"
-    :calendars="userCalendarChoices"
-    @created="onEventCreated"
-  />
-
   <!-- Share Dialog for Friends -->
   <ShareDialog
     v-model="showShareDialog"
@@ -279,7 +258,6 @@ import { useCalendarsStore } from '@/stores/calendar'
 import CalendarGrid from '@/components/CalendarGrid.vue'
 import ScheduleCal from '@/views/calendar/event/ScheduleCal.vue'
 import type { Calendar, Event } from '@/genapi/api/calendars/calendar/v1alpha1'
-import EventCreateDialog from '@/views/calendar/event/EventCreateDialog.vue'
 
 const usersStore = useUsersStore()
 const alertsStore = useAlertStore()
@@ -319,14 +297,6 @@ watch(
   }
 )
 
-// Create Event dialog state for user calendars
-const showCreateEventDialog = ref(false)
-const userCalendarChoices = computed(() => (calendarsStore.myCalendars || []).filter(c => Boolean(c?.name)))
-
-function openCreateEventDialog() {
-  showCreateEventDialog.value = true
-}
-
 async function onEventCreated() {
   if (viewMode.value === 'schedule' && tabsPage.value?.activeTab?.value === 'calendars') {
     await loadEventsForCalendars()
@@ -334,6 +304,12 @@ async function onEventCreated() {
 }
 
 async function onEventUpdated() {
+  if (viewMode.value === 'schedule' && tabsPage.value?.activeTab?.value === 'calendars') {
+    await loadEventsForCalendars()
+  }
+}
+
+async function onEventDeleted() {
   if (viewMode.value === 'schedule' && tabsPage.value?.activeTab?.value === 'calendars') {
     await loadEventsForCalendars()
   }
@@ -384,13 +360,28 @@ const tabs = [
 ]
 
 const authStore = useAuthStore()
-// const router = useRouter()
 
 // Computed property to show access request section
 const showAccessRequest = computed(() => {
   return user.value?.access?.state === 'ACCESS_STATE_PENDING' && 
          user.value?.access?.requester !== authStore.user?.name
 })
+
+function toggleViewMode() {
+  viewMode.value = viewMode.value === 'grid' ? 'schedule' : 'grid'
+  if (viewMode.value === 'schedule' && tabsPage.value?.activeTab?.value === 'calendars') {
+    void loadEventsForCalendars()
+  }
+}
+
+async function loadEventsForCalendars() {
+  events.value = []
+  for (const calendar of calendarsStore.myCalendars) {
+    if (!calendar?.name) continue
+    const es = await calendarsStore.loadEvents(calendar.name)
+    events.value.push(...es)
+  }
+}
 
 // *** Remove Access ***
 const showRemoveAccessDialog = ref(false)
@@ -659,22 +650,6 @@ async function shareWithUser({ userName, permission }: { userName: string, permi
 }
 
 // Calendars tab helpers
-function toggleViewMode() {
-  viewMode.value = viewMode.value === 'grid' ? 'schedule' : 'grid'
-  if (viewMode.value === 'schedule' && tabsPage.value?.activeTab?.value === 'calendars') {
-    void loadEventsForCalendars()
-  }
-}
-
-async function loadEventsForCalendars() {
-  events.value = []
-  for (const calendar of calendarsStore.myCalendars) {
-    if (!calendar?.name) continue
-    const es = await calendarsStore.loadEvents(calendar.name)
-    events.value.push(...es)
-  }
-}
-
 watch(
   () => calendarsStore.myCalendars,
   async () => {

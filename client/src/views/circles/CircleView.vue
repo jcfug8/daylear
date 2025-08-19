@@ -145,7 +145,15 @@
       <template #calendars="{ items, loading }">
         <CalendarGrid v-if="viewMode === 'grid'" :calendars="(items as Calendar[])" :loading="(loading as boolean)" />
         <template v-else>
-          <ScheduleCal v-if="!loading" :events="events" :calendars="(items as Calendar[])" @created="onEventCreated" @updated="onEventUpdated" />
+          <ScheduleCal 
+            v-if="!loading" 
+            :events="events" 
+            :calendars="(items as Calendar[])" 
+            :show-create-button="hasWritePermission(circle.circleAccess?.permissionLevel)" 
+            @created="onEventCreated" 
+            @updated="onEventUpdated" 
+            @deleted="onEventDeleted"
+          />
         </template>
         <!-- View mode toggle FAB -->
         <v-btn
@@ -169,26 +177,8 @@
           <v-icon>mdi-plus</v-icon>
           <span>Create Calendar</span>
         </v-btn>
-        <!-- Create Event FAB -->
-        <v-btn
-          v-if="hasWritePermission(circle.circleAccess?.permissionLevel) && viewMode === 'schedule'"
-          color="primary"
-          density="compact"
-          style="position: fixed; bottom: 16px; right: 16px"
-          @click="openCreateEventDialog()"
-        >
-          <v-icon>mdi-plus</v-icon>
-          <span>Create Event</span>
-        </v-btn>
       </template>
     </ListTabsPage>
-
-    <EventCreateDialog
-      v-model="showCreateEventDialog"
-      :default-calendar="circleCalendarChoices[0] || null"
-      :calendars="circleCalendarChoices"
-      @created="onEventCreated"
-    />
 
     <!-- Remove Access Dialog -->
     <v-dialog v-model="showRemoveAccessDialog" max-width="500">
@@ -293,7 +283,6 @@ import { useCalendarsStore } from '@/stores/calendar'
 import CalendarGrid from '@/components/CalendarGrid.vue'
 import ScheduleCal from '@/views/calendar/event/ScheduleCal.vue'
 import type { Calendar, Event } from '@/genapi/api/calendars/calendar/v1alpha1'
-import EventCreateDialog from '@/views/calendar/event/EventCreateDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -750,12 +739,6 @@ watch(
   }
 )
 // Create Event dialog state for circle calendars
-const showCreateEventDialog = ref(false)
-const circleCalendarChoices = computed(() => (calendarsStore.myCalendars || []).filter(c => Boolean(c?.name)))
-
-function openCreateEventDialog() {
-  showCreateEventDialog.value = true
-}
 
 async function onEventCreated() {
   if (viewMode.value === 'schedule' && tabsPage.value?.activeTab?.value === 'calendars') {
@@ -764,6 +747,12 @@ async function onEventCreated() {
 }
 
 async function onEventUpdated() {
+  if (viewMode.value === 'schedule' && tabsPage.value?.activeTab?.value === 'calendars') {
+    await loadEventsForCalendars()
+  }
+}
+
+async function onEventDeleted() {
   if (viewMode.value === 'schedule' && tabsPage.value?.activeTab?.value === 'calendars') {
     await loadEventsForCalendars()
   }
