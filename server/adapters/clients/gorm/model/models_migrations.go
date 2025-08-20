@@ -5,6 +5,7 @@ func AllModels() []interface{} {
 	return []interface{}{
 		&Recipe{},
 		&RecipeAccess{},
+		&RecipeFavorite{},
 		&User{},
 		&UserAccess{},
 		&Circle{},

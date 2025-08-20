@@ -349,6 +349,30 @@ export type ScrapeRecipeResponse = {
   recipe: Recipe | undefined;
 };
 
+// the request to favorite a recipe
+export type FavoriteRecipeRequest = {
+  // the name of the recipe to favorite
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the response to favorite a recipe
+export type FavoriteRecipeResponse = {
+};
+
+// the request to unfavorite a recipe
+export type UnfavoriteRecipeRequest = {
+  // the name of the recipe to unfavorite
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the response to unfavorite a recipe
+export type UnfavoriteRecipeResponse = {
+};
+
 // the recipe service
 export interface RecipeService {
   // create a recipe
@@ -363,6 +387,10 @@ export interface RecipeService {
   GetRecipe(request: GetRecipeRequest): Promise<Recipe>;
   // scrape and save a recipe from a uri
   ScrapeRecipe(request: ScrapeRecipeRequest): Promise<ScrapeRecipeResponse>;
+  // favorite a recipe
+  FavoriteRecipe(request: FavoriteRecipeRequest): Promise<FavoriteRecipeResponse>;
+  // unfavorite a recipe
+  UnfavoriteRecipe(request: UnfavoriteRecipeRequest): Promise<UnfavoriteRecipeResponse>;
 }
 
 type RequestType = {
@@ -508,6 +536,46 @@ export function createRecipeServiceClient(
         service: "RecipeService",
         method: "ScrapeRecipe",
       }) as Promise<ScrapeRecipeResponse>;
+    },
+    FavoriteRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `meals/v1alpha1/${request.name}:favorite`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "RecipeService",
+        method: "FavoriteRecipe",
+      }) as Promise<FavoriteRecipeResponse>;
+    },
+    UnfavoriteRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `meals/v1alpha1/${request.name}:unfavorite`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "RecipeService",
+        method: "UnfavoriteRecipe",
+      }) as Promise<UnfavoriteRecipeResponse>;
     },
   };
 }

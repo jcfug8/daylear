@@ -24,4 +24,9 @@ type recipeClient interface {
 	GetRecipeAccess(ctx context.Context, parent model.RecipeAccessParent, id model.RecipeAccessId, fields []string) (model.RecipeAccess, error)
 	ListRecipeAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeAccessParent, pageSize int32, pageOffset int64, filter string, fields []string) ([]model.RecipeAccess, error)
 	UpdateRecipeAccess(ctx context.Context, access model.RecipeAccess, fields []string) (model.RecipeAccess, error)
+
+	// Favoriting methods
+	CreateRecipeFavorite(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) error
+	DeleteRecipeFavorite(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) error
+	BulkDeleteRecipeFavorites(ctx context.Context, id model.RecipeId) error
 }

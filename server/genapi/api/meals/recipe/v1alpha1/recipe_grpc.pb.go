@@ -19,12 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	RecipeService_CreateRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/CreateRecipe"
-	RecipeService_ListRecipes_FullMethodName  = "/api.meals.recipe.v1alpha1.RecipeService/ListRecipes"
-	RecipeService_UpdateRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/UpdateRecipe"
-	RecipeService_DeleteRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/DeleteRecipe"
-	RecipeService_GetRecipe_FullMethodName    = "/api.meals.recipe.v1alpha1.RecipeService/GetRecipe"
-	RecipeService_ScrapeRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/ScrapeRecipe"
+	RecipeService_CreateRecipe_FullMethodName     = "/api.meals.recipe.v1alpha1.RecipeService/CreateRecipe"
+	RecipeService_ListRecipes_FullMethodName      = "/api.meals.recipe.v1alpha1.RecipeService/ListRecipes"
+	RecipeService_UpdateRecipe_FullMethodName     = "/api.meals.recipe.v1alpha1.RecipeService/UpdateRecipe"
+	RecipeService_DeleteRecipe_FullMethodName     = "/api.meals.recipe.v1alpha1.RecipeService/DeleteRecipe"
+	RecipeService_GetRecipe_FullMethodName        = "/api.meals.recipe.v1alpha1.RecipeService/GetRecipe"
+	RecipeService_ScrapeRecipe_FullMethodName     = "/api.meals.recipe.v1alpha1.RecipeService/ScrapeRecipe"
+	RecipeService_FavoriteRecipe_FullMethodName   = "/api.meals.recipe.v1alpha1.RecipeService/FavoriteRecipe"
+	RecipeService_UnfavoriteRecipe_FullMethodName = "/api.meals.recipe.v1alpha1.RecipeService/UnfavoriteRecipe"
 )
 
 // RecipeServiceClient is the client API for RecipeService service.
@@ -45,6 +47,10 @@ type RecipeServiceClient interface {
 	GetRecipe(ctx context.Context, in *GetRecipeRequest, opts ...grpc.CallOption) (*Recipe, error)
 	// scrape and save a recipe from a uri
 	ScrapeRecipe(ctx context.Context, in *ScrapeRecipeRequest, opts ...grpc.CallOption) (*ScrapeRecipeResponse, error)
+	// favorite a recipe
+	FavoriteRecipe(ctx context.Context, in *FavoriteRecipeRequest, opts ...grpc.CallOption) (*FavoriteRecipeResponse, error)
+	// unfavorite a recipe
+	UnfavoriteRecipe(ctx context.Context, in *UnfavoriteRecipeRequest, opts ...grpc.CallOption) (*UnfavoriteRecipeResponse, error)
 }
 
 type recipeServiceClient struct {
@@ -115,6 +121,26 @@ func (c *recipeServiceClient) ScrapeRecipe(ctx context.Context, in *ScrapeRecipe
 	return out, nil
 }
 
+func (c *recipeServiceClient) FavoriteRecipe(ctx context.Context, in *FavoriteRecipeRequest, opts ...grpc.CallOption) (*FavoriteRecipeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FavoriteRecipeResponse)
+	err := c.cc.Invoke(ctx, RecipeService_FavoriteRecipe_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *recipeServiceClient) UnfavoriteRecipe(ctx context.Context, in *UnfavoriteRecipeRequest, opts ...grpc.CallOption) (*UnfavoriteRecipeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnfavoriteRecipeResponse)
+	err := c.cc.Invoke(ctx, RecipeService_UnfavoriteRecipe_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RecipeServiceServer is the server API for RecipeService service.
 // All implementations must embed UnimplementedRecipeServiceServer
 // for forward compatibility.
@@ -133,6 +159,10 @@ type RecipeServiceServer interface {
 	GetRecipe(context.Context, *GetRecipeRequest) (*Recipe, error)
 	// scrape and save a recipe from a uri
 	ScrapeRecipe(context.Context, *ScrapeRecipeRequest) (*ScrapeRecipeResponse, error)
+	// favorite a recipe
+	FavoriteRecipe(context.Context, *FavoriteRecipeRequest) (*FavoriteRecipeResponse, error)
+	// unfavorite a recipe
+	UnfavoriteRecipe(context.Context, *UnfavoriteRecipeRequest) (*UnfavoriteRecipeResponse, error)
 	mustEmbedUnimplementedRecipeServiceServer()
 }
 
@@ -160,6 +190,12 @@ func (UnimplementedRecipeServiceServer) GetRecipe(context.Context, *GetRecipeReq
 }
 func (UnimplementedRecipeServiceServer) ScrapeRecipe(context.Context, *ScrapeRecipeRequest) (*ScrapeRecipeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ScrapeRecipe not implemented")
+}
+func (UnimplementedRecipeServiceServer) FavoriteRecipe(context.Context, *FavoriteRecipeRequest) (*FavoriteRecipeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FavoriteRecipe not implemented")
+}
+func (UnimplementedRecipeServiceServer) UnfavoriteRecipe(context.Context, *UnfavoriteRecipeRequest) (*UnfavoriteRecipeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnfavoriteRecipe not implemented")
 }
 func (UnimplementedRecipeServiceServer) mustEmbedUnimplementedRecipeServiceServer() {}
 func (UnimplementedRecipeServiceServer) testEmbeddedByValue()                       {}
@@ -290,6 +326,42 @@ func _RecipeService_ScrapeRecipe_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RecipeService_FavoriteRecipe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FavoriteRecipeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecipeServiceServer).FavoriteRecipe(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RecipeService_FavoriteRecipe_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecipeServiceServer).FavoriteRecipe(ctx, req.(*FavoriteRecipeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RecipeService_UnfavoriteRecipe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnfavoriteRecipeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecipeServiceServer).UnfavoriteRecipe(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RecipeService_UnfavoriteRecipe_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecipeServiceServer).UnfavoriteRecipe(ctx, req.(*UnfavoriteRecipeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RecipeService_ServiceDesc is the grpc.ServiceDesc for RecipeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -320,6 +392,14 @@ var RecipeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ScrapeRecipe",
 			Handler:    _RecipeService_ScrapeRecipe_Handler,
+		},
+		{
+			MethodName: "FavoriteRecipe",
+			Handler:    _RecipeService_FavoriteRecipe_Handler,
+		},
+		{
+			MethodName: "UnfavoriteRecipe",
+			Handler:    _RecipeService_UnfavoriteRecipe_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

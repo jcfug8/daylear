@@ -89,6 +89,9 @@ type Recipe struct {
 	RecipeAccessId  int64                 `gorm:"->;-:migration"` // only used for read from a join
 	PermissionLevel types.PermissionLevel `gorm:"->;-:migration"` // only used for read from a join
 	State           types.AccessState     `gorm:"->;-:migration"` // only used for read from a join
+
+	// RecipeFavorite data
+	RecipeFavoriteId int64 `gorm:"->;-:migration"` // only used for read from a join
 }
 
 // TableName -

@@ -32,6 +32,7 @@ const (
 	RecipeField_Cuisines             = "cuisines"
 	RecipeField_CreateTime           = "create_time"
 	RecipeField_UpdateTime           = "update_time"
+	RecipeField_Favorited            = "favorited"
 
 	RecipeField_RecipeAccess = "recipe_access"
 )
@@ -56,6 +57,7 @@ type Recipe struct {
 	Cuisines         []string
 	CreateTime       time.Time
 	UpdateTime       time.Time
+	Favorited        bool
 
 	// The access details for the current user/circle
 	RecipeAccess RecipeAccess

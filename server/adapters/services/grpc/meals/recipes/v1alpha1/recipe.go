@@ -290,3 +290,63 @@ func (s *RecipeService) ScrapeRecipe(ctx context.Context, request *pb.ScrapeReci
 		Recipe: recipeProto,
 	}, nil
 }
+
+// FavoriteRecipe favorites a recipe for the authenticated user.
+func (s *RecipeService) FavoriteRecipe(ctx context.Context, request *pb.FavoriteRecipeRequest) (*pb.FavoriteRecipeResponse, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC FavoriteRecipe called")
+
+	authAccount, err := headers.ParseAuthData(ctx)
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
+		return nil, err
+	}
+
+	// Parse the recipe name to get the ID
+	recipeId := model.RecipeId{}
+	_, err = s.recipeNamer.Parse(request.GetName(), &recipeId)
+	if err != nil {
+		log.Warn().Err(err).Msg("invalid recipe name")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid recipe name: %v", request.GetName())
+	}
+
+	// Call domain method to favorite the recipe
+	err = s.domain.FavoriteRecipe(ctx, authAccount, recipeId)
+	if err != nil {
+		log.Error().Err(err).Msg("domain.FavoriteRecipe failed")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	log.Info().Msg("gRPC FavoriteRecipe success")
+	return &pb.FavoriteRecipeResponse{}, nil
+}
+
+// UnfavoriteRecipe removes a recipe from the authenticated user's favorites.
+func (s *RecipeService) UnfavoriteRecipe(ctx context.Context, request *pb.UnfavoriteRecipeRequest) (*pb.UnfavoriteRecipeResponse, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC UnfavoriteRecipe called")
+
+	authAccount, err := headers.ParseAuthData(ctx)
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
+		return nil, err
+	}
+
+	// Parse the recipe name to get the ID
+	recipeId := model.RecipeId{}
+	_, err = s.recipeNamer.Parse(request.GetName(), &recipeId)
+	if err != nil {
+		log.Warn().Err(err).Msg("invalid recipe name")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid recipe name: %v", request.GetName())
+	}
+
+	// Call domain method to unfavorite the recipe
+	err = s.domain.UnfavoriteRecipe(ctx, authAccount, recipeId)
+	if err != nil {
+		log.Error().Err(err).Msg("domain.UnfavoriteRecipe failed")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	log.Info().Msg("gRPC UnfavoriteRecipe success")
+	return &pb.UnfavoriteRecipeResponse{}, nil
+}

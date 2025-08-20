@@ -163,6 +163,12 @@ func (d *Domain) DeleteRecipe(ctx context.Context, authAccount model.AuthAccount
 		return model.Recipe{}, err
 	}
 
+	err = tx.BulkDeleteRecipeFavorites(ctx, id)
+	if err != nil {
+		log.Error().Err(err).Msg("tx.BulkDeleteRecipeFavorites failed")
+		return model.Recipe{}, err
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		log.Error().Err(err).Msg("tx.Commit failed")
@@ -706,4 +712,57 @@ func resizeToFit(width, height, maxDim int) (newWidth, newHeight int) {
 	newWidth = int(float64(width) * scale)
 	newHeight = int(float64(height) * scale)
 	return
+}
+
+// FavoriteRecipe favorites a recipe for a user.
+func (d *Domain) FavoriteRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) error {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	if authAccount.AuthUserId == 0 {
+		log.Warn().Msg("user id required")
+		return domain.ErrInvalidArgument{Msg: "user id required"}
+	}
+
+	// Check if user has access to the recipe
+	dbRecipe, err := d.GetRecipe(ctx, authAccount, model.RecipeParent{}, id, nil)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to get recipe for favoriting")
+		return err
+	}
+
+	_, err = d.determineRecipeAccess(
+		ctx, authAccount, id,
+		withResourceVisibilityLevel(dbRecipe.VisibilityLevel),
+		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
+	)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine recipe access")
+		return err
+	}
+
+	err = d.repo.CreateRecipeFavorite(ctx, authAccount, id)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to create recipe favorite")
+		return err
+	}
+
+	log.Info().Int64("recipeId", id.RecipeId).Msg("recipe favorited successfully")
+	return nil
+}
+
+// UnfavoriteRecipe removes a recipe from user's favorites.
+func (d *Domain) UnfavoriteRecipe(ctx context.Context, authAccount model.AuthAccount, recipeId model.RecipeId) error {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	if authAccount.AuthUserId == 0 {
+		log.Warn().Msg("user id required")
+		return domain.ErrInvalidArgument{Msg: "user id required"}
+	}
+
+	err := d.repo.DeleteRecipeFavorite(ctx, authAccount, recipeId)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to delete recipe favorite")
+		return err
+	}
+
+	log.Info().Int64("recipeId", recipeId.RecipeId).Msg("recipe unfavorited successfully")
+	return nil
 }

@@ -124,6 +124,34 @@ service RecipeService {
       tags: "RecipeService"
     };
   }
+
+  // favorite a recipe
+  rpc FavoriteRecipe(FavoriteRecipeRequest) returns (FavoriteRecipeResponse) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {
+      post: "/meals/v1alpha1/{name=recipes/*}:favorite"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Favorite a recipe"
+      description: "Favorites a recipe by resource name."
+      tags: "RecipeService"
+    };
+  }
+
+  // unfavorite a recipe
+  rpc UnfavoriteRecipe(UnfavoriteRecipeRequest) returns (UnfavoriteRecipeResponse) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {
+      post: "/meals/v1alpha1/{name=recipes/*}:unfavorite"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Unfavorite a recipe"
+      description: "Unfavorites a recipe by resource name."
+      tags: "RecipeService"
+    };
+  }
 }
 
 // the main recipe object
@@ -190,6 +218,9 @@ message Recipe {
 
   // the total duration for the recipe
   google.protobuf.Duration total_duration = 20 [(google.api.field_behavior) = OPTIONAL];
+
+  // favorited
+  bool favorited = 21 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // the directions to make the recipe
   message Direction {
@@ -351,3 +382,27 @@ message ScrapeRecipeResponse {
   // the recipe
   Recipe recipe = 1;
 }
+
+// the request to favorite a recipe
+message FavoriteRecipeRequest {
+  // the name of the recipe to favorite
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.meals.recipe.v1alpha1/Recipe"
+  ];
+}
+
+// the response to favorite a recipe
+message FavoriteRecipeResponse {}
+
+// the request to unfavorite a recipe
+message UnfavoriteRecipeRequest {
+  // the name of the recipe to unfavorite
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.meals.recipe.v1alpha1/Recipe"
+  ];
+}
+
+// the response to unfavorite a recipe
+message UnfavoriteRecipeResponse {}

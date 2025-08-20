@@ -210,3 +210,62 @@ func (repo *Client) UpdateRecipe(ctx context.Context, authAccount cmodel.AuthAcc
 
 	return m, nil
 }
+
+// CreateRecipeFavorite creates a recipe favorite for a user.
+func (repo *Client) CreateRecipeFavorite(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.RecipeId) error {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("userId", authAccount.AuthUserId).
+		Int64("recipeId", id.RecipeId).
+		Logger()
+
+	favorite := gmodel.RecipeFavorite{
+		UserId:   authAccount.AuthUserId,
+		RecipeId: id.RecipeId,
+	}
+
+	err := repo.db.WithContext(ctx).Create(&favorite).Error
+	if err != nil {
+		log.Error().Err(err).Msg("unable to create recipe favorite")
+		return ConvertGormError(err)
+	}
+
+	log.Info().Msg("recipe favorite created successfully")
+	return nil
+}
+
+// DeleteRecipeFavorite removes a recipe favorite for a user.
+func (repo *Client) DeleteRecipeFavorite(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.RecipeId) error {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("userId", authAccount.AuthUserId).
+		Int64("recipeId", id.RecipeId).
+		Logger()
+
+	err := repo.db.WithContext(ctx).
+		Where("user_id = ? AND recipe_id = ?", authAccount.AuthUserId, id.RecipeId).
+		Delete(&gmodel.RecipeFavorite{}).Error
+	if err != nil {
+		log.Error().Err(err).Msg("unable to delete recipe favorite")
+		return ConvertGormError(err)
+	}
+
+	log.Info().Msg("recipe favorite deleted successfully")
+	return nil
+}
+
+// BulkDeleteRecipeFavorites removes a;; recipe favorites for a recipe.
+func (repo *Client) BulkDeleteRecipeFavorites(ctx context.Context, id cmodel.RecipeId) error {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("recipeId", id.RecipeId).
+		Logger()
+
+	err := repo.db.WithContext(ctx).
+		Where("recipe_id = ?", id.RecipeId).
+		Delete(&gmodel.RecipeFavorite{}).Error
+	if err != nil {
+		log.Error().Err(err).Msg("unable to bulk delete recipe favorite")
+		return ConvertGormError(err)
+	}
+
+	log.Info().Msg("recipe favorites deleted successfully")
+	return nil
+}
