@@ -9,7 +9,7 @@
     </div>
 
     <v-row v-if="!loading && calendars.length > 0">
-      <v-col md="3" sm="4" cols="6" v-for="calendar in calendars" :key="calendar.name">
+      <v-col class="pa-1" md="3" sm="4" cols="6" v-for="calendar in calendars" :key="calendar.name">
         <v-card
           :to="'/'+calendar.name"
           hover

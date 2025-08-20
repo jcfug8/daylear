@@ -6,7 +6,7 @@
       <h3 class="text-grey-lighten-1 mb-2">{{ emptyText }}</h3>
     </div>
     <v-row v-if="!loading && users.length > 0">
-      <v-col md="3" sm="4" cols="6" v-for="user in users" :key="user.name">
+      <v-col class="pa-1" md="3" sm="4" cols="6" v-for="user in users" :key="user.name">
         <v-card
           class="user-card"
           hover

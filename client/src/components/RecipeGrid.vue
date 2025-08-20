@@ -9,10 +9,10 @@
     </div>
 
     <v-row v-if="!loading && recipes.length > 0">
-      <v-col md="3" sm="4" cols="6" v-for="recipe in recipes" :key="recipe.name">
+      <v-col class="pa-1" md="3" sm="4" cols="6" v-for="recipe in recipes" :key="recipe.name">
         <v-card
           :to="'/'+recipe.name"
-          style="aspect-ratio: 8/5"
+          style="aspect-ratio: 8/6"
           hover
           class="recipe-card"
         >

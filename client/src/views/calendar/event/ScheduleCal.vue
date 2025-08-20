@@ -518,3 +518,14 @@ const calendarChoices = computed(() => {
   min-height: 0;
 }
 </style>
+
+<style>
+:root {
+    --sx-spacing-padding1: 1px;
+    --sx-spacing-padding2: 3px;
+    --sx-spacing-padding3: 5px;
+    --sx-spacing-padding4: 7px;
+    --sx-spacing-padding6: 9px;
+    --sx-spacing-modal-padding: 13px;
+}
+</style>

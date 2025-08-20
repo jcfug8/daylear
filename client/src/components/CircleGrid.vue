@@ -9,7 +9,7 @@
     </div>
 
     <v-row v-if="!loading && circles.length > 0">
-      <v-col md="3" sm="4" cols="6" v-for="circle in circles" :key="circle.name">
+      <v-col class="pa-1" md="3" sm="4" cols="6" v-for="circle in circles" :key="circle.name">
         <v-card
           :to="'/'+circle.name"
           style="aspect-ratio: 8/6"
