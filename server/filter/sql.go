@@ -31,9 +31,14 @@ type SQLConverter struct {
 }
 
 type Field struct {
-	Name  string
-	Table string
+	Name            string
+	Table           string
+	CustomConverter CustomConverter
 }
+
+// CustomConverter allows custom logic for field conversions
+// Returns (customSQL, used) where used=true means use custom logic, false means fall back to default
+type CustomConverter func(ctx *Conversion, field string, operator string, value interface{}) (string, bool)
 
 func (f Field) String() string {
 	name := f.Name
@@ -275,6 +280,27 @@ func (c *Conversion) convertCallExpr(call *expr.Expr_Call) (string, error) {
 	field, err := c.convertFieldExpr(args[0])
 	if err != nil {
 		return "", err
+	}
+
+	simpleField, err := c.convertFieldExprRecursive(args[0])
+	if err != nil {
+		return "", err
+	}
+
+	// Check if this field has a custom converter before handling default logic
+	if fieldInfo, exists := c.FieldMapping[simpleField]; exists && fieldInfo.CustomConverter != nil {
+		// Try custom converter first
+		if len(args) == 2 {
+			value, err := c.convertValueExpr(args[1])
+			if err != nil {
+				return "", err
+			}
+
+			if customSQL, used := fieldInfo.CustomConverter(c, field, function, value); used {
+				return customSQL, nil
+			}
+			// If custom converter returns false, fall through to default behavior
+		}
 	}
 
 	// Handle different function types

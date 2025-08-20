@@ -18,6 +18,15 @@
         >
           <v-card-title style="font-size: 1rem;">
             {{ recipe.title }}
+            <v-icon 
+                v-if="recipe.favorited"
+                size="24" 
+                class="favorite-heart"
+                @click.stop.prevent="$emit('toggleFavorite', recipe)"
+                style="cursor: pointer;"
+              >
+              mdi-heart
+              </v-icon>
           </v-card-title>
           <v-card-subtitle style="font-size: 0.8rem;">
             {{ recipe.description }}
@@ -74,7 +83,6 @@
 
 <script setup lang="ts">
 import type { Recipe } from '@/genapi/api/meals/recipe/v1alpha1'
-import { defineEmits } from 'vue'
 
 interface Props {
   recipes: Recipe[]
@@ -82,7 +90,6 @@ interface Props {
 }
 
 defineProps<Props>()
-defineEmits(['accept', 'decline'])
 
 function getPermissionColor(permission: string) {
   switch (permission) {
@@ -130,6 +137,19 @@ function getPermissionText(permission: string) {
   bottom: 8px;
   right: 8px;
   z-index: 1;
+}
+
+.favorite-heart {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  /* background-color: rgba(255, 255, 255, 0.9); */
+  border-radius: 50%;
+  padding: 4px;
+  transition: all 0.2s ease-in-out;
+  color: red;
 }
 
 .accept-btn {

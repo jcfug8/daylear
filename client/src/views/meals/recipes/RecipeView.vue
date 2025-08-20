@@ -237,6 +237,15 @@
           </v-card>
         </v-container>
       </v-tabs-window-item>
+      <v-icon 
+        size="24" 
+        :color="recipe.favorited ? 'red' : 'black'"
+        class="favorite-heart"
+        @click="toggleFavorite"
+        style="cursor: pointer;"
+      >
+      {{ recipe.favorited ? 'mdi-heart' : 'mdi-heart-outline' }}
+      </v-icon>
     </v-tabs-window>
 
 
@@ -1120,6 +1129,23 @@ async function handleRequestAccess() {
   }
 }
 
+
+// *** Favorite Recipe ***
+
+async function toggleFavorite() {
+  if (!recipe.value?.name) return
+  try {
+    if (recipe.value.favorited) {
+      await recipeService.UnfavoriteRecipe({ name: recipe.value.name })
+    } else {
+      await recipeService.FavoriteRecipe({ name: recipe.value.name })
+    }
+    recipe.value.favorited = !recipe.value.favorited
+  } catch (error) {
+    console.error('Error toggling favorite:', error)
+  }
+}
+
 // *** Utility Functions ***
 
 function isUrl(str: string): boolean {
@@ -1156,5 +1182,18 @@ function parseDuration(duration: string): number {
   flex-direction: column;
   gap: 8px;
   z-index: 1000;
+}
+
+.favorite-heart {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10000000;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  /* background-color: rgba(255, 255, 255, 0.9); */
+  border-radius: 50%;
+  padding: 4px;
+  transition: all 0.2s ease-in-out;
+  color: red;
 }
 </style>

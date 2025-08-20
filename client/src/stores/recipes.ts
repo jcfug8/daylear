@@ -37,7 +37,7 @@ export const useRecipesStore = defineStore('recipes', () => {
 
   // Load my recipes (recipes where I have admin permission)
   async function loadMyRecipes(parent: string) {
-    const recipes = await loadRecipes(parent, 'state = 200')
+    const recipes = await loadRecipes(parent, 'state = 200 OR favorited = true')
     myRecipes.value = recipes
   }
 
@@ -83,6 +83,7 @@ export const useRecipesStore = defineStore('recipes', () => {
       updateTime: undefined,
       prepDuration: undefined,
       totalDuration: undefined,
+      favorited: false,
     }
   }
 

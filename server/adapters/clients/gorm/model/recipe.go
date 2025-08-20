@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/jcfug8/daylear/server/core/fieldmask"
@@ -63,7 +64,23 @@ var RecipeSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
 	"visibility": {Name: RecipeFields_VisibilityLevel, Table: RecipeTable},
 	"permission": {Name: RecipeAccessFields_PermissionLevel, Table: RecipeAccessTable},
 	"state":      {Name: RecipeAccessFields_State, Table: RecipeAccessTable},
+	"favorited":  {Name: RecipeFavoriteFields_RecipeFavoriteId, Table: RecipeFavoriteTable, CustomConverter: favoritedSQLFilterConverter},
 }, true)
+
+// Custom converter for favorited field
+func favoritedSQLFilterConverter(ctx *filter.Conversion, field string, operator string, value interface{}) (string, bool) {
+	if operator == "=" {
+		if boolValue, ok := value.(bool); ok {
+			if boolValue {
+				return fmt.Sprintf("%s IS NOT NULL", field), true
+			} else {
+				return fmt.Sprintf("%s IS NULL", field), true
+			}
+		}
+	}
+	// For any other operator or value type, let the default converter handle it
+	return "", false
+}
 
 // Recipe -
 type Recipe struct {
