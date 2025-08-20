@@ -9,14 +9,16 @@
     </div>
 
     <v-row v-if="!loading && calendars.length > 0">
-      <v-col lg="3" md="4" sm="6" cols="12" v-for="calendar in calendars" :key="calendar.name">
+      <v-col md="3" sm="4" cols="6" v-for="calendar in calendars" :key="calendar.name">
         <v-card
           :to="'/'+calendar.name"
-          :title="calendar.title"
           hover
           class="calendar-card pb-10"
         >
-          <v-card-subtitle>
+          <v-card-title style="font-size: 1rem;">
+            {{ calendar.title }}
+          </v-card-title>
+          <v-card-subtitle style="font-size: 0.8rem;">
             <div v-if="calendar.description" class="text-body-2 mb-1" style="max-height: 2.5em; overflow: hidden; text-overflow: ellipsis; white-space: pre-line;">
               {{ calendar.description.length > 80 ? calendar.description.slice(0, 80) + '…' : calendar.description }}
             </div>

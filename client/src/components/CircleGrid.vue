@@ -9,21 +9,23 @@
     </div>
 
     <v-row v-if="!loading && circles.length > 0">
-      <v-col lg="3" md="4" sm="6" cols="12" v-for="circle in circles" :key="circle.name">
+      <v-col md="3" sm="4" cols="6" v-for="circle in circles" :key="circle.name">
         <v-card
           :to="'/'+circle.name"
-          :title="circle.title"
           style="aspect-ratio: 8/6"
           hover
           class="circle-card"
         >
-          <v-card-subtitle>
+          <v-card-title style="font-size: 1rem;">
+            {{ circle.title }}
+          </v-card-title>
+          <v-card-subtitle style="font-size: 0.8rem;">
             <div v-if="circle.description" class="text-body-2 mb-1" style="max-height: 2.5em; overflow: hidden; text-overflow: ellipsis; white-space: pre-line;">
               {{ circle.description.length > 80 ? circle.description.slice(0, 80) + '…' : circle.description }}
             </div>
           </v-card-subtitle>
           <v-img
-            class="mt-4"
+            class="mt-2"
             style="background-color: lightgray"
             height="100%"
             :src="circle.imageUri"

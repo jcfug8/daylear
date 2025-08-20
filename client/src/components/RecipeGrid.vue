@@ -9,19 +9,21 @@
     </div>
 
     <v-row v-if="!loading && recipes.length > 0">
-      <v-col lg="3" md="4" sm="6" cols="12" v-for="recipe in recipes" :key="recipe.name">
+      <v-col md="3" sm="4" cols="6" v-for="recipe in recipes" :key="recipe.name">
         <v-card
           :to="'/'+recipe.name"
-          :title="recipe.title"
-          style="aspect-ratio: 8/6"
+          style="aspect-ratio: 8/5"
           hover
           class="recipe-card"
         >
-          <v-card-subtitle>
+          <v-card-title style="font-size: 1rem;">
+            {{ recipe.title }}
+          </v-card-title>
+          <v-card-subtitle style="font-size: 0.8rem;">
             {{ recipe.description }}
           </v-card-subtitle>
           <v-img
-            class="mt-4"
+            class="mt-2"
             style="background-color: lightgray"
             height="100%"
             :src="recipe.imageUri"
@@ -45,8 +47,8 @@
             {{ getPermissionText(recipe.recipeAccess?.permissionLevel) }}
           </v-chip>
 
-          <!-- Accept button for pending recipes -->
         </v-card>
+        <!-- Accept button for pending recipes -->
         <v-btn
           v-if="recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING'"
           color="success"
