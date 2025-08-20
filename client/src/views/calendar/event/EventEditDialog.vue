@@ -83,16 +83,19 @@
         <p class="mb-4">This is a recurring event. How would you like to delete it?</p>
         <v-radio-group v-model="selectedDeleteOption" class="mt-4">
           <v-radio
+            v-if="pendingDeleteData?.availableOptions?.includes('this-event')"
             value="this-event"
             label="This event only"
             class="mb-2"
           />
           <v-radio
+            v-if="pendingDeleteData?.availableOptions?.includes('all-future')"
             value="all-future"
             label="This and all future events"
             class="mb-2"
           />
           <v-radio
+            v-if="pendingDeleteData?.availableOptions?.includes('all-events')"
             value="all-events"
             label="All events in the series"
             class="mb-2"
@@ -115,6 +118,9 @@ import { eventService } from '@/api/api'
 import EventForm, { type EventFormData } from './EventForm.vue'
 import type { CalendarEventExternal } from '@schedule-x/calendar'
 import { datetime, RRule } from 'rrule'
+
+type RecurringUpdateOption = 'this-event' | 'all-future' | 'all-events'
+type RecurringDeleteOption = 'this-event' | 'all-future' | 'all-events' | 'single-event'
 
 const props = withDefaults(defineProps<{
   modelValue: boolean
@@ -146,7 +152,10 @@ const pendingUpdateData = ref<{
   newEvent: Event
   oldEvent: Event
   displayEvent: CalendarEventExternal
-  availableOptions?: ('this-event' | 'all-future' | 'all-events')[]
+  availableOptions?: RecurringUpdateOption[]
+} | null>(null)
+const pendingDeleteData = ref<{
+  availableOptions?: RecurringDeleteOption[]
 } | null>(null)
 
 const form = ref<EventFormData>({
@@ -385,24 +394,33 @@ async function update() {
         updating.value = false // Reset updating state since we're waiting for user choice
         return // Don't proceed with update yet, wait for user choice
       } else if (futureOnlyRecurringEditFields.some(field => diff.includes(field))) {
+        let availableOptions: RecurringUpdateOption[] = ['all-future']
+        if (displayStart.toISOString() == oldEvent.startTime) {
+          availableOptions = ['all-events']
+        }
         // Changing future-only fields - only show "all future events" option
         pendingUpdateData.value = {
           newEvent,
           oldEvent,
           displayEvent: props.displayEvent,
-          availableOptions: ['all-future']
+          availableOptions: availableOptions
         }
         selectedUpdateOption.value = 'all-future' // Set default for this case
         showRecurringChoiceModal.value = true
         updating.value = false // Reset updating state since we're waiting for user choice
         return // Don't proceed with update yet, wait for user choice
       } else {
+        let availableOptions: RecurringUpdateOption[] = ['this-event', 'all-future', 'all-events']
+        if (displayStart.toISOString() == oldEvent.startTime) {
+          availableOptions = ['all-events']
+        }
+       
         // Other changes - show all three options
         pendingUpdateData.value = {
           newEvent,
           oldEvent,
           displayEvent: props.displayEvent,
-          availableOptions: ['this-event', 'all-future', 'all-events']
+          availableOptions: availableOptions
         }
         selectedUpdateOption.value = 'this-event' // Set default for this case
         showRecurringChoiceModal.value = true
@@ -493,14 +511,14 @@ async function confirmRecurringUpdate() {
         if (newEvent.parentEvent) {
           updatedEvent = await updateEvent(newEvent)
         } else {
-          newEvent.startTime = new Date(displayEvent.start).toISOString()
-          newEvent.endTime = new Date(displayEvent.end).toISOString()
+          newEvent.startTime = new Date(form.value.start).toISOString()
+          newEvent.endTime = new Date(form.value.end).toISOString()
           // update the old event's excluded times the the start time of
           // the new event
           if (!oldEvent.excludedTimes) {
             oldEvent.excludedTimes = []
           }
-          oldEvent.excludedTimes.push(newEvent.startTime)
+          oldEvent.excludedTimes.push(new Date(displayEvent.start).toISOString())
           updatedEvent = await updateEvent(oldEvent)
 
           newEvent.parentEvent = oldEvent.name
@@ -518,8 +536,8 @@ async function confirmRecurringUpdate() {
         updatedEvent = await updateEvent(oldEvent)
 
         // create new event
-        newEvent.startTime = new Date(displayEvent.start).toISOString()
-        newEvent.endTime = new Date(displayEvent.end).toISOString()
+        newEvent.startTime = new Date(form.value.start).toISOString()
+        newEvent.endTime = new Date(form.value.end).toISOString()
         const calendarName = newEvent.name?.substring(0, newEvent.name.indexOf('/events/'))
         await createEvent(newEvent, calendarName)
         break
@@ -586,9 +604,19 @@ function updateRecurrenceRulesForAllFutureEvents(newEvent: Event, oldEvent: Even
 // Delete event functionality
 async function deleteEvent() {
   if (!props.event || !props.displayEvent) return
+
   
   // If this is a recurring event, show the choice modal
   if (props.event.recurrenceRule && props.event.recurrenceRule !== '') {
+    let availableOptions: RecurringDeleteOption[] = ['this-event', 'all-future', 'all-events']
+    const eventStart = new Date(props.event.startTime as string)
+    const displayStart = new Date(props.displayEvent.start)
+    if (displayStart.toISOString() == eventStart.toISOString()) {
+      availableOptions = ['all-events']
+    }
+    pendingDeleteData.value = {
+      availableOptions: availableOptions
+    }
     showDeleteRecurringChoiceModal.value = true
   } else {
     // Non-recurring event, delete directly
@@ -609,7 +637,7 @@ async function confirmRecurringDelete() {
   await performDelete(selectedDeleteOption.value)
 }
 
-async function performDelete(option: 'this-event' | 'all-future' | 'all-events' | 'single-event') {
+async function performDelete(option: RecurringDeleteOption) {
   if (!props.event || !props.displayEvent) return
   
   deleting.value = true
@@ -659,11 +687,9 @@ async function performDelete(option: 'this-event' | 'all-future' | 'all-events' 
           if (parentEvent) {
             await eventService.DeleteEvent({ name: parentEvent.name })
           }
-          await deleteAllEventsWithParent(eventToDelete.parentEvent)
         } else {
           // Delete this event and all its children
           await eventService.DeleteEvent({ name: eventToDelete.name || '' })
-          await deleteAllEventsWithParent(eventToDelete.name || '')
         }
         break
       case 'single-event':
@@ -697,13 +723,6 @@ async function deleteFutureEventsWithParent(parentName: string) {
   // This would require a ListEvents API call with filtering
   // For now, we'll rely on the parent component to refresh the events list
   console.log('Deleting future events with parent:', parentName)
-}
-
-// Helper function to delete all events with a specific parent
-async function deleteAllEventsWithParent(parentName: string) {
-  // This would require a ListEvents API call with filtering
-  // For now, we'll rely on the parent component to refresh the events list
-  console.log('Deleting all events with parent:', parentName)
 }
 
 // Helper function to update recurrence rules for delete operations

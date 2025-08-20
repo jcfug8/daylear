@@ -82,7 +82,7 @@ const writableCalendars = computed(() => {
 // Computed property to check if the create button should be disabled
 const isCreateButtonDisabled = computed(() => {
   return creating.value || 
-         !hasValidationErrors.value || 
+         hasValidationErrors.value || 
          !form.value.calendarName || 
          !form.value.title || 
          !form.value.start

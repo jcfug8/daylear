@@ -133,20 +133,36 @@ func (r Event) GenerateClones(startingTime, endingTime time.Time) ([]Event, erro
 	return instances, nil
 }
 
-func (r Event) GetUntil() *time.Time {
+func (r Event) GetLastOccurence(includeRDates bool) *time.Time {
 	if r.RecurrenceRule == nil || *r.RecurrenceRule == "" {
 		return r.EndTime
 	}
 
-	rr, err := rrule.StrToRRuleSet("RRULE:" + *r.RecurrenceRule)
-	if err != nil {
-		return r.EndTime
-	}
+	recurrenceRule := "RRULE:" + *r.RecurrenceRule
 
-	until := rr.GetRRule().GetUntil()
-	if until.IsZero() {
+	// Parse the recurrence rule
+	rule, err := rrule.StrToRRuleSet(recurrenceRule)
+	if err != nil {
 		return nil
 	}
 
-	return &until
+	// Set the start time for the rule
+	rule.DTStart(r.StartTime)
+	rule.SetExDates(r.ExcludedDates)
+	if includeRDates {
+		rule.SetRDates(r.AdditionalDates)
+	}
+
+	var lastOccurrence *time.Time
+
+	iter := rule.Iterator()
+	for {
+		next, ok := iter()
+		if !ok {
+			break
+		}
+		lastOccurrence = &next
+	}
+
+	return lastOccurrence
 }

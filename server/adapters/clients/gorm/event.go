@@ -146,6 +146,81 @@ func (c *Client) DeleteEvent(ctx context.Context, id model.EventId) (model.Event
 	return m, nil
 }
 
+// DeleteChildEvents deletes all events that have the given parent event id from the database
+func (c *Client) DeleteChildEvents(ctx context.Context, id model.EventId) error {
+	log := logutil.EnrichLoggerWithContext(c.log, ctx).With().
+		Int64("event_id", id.EventId).
+		Logger()
+
+	var events []gmodel.Event
+	var eventDataIds []int64
+
+	eventRes := c.db.WithContext(ctx).
+		Where("parent_event_id = ?", id.EventId).
+		Clauses(clause.Returning{}).
+		Find(&events)
+
+	if eventRes.Error != nil {
+		log.Error().Err(eventRes.Error).Msg("unable to delete child events")
+		return ConvertGormError(eventRes.Error)
+	}
+
+	for _, event := range events {
+		eventDataIds = append(eventDataIds, event.EventDataId)
+	}
+
+	eventDataRes := c.db.WithContext(ctx).
+		Where("event_data_id IN (?)", eventDataIds).
+		Delete(&gmodel.EventData{})
+
+	if eventDataRes.Error != nil {
+		log.Error().Err(eventDataRes.Error).Msg("unable to delete event data")
+		return ConvertGormError(eventDataRes.Error)
+	}
+
+	return nil
+}
+
+// BulkDeleteEvents deletes a list of events from the database
+func (c *Client) BulkDeleteEvents(ctx context.Context, ids []model.EventId) error {
+	log := logutil.EnrichLoggerWithContext(c.log, ctx).With().
+		Int("num_events", len(ids)).
+		Logger()
+
+	var events []gmodel.Event
+	var eventIds []int64
+	var eventDataIds []int64
+
+	for _, id := range ids {
+		eventIds = append(eventIds, id.EventId)
+	}
+
+	eventRes := c.db.WithContext(ctx).
+		Where("event_id IN (?)", eventIds).
+		Clauses(clause.Returning{}).
+		Find(&events)
+
+	if eventRes.Error != nil {
+		log.Error().Err(eventRes.Error).Msg("unable to delete child events")
+		return ConvertGormError(eventRes.Error)
+	}
+
+	for _, event := range events {
+		eventDataIds = append(eventDataIds, event.EventDataId)
+	}
+
+	eventDataRes := c.db.WithContext(ctx).
+		Where("event_data_id IN (?)", eventDataIds).
+		Delete(&gmodel.EventData{})
+
+	if eventDataRes.Error != nil {
+		log.Error().Err(eventDataRes.Error).Msg("unable to delete event data")
+		return ConvertGormError(eventDataRes.Error)
+	}
+
+	return nil
+}
+
 // GetEvent retrieves an event from the database
 func (c *Client) GetEvent(ctx context.Context, authAccount model.AuthAccount, id model.EventId, fields []string) (model.Event, error) {
 	log := logutil.EnrichLoggerWithContext(c.log, ctx).With().
@@ -210,9 +285,15 @@ func (c *Client) ListEvents(ctx context.Context, authAccount model.AuthAccount, 
 		Select(fields).
 		Joins("JOIN event_data ON event.event_data_id = event_data.event_data_id").
 		Where("event_data.calendar_id = ?", parent.CalendarId).
-		Order(clause.OrderBy{Columns: orders}).
-		Limit(int(pageSize)).
-		Offset(int(offset))
+		Order(clause.OrderBy{Columns: orders})
+
+	if pageSize > 0 {
+		tx = tx.Limit(int(pageSize))
+	}
+
+	if offset > 0 {
+		tx = tx.Offset(int(offset))
+	}
 
 	conversion, err := gmodel.EventSQLConverter.Convert(filter)
 	if err != nil {
