@@ -131,6 +131,14 @@ service RecipeService {
     option (google.api.http) = {
       post: "/meals/v1alpha1/{name=recipes/*}:favorite"
       body: "*"
+      additional_bindings: {
+        post: "/meals/v1alpha1/{name=circles/*/recipes/*}:favorite"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/meals/v1alpha1/{name=users/*/recipes/*}:favorite"
+        body: "*"
+      }
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Favorite a recipe"
@@ -145,6 +153,14 @@ service RecipeService {
     option (google.api.http) = {
       post: "/meals/v1alpha1/{name=recipes/*}:unfavorite"
       body: "*"
+      additional_bindings: {
+        post: "/meals/v1alpha1/{name=circles/*/recipes/*}:unfavorite"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/meals/v1alpha1/{name=users/*/recipes/*}:unfavorite"
+        body: "*"
+      }
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Unfavorite a recipe"

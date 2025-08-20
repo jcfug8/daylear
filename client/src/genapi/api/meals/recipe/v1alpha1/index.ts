@@ -76,6 +76,10 @@ export type Recipe = {
   //
   // Behaviors: OPTIONAL
   totalDuration: wellKnownDuration | undefined;
+  // favorited
+  //
+  // Behaviors: OUTPUT_ONLY
+  favorited: boolean | undefined;
 };
 
 // the directions to make the recipe

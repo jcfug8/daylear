@@ -51,6 +51,7 @@ var RecipeFieldMasker = fieldmask.NewSQLFieldMasker(Recipe{}, map[string][]field
 	model.RecipeField_Cuisines:             {{Name: RecipeFields_Cuisines, Table: RecipeTable, Updatable: true}},
 	model.RecipeField_CreateTime:           {{Name: RecipeFields_CreateTime, Table: RecipeTable}},
 	model.RecipeField_UpdateTime:           {{Name: RecipeFields_UpdateTime, Table: RecipeTable}},
+	model.RecipeField_Favorited:            {{Name: RecipeFavoriteFields_RecipeFavoriteId, Table: RecipeFavoriteTable}},
 
 	model.RecipeField_RecipeAccess: {
 		{Name: RecipeAccessFields_RecipeAccessId, Table: RecipeAccessTable},

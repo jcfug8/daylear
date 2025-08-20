@@ -14,8 +14,8 @@ type recipeDomain interface {
 	GetRecipe(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, id model.RecipeId, fields []string) (model.Recipe, error)
 	ListRecipes(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, pageSize int32, offset int64, filter string, fields []string) ([]model.Recipe, error)
 	UpdateRecipe(ctx context.Context, authAccount model.AuthAccount, recipe model.Recipe, fields []string) (model.Recipe, error)
-	FavoriteRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) error
-	UnfavoriteRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) error
+	FavoriteRecipe(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, id model.RecipeId) error
+	UnfavoriteRecipe(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, id model.RecipeId) error
 
 	ScrapeRecipe(ctx context.Context, authAccount model.AuthAccount, uri string) (model.Recipe, error)
 	OCRRecipe(ctx context.Context, authAccount model.AuthAccount, imageReaders []io.Reader) (model.Recipe, error)

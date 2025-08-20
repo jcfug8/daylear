@@ -155,6 +155,174 @@
         ]
       }
     },
+    "/meals/v1alpha1/{name_1}:favorite": {
+      "post": {
+        "summary": "Favorite a recipe",
+        "description": "Favorites a recipe by resource name.",
+        "operationId": "RecipeService_FavoriteRecipe2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1FavoriteRecipeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "the name of the recipe to favorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/recipes/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecipeServiceFavoriteRecipeBody"
+            }
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name_1}:unfavorite": {
+      "post": {
+        "summary": "Unfavorite a recipe",
+        "description": "Unfavorites a recipe by resource name.",
+        "operationId": "RecipeService_UnfavoriteRecipe2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UnfavoriteRecipeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "the name of the recipe to unfavorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/recipes/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecipeServiceUnfavoriteRecipeBody"
+            }
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name_2}:favorite": {
+      "post": {
+        "summary": "Favorite a recipe",
+        "description": "Favorites a recipe by resource name.",
+        "operationId": "RecipeService_FavoriteRecipe3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1FavoriteRecipeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_2",
+            "description": "the name of the recipe to favorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/recipes/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecipeServiceFavoriteRecipeBody"
+            }
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name_2}:unfavorite": {
+      "post": {
+        "summary": "Unfavorite a recipe",
+        "description": "Unfavorites a recipe by resource name.",
+        "operationId": "RecipeService_UnfavoriteRecipe3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UnfavoriteRecipeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_2",
+            "description": "the name of the recipe to unfavorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/recipes/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecipeServiceUnfavoriteRecipeBody"
+            }
+          }
+        ],
+        "tags": [
+          "RecipeService"
+        ]
+      }
+    },
     "/meals/v1alpha1/{name}": {
       "get": {
         "summary": "Get a recipe",
@@ -641,6 +809,11 @@
                 "totalDuration": {
                   "type": "string",
                   "title": "the total duration for the recipe"
+                },
+                "favorited": {
+                  "type": "boolean",
+                  "title": "favorited",
+                  "readOnly": true
                 }
               },
               "title": "the recipe to update",
@@ -993,6 +1166,11 @@
         "totalDuration": {
           "type": "string",
           "title": "the total duration for the recipe"
+        },
+        "favorited": {
+          "type": "boolean",
+          "title": "favorited",
+          "readOnly": true
         }
       },
       "title": "the main recipe object",

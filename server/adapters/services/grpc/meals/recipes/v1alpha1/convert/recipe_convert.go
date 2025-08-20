@@ -78,6 +78,7 @@ func RecipeToProto(RecipeNamer namer.ReflectNamer, AccessNamer namer.ReflectName
 	proto.Cuisines = recipe.Cuisines
 	proto.CreateTime = timestamppb.New(recipe.CreateTime)
 	proto.UpdateTime = timestamppb.New(recipe.UpdateTime)
+	proto.Favorited = recipe.Favorited
 
 	// Handle recipe_access field if present
 	if (recipe.RecipeAccess != model.RecipeAccess{}) {

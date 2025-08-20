@@ -47,6 +47,7 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 		}
 		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_circle_id = ? AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?)", authAccount.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
 			Joins("LEFT JOIN recipe_access as ra ON recipe.recipe_id = ra.recipe_id AND ra.recipient_user_id = ? AND (recipe.visibility_level != ? OR ra.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Joins("LEFT JOIN recipe_favorite ON recipe.recipe_id = recipe_favorite.recipe_id AND recipe_favorite.circle_id = ?", authAccount.CircleId).
 			Where("(recipe.visibility_level <= ? OR (recipe_access.recipient_circle_id = ? AND ra.state = ?))",
 				maxVisibilityLevel, authAccount.CircleId, types.AccessState_ACCESS_STATE_ACCEPTED)
 	} else if authAccount.UserId != 0 && authAccount.UserId != authAccount.AuthUserId {
@@ -56,10 +57,12 @@ func (repo *Client) ListRecipes(ctx context.Context, authAccount cmodel.AuthAcco
 		}
 		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ? AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?)", authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
 			Joins("LEFT JOIN recipe_access as ra ON recipe.recipe_id = ra.recipe_id AND ra.recipient_user_id = ? AND (recipe.visibility_level != ? OR ra.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Joins("LEFT JOIN recipe_favorite ON recipe.recipe_id = recipe_favorite.recipe_id AND recipe_favorite.user_id = ?", authAccount.UserId).
 			Where("(recipe.visibility_level <= ? OR (recipe_access.recipient_user_id = ? AND ra.state = ?))",
 				maxVisibilityLevel, authAccount.UserId, types.AccessState_ACCESS_STATE_ACCEPTED)
 	} else {
 		tx = tx.Joins("LEFT JOIN recipe_access ON recipe.recipe_id = recipe_access.recipe_id AND recipe_access.recipient_user_id = ? AND (recipe.visibility_level != ? OR recipe_access.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Joins("LEFT JOIN recipe_favorite ON recipe.recipe_id = recipe_favorite.recipe_id AND recipe_favorite.user_id = ?", authAccount.AuthUserId).
 			Where("(recipe.visibility_level = ? OR recipe_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
 	}
 
@@ -163,6 +166,7 @@ func (repo *Client) GetRecipe(ctx context.Context, authAccount cmodel.AuthAccoun
 				cmodel.RecipeField_RecipeAccess,
 			),
 		)).
+		Joins("LEFT JOIN recipe_favorite ON recipe.recipe_id = recipe_favorite.recipe_id AND recipe_favorite.user_id = ?", authAccount.AuthUserId).
 		Where("recipe.recipe_id = ?", id.RecipeId)
 
 	err := tx.First(&gm).Error
@@ -214,13 +218,20 @@ func (repo *Client) UpdateRecipe(ctx context.Context, authAccount cmodel.AuthAcc
 // CreateRecipeFavorite creates a recipe favorite for a user.
 func (repo *Client) CreateRecipeFavorite(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.RecipeId) error {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
-		Int64("userId", authAccount.AuthUserId).
+		Interface("authAccount", authAccount).
 		Int64("recipeId", id.RecipeId).
 		Logger()
 
 	favorite := gmodel.RecipeFavorite{
-		UserId:   authAccount.AuthUserId,
 		RecipeId: id.RecipeId,
+	}
+
+	if authAccount.CircleId != 0 {
+		favorite.CircleId = authAccount.CircleId
+	} else if authAccount.UserId != 0 {
+		favorite.UserId = authAccount.UserId
+	} else {
+		favorite.UserId = authAccount.AuthUserId
 	}
 
 	err := repo.db.WithContext(ctx).Create(&favorite).Error
@@ -236,13 +247,21 @@ func (repo *Client) CreateRecipeFavorite(ctx context.Context, authAccount cmodel
 // DeleteRecipeFavorite removes a recipe favorite for a user.
 func (repo *Client) DeleteRecipeFavorite(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.RecipeId) error {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
-		Int64("userId", authAccount.AuthUserId).
+		Interface("authAccount", authAccount).
 		Int64("recipeId", id.RecipeId).
 		Logger()
 
-	err := repo.db.WithContext(ctx).
-		Where("user_id = ? AND recipe_id = ?", authAccount.AuthUserId, id.RecipeId).
-		Delete(&gmodel.RecipeFavorite{}).Error
+	tx := repo.db.WithContext(ctx)
+
+	if authAccount.CircleId != 0 {
+		tx = tx.Where("circle_id = ? AND recipe_id = ?", authAccount.CircleId, id.RecipeId)
+	} else if authAccount.UserId != 0 {
+		tx = tx.Where("user_id = ? AND recipe_id = ?", authAccount.UserId, id.RecipeId)
+	} else {
+		tx = tx.Where("user_id = ? AND recipe_id = ?", authAccount.AuthUserId, id.RecipeId)
+	}
+
+	err := tx.Delete(&gmodel.RecipeFavorite{}).Error
 	if err != nil {
 		log.Error().Err(err).Msg("unable to delete recipe favorite")
 		return ConvertGormError(err)

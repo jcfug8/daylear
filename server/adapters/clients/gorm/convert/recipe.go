@@ -81,6 +81,10 @@ func RecipeToCoreModel(m gmodel.Recipe) (cmodel.Recipe, error) {
 		UpdateTime:      m.UpdateTime,
 	}
 
+	if m.RecipeFavoriteId != 0 {
+		recipe.Favorited = true
+	}
+
 	// Populate RecipeAccess if permission or state is set (i.e., join succeeded)
 	if m.PermissionLevel != 0 || m.State != 0 {
 		recipe.RecipeAccess = cmodel.RecipeAccess{

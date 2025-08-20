@@ -54,7 +54,7 @@ func (d *Domain) CreateRecipe(ctx context.Context, authAccount model.AuthAccount
 			return model.Recipe{}, err
 		}
 	} else if recipe.Parent.UserId != 0 {
-		_, err = d.determineUserAccess(ctx, authAccount, model.UserId{UserId: authAccount.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
+		_, err = d.determineUserAccess(ctx, authAccount, model.UserId{UserId: authAccount.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN))
 		if err != nil {
 			log.Error().Err(err).Msg("unable to determine access when creating a recipe")
 			return model.Recipe{}, err
@@ -715,15 +715,33 @@ func resizeToFit(width, height, maxDim int) (newWidth, newHeight int) {
 }
 
 // FavoriteRecipe favorites a recipe for a user.
-func (d *Domain) FavoriteRecipe(ctx context.Context, authAccount model.AuthAccount, id model.RecipeId) error {
+func (d *Domain) FavoriteRecipe(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, id model.RecipeId) error {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	if authAccount.AuthUserId == 0 {
 		log.Warn().Msg("user id required")
 		return domain.ErrInvalidArgument{Msg: "user id required"}
 	}
 
+	if parent.CircleId != 0 {
+		authAccount.CircleId = parent.CircleId
+		_, err := d.determineCircleAccess(ctx, authAccount, model.CircleId{CircleId: authAccount.CircleId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
+		if err != nil {
+			log.Error().Err(err).Msg("unable to determine access when creating a recipe")
+			return err
+		}
+		// TODO: we make want to check if the circle has access to the recipe as well
+	} else if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
+		_, err := d.determineUserAccess(ctx, authAccount, model.UserId{UserId: authAccount.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
+		if err != nil {
+			log.Error().Err(err).Msg("unable to determine access when creating a recipe")
+			return err
+		}
+		// TODO: we make want to check if the user has access to the recipe as well
+	}
+
 	// Check if user has access to the recipe
-	dbRecipe, err := d.GetRecipe(ctx, authAccount, model.RecipeParent{}, id, nil)
+	dbRecipe, err := d.repo.GetRecipe(ctx, authAccount, id, []string{model.RecipeField_VisibilityLevel})
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get recipe for favoriting")
 		return err
@@ -750,19 +768,35 @@ func (d *Domain) FavoriteRecipe(ctx context.Context, authAccount model.AuthAccou
 }
 
 // UnfavoriteRecipe removes a recipe from user's favorites.
-func (d *Domain) UnfavoriteRecipe(ctx context.Context, authAccount model.AuthAccount, recipeId model.RecipeId) error {
+func (d *Domain) UnfavoriteRecipe(ctx context.Context, authAccount model.AuthAccount, parent model.RecipeParent, id model.RecipeId) error {
 	log := logutil.EnrichLoggerWithContext(d.log, ctx)
 	if authAccount.AuthUserId == 0 {
 		log.Warn().Msg("user id required")
 		return domain.ErrInvalidArgument{Msg: "user id required"}
 	}
 
-	err := d.repo.DeleteRecipeFavorite(ctx, authAccount, recipeId)
+	if parent.CircleId != 0 {
+		authAccount.CircleId = parent.CircleId
+		_, err := d.determineCircleAccess(ctx, authAccount, model.CircleId{CircleId: authAccount.CircleId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
+		if err != nil {
+			log.Error().Err(err).Msg("unable to determine access when creating a recipe")
+			return err
+		}
+	} else if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
+		_, err := d.determineUserAccess(ctx, authAccount, model.UserId{UserId: authAccount.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
+		if err != nil {
+			log.Error().Err(err).Msg("unable to determine access when creating a recipe")
+			return err
+		}
+	}
+
+	err := d.repo.DeleteRecipeFavorite(ctx, authAccount, id)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to delete recipe favorite")
 		return err
 	}
 
-	log.Info().Int64("recipeId", recipeId.RecipeId).Msg("recipe unfavorited successfully")
+	log.Info().Int64("recipeId", id.RecipeId).Msg("recipe unfavorited successfully")
 	return nil
 }

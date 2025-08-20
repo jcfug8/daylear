@@ -201,6 +201,8 @@ type Recipe struct {
 	PrepDuration *durationpb.Duration `protobuf:"bytes,19,opt,name=prep_duration,json=prepDuration,proto3" json:"prep_duration,omitempty"`
 	// the total duration for the recipe
 	TotalDuration *durationpb.Duration `protobuf:"bytes,20,opt,name=total_duration,json=totalDuration,proto3" json:"total_duration,omitempty"`
+	// favorited
+	Favorited     bool `protobuf:"varint,21,opt,name=favorited,proto3" json:"favorited,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -359,6 +361,13 @@ func (x *Recipe) GetTotalDuration() *durationpb.Duration {
 		return x.TotalDuration
 	}
 	return nil
+}
+
+func (x *Recipe) GetFavorited() bool {
+	if x != nil {
+		return x.Favorited
+	}
+	return false
 }
 
 // the request to create a recipe
@@ -1245,7 +1254,7 @@ var File_api_meals_recipe_v1alpha1_recipe_proto protoreflect.FileDescriptor
 
 const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\n" +
-	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1dapi/types/accept_target.proto\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x84\x14\n" +
+	"&api/meals/recipe/v1alpha1/recipe.proto\x12\x19api.meals.recipe.v1alpha1\x1a\x1dapi/types/accept_target.proto\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xa7\x14\n" +
 	"\x06Recipe\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
@@ -1273,7 +1282,8 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\vupdate_time\x18\x12 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
 	"updateTime\x12C\n" +
 	"\rprep_duration\x18\x13 \x01(\v2\x19.google.protobuf.DurationB\x03\xe0A\x01R\fprepDuration\x12E\n" +
-	"\x0etotal_duration\x18\x14 \x01(\v2\x19.google.protobuf.DurationB\x03\xe0A\x01R\rtotalDuration\x1aA\n" +
+	"\x0etotal_duration\x18\x14 \x01(\v2\x19.google.protobuf.DurationB\x03\xe0A\x01R\rtotalDuration\x12!\n" +
+	"\tfavorited\x18\x15 \x01(\bB\x03\xe0A\x03R\tfavorited\x1aA\n" +
 	"\tDirection\x12\x19\n" +
 	"\x05title\x18\x01 \x01(\tB\x03\xe0A\x01R\x05title\x12\x19\n" +
 	"\x05steps\x18\x02 \x03(\tB\x03\xe0A\x02R\x05steps\x1a\x81\x01\n" +
@@ -1346,7 +1356,7 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\x17UnfavoriteRecipeRequest\x12<\n" +
 	"\x04name\x18\x01 \x01(\tB(\xe0A\x02\xfaA\"\n" +
 	" api.meals.recipe.v1alpha1/RecipeR\x04name\"\x1a\n" +
-	"\x18UnfavoriteRecipeResponse2\x93\x11\n" +
+	"\x18UnfavoriteRecipeResponse2\xfd\x12\n" +
 	"\rRecipeService\x12\xe4\x02\n" +
 	"\fCreateRecipe\x12..api.meals.recipe.v1alpha1.CreateRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"\x80\x02\x92AQ\n" +
 	"\rRecipeService\x12\x0fCreate a recipe\x1a/Creates a new recipe with the provided details.\xdaA\x17parent,recipe,recipe_id\x82\xd3\xe4\x93\x02\x8b\x01:\x06recipeZ4:\x06recipe\"*/meals/v1alpha1/{parent=circles/*}/recipesZ2:\x06recipe\"(/meals/v1alpha1/{parent=users/*}/recipes\"\x17/meals/v1alpha1/recipes\x12\xdc\x02\n" +
@@ -1359,11 +1369,11 @@ const file_api_meals_recipe_v1alpha1_recipe_proto_rawDesc = "" +
 	"\tGetRecipe\x12+.api.meals.recipe.v1alpha1.GetRecipeRequest\x1a!.api.meals.recipe.v1alpha1.Recipe\"|\x92AJ\n" +
 	"\rRecipeService\x12\fGet a recipe\x1a+Retrieves a single recipe by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02\"\x12 /meals/v1alpha1/{name=recipes/*}\x12\xf3\x01\n" +
 	"\fScrapeRecipe\x12..api.meals.recipe.v1alpha1.ScrapeRecipeRequest\x1a/.api.meals.recipe.v1alpha1.ScrapeRecipeResponse\"\x81\x01\x92AI\n" +
-	"\rRecipeService\x12\x1aScrape a recipe from a uri\x1a\x1cScrapes a recipe from a uri.\xdaA\x03uri\x82\xd3\xe4\x93\x02):\x01*\"$/meals/v1alpha1/recipes:scrapeRecipe\x12\xfe\x01\n" +
-	"\x0eFavoriteRecipe\x120.api.meals.recipe.v1alpha1.FavoriteRecipeRequest\x1a1.api.meals.recipe.v1alpha1.FavoriteRecipeResponse\"\x86\x01\x92AH\n" +
-	"\rRecipeService\x12\x11Favorite a recipe\x1a$Favorites a recipe by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02.:\x01*\")/meals/v1alpha1/{name=recipes/*}:favorite\x12\x8a\x02\n" +
-	"\x10UnfavoriteRecipe\x122.api.meals.recipe.v1alpha1.UnfavoriteRecipeRequest\x1a3.api.meals.recipe.v1alpha1.UnfavoriteRecipeResponse\"\x8c\x01\x92AL\n" +
-	"\rRecipeService\x12\x13Unfavorite a recipe\x1a&Unfavorites a recipe by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x020:\x01*\"+/meals/v1alpha1/{name=recipes/*}:unfavoriteB\xe0\x02\x92AXZD\n" +
+	"\rRecipeService\x12\x1aScrape a recipe from a uri\x1a\x1cScrapes a recipe from a uri.\xdaA\x03uri\x82\xd3\xe4\x93\x02):\x01*\"$/meals/v1alpha1/recipes:scrapeRecipe\x12\xf1\x02\n" +
+	"\x0eFavoriteRecipe\x120.api.meals.recipe.v1alpha1.FavoriteRecipeRequest\x1a1.api.meals.recipe.v1alpha1.FavoriteRecipeResponse\"\xf9\x01\x92AH\n" +
+	"\rRecipeService\x12\x11Favorite a recipe\x1a$Favorites a recipe by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02\xa0\x01:\x01*Z8:\x01*\"3/meals/v1alpha1/{name=circles/*/recipes/*}:favoriteZ6:\x01*\"1/meals/v1alpha1/{name=users/*/recipes/*}:favorite\")/meals/v1alpha1/{name=recipes/*}:favorite\x12\x81\x03\n" +
+	"\x10UnfavoriteRecipe\x122.api.meals.recipe.v1alpha1.UnfavoriteRecipeRequest\x1a3.api.meals.recipe.v1alpha1.UnfavoriteRecipeResponse\"\x83\x02\x92AL\n" +
+	"\rRecipeService\x12\x13Unfavorite a recipe\x1a&Unfavorites a recipe by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02\xa6\x01:\x01*Z::\x01*\"5/meals/v1alpha1/{name=circles/*/recipes/*}:unfavoriteZ8:\x01*\"3/meals/v1alpha1/{name=users/*/recipes/*}:unfavorite\"+/meals/v1alpha1/{name=recipes/*}:unfavoriteB\xe0\x02\x92AXZD\n" +
 	"B\n" +
 	"\n" +
 	"BearerAuth\x124\b\x02\x12\x1fBearer token for authentication\x1a\rAuthorization \x02b\x10\n" +

@@ -32,7 +32,7 @@ func (d *Domain) CreateCalendar(ctx context.Context, authAccount model.AuthAccou
 			return model.Calendar{}, err
 		}
 	} else if calendar.Parent.UserId != 0 {
-		_, err = d.determineUserAccess(ctx, authAccount, model.UserId{UserId: authAccount.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE))
+		_, err = d.determineUserAccess(ctx, authAccount, model.UserId{UserId: authAccount.UserId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN))
 		if err != nil {
 			log.Error().Err(err).Msg("unable to determine access when creating a calendar")
 			return model.Calendar{}, err
