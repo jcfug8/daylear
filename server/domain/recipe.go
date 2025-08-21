@@ -740,7 +740,6 @@ func (d *Domain) FavoriteRecipe(ctx context.Context, authAccount model.AuthAccou
 		// TODO: we make want to check if the user has access to the recipe as well
 	}
 
-	// Check if user has access to the recipe
 	dbRecipe, err := d.repo.GetRecipe(ctx, authAccount, id, []string{model.RecipeField_VisibilityLevel})
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get recipe for favoriting")

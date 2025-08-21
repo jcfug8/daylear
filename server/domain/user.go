@@ -318,3 +318,102 @@ func (d *Domain) uploadUserImage(ctx context.Context, id model.UserId, imageRead
 	}
 	return imageURI, nil
 }
+
+// FavoriteUser adds a user to the current user's favorites.
+func (d *Domain) FavoriteUser(ctx context.Context, authAccount model.AuthAccount, parent model.UserParent, id model.UserId) error {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	log.Info().Msg("Domain FavoriteUser called")
+
+	if authAccount.AuthUserId == 0 {
+		log.Warn().Msg("auth_user_id required")
+		return domain.ErrInvalidArgument{Msg: "auth_user_id required"}
+	}
+
+	if id.UserId == 0 {
+		log.Warn().Msg("id required")
+		return domain.ErrInvalidArgument{Msg: "id required"}
+	}
+
+	// Prevent self-favoriting
+	if authAccount.AuthUserId == id.UserId {
+		log.Warn().Msg("cannot favorite yourself")
+		return domain.ErrInvalidArgument{Msg: "cannot favorite yourself"}
+	}
+
+	// If a user parent is specified, ensure the current user has admin access to that user
+	if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
+		_, err := d.determineUserAccess(
+			ctx, authAccount, model.UserId{UserId: authAccount.UserId},
+			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN),
+		)
+		if err != nil {
+			log.Error().Err(err).Msg("insufficient permissions to favorite user in this context")
+			return domain.ErrPermissionDenied{Msg: "insufficient permissions"}
+		}
+	}
+
+	_, err := d.determineUserAccess(
+		ctx, authAccount, model.UserId{UserId: authAccount.UserId},
+		withResourceVisibilityLevel(types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC),
+		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
+	)
+	if err != nil {
+		log.Error().Err(err).Msg("insufficient permissions to favorite user in this context")
+		return domain.ErrPermissionDenied{Msg: "insufficient permissions"}
+	}
+
+	// Create the favorite relationship (personal favorites only)
+	err = d.repo.CreateUserFavorite(ctx, authAccount, id)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to create user favorite")
+		return domain.ErrInternal{Msg: "unable to create user favorite"}
+	}
+
+	log.Info().Msg("Domain FavoriteUser completed successfully")
+	return nil
+}
+
+// UnfavoriteUser removes a user from the current user's favorites.
+func (d *Domain) UnfavoriteUser(ctx context.Context, authAccount model.AuthAccount, parent model.UserParent, id model.UserId) error {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	log.Info().Msg("Domain UnfavoriteUser called")
+
+	if authAccount.AuthUserId == 0 {
+		log.Warn().Msg("auth_user_id required")
+		return domain.ErrInvalidArgument{Msg: "auth_user_id required"}
+	}
+
+	if authAccount.AuthUserId == id.UserId {
+		log.Warn().Msg("cannot unfavorite yourself")
+		return domain.ErrInvalidArgument{Msg: "cannot unfavorite yourself"}
+	}
+
+	if id.UserId == 0 {
+		log.Warn().Msg("id required")
+		return domain.ErrInvalidArgument{Msg: "id required"}
+	}
+
+	// If a user parent is specified, ensure the current user has admin access to that user
+	if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
+		_, err := d.determineUserAccess(
+			ctx, authAccount, model.UserId{UserId: authAccount.UserId},
+			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN),
+		)
+		if err != nil {
+			log.Error().Err(err).Msg("insufficient permissions to unfavorite user in this context")
+			return domain.ErrPermissionDenied{Msg: "insufficient permissions"}
+		}
+	}
+
+	// Delete the favorite relationship (personal favorites only)
+	err := d.repo.DeleteUserFavorite(ctx, authAccount, id)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to delete user favorite")
+		return domain.ErrInternal{Msg: "unable to delete user favorite"}
+	}
+
+	log.Info().Msg("Domain UnfavoriteUser completed successfully")
+	return nil
+}

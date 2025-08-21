@@ -161,3 +161,59 @@ func (s *UserService) ListUsers(ctx context.Context, request *pb.ListUsersReques
 	log.Info().Msg("gRPC ListUsers returning successfully")
 	return response, nil
 }
+
+// FavoriteUser -
+func (s *UserService) FavoriteUser(ctx context.Context, request *pb.FavoriteUserRequest) (*pb.FavoriteUserResponse, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC FavoriteUser called")
+
+	authAccount, err := headers.ParseAuthData(ctx)
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
+		return nil, err
+	}
+
+	mUser := model.User{}
+	_, err = s.userNamer.Parse(request.GetName(), &mUser)
+	if err != nil {
+		log.Warn().Err(err).Str("name", request.GetName()).Msg("invalid user name")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
+	}
+
+	err = s.domain.FavoriteUser(ctx, authAccount, mUser.Parent, mUser.Id)
+	if err != nil {
+		log.Error().Err(err).Msg("domain.FavoriteUser failed")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	log.Info().Msg("gRPC FavoriteUser returning successfully")
+	return &pb.FavoriteUserResponse{}, nil
+}
+
+// UnfavoriteUser -
+func (s *UserService) UnfavoriteUser(ctx context.Context, request *pb.UnfavoriteUserRequest) (*pb.UnfavoriteUserResponse, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC UnfavoriteUser called")
+
+	authAccount, err := headers.ParseAuthData(ctx)
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
+		return nil, err
+	}
+
+	mUser := model.User{}
+	_, err = s.userNamer.Parse(request.GetName(), &mUser)
+	if err != nil {
+		log.Warn().Err(err).Str("name", request.GetName()).Msg("invalid user name")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", request.GetName())
+	}
+
+	err = s.domain.UnfavoriteUser(ctx, authAccount, mUser.Parent, mUser.Id)
+	if err != nil {
+		log.Error().Err(err).Msg("domain.UnfavoriteUser failed")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	log.Info().Msg("gRPC UnfavoriteUser returning successfully")
+	return &pb.UnfavoriteUserResponse{}, nil
+}

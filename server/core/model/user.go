@@ -18,6 +18,7 @@ const (
 	UserField_AccessName            = "access_id"
 	UserField_AccessPermissionLevel = "permission_level"
 	UserField_AccessState           = "state"
+	UserField_Favorited             = "favorited"
 )
 
 // User defines the model for a user.
@@ -39,6 +40,8 @@ type User struct {
 	AmazonId   string
 	FacebookId string
 	GoogleId   string
+
+	Favorited bool
 
 	UserAccess   UserAccess
 	CircleAccess CircleAccess

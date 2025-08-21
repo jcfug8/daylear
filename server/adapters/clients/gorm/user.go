@@ -61,6 +61,7 @@ func (repo *Client) GetUser(ctx context.Context, authAccount cmodel.AuthAccount,
 				cmodel.UserField_AccessState,
 			),
 		)).
+		Joins("LEFT JOIN user_favorite ON daylear_user.user_id = user_favorite.favorited_user_id AND user_favorite.favoriting_user_id = ?", authAccount.AuthUserId).
 		Where("daylear_user.user_id = ?", id.UserId).
 		First(&gm).Error
 	if err != nil {
@@ -108,10 +109,12 @@ func (repo *Client) ListUsers(ctx context.Context, authAccount cmodel.AuthAccoun
 	case authAccount.AuthUserId != authAccount.UserId && authAccount.UserId != 0:
 		tx = tx.Select(gmodel.UserFieldMasker.Convert(fields, fieldmask.ExcludeTables("circle_access"))).
 			Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?", authAccount.UserId).
+			Joins("LEFT JOIN user_favorite ON daylear_user.user_id = user_favorite.favorited_user_id AND user_favorite.favoriting_user_id = ?", authAccount.UserId).
 			Joins("LEFT JOIN user_access as user_access_auth ON daylear_user.user_id = user_access_auth.user_id AND user_access_auth.recipient_user_id = ?", authAccount.AuthUserId)
 	default:
 		tx = tx.Select(gmodel.UserFieldMasker.Convert(fields, fieldmask.ExcludeTables("circle_access"))).
-			Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?", authAccount.AuthUserId)
+			Joins("LEFT JOIN user_access ON daylear_user.user_id = user_access.user_id AND user_access.recipient_user_id = ?", authAccount.AuthUserId).
+			Joins("LEFT JOIN user_favorite ON daylear_user.user_id = user_favorite.favorited_user_id AND user_favorite.favoriting_user_id = ?", authAccount.AuthUserId)
 	}
 
 	conversion, err := converter.Convert(filter)
@@ -181,4 +184,46 @@ func (repo *Client) DeleteUser(ctx context.Context, authAccount cmodel.AuthAccou
 
 	log.Error().Msg("delete user operation not implemented")
 	return cmodel.User{}, repository.ErrNewUnimplemented{Msg: "delete user operation not implemented"}
+}
+
+// CreateUserFavorite creates a user favorite relationship.
+func (repo *Client) CreateUserFavorite(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.UserId) error {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("userId", id.UserId).
+		Interface("authAccount", authAccount).
+		Logger()
+
+	userFavorite := gmodel.UserFavorite{
+		FavoritedUserId:  id.UserId,
+		FavoritingUserId: authAccount.AuthUserId,
+	}
+
+	err := repo.db.WithContext(ctx).Create(&userFavorite).Error
+	if err != nil {
+		log.Error().Err(err).Msg("unable to create user favorite")
+		return ConvertGormError(err)
+	}
+
+	log.Info().Msg("user favorite created successfully")
+	return nil
+}
+
+// DeleteUserFavorite deletes a user favorite relationship.
+func (repo *Client) DeleteUserFavorite(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.UserId) error {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("userId", id.UserId).
+		Interface("authAccount", authAccount).
+		Logger()
+
+	err := repo.db.WithContext(ctx).
+		Where("favorited_user_id = ? AND favoriting_user_id = ?",
+			id.UserId, authAccount.AuthUserId).
+		Delete(&gmodel.UserFavorite{}).Error
+	if err != nil {
+		log.Error().Err(err).Msg("unable to delete user favorite")
+		return ConvertGormError(err)
+	}
+
+	log.Info().Msg("user favorite deleted successfully")
+	return nil
 }

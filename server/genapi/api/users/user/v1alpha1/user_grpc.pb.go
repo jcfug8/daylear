@@ -19,9 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	UserService_GetUser_FullMethodName    = "/api.users.user.v1alpha1.UserService/GetUser"
-	UserService_ListUsers_FullMethodName  = "/api.users.user.v1alpha1.UserService/ListUsers"
-	UserService_UpdateUser_FullMethodName = "/api.users.user.v1alpha1.UserService/UpdateUser"
+	UserService_GetUser_FullMethodName        = "/api.users.user.v1alpha1.UserService/GetUser"
+	UserService_ListUsers_FullMethodName      = "/api.users.user.v1alpha1.UserService/ListUsers"
+	UserService_UpdateUser_FullMethodName     = "/api.users.user.v1alpha1.UserService/UpdateUser"
+	UserService_FavoriteUser_FullMethodName   = "/api.users.user.v1alpha1.UserService/FavoriteUser"
+	UserService_UnfavoriteUser_FullMethodName = "/api.users.user.v1alpha1.UserService/UnfavoriteUser"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -36,6 +38,10 @@ type UserServiceClient interface {
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
 	// update a user
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error)
+	// favorite a user
+	FavoriteUser(ctx context.Context, in *FavoriteUserRequest, opts ...grpc.CallOption) (*FavoriteUserResponse, error)
+	// unfavorite a user
+	UnfavoriteUser(ctx context.Context, in *UnfavoriteUserRequest, opts ...grpc.CallOption) (*UnfavoriteUserResponse, error)
 }
 
 type userServiceClient struct {
@@ -76,6 +82,26 @@ func (c *userServiceClient) UpdateUser(ctx context.Context, in *UpdateUserReques
 	return out, nil
 }
 
+func (c *userServiceClient) FavoriteUser(ctx context.Context, in *FavoriteUserRequest, opts ...grpc.CallOption) (*FavoriteUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FavoriteUserResponse)
+	err := c.cc.Invoke(ctx, UserService_FavoriteUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UnfavoriteUser(ctx context.Context, in *UnfavoriteUserRequest, opts ...grpc.CallOption) (*UnfavoriteUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnfavoriteUserResponse)
+	err := c.cc.Invoke(ctx, UserService_UnfavoriteUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -88,6 +114,10 @@ type UserServiceServer interface {
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
 	// update a user
 	UpdateUser(context.Context, *UpdateUserRequest) (*User, error)
+	// favorite a user
+	FavoriteUser(context.Context, *FavoriteUserRequest) (*FavoriteUserResponse, error)
+	// unfavorite a user
+	UnfavoriteUser(context.Context, *UnfavoriteUserRequest) (*UnfavoriteUserResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -106,6 +136,12 @@ func (UnimplementedUserServiceServer) ListUsers(context.Context, *ListUsersReque
 }
 func (UnimplementedUserServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
+}
+func (UnimplementedUserServiceServer) FavoriteUser(context.Context, *FavoriteUserRequest) (*FavoriteUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FavoriteUser not implemented")
+}
+func (UnimplementedUserServiceServer) UnfavoriteUser(context.Context, *UnfavoriteUserRequest) (*UnfavoriteUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnfavoriteUser not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -182,6 +218,42 @@ func _UserService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_FavoriteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FavoriteUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).FavoriteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_FavoriteUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).FavoriteUser(ctx, req.(*FavoriteUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UnfavoriteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnfavoriteUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UnfavoriteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UnfavoriteUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UnfavoriteUser(ctx, req.(*UnfavoriteUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -200,6 +272,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateUser",
 			Handler:    _UserService_UpdateUser_Handler,
+		},
+		{
+			MethodName: "FavoriteUser",
+			Handler:    _UserService_FavoriteUser_Handler,
+		},
+		{
+			MethodName: "UnfavoriteUser",
+			Handler:    _UserService_UnfavoriteUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -48,6 +48,7 @@ var UserFieldMasker = fieldmask.NewSQLFieldMasker(User{}, map[string][]fieldmask
 		{Name: CircleAccessColumn_State, Table: "circle_access"},
 		{Name: UserAccessColumn_State, Table: "user_access"},
 	},
+	cmodel.UserField_Favorited: {{Name: UserFavoriteFields_UserFavoriteId, Table: UserFavoriteTable}},
 })
 
 var UserSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
@@ -57,6 +58,7 @@ var UserSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
 	"google_id":        {Name: UserColumn_GoogleId, Table: "daylear_user"},
 	"facebook_id":      {Name: UserColumn_FacebookId, Table: "daylear_user"},
 	"amazon_id":        {Name: UserColumn_AmazonId, Table: "daylear_user"},
+	"favorited":        {Name: UserFavoriteFields_UserFavoriteId, Table: UserFavoriteTable, CustomConverter: favoritedSQLFilterConverter},
 }, true)
 
 var UserCircleSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
@@ -66,6 +68,7 @@ var UserCircleSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
 	"google_id":        {Name: UserColumn_GoogleId, Table: "daylear_user"},
 	"facebook_id":      {Name: UserColumn_FacebookId, Table: "daylear_user"},
 	"amazon_id":        {Name: UserColumn_AmazonId, Table: "daylear_user"},
+	"favorited":        {Name: UserFavoriteFields_UserFavoriteId, Table: UserFavoriteTable, CustomConverter: favoritedSQLFilterConverter},
 }, true)
 
 // User -
@@ -89,6 +92,9 @@ type User struct {
 	PermissionLevel types.PermissionLevel `gorm:"->;-:migration"` // only used for read from a join
 	State           types.AccessState     `gorm:"->;-:migration"` // only used for read from a join
 	RequesterUserId int64                 `gorm:"->;-:migration"` // only used for read from a join
+
+	// UserFavorite data
+	UserFavoriteId int64 `gorm:"->;-:migration"` // only used for read from a join
 }
 
 // TableName -

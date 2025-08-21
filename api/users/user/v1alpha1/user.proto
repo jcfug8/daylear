@@ -74,6 +74,40 @@ service UserService {
       tags: "UserService"
     };
   }
+
+  // favorite a user
+  rpc FavoriteUser(FavoriteUserRequest) returns (FavoriteUserResponse) {
+    option (google.api.http) = {
+      post: "/users/v1alpha1/{name=users/*}:favorite"
+      body: "*"
+      additional_bindings: {
+        post: "/users/v1alpha1/{name=users/*/users/*}:favorite"
+        body: "*"
+      }
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Favorite a user"
+      description: "Adds a user to the current user's favorites."
+      tags: "UserService"
+    };
+  }
+
+  // unfavorite a user
+  rpc UnfavoriteUser(UnfavoriteUserRequest) returns (UnfavoriteUserResponse) {
+    option (google.api.http) = {
+      post: "/users/v1alpha1/{name=users/*}:unfavorite"
+      body: "*"
+      additional_bindings: {
+        post: "/users/v1alpha1/{name=users/*/users/*}:unfavorite"
+        body: "*"
+      }
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Unfavorite a user"
+      description: "Removes a user from the current user's favorites."
+      tags: "UserService"
+    };
+  }
 }
 
 // the main user object with public fields
@@ -104,6 +138,9 @@ message User {
 
   // the bio for the user
   string bio = 9 [(google.api.field_behavior) = OPTIONAL];
+
+  // whether the current user has favorited this user
+  bool favorited = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // the user access details
   Access access = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
@@ -167,3 +204,27 @@ message UpdateUserRequest {
   // the fields to update
   google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
 }
+
+// the request to favorite a user
+message FavoriteUserRequest {
+  // the name of the user to favorite
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.meals.user.v1alpha1/User"
+  ];
+}
+
+// the response to favorite a user
+message FavoriteUserResponse {}
+
+// the request to unfavorite a user
+message UnfavoriteUserRequest {
+  // the name of the user to unfavorite
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.meals.user.v1alpha1/User"
+  ];
+}
+
+// the response to unfavorite a user
+message UnfavoriteUserResponse {}

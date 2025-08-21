@@ -22,8 +22,6 @@
                 v-if="recipe.favorited"
                 size="24" 
                 class="favorite-heart"
-                @click.stop.prevent="$emit('toggleFavorite', recipe)"
-                style="cursor: pointer;"
               >
               mdi-heart
               </v-icon>
@@ -145,7 +143,6 @@ function getPermissionText(permission: string) {
   right: 8px;
   z-index: 2;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
-  /* background-color: rgba(255, 255, 255, 0.9); */
   border-radius: 50%;
   padding: 4px;
   transition: all 0.2s ease-in-out;

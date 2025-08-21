@@ -103,6 +103,15 @@
             <v-icon>mdi-account-remove</v-icon>Remove Access
           </v-btn>
         </div>
+        <v-icon 
+          size="24" 
+          :color="user.favorited ? 'red' : 'black'"
+          class="favorite-heart"
+          @click="toggleFavorite"
+          style="cursor: pointer;"
+        >
+        {{ user.favorited ? 'mdi-heart' : 'mdi-heart-outline' }}
+        </v-icon>
       </template>
       <template #recipes="{ items, loading }">
         <RecipeGrid :recipes="(items as Recipe[])" :loading="(loading as boolean)" />
@@ -258,6 +267,7 @@ import { useCalendarsStore } from '@/stores/calendar'
 import CalendarGrid from '@/components/CalendarGrid.vue'
 import ScheduleCal from '@/views/calendar/event/ScheduleCal.vue'
 import type { Calendar, Event } from '@/genapi/api/calendars/calendar/v1alpha1'
+import { userService } from '@/api/api'
 
 const usersStore = useUsersStore()
 const alertsStore = useAlertStore()
@@ -668,6 +678,24 @@ watch(
     }
   }
 )
+
+// *** Favorite User ***
+
+async function toggleFavorite() {
+  if (!user.value?.name) return
+  try {
+    if (user.value.favorited) {
+      await userService.UnfavoriteUser({ name: user.value.name })
+    } else {
+      await userService.FavoriteUser({ name: user.value.name })
+    }
+    // Update the local state
+    user.value.favorited = !user.value.favorited
+  } catch (error) {
+    console.error('Error toggling favorite:', error)
+    alertsStore.addAlert('Failed to update favorite status.', 'error')
+  }
+}
 </script>
 
 <style scoped>
@@ -679,5 +707,18 @@ watch(
   flex-direction: column;
   gap: 8px;
   z-index: 1000;
+}
+
+.favorite-heart {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10000000;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  /* background-color: rgba(255, 255, 255, 0.9); */
+  border-radius: 50%;
+  padding: 4px;
+  transition: all 0.2s ease-in-out;
+  color: red;
 }
 </style>

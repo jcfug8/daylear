@@ -22,4 +22,7 @@ type userClient interface {
 	GetUserAccess(ctx context.Context, parent model.UserAccessParent, id model.UserAccessId, fields []string) (model.UserAccess, error)
 	ListUserAccesses(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, pageSize int32, pageOffset int64, filter string, fields []string) ([]model.UserAccess, error)
 	UpdateUserAccess(ctx context.Context, access model.UserAccess, fields []string) (model.UserAccess, error)
+
+	CreateUserFavorite(ctx context.Context, authAccount model.AuthAccount, id model.UserId) error
+	DeleteUserFavorite(ctx context.Context, authAccount model.AuthAccount, id model.UserId) error
 }

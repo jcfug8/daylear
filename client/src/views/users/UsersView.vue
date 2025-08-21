@@ -1,9 +1,9 @@
 <template>
   <ListTabsPage :tabs="tabs" ref="tabsPage">
-    <template #friends="{ items, loading }">
+    <template #friends="{ items }">
       <UserGrid :users="items as User[]" :loading="usersStore.loading" empty-text="No friends found." />
     </template>
-    <template #pending="{ items, loading }">
+    <template #pending="{ items }">
       <UserGrid
         :users="items as User[]"
         :loading="usersStore.loading"
@@ -14,7 +14,7 @@
         @decline="onDeclineUser"
       />
     </template>
-    <template #explore="{ items, loading }">
+    <template #explore="{ items }">
       <UserGrid :users="items as User[]" :loading="usersStore.loading" empty-text="No users found." />
     </template>
   </ListTabsPage>

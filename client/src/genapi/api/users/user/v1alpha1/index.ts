@@ -28,6 +28,10 @@ export type User = {
   //
   // Behaviors: OPTIONAL
   bio: string | undefined;
+  // whether the current user has favorited this user
+  //
+  // Behaviors: OUTPUT_ONLY
+  favorited: boolean | undefined;
   // the user access details
   //
   // Behaviors: OUTPUT_ONLY
@@ -162,6 +166,30 @@ export type UpdateUserRequest = {
 //     }
 type wellKnownFieldMask = string;
 
+// the request to favorite a user
+export type FavoriteUserRequest = {
+  // the name of the user to favorite
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the response to favorite a user
+export type FavoriteUserResponse = {
+};
+
+// the request to unfavorite a user
+export type UnfavoriteUserRequest = {
+  // the name of the user to unfavorite
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the response to unfavorite a user
+export type UnfavoriteUserResponse = {
+};
+
 // the user service
 export interface UserService {
   // get a user
@@ -170,6 +198,10 @@ export interface UserService {
   ListUsers(request: ListUsersRequest): Promise<ListUsersResponse>;
   // update a user
   UpdateUser(request: UpdateUserRequest): Promise<User>;
+  // favorite a user
+  FavoriteUser(request: FavoriteUserRequest): Promise<FavoriteUserResponse>;
+  // unfavorite a user
+  UnfavoriteUser(request: UnfavoriteUserRequest): Promise<UnfavoriteUserResponse>;
 }
 
 type RequestType = {
@@ -255,6 +287,46 @@ export function createUserServiceClient(
         service: "UserService",
         method: "UpdateUser",
       }) as Promise<User>;
+    },
+    FavoriteUser(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `users/v1alpha1/${request.name}:favorite`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "UserService",
+        method: "FavoriteUser",
+      }) as Promise<FavoriteUserResponse>;
+    },
+    UnfavoriteUser(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `users/v1alpha1/${request.name}:unfavorite`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "UserService",
+        method: "UnfavoriteUser",
+      }) as Promise<UnfavoriteUserResponse>;
     },
   };
 }

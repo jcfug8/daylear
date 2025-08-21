@@ -41,6 +41,7 @@ func UserToProto(userNamer namer.ReflectNamer, accessNamer namer.ReflectNamer, u
 	proto.FamilyName = user.FamilyName
 	proto.ImageUri = user.ImageUri
 	proto.Bio = user.Bio
+	proto.Favorited = user.Favorited
 
 	proto.Access = &pb.User_Access{
 		PermissionLevel: user.UserAccess.PermissionLevel,

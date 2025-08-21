@@ -44,6 +44,7 @@ func UserToCoreModel(m gmodel.User) (cmodel.User, error) {
 		FamilyName: m.FamilyName,
 		ImageUri:   m.ImageUri,
 		Bio:        m.Bio,
+		Favorited:  m.UserFavoriteId != 0,
 
 		Email: m.Email,
 

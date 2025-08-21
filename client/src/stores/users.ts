@@ -30,7 +30,7 @@ export const useUsersStore = defineStore('users', () => {
 
   async function loadFriends(parent: string) {
     friends.value = []
-    const result = await loadUsers(parent, 'state = 200')
+    const result = await loadUsers(parent, 'state = 200 OR favorited = true')
     friends.value = result.reduce((acc, user) => {
       if (user.name !== parent) {
         acc.push(user)
@@ -89,6 +89,7 @@ export const useUsersStore = defineStore('users', () => {
           imageUri: editUser.imageUri,
           access: undefined,
           bio: editUser.bio,
+          favorited: editUser.favorited,
         },
         updateMask: undefined,
       })

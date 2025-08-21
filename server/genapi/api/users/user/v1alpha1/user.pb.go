@@ -40,6 +40,8 @@ type User struct {
 	ImageUri string `protobuf:"bytes,8,opt,name=image_uri,json=imageUri,proto3" json:"image_uri,omitempty"`
 	// the bio for the user
 	Bio string `protobuf:"bytes,9,opt,name=bio,proto3" json:"bio,omitempty"`
+	// whether the current user has favorited this user
+	Favorited bool `protobuf:"varint,10,opt,name=favorited,proto3" json:"favorited,omitempty"`
 	// the user access details
 	Access        *User_Access `protobuf:"bytes,7,opt,name=access,proto3" json:"access,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -116,6 +118,13 @@ func (x *User) GetBio() string {
 		return x.Bio
 	}
 	return ""
+}
+
+func (x *User) GetFavorited() bool {
+	if x != nil {
+		return x.Favorited
+	}
+	return false
 }
 
 func (x *User) GetAccess() *User_Access {
@@ -354,6 +363,172 @@ func (x *UpdateUserRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
 	return nil
 }
 
+// the request to favorite a user
+type FavoriteUserRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// the name of the user to favorite
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FavoriteUserRequest) Reset() {
+	*x = FavoriteUserRequest{}
+	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FavoriteUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FavoriteUserRequest) ProtoMessage() {}
+
+func (x *FavoriteUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FavoriteUserRequest.ProtoReflect.Descriptor instead.
+func (*FavoriteUserRequest) Descriptor() ([]byte, []int) {
+	return file_api_users_user_v1alpha1_user_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *FavoriteUserRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// the response to favorite a user
+type FavoriteUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FavoriteUserResponse) Reset() {
+	*x = FavoriteUserResponse{}
+	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FavoriteUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FavoriteUserResponse) ProtoMessage() {}
+
+func (x *FavoriteUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FavoriteUserResponse.ProtoReflect.Descriptor instead.
+func (*FavoriteUserResponse) Descriptor() ([]byte, []int) {
+	return file_api_users_user_v1alpha1_user_proto_rawDescGZIP(), []int{6}
+}
+
+// the request to unfavorite a user
+type UnfavoriteUserRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// the name of the user to unfavorite
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnfavoriteUserRequest) Reset() {
+	*x = UnfavoriteUserRequest{}
+	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnfavoriteUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnfavoriteUserRequest) ProtoMessage() {}
+
+func (x *UnfavoriteUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnfavoriteUserRequest.ProtoReflect.Descriptor instead.
+func (*UnfavoriteUserRequest) Descriptor() ([]byte, []int) {
+	return file_api_users_user_v1alpha1_user_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UnfavoriteUserRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// the response to unfavorite a user
+type UnfavoriteUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnfavoriteUserResponse) Reset() {
+	*x = UnfavoriteUserResponse{}
+	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnfavoriteUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnfavoriteUserResponse) ProtoMessage() {}
+
+func (x *UnfavoriteUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnfavoriteUserResponse.ProtoReflect.Descriptor instead.
+func (*UnfavoriteUserResponse) Descriptor() ([]byte, []int) {
+	return file_api_users_user_v1alpha1_user_proto_rawDescGZIP(), []int{8}
+}
+
 // the user access details
 type User_Access struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -373,7 +548,7 @@ type User_Access struct {
 
 func (x *User_Access) Reset() {
 	*x = User_Access{}
-	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[5]
+	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -385,7 +560,7 @@ func (x *User_Access) String() string {
 func (*User_Access) ProtoMessage() {}
 
 func (x *User_Access) ProtoReflect() protoreflect.Message {
-	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[5]
+	mi := &file_api_users_user_v1alpha1_user_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -440,7 +615,7 @@ var File_api_users_user_v1alpha1_user_proto protoreflect.FileDescriptor
 
 const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\n" +
-	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1dapi/types/accept_target.proto\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x87\x05\n" +
+	"\"api/users/user/v1alpha1/user.proto\x12\x17api.users.user.v1alpha1\x1a\x1dapi/types/accept_target.proto\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xaa\x05\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x1f\n" +
 	"\busername\x18\x03 \x01(\tB\x03\xe0A\x01R\busername\x12\"\n" +
@@ -449,7 +624,9 @@ const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\vfamily_name\x18\x05 \x01(\tB\x03\xe0A\x01R\n" +
 	"familyName\x12 \n" +
 	"\timage_uri\x18\b \x01(\tB\x03\xe0A\x01R\bimageUri\x12\x15\n" +
-	"\x03bio\x18\t \x01(\tB\x03\xe0A\x01R\x03bio\x12A\n" +
+	"\x03bio\x18\t \x01(\tB\x03\xe0A\x01R\x03bio\x12!\n" +
+	"\tfavorited\x18\n" +
+	" \x01(\bB\x03\xe0A\x03R\tfavorited\x12A\n" +
 	"\x06access\x18\a \x01(\v2$.api.users.user.v1alpha1.User.AccessB\x03\xe0A\x03R\x06access\x1a\x86\x02\n" +
 	"\x06Access\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x03R\x04name\x12!\n" +
@@ -474,7 +651,16 @@ const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"\x11UpdateUserRequest\x126\n" +
 	"\x04user\x18\x01 \x01(\v2\x1d.api.users.user.v1alpha1.UserB\x03\xe0A\x02R\x04user\x12@\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskB\x03\xe0A\x01R\n" +
-	"updateMask2\x80\x06\n" +
+	"updateMask\"O\n" +
+	"\x13FavoriteUserRequest\x128\n" +
+	"\x04name\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x1e\n" +
+	"\x1capi.meals.user.v1alpha1/UserR\x04name\"\x16\n" +
+	"\x14FavoriteUserResponse\"Q\n" +
+	"\x15UnfavoriteUserRequest\x128\n" +
+	"\x04name\x18\x01 \x01(\tB$\xe0A\x02\xfaA\x1e\n" +
+	"\x1capi.meals.user.v1alpha1/UserR\x04name\"\x18\n" +
+	"\x16UnfavoriteUserResponse2\xe1\n" +
+	"\n" +
 	"\vUserService\x12\xc7\x01\n" +
 	"\aGetUser\x12'.api.users.user.v1alpha1.GetUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"t\x92AD\n" +
 	"\vUserService\x12\n" +
@@ -484,7 +670,11 @@ const file_api_users_user_v1alpha1_user_proto_rawDesc = "" +
 	"List users\x1aGRetrieves a paginated list of users. Supports filtering and pagination.\xdaA\x06parent\x82\xd3\xe4\x93\x02mZ*\x12(/users/v1alpha1/{parent=circles/*}/usersZ(\x12&/users/v1alpha1/{parent=users/*}/users\x12\x15/users/v1alpha1/users\x12\xdd\x01\n" +
 	"\n" +
 	"UpdateUser\x12*.api.users.user.v1alpha1.UpdateUserRequest\x1a\x1d.api.users.user.v1alpha1.User\"\x83\x01\x92A<\n" +
-	"\vUserService\x12\rUpdate a user\x1a\x1eUpdates the details of a user.\xdaA\x10user,update_mask\x82\xd3\xe4\x93\x02+:\x04user2#/users/v1alpha1/{user.name=users/*}B\xd0\x02\x92AXZD\n" +
+	"\vUserService\x12\rUpdate a user\x1a\x1eUpdates the details of a user.\xdaA\x10user,update_mask\x82\xd3\xe4\x93\x02+:\x04user2#/users/v1alpha1/{user.name=users/*}\x12\xa5\x02\n" +
+	"\fFavoriteUser\x12,.api.users.user.v1alpha1.FavoriteUserRequest\x1a-.api.users.user.v1alpha1.FavoriteUserResponse\"\xb7\x01\x92AL\n" +
+	"\vUserService\x12\x0fFavorite a user\x1a,Adds a user to the current user's favorites.\x82\xd3\xe4\x93\x02b:\x01*Z4:\x01*\"//users/v1alpha1/{name=users/*/users/*}:favorite\"'/users/v1alpha1/{name=users/*}:favorite\x12\xb6\x02\n" +
+	"\x0eUnfavoriteUser\x12..api.users.user.v1alpha1.UnfavoriteUserRequest\x1a/.api.users.user.v1alpha1.UnfavoriteUserResponse\"\xc2\x01\x92AS\n" +
+	"\vUserService\x12\x11Unfavorite a user\x1a1Removes a user from the current user's favorites.\x82\xd3\xe4\x93\x02f:\x01*Z6:\x01*\"1/users/v1alpha1/{name=users/*/users/*}:unfavorite\")/users/v1alpha1/{name=users/*}:unfavoriteB\xd0\x02\x92AXZD\n" +
 	"B\n" +
 	"\n" +
 	"BearerAuth\x124\b\x02\x12\x1fBearer token for authentication\x1a\rAuthorization \x02b\x10\n" +
@@ -505,35 +695,43 @@ func file_api_users_user_v1alpha1_user_proto_rawDescGZIP() []byte {
 	return file_api_users_user_v1alpha1_user_proto_rawDescData
 }
 
-var file_api_users_user_v1alpha1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_api_users_user_v1alpha1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_api_users_user_v1alpha1_user_proto_goTypes = []any{
-	(*User)(nil),                  // 0: api.users.user.v1alpha1.User
-	(*GetUserRequest)(nil),        // 1: api.users.user.v1alpha1.GetUserRequest
-	(*ListUsersRequest)(nil),      // 2: api.users.user.v1alpha1.ListUsersRequest
-	(*ListUsersResponse)(nil),     // 3: api.users.user.v1alpha1.ListUsersResponse
-	(*UpdateUserRequest)(nil),     // 4: api.users.user.v1alpha1.UpdateUserRequest
-	(*User_Access)(nil),           // 5: api.users.user.v1alpha1.User.Access
-	(*fieldmaskpb.FieldMask)(nil), // 6: google.protobuf.FieldMask
-	(types.PermissionLevel)(0),    // 7: api.types.PermissionLevel
-	(types.AccessState)(0),        // 8: api.types.AccessState
-	(types.AcceptTarget)(0),       // 9: api.types.AcceptTarget
+	(*User)(nil),                   // 0: api.users.user.v1alpha1.User
+	(*GetUserRequest)(nil),         // 1: api.users.user.v1alpha1.GetUserRequest
+	(*ListUsersRequest)(nil),       // 2: api.users.user.v1alpha1.ListUsersRequest
+	(*ListUsersResponse)(nil),      // 3: api.users.user.v1alpha1.ListUsersResponse
+	(*UpdateUserRequest)(nil),      // 4: api.users.user.v1alpha1.UpdateUserRequest
+	(*FavoriteUserRequest)(nil),    // 5: api.users.user.v1alpha1.FavoriteUserRequest
+	(*FavoriteUserResponse)(nil),   // 6: api.users.user.v1alpha1.FavoriteUserResponse
+	(*UnfavoriteUserRequest)(nil),  // 7: api.users.user.v1alpha1.UnfavoriteUserRequest
+	(*UnfavoriteUserResponse)(nil), // 8: api.users.user.v1alpha1.UnfavoriteUserResponse
+	(*User_Access)(nil),            // 9: api.users.user.v1alpha1.User.Access
+	(*fieldmaskpb.FieldMask)(nil),  // 10: google.protobuf.FieldMask
+	(types.PermissionLevel)(0),     // 11: api.types.PermissionLevel
+	(types.AccessState)(0),         // 12: api.types.AccessState
+	(types.AcceptTarget)(0),        // 13: api.types.AcceptTarget
 }
 var file_api_users_user_v1alpha1_user_proto_depIdxs = []int32{
-	5,  // 0: api.users.user.v1alpha1.User.access:type_name -> api.users.user.v1alpha1.User.Access
+	9,  // 0: api.users.user.v1alpha1.User.access:type_name -> api.users.user.v1alpha1.User.Access
 	0,  // 1: api.users.user.v1alpha1.ListUsersResponse.users:type_name -> api.users.user.v1alpha1.User
 	0,  // 2: api.users.user.v1alpha1.UpdateUserRequest.user:type_name -> api.users.user.v1alpha1.User
-	6,  // 3: api.users.user.v1alpha1.UpdateUserRequest.update_mask:type_name -> google.protobuf.FieldMask
-	7,  // 4: api.users.user.v1alpha1.User.Access.permission_level:type_name -> api.types.PermissionLevel
-	8,  // 5: api.users.user.v1alpha1.User.Access.state:type_name -> api.types.AccessState
-	9,  // 6: api.users.user.v1alpha1.User.Access.accept_target:type_name -> api.types.AcceptTarget
+	10, // 3: api.users.user.v1alpha1.UpdateUserRequest.update_mask:type_name -> google.protobuf.FieldMask
+	11, // 4: api.users.user.v1alpha1.User.Access.permission_level:type_name -> api.types.PermissionLevel
+	12, // 5: api.users.user.v1alpha1.User.Access.state:type_name -> api.types.AccessState
+	13, // 6: api.users.user.v1alpha1.User.Access.accept_target:type_name -> api.types.AcceptTarget
 	1,  // 7: api.users.user.v1alpha1.UserService.GetUser:input_type -> api.users.user.v1alpha1.GetUserRequest
 	2,  // 8: api.users.user.v1alpha1.UserService.ListUsers:input_type -> api.users.user.v1alpha1.ListUsersRequest
 	4,  // 9: api.users.user.v1alpha1.UserService.UpdateUser:input_type -> api.users.user.v1alpha1.UpdateUserRequest
-	0,  // 10: api.users.user.v1alpha1.UserService.GetUser:output_type -> api.users.user.v1alpha1.User
-	3,  // 11: api.users.user.v1alpha1.UserService.ListUsers:output_type -> api.users.user.v1alpha1.ListUsersResponse
-	0,  // 12: api.users.user.v1alpha1.UserService.UpdateUser:output_type -> api.users.user.v1alpha1.User
-	10, // [10:13] is the sub-list for method output_type
-	7,  // [7:10] is the sub-list for method input_type
+	5,  // 10: api.users.user.v1alpha1.UserService.FavoriteUser:input_type -> api.users.user.v1alpha1.FavoriteUserRequest
+	7,  // 11: api.users.user.v1alpha1.UserService.UnfavoriteUser:input_type -> api.users.user.v1alpha1.UnfavoriteUserRequest
+	0,  // 12: api.users.user.v1alpha1.UserService.GetUser:output_type -> api.users.user.v1alpha1.User
+	3,  // 13: api.users.user.v1alpha1.UserService.ListUsers:output_type -> api.users.user.v1alpha1.ListUsersResponse
+	0,  // 14: api.users.user.v1alpha1.UserService.UpdateUser:output_type -> api.users.user.v1alpha1.User
+	6,  // 15: api.users.user.v1alpha1.UserService.FavoriteUser:output_type -> api.users.user.v1alpha1.FavoriteUserResponse
+	8,  // 16: api.users.user.v1alpha1.UserService.UnfavoriteUser:output_type -> api.users.user.v1alpha1.UnfavoriteUserResponse
+	12, // [12:17] is the sub-list for method output_type
+	7,  // [7:12] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name
 	7,  // [7:7] is the sub-list for extension extendee
 	0,  // [0:7] is the sub-list for field type_name
@@ -550,7 +748,7 @@ func file_api_users_user_v1alpha1_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_users_user_v1alpha1_user_proto_rawDesc), len(file_api_users_user_v1alpha1_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

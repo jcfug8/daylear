@@ -23,6 +23,13 @@
                 {{ user.username }}
               </span>
             </div>
+            <v-icon 
+                v-if="user.favorited"
+                size="24" 
+                class="favorite-heart"
+              >
+              mdi-heart
+              </v-icon>
           </v-card-title>
           <v-card-subtitle style="font-size: 0.8rem;">
             <div v-if="user.bio" class="text-body-2 mb-1" style="max-height: 2.5em; overflow: hidden; text-overflow: ellipsis; white-space: pre-line;">
@@ -115,5 +122,17 @@ function isRequester(user: User) {
 .pending-btn {
   margin-top: 12px;
   cursor: not-allowed;
+}
+
+.favorite-heart {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  border-radius: 50%;
+  padding: 4px;
+  transition: all 0.2s ease-in-out;
+  color: red;
 }
 </style> 

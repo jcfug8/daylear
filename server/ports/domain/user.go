@@ -19,6 +19,9 @@ type userDomain interface {
 	ListUsers(ctx context.Context, authAccount model.AuthAccount, parent model.UserParent, pageSize int32, offset int64, filter string, fields []string) ([]model.User, error)
 	UpdateUser(ctx context.Context, authAccount model.AuthAccount, user model.User, fields []string) (model.User, error)
 
+	FavoriteUser(ctx context.Context, authAccount model.AuthAccount, parent model.UserParent, id model.UserId) error
+	UnfavoriteUser(ctx context.Context, authAccount model.AuthAccount, parent model.UserParent, id model.UserId) error
+
 	CreateUserAccess(ctx context.Context, authAccount model.AuthAccount, access model.UserAccess) (model.UserAccess, error)
 	DeleteUserAccess(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, id model.UserAccessId) error
 	GetUserAccess(ctx context.Context, authAccount model.AuthAccount, parent model.UserAccessParent, id model.UserAccessId, fields []string) (model.UserAccess, error)
