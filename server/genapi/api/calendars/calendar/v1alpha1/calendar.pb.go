@@ -38,8 +38,10 @@ type Calendar struct {
 	Visibility types.VisibilityLevel `protobuf:"varint,4,opt,name=visibility,proto3,enum=api.types.VisibilityLevel" json:"visibility,omitempty"`
 	// calendar access data
 	CalendarAccess *Calendar_CalendarAccess `protobuf:"bytes,5,opt,name=calendar_access,json=calendarAccess,proto3" json:"calendar_access,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// whether the current user has favorited this calendar
+	Favorited     bool `protobuf:"varint,6,opt,name=favorited,proto3" json:"favorited,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Calendar) Reset() {
@@ -105,6 +107,13 @@ func (x *Calendar) GetCalendarAccess() *Calendar_CalendarAccess {
 		return x.CalendarAccess
 	}
 	return nil
+}
+
+func (x *Calendar) GetFavorited() bool {
+	if x != nil {
+		return x.Favorited
+	}
+	return false
 }
 
 // the request to create a calendar
@@ -437,6 +446,172 @@ func (x *GetCalendarRequest) GetName() string {
 	return ""
 }
 
+// the request to favorite a calendar
+type FavoriteCalendarRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// the name of the calendar to favorite
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FavoriteCalendarRequest) Reset() {
+	*x = FavoriteCalendarRequest{}
+	mi := &file_api_calendars_calendar_v1alpha1_calendar_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FavoriteCalendarRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FavoriteCalendarRequest) ProtoMessage() {}
+
+func (x *FavoriteCalendarRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_calendars_calendar_v1alpha1_calendar_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FavoriteCalendarRequest.ProtoReflect.Descriptor instead.
+func (*FavoriteCalendarRequest) Descriptor() ([]byte, []int) {
+	return file_api_calendars_calendar_v1alpha1_calendar_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *FavoriteCalendarRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// the response to favorite a calendar
+type FavoriteCalendarResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FavoriteCalendarResponse) Reset() {
+	*x = FavoriteCalendarResponse{}
+	mi := &file_api_calendars_calendar_v1alpha1_calendar_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FavoriteCalendarResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FavoriteCalendarResponse) ProtoMessage() {}
+
+func (x *FavoriteCalendarResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_calendars_calendar_v1alpha1_calendar_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FavoriteCalendarResponse.ProtoReflect.Descriptor instead.
+func (*FavoriteCalendarResponse) Descriptor() ([]byte, []int) {
+	return file_api_calendars_calendar_v1alpha1_calendar_proto_rawDescGZIP(), []int{8}
+}
+
+// the request to unfavorite a calendar
+type UnfavoriteCalendarRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// the name of the calendar to unfavorite
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnfavoriteCalendarRequest) Reset() {
+	*x = UnfavoriteCalendarRequest{}
+	mi := &file_api_calendars_calendar_v1alpha1_calendar_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnfavoriteCalendarRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnfavoriteCalendarRequest) ProtoMessage() {}
+
+func (x *UnfavoriteCalendarRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_calendars_calendar_v1alpha1_calendar_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnfavoriteCalendarRequest.ProtoReflect.Descriptor instead.
+func (*UnfavoriteCalendarRequest) Descriptor() ([]byte, []int) {
+	return file_api_calendars_calendar_v1alpha1_calendar_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *UnfavoriteCalendarRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// the response to unfavorite a calendar
+type UnfavoriteCalendarResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnfavoriteCalendarResponse) Reset() {
+	*x = UnfavoriteCalendarResponse{}
+	mi := &file_api_calendars_calendar_v1alpha1_calendar_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnfavoriteCalendarResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnfavoriteCalendarResponse) ProtoMessage() {}
+
+func (x *UnfavoriteCalendarResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_calendars_calendar_v1alpha1_calendar_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnfavoriteCalendarResponse.ProtoReflect.Descriptor instead.
+func (*UnfavoriteCalendarResponse) Descriptor() ([]byte, []int) {
+	return file_api_calendars_calendar_v1alpha1_calendar_proto_rawDescGZIP(), []int{10}
+}
+
 // the calendar access details
 type Calendar_CalendarAccess struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -454,7 +629,7 @@ type Calendar_CalendarAccess struct {
 
 func (x *Calendar_CalendarAccess) Reset() {
 	*x = Calendar_CalendarAccess{}
-	mi := &file_api_calendars_calendar_v1alpha1_calendar_proto_msgTypes[7]
+	mi := &file_api_calendars_calendar_v1alpha1_calendar_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -466,7 +641,7 @@ func (x *Calendar_CalendarAccess) String() string {
 func (*Calendar_CalendarAccess) ProtoMessage() {}
 
 func (x *Calendar_CalendarAccess) ProtoReflect() protoreflect.Message {
-	mi := &file_api_calendars_calendar_v1alpha1_calendar_proto_msgTypes[7]
+	mi := &file_api_calendars_calendar_v1alpha1_calendar_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -514,7 +689,7 @@ var File_api_calendars_calendar_v1alpha1_calendar_proto protoreflect.FileDescrip
 
 const file_api_calendars_calendar_v1alpha1_calendar_proto_rawDesc = "" +
 	"\n" +
-	".api/calendars/calendar/v1alpha1/calendar.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1dapi/types/accept_target.proto\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xa2\x05\n" +
+	".api/calendars/calendar/v1alpha1/calendar.proto\x12\x1fapi.calendars.calendar.v1alpha1\x1a\x1dapi/types/accept_target.proto\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xc5\x05\n" +
 	"\bCalendar\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
@@ -522,7 +697,8 @@ const file_api_calendars_calendar_v1alpha1_calendar_proto_rawDesc = "" +
 	"\n" +
 	"visibility\x18\x04 \x01(\x0e2\x1a.api.types.VisibilityLevelB\x03\xe0A\x02R\n" +
 	"visibility\x12f\n" +
-	"\x0fcalendar_access\x18\x05 \x01(\v28.api.calendars.calendar.v1alpha1.Calendar.CalendarAccessB\x03\xe0A\x03R\x0ecalendarAccess\x1a\xeb\x01\n" +
+	"\x0fcalendar_access\x18\x05 \x01(\v28.api.calendars.calendar.v1alpha1.Calendar.CalendarAccessB\x03\xe0A\x03R\x0ecalendarAccess\x12!\n" +
+	"\tfavorited\x18\x06 \x01(\bB\x03\xe0A\x03R\tfavorited\x1a\xeb\x01\n" +
 	"\x0eCalendarAccess\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x03R\x04name\x12J\n" +
 	"\x10permission_level\x18\x02 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x03R\x0fpermissionLevel\x121\n" +
@@ -552,7 +728,15 @@ const file_api_calendars_calendar_v1alpha1_calendar_proto_rawDesc = "" +
 	"(api.calendars.calendar.v1alpha1/CalendarR\x04name\"Z\n" +
 	"\x12GetCalendarRequest\x12D\n" +
 	"\x04name\x18\x01 \x01(\tB0\xe0A\x02\xfaA*\n" +
-	"(api.calendars.calendar.v1alpha1/CalendarR\x04name2\xf0\x0e\n" +
+	"(api.calendars.calendar.v1alpha1/CalendarR\x04name\"_\n" +
+	"\x17FavoriteCalendarRequest\x12D\n" +
+	"\x04name\x18\x01 \x01(\tB0\xe0A\x02\xfaA*\n" +
+	"(api.calendars.calendar.v1alpha1/CalendarR\x04name\"\x1a\n" +
+	"\x18FavoriteCalendarResponse\"a\n" +
+	"\x19UnfavoriteCalendarRequest\x12D\n" +
+	"\x04name\x18\x01 \x01(\tB0\xe0A\x02\xfaA*\n" +
+	"(api.calendars.calendar.v1alpha1/CalendarR\x04name\"\x1c\n" +
+	"\x1aUnfavoriteCalendarResponse2\xbc\x15\n" +
 	"\x0fCalendarService\x12\xdb\x02\n" +
 	"\x0eCreateCalendar\x126.api.calendars.calendar.v1alpha1.CreateCalendarRequest\x1a).api.calendars.calendar.v1alpha1.Calendar\"\xe5\x01\x92AW\n" +
 	"\x0fCalendarService\x12\x11Create a calendar\x1a1Creates a new calendar with the provided details.\xdaA\x1bparent,calendar,calendar_id\x82\xd3\xe4\x93\x02g:\bcalendarZ<:\bcalendar\"0/calendars/v1alpha1/{parent=circles/*}/calendars\"\x1d/calendars/v1alpha1/calendars\x12\x87\x03\n" +
@@ -563,7 +747,11 @@ const file_api_calendars_calendar_v1alpha1_calendar_proto_rawDesc = "" +
 	"\x0eDeleteCalendar\x126.api.calendars.calendar.v1alpha1.DeleteCalendarRequest\x1a).api.calendars.calendar.v1alpha1.Calendar\"\xe9\x01\x92AJ\n" +
 	"\x0fCalendarService\x12\x11Delete a calendar\x1a$Deletes a calendar by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02\x8e\x01Z2*0/calendars/v1alpha1/{name=circles/*/calendars/*}Z0*./calendars/v1alpha1/{name=users/*/calendars/*}*&/calendars/v1alpha1/{name=calendars/*}\x12\xdf\x02\n" +
 	"\vGetCalendar\x123.api.calendars.calendar.v1alpha1.GetCalendarRequest\x1a).api.calendars.calendar.v1alpha1.Calendar\"\xef\x01\x92AP\n" +
-	"\x0fCalendarService\x12\x0eGet a calendar\x1a-Retrieves a single calendar by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02\x8e\x01Z2\x120/calendars/v1alpha1/{name=circles/*/calendars/*}Z0\x12./calendars/v1alpha1/{name=users/*/calendars/*}\x12&/calendars/v1alpha1/{name=calendars/*}B\x88\x03\x92AXZD\n" +
+	"\x0fCalendarService\x12\x0eGet a calendar\x1a-Retrieves a single calendar by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02\x8e\x01Z2\x120/calendars/v1alpha1/{name=circles/*/calendars/*}Z0\x12./calendars/v1alpha1/{name=users/*/calendars/*}\x12&/calendars/v1alpha1/{name=calendars/*}\x12\x9b\x03\n" +
+	"\x10FavoriteCalendar\x128.api.calendars.calendar.v1alpha1.FavoriteCalendarRequest\x1a9.api.calendars.calendar.v1alpha1.FavoriteCalendarResponse\"\x91\x02\x92AN\n" +
+	"\x0fCalendarService\x12\x13Favorite a calendar\x1a&Favorites a calendar by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02\xb2\x01:\x01*Z>:\x01*\"9/calendars/v1alpha1/{name=circles/*/calendars/*}:favoriteZ<:\x01*\"7/calendars/v1alpha1/{name=users/*/calendars/*}:favorite\"//calendars/v1alpha1/{name=calendars/*}:favorite\x12\xab\x03\n" +
+	"\x12UnfavoriteCalendar\x12:.api.calendars.calendar.v1alpha1.UnfavoriteCalendarRequest\x1a;.api.calendars.calendar.v1alpha1.UnfavoriteCalendarResponse\"\x9b\x02\x92AR\n" +
+	"\x0fCalendarService\x12\x15Unfavorite a calendar\x1a(Unfavorites a calendar by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02\xb8\x01:\x01*Z@:\x01*\";/calendars/v1alpha1/{name=circles/*/calendars/*}:unfavoriteZ>:\x01*\"9/calendars/v1alpha1/{name=users/*/calendars/*}:unfavorite\"1/calendars/v1alpha1/{name=calendars/*}:unfavoriteB\x88\x03\x92AXZD\n" +
 	"B\n" +
 	"\n" +
 	"BearerAuth\x124\b\x02\x12\x1fBearer token for authentication\x1a\rAuthorization \x02b\x10\n" +
@@ -584,44 +772,52 @@ func file_api_calendars_calendar_v1alpha1_calendar_proto_rawDescGZIP() []byte {
 	return file_api_calendars_calendar_v1alpha1_calendar_proto_rawDescData
 }
 
-var file_api_calendars_calendar_v1alpha1_calendar_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_api_calendars_calendar_v1alpha1_calendar_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_api_calendars_calendar_v1alpha1_calendar_proto_goTypes = []any{
-	(*Calendar)(nil),                // 0: api.calendars.calendar.v1alpha1.Calendar
-	(*CreateCalendarRequest)(nil),   // 1: api.calendars.calendar.v1alpha1.CreateCalendarRequest
-	(*ListCalendarsRequest)(nil),    // 2: api.calendars.calendar.v1alpha1.ListCalendarsRequest
-	(*ListCalendarsResponse)(nil),   // 3: api.calendars.calendar.v1alpha1.ListCalendarsResponse
-	(*UpdateCalendarRequest)(nil),   // 4: api.calendars.calendar.v1alpha1.UpdateCalendarRequest
-	(*DeleteCalendarRequest)(nil),   // 5: api.calendars.calendar.v1alpha1.DeleteCalendarRequest
-	(*GetCalendarRequest)(nil),      // 6: api.calendars.calendar.v1alpha1.GetCalendarRequest
-	(*Calendar_CalendarAccess)(nil), // 7: api.calendars.calendar.v1alpha1.Calendar.CalendarAccess
-	(types.VisibilityLevel)(0),      // 8: api.types.VisibilityLevel
-	(*fieldmaskpb.FieldMask)(nil),   // 9: google.protobuf.FieldMask
-	(types.PermissionLevel)(0),      // 10: api.types.PermissionLevel
-	(types.AccessState)(0),          // 11: api.types.AccessState
-	(types.AcceptTarget)(0),         // 12: api.types.AcceptTarget
+	(*Calendar)(nil),                   // 0: api.calendars.calendar.v1alpha1.Calendar
+	(*CreateCalendarRequest)(nil),      // 1: api.calendars.calendar.v1alpha1.CreateCalendarRequest
+	(*ListCalendarsRequest)(nil),       // 2: api.calendars.calendar.v1alpha1.ListCalendarsRequest
+	(*ListCalendarsResponse)(nil),      // 3: api.calendars.calendar.v1alpha1.ListCalendarsResponse
+	(*UpdateCalendarRequest)(nil),      // 4: api.calendars.calendar.v1alpha1.UpdateCalendarRequest
+	(*DeleteCalendarRequest)(nil),      // 5: api.calendars.calendar.v1alpha1.DeleteCalendarRequest
+	(*GetCalendarRequest)(nil),         // 6: api.calendars.calendar.v1alpha1.GetCalendarRequest
+	(*FavoriteCalendarRequest)(nil),    // 7: api.calendars.calendar.v1alpha1.FavoriteCalendarRequest
+	(*FavoriteCalendarResponse)(nil),   // 8: api.calendars.calendar.v1alpha1.FavoriteCalendarResponse
+	(*UnfavoriteCalendarRequest)(nil),  // 9: api.calendars.calendar.v1alpha1.UnfavoriteCalendarRequest
+	(*UnfavoriteCalendarResponse)(nil), // 10: api.calendars.calendar.v1alpha1.UnfavoriteCalendarResponse
+	(*Calendar_CalendarAccess)(nil),    // 11: api.calendars.calendar.v1alpha1.Calendar.CalendarAccess
+	(types.VisibilityLevel)(0),         // 12: api.types.VisibilityLevel
+	(*fieldmaskpb.FieldMask)(nil),      // 13: google.protobuf.FieldMask
+	(types.PermissionLevel)(0),         // 14: api.types.PermissionLevel
+	(types.AccessState)(0),             // 15: api.types.AccessState
+	(types.AcceptTarget)(0),            // 16: api.types.AcceptTarget
 }
 var file_api_calendars_calendar_v1alpha1_calendar_proto_depIdxs = []int32{
-	8,  // 0: api.calendars.calendar.v1alpha1.Calendar.visibility:type_name -> api.types.VisibilityLevel
-	7,  // 1: api.calendars.calendar.v1alpha1.Calendar.calendar_access:type_name -> api.calendars.calendar.v1alpha1.Calendar.CalendarAccess
+	12, // 0: api.calendars.calendar.v1alpha1.Calendar.visibility:type_name -> api.types.VisibilityLevel
+	11, // 1: api.calendars.calendar.v1alpha1.Calendar.calendar_access:type_name -> api.calendars.calendar.v1alpha1.Calendar.CalendarAccess
 	0,  // 2: api.calendars.calendar.v1alpha1.CreateCalendarRequest.calendar:type_name -> api.calendars.calendar.v1alpha1.Calendar
 	0,  // 3: api.calendars.calendar.v1alpha1.ListCalendarsResponse.calendars:type_name -> api.calendars.calendar.v1alpha1.Calendar
 	0,  // 4: api.calendars.calendar.v1alpha1.UpdateCalendarRequest.calendar:type_name -> api.calendars.calendar.v1alpha1.Calendar
-	9,  // 5: api.calendars.calendar.v1alpha1.UpdateCalendarRequest.update_mask:type_name -> google.protobuf.FieldMask
-	10, // 6: api.calendars.calendar.v1alpha1.Calendar.CalendarAccess.permission_level:type_name -> api.types.PermissionLevel
-	11, // 7: api.calendars.calendar.v1alpha1.Calendar.CalendarAccess.state:type_name -> api.types.AccessState
-	12, // 8: api.calendars.calendar.v1alpha1.Calendar.CalendarAccess.accept_target:type_name -> api.types.AcceptTarget
+	13, // 5: api.calendars.calendar.v1alpha1.UpdateCalendarRequest.update_mask:type_name -> google.protobuf.FieldMask
+	14, // 6: api.calendars.calendar.v1alpha1.Calendar.CalendarAccess.permission_level:type_name -> api.types.PermissionLevel
+	15, // 7: api.calendars.calendar.v1alpha1.Calendar.CalendarAccess.state:type_name -> api.types.AccessState
+	16, // 8: api.calendars.calendar.v1alpha1.Calendar.CalendarAccess.accept_target:type_name -> api.types.AcceptTarget
 	1,  // 9: api.calendars.calendar.v1alpha1.CalendarService.CreateCalendar:input_type -> api.calendars.calendar.v1alpha1.CreateCalendarRequest
 	2,  // 10: api.calendars.calendar.v1alpha1.CalendarService.ListCalendars:input_type -> api.calendars.calendar.v1alpha1.ListCalendarsRequest
 	4,  // 11: api.calendars.calendar.v1alpha1.CalendarService.UpdateCalendar:input_type -> api.calendars.calendar.v1alpha1.UpdateCalendarRequest
 	5,  // 12: api.calendars.calendar.v1alpha1.CalendarService.DeleteCalendar:input_type -> api.calendars.calendar.v1alpha1.DeleteCalendarRequest
 	6,  // 13: api.calendars.calendar.v1alpha1.CalendarService.GetCalendar:input_type -> api.calendars.calendar.v1alpha1.GetCalendarRequest
-	0,  // 14: api.calendars.calendar.v1alpha1.CalendarService.CreateCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
-	3,  // 15: api.calendars.calendar.v1alpha1.CalendarService.ListCalendars:output_type -> api.calendars.calendar.v1alpha1.ListCalendarsResponse
-	0,  // 16: api.calendars.calendar.v1alpha1.CalendarService.UpdateCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
-	0,  // 17: api.calendars.calendar.v1alpha1.CalendarService.DeleteCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
-	0,  // 18: api.calendars.calendar.v1alpha1.CalendarService.GetCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
-	14, // [14:19] is the sub-list for method output_type
-	9,  // [9:14] is the sub-list for method input_type
+	7,  // 14: api.calendars.calendar.v1alpha1.CalendarService.FavoriteCalendar:input_type -> api.calendars.calendar.v1alpha1.FavoriteCalendarRequest
+	9,  // 15: api.calendars.calendar.v1alpha1.CalendarService.UnfavoriteCalendar:input_type -> api.calendars.calendar.v1alpha1.UnfavoriteCalendarRequest
+	0,  // 16: api.calendars.calendar.v1alpha1.CalendarService.CreateCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
+	3,  // 17: api.calendars.calendar.v1alpha1.CalendarService.ListCalendars:output_type -> api.calendars.calendar.v1alpha1.ListCalendarsResponse
+	0,  // 18: api.calendars.calendar.v1alpha1.CalendarService.UpdateCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
+	0,  // 19: api.calendars.calendar.v1alpha1.CalendarService.DeleteCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
+	0,  // 20: api.calendars.calendar.v1alpha1.CalendarService.GetCalendar:output_type -> api.calendars.calendar.v1alpha1.Calendar
+	8,  // 21: api.calendars.calendar.v1alpha1.CalendarService.FavoriteCalendar:output_type -> api.calendars.calendar.v1alpha1.FavoriteCalendarResponse
+	10, // 22: api.calendars.calendar.v1alpha1.CalendarService.UnfavoriteCalendar:output_type -> api.calendars.calendar.v1alpha1.UnfavoriteCalendarResponse
+	16, // [16:23] is the sub-list for method output_type
+	9,  // [9:16] is the sub-list for method input_type
 	9,  // [9:9] is the sub-list for extension type_name
 	9,  // [9:9] is the sub-list for extension extendee
 	0,  // [0:9] is the sub-list for field type_name
@@ -638,7 +834,7 @@ func file_api_calendars_calendar_v1alpha1_calendar_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_calendars_calendar_v1alpha1_calendar_proto_rawDesc), len(file_api_calendars_calendar_v1alpha1_calendar_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

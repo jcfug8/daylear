@@ -166,6 +166,11 @@
                   "$ref": "#/definitions/CalendarCalendarAccess",
                   "title": "calendar access data",
                   "readOnly": true
+                },
+                "favorited": {
+                  "type": "boolean",
+                  "title": "whether the current user has favorited this calendar",
+                  "readOnly": true
                 }
               },
               "title": "the calendar to update",
@@ -234,6 +239,11 @@
                   "$ref": "#/definitions/CalendarCalendarAccess",
                   "title": "calendar access data",
                   "readOnly": true
+                },
+                "favorited": {
+                  "type": "boolean",
+                  "title": "whether the current user has favorited this calendar",
+                  "readOnly": true
                 }
               },
               "title": "the calendar to update",
@@ -301,6 +311,11 @@
                 "calendarAccess": {
                   "$ref": "#/definitions/CalendarCalendarAccess",
                   "title": "calendar access data",
+                  "readOnly": true
+                },
+                "favorited": {
+                  "type": "boolean",
+                  "title": "whether the current user has favorited this calendar",
                   "readOnly": true
                 }
               },
@@ -384,6 +399,90 @@
         ]
       }
     },
+    "/calendars/v1alpha1/{name_1}:favorite": {
+      "post": {
+        "summary": "Favorite a calendar",
+        "description": "Favorites a calendar by resource name.",
+        "operationId": "CalendarService_FavoriteCalendar2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1FavoriteCalendarResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "the name of the calendar to favorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/calendars/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CalendarServiceFavoriteCalendarBody"
+            }
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{name_1}:unfavorite": {
+      "post": {
+        "summary": "Unfavorite a calendar",
+        "description": "Unfavorites a calendar by resource name.",
+        "operationId": "CalendarService_UnfavoriteCalendar2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UnfavoriteCalendarResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "the name of the calendar to unfavorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/calendars/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CalendarServiceUnfavoriteCalendarBody"
+            }
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
     "/calendars/v1alpha1/{name_2}": {
       "get": {
         "summary": "Get a calendar",
@@ -450,6 +549,90 @@
         ]
       }
     },
+    "/calendars/v1alpha1/{name_2}:favorite": {
+      "post": {
+        "summary": "Favorite a calendar",
+        "description": "Favorites a calendar by resource name.",
+        "operationId": "CalendarService_FavoriteCalendar3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1FavoriteCalendarResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_2",
+            "description": "the name of the calendar to favorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/calendars/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CalendarServiceFavoriteCalendarBody"
+            }
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{name_2}:unfavorite": {
+      "post": {
+        "summary": "Unfavorite a calendar",
+        "description": "Unfavorites a calendar by resource name.",
+        "operationId": "CalendarService_UnfavoriteCalendar3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UnfavoriteCalendarResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_2",
+            "description": "the name of the calendar to unfavorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/calendars/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CalendarServiceUnfavoriteCalendarBody"
+            }
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
     "/calendars/v1alpha1/{name}": {
       "get": {
         "summary": "Get a calendar",
@@ -509,6 +692,90 @@
             "required": true,
             "type": "string",
             "pattern": "calendars/[^/]+"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{name}:favorite": {
+      "post": {
+        "summary": "Favorite a calendar",
+        "description": "Favorites a calendar by resource name.",
+        "operationId": "CalendarService_FavoriteCalendar",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1FavoriteCalendarResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the calendar to favorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "calendars/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CalendarServiceFavoriteCalendarBody"
+            }
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{name}:unfavorite": {
+      "post": {
+        "summary": "Unfavorite a calendar",
+        "description": "Unfavorites a calendar by resource name.",
+        "operationId": "CalendarService_UnfavoriteCalendar",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UnfavoriteCalendarResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the calendar to unfavorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "calendars/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CalendarServiceUnfavoriteCalendarBody"
+            }
           }
         ],
         "tags": [
@@ -700,6 +967,14 @@
       },
       "title": "the calendar access details"
     },
+    "CalendarServiceFavoriteCalendarBody": {
+      "type": "object",
+      "title": "the request to favorite a calendar"
+    },
+    "CalendarServiceUnfavoriteCalendarBody": {
+      "type": "object",
+      "title": "the request to unfavorite a calendar"
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -799,6 +1074,11 @@
           "$ref": "#/definitions/CalendarCalendarAccess",
           "title": "calendar access data",
           "readOnly": true
+        },
+        "favorited": {
+          "type": "boolean",
+          "title": "whether the current user has favorited this calendar",
+          "readOnly": true
         }
       },
       "title": "the main user calendar",
@@ -806,6 +1086,10 @@
         "title",
         "visibility"
       ]
+    },
+    "v1alpha1FavoriteCalendarResponse": {
+      "type": "object",
+      "title": "the response to favorite a calendar"
     },
     "v1alpha1ListCalendarsResponse": {
       "type": "object",
@@ -824,6 +1108,10 @@
         }
       },
       "title": "the response to list calendars"
+    },
+    "v1alpha1UnfavoriteCalendarResponse": {
+      "type": "object",
+      "title": "the response to unfavorite a calendar"
     }
   },
   "securityDefinitions": {

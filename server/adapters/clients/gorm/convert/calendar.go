@@ -26,6 +26,7 @@ func CalendarToCoreModel(gormCalendar gmodel.Calendar) (cmodel.Calendar, error) 
 		VisibilityLevel: gormCalendar.VisibilityLevel,
 		CreateTime:      gormCalendar.CreateTime,
 		UpdateTime:      gormCalendar.UpdateTime,
+		Favorited:       gormCalendar.CalendarFavoriteId != 0,
 		CalendarAccess: cmodel.CalendarAccess{
 			CalendarAccessParent: cmodel.CalendarAccessParent{CalendarId: gormCalendar.CalendarId},
 			CalendarAccessId:     cmodel.CalendarAccessId{CalendarAccessId: gormCalendar.CalendarAccessId},

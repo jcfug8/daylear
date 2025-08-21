@@ -29,6 +29,8 @@ var CalendarFieldMasker = fieldmask.NewSQLFieldMasker(Calendar{}, map[string][]f
 	cmodel.CalendarField_Description: {{Name: CalendarColumn_Description, Table: CalendarTable, Updatable: true}},
 	cmodel.CalendarField_Visibility:  {{Name: CalendarColumn_VisibilityLevel, Table: CalendarTable, Updatable: true}},
 
+	cmodel.CalendarField_Favorited: {{Name: CalendarFavoriteFields_CalendarFavoriteId, Table: CalendarFavoriteTable}},
+
 	cmodel.CalendarField_CalendarAccess: {
 		{Name: CalendarAccessColumn_CalendarAccessId, Table: CalendarAccessTable},
 		{Name: CalendarAccessColumn_PermissionLevel, Table: CalendarAccessTable},
@@ -40,6 +42,7 @@ var CalendarSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
 	"visibility":       {Name: CalendarColumn_VisibilityLevel, Table: CalendarTable},
 	"permission_level": {Name: CalendarAccessColumn_PermissionLevel, Table: CalendarAccessTable},
 	"state":            {Name: CalendarAccessColumn_State, Table: CalendarAccessTable},
+	"favorited":        {Name: CalendarFavoriteFields_CalendarFavoriteId, Table: CalendarFavoriteTable, CustomConverter: favoritedSQLFilterConverter},
 }, true)
 
 // Calendar is the GORM model for a calendar.
@@ -56,6 +59,9 @@ type Calendar struct {
 	PermissionLevel  types.PermissionLevel `gorm:"->;-:migration"`
 	State            types.AccessState     `gorm:"->;-:migration"`
 	AcceptTarget     types.AcceptTarget    `gorm:"->;-:migration"`
+
+	// CalendarFavorite data (only used for read from a join)
+	CalendarFavoriteId int64 `gorm:"->;-:migration"`
 }
 
 // TableName sets the table name for the Calendar model.

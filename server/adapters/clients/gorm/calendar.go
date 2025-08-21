@@ -85,6 +85,7 @@ func (repo *Client) GetCalendar(ctx context.Context, authAccount cmodel.AuthAcco
 				cmodel.CalendarField_CalendarAccess,
 			),
 		)).
+		Joins("LEFT JOIN calendar_favorite ON calendar.calendar_id = calendar_favorite.calendar_id AND calendar_favorite.user_id = ?", authAccount.AuthUserId).
 		Where("calendar.calendar_id = ?", id.CalendarId)
 
 	err := tx.First(&gm).Error
@@ -129,6 +130,7 @@ func (repo *Client) ListCalendars(ctx context.Context, authAccount cmodel.AuthAc
 		}
 		tx = tx.Joins("LEFT JOIN calendar_access ON calendar.calendar_id = calendar_access.calendar_id AND calendar_access.recipient_circle_id = ? AND (calendar.visibility_level != ? OR calendar_access.permission_level = ?)", authAccount.CircleId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
 			Joins("LEFT JOIN calendar_access as ca ON calendar.calendar_id = ca.calendar_id AND ca.recipient_user_id = ? AND (calendar.visibility_level != ? OR ca.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Joins("LEFT JOIN calendar_favorite ON calendar.calendar_id = calendar_favorite.calendar_id AND calendar_favorite.circle_id = ?", authAccount.CircleId).
 			Where("(calendar.visibility_level <= ? OR (calendar_access.recipient_circle_id = ? AND ca.state = ?))",
 				maxVisibilityLevel, authAccount.CircleId, types.AccessState_ACCESS_STATE_ACCEPTED)
 	} else if authAccount.UserId != 0 && authAccount.UserId != authAccount.AuthUserId {
@@ -138,10 +140,12 @@ func (repo *Client) ListCalendars(ctx context.Context, authAccount cmodel.AuthAc
 		}
 		tx = tx.Joins("LEFT JOIN calendar_access ON calendar.calendar_id = calendar_access.calendar_id AND calendar_access.recipient_user_id = ? AND (calendar.visibility_level != ? OR calendar_access.permission_level = ?)", authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
 			Joins("LEFT JOIN calendar_access as ca ON calendar.calendar_id = ca.calendar_id AND ca.recipient_user_id = ? AND (calendar.visibility_level != ? OR ca.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Joins("LEFT JOIN calendar_favorite ON calendar.calendar_id = calendar_favorite.calendar_id AND calendar_favorite.user_id = ?", authAccount.UserId).
 			Where("(calendar.visibility_level <= ? OR (calendar_access.recipient_user_id = ? AND ca.state = ?))",
 				maxVisibilityLevel, authAccount.UserId, types.AccessState_ACCESS_STATE_ACCEPTED)
 	} else {
 		tx = tx.Joins("LEFT JOIN calendar_access ON calendar.calendar_id = calendar_access.calendar_id AND calendar_access.recipient_user_id = ? AND (calendar.visibility_level != ? OR calendar_access.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Joins("LEFT JOIN calendar_favorite ON calendar.calendar_id = calendar_favorite.calendar_id AND calendar_favorite.user_id = ?", authAccount.AuthUserId).
 			Where("(calendar.visibility_level <= ? OR calendar_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
 	}
 
@@ -202,4 +206,60 @@ func (repo *Client) UpdateCalendar(ctx context.Context, authAccount cmodel.AuthA
 	}
 
 	return m, nil
+}
+
+// CreateCalendarFavorite creates a calendar favorite for a user.
+func (repo *Client) CreateCalendarFavorite(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.CalendarId) error {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Interface("authAccount", authAccount).
+		Int64("calendarId", id.CalendarId).
+		Logger()
+
+	favorite := gmodel.CalendarFavorite{
+		CalendarId: id.CalendarId,
+	}
+
+	if authAccount.CircleId != 0 {
+		favorite.CircleId = authAccount.CircleId
+	} else if authAccount.UserId != 0 {
+		favorite.UserId = authAccount.UserId
+	} else {
+		favorite.UserId = authAccount.AuthUserId
+	}
+
+	err := repo.db.WithContext(ctx).Create(&favorite).Error
+	if err != nil {
+		log.Error().Err(err).Msg("unable to create calendar favorite")
+		return ConvertGormError(err)
+	}
+
+	log.Info().Msg("calendar favorite created successfully")
+	return nil
+}
+
+// DeleteCalendarFavorite removes a calendar favorite for a user.
+func (repo *Client) DeleteCalendarFavorite(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.CalendarId) error {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Interface("authAccount", authAccount).
+		Int64("calendarId", id.CalendarId).
+		Logger()
+
+	tx := repo.db.WithContext(ctx)
+
+	if authAccount.CircleId != 0 {
+		tx = tx.Where("circle_id = ? AND calendar_id = ?", authAccount.CircleId, id.CalendarId)
+	} else if authAccount.UserId != 0 {
+		tx = tx.Where("user_id = ? AND calendar_id = ?", authAccount.UserId, id.CalendarId)
+	} else {
+		tx = tx.Where("user_id = ? AND calendar_id = ?", authAccount.AuthUserId, id.CalendarId)
+	}
+
+	err := tx.Delete(&gmodel.CalendarFavorite{}).Error
+	if err != nil {
+		log.Error().Err(err).Msg("unable to delete calendar favorite")
+		return ConvertGormError(err)
+	}
+
+	log.Info().Msg("calendar favorite deleted successfully")
+	return nil
 }

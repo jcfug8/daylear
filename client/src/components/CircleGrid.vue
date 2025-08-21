@@ -24,7 +24,7 @@
                 class="favorite-heart"
               >
               mdi-heart
-              </v-icon>
+            </v-icon>
           </v-card-title>
           <v-card-subtitle style="font-size: 0.8rem;">
             <div v-if="circle.description" class="text-body-2 mb-1" style="max-height: 2.5em; overflow: hidden; text-overflow: ellipsis; white-space: pre-line;">

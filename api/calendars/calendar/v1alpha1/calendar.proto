@@ -119,6 +119,50 @@ service CalendarService {
       tags: "CalendarService"
     };
   }
+
+  // favorite a calendar
+  rpc FavoriteCalendar(FavoriteCalendarRequest) returns (FavoriteCalendarResponse) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {
+      post: "/calendars/v1alpha1/{name=calendars/*}:favorite"
+      body: "*"
+      additional_bindings: {
+        post: "/calendars/v1alpha1/{name=circles/*/calendars/*}:favorite"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/calendars/v1alpha1/{name=users/*/calendars/*}:favorite"
+        body: "*"
+      }
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Favorite a calendar"
+      description: "Favorites a calendar by resource name."
+      tags: "CalendarService"
+    };
+  }
+
+  // unfavorite a calendar
+  rpc UnfavoriteCalendar(UnfavoriteCalendarRequest) returns (UnfavoriteCalendarResponse) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {
+      post: "/calendars/v1alpha1/{name=calendars/*}:unfavorite"
+      body: "*"
+      additional_bindings: {
+        post: "/calendars/v1alpha1/{name=circles/*/calendars/*}:unfavorite"
+        body: "*"
+      }
+      additional_bindings: {
+        post: "/calendars/v1alpha1/{name=users/*/calendars/*}:unfavorite"
+        body: "*"
+      }
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Unfavorite a calendar"
+      description: "Unfavorites a calendar by resource name."
+      tags: "CalendarService"
+    };
+  }
 }
 
 // the main user calendar
@@ -146,6 +190,9 @@ message Calendar {
 
   // calendar access data
   CalendarAccess calendar_access = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // whether the current user has favorited this calendar
+  bool favorited = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // the calendar access details
   message CalendarAccess {
@@ -228,3 +275,27 @@ message GetCalendarRequest {
     (google.api.resource_reference).type = "api.calendars.calendar.v1alpha1/Calendar"
   ];
 }
+
+// the request to favorite a calendar
+message FavoriteCalendarRequest {
+  // the name of the calendar to favorite
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.calendars.calendar.v1alpha1/Calendar"
+  ];
+}
+
+// the response to favorite a calendar
+message FavoriteCalendarResponse {}
+
+// the request to unfavorite a calendar
+message UnfavoriteCalendarRequest {
+  // the name of the calendar to unfavorite
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.calendars.calendar.v1alpha1/Calendar"
+  ];
+}
+
+// the response to unfavorite a calendar
+message UnfavoriteCalendarResponse {}

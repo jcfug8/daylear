@@ -87,6 +87,15 @@
             <v-icon>mdi-delete</v-icon>Delete
           </v-btn>
         </div>
+        <v-icon 
+          size="24" 
+          :color="calendar.favorited ? 'red' : 'black'"
+          class="favorite-heart"
+          @click="toggleFavorite"
+          style="cursor: pointer;"
+        >
+        {{ calendar.favorited ? 'mdi-heart' : 'mdi-heart-outline' }}
+        </v-icon>
       </template>
       
       <template #events="{ items, loading }">
@@ -200,6 +209,7 @@ import { useAlertStore } from '@/stores/alerts'
 import { useAuthStore } from '@/stores/auth'
 import ScheduleCal from '@/views/calendar/event/ScheduleCal.vue'
 import type { Event } from '@/genapi/api/calendars/calendar/v1alpha1'
+import { calendarService } from '@/api/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -584,6 +594,25 @@ async function onEventDeleted() {
   if (!calendar.value?.name) return
   await calendarsStore.loadEvents(calendar.value.name)
 }
+
+// *** Favorite User ***
+
+async function toggleFavorite() {
+  if (!calendar.value?.name) return
+  try {
+    if (calendar.value.favorited) {
+      await calendarService.UnfavoriteCalendar({ name: calendar.value.name })
+    } else {
+      await calendarService.FavoriteCalendar({ name: calendar.value.name })
+    }
+    // Update the local state
+    calendar.value.favorited = !calendar.value.favorited
+  } catch (error) {
+    console.error('Error toggling favorite:', error)
+    alertsStore.addAlert('Failed to update favorite status.', 'error')
+  }
+}
+
 </script>
 
 <style scoped>
@@ -601,5 +630,18 @@ async function onEventDeleted() {
   flex-direction: column;
   gap: 8px;
   z-index: 1000;
+}
+
+.favorite-heart {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10000000;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  /* background-color: rgba(255, 255, 255, 0.9); */
+  border-radius: 50%;
+  padding: 4px;
+  transition: all 0.2s ease-in-out;
+  color: red;
 }
 </style>

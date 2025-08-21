@@ -254,3 +254,113 @@ func (d *Domain) UpdateCalendar(ctx context.Context, authAccount model.AuthAccou
 
 	return dbCalendar, nil
 }
+
+// FavoriteCalendar favorites a calendar for the authenticated user.
+func (d *Domain) FavoriteCalendar(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarParent, id model.CalendarId) error {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	if authAccount.AuthUserId == 0 {
+		log.Warn().Msg("user id required")
+		return domain.ErrInvalidArgument{Msg: "user id required"}
+	}
+
+	if id.CalendarId == 0 {
+		log.Warn().Msg("calendar id required")
+		return domain.ErrInvalidArgument{Msg: "calendar id required"}
+	}
+
+	// If a circle parent is specified, ensure the current user has admin access to that circle
+	if parent.CircleId != 0 {
+		authAccount.CircleId = parent.CircleId
+		_, err := d.determineCircleAccess(
+			ctx, authAccount, model.CircleId{CircleId: authAccount.CircleId},
+			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN),
+		)
+		if err != nil {
+			log.Error().Err(err).Msg("insufficient permissions to favorite calendar in this context")
+			return domain.ErrPermissionDenied{Msg: "insufficient permissions"}
+		}
+	} else if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
+		_, err := d.determineUserAccess(
+			ctx, authAccount, model.UserId{UserId: authAccount.UserId},
+			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN),
+		)
+		if err != nil {
+			log.Error().Err(err).Msg("insufficient permissions to favorite calendar in this context")
+			return domain.ErrPermissionDenied{Msg: "insufficient permissions"}
+		}
+	}
+
+	// Get the calendar to check access permissions
+	dbCalendar, err := d.repo.GetCalendar(ctx, authAccount, id, []string{model.CalendarField_Visibility})
+	if err != nil {
+		log.Error().Err(err).Msg("unable to get calendar for favoriting")
+		return err
+	}
+
+	// Check if the user has access to the calendar
+	_, err = d.determineCalendarAccess(
+		ctx, authAccount, id,
+		withResourceVisibilityLevel(dbCalendar.VisibilityLevel),
+		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
+	)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine calendar access")
+		return err
+	}
+
+	err = d.repo.CreateCalendarFavorite(ctx, authAccount, id)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to create calendar favorite")
+		return err
+	}
+
+	log.Info().Int64("calendarId", id.CalendarId).Msg("calendar favorited successfully")
+	return nil
+}
+
+// UnfavoriteCalendar removes a calendar from the authenticated user's favorites.
+func (d *Domain) UnfavoriteCalendar(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarParent, id model.CalendarId) error {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	if authAccount.AuthUserId == 0 {
+		log.Warn().Msg("user id required")
+		return domain.ErrInvalidArgument{Msg: "user id required"}
+	}
+
+	if id.CalendarId == 0 {
+		log.Warn().Msg("calendar id required")
+		return domain.ErrInvalidArgument{Msg: "calendar id required"}
+	}
+
+	// If a circle parent is specified, ensure the current user has admin access to that circle
+	if parent.CircleId != 0 {
+		authAccount.CircleId = parent.CircleId
+		_, err := d.determineCircleAccess(
+			ctx, authAccount, model.CircleId{CircleId: authAccount.CircleId},
+			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN),
+		)
+		if err != nil {
+			log.Error().Err(err).Msg("insufficient permissions to unfavorite calendar in this context")
+			return domain.ErrPermissionDenied{Msg: "insufficient permissions"}
+		}
+	} else if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
+		_, err := d.determineCircleAccess(
+			ctx, authAccount, model.CircleId{CircleId: authAccount.CircleId},
+			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN),
+		)
+		if err != nil {
+			log.Error().Err(err).Msg("insufficient permissions to unfavorite calendar in this context")
+			return domain.ErrPermissionDenied{Msg: "insufficient permissions"}
+		}
+	}
+
+	err := d.repo.DeleteCalendarFavorite(ctx, authAccount, id)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to delete calendar favorite")
+		return err
+	}
+
+	log.Info().Int64("calendarId", id.CalendarId).Msg("calendar unfavorited successfully")
+	return nil
+}

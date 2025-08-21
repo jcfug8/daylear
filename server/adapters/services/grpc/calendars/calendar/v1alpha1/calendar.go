@@ -287,6 +287,7 @@ func (s *CalendarService) CalendarToProto(calendar model.Calendar, options ...na
 		Title:       calendar.Title,
 		Description: calendar.Description,
 		Visibility:  calendar.VisibilityLevel,
+		Favorited:   calendar.Favorited,
 	}
 
 	// Generate name
@@ -312,4 +313,64 @@ func (s *CalendarService) CalendarToProto(calendar model.Calendar, options ...na
 	}
 
 	return proto, nil
+}
+
+// FavoriteCalendar favorites a calendar for the authenticated user.
+func (s *CalendarService) FavoriteCalendar(ctx context.Context, request *pb.FavoriteCalendarRequest) (*pb.FavoriteCalendarResponse, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC FavoriteCalendar called")
+
+	authAccount, err := headers.ParseAuthData(ctx)
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
+		return nil, err
+	}
+
+	// Parse the calendar name to get the ID and parent
+	calendar := model.Calendar{}
+	_, err = s.calendarNamer.Parse(request.GetName(), &calendar)
+	if err != nil {
+		log.Warn().Err(err).Msg("invalid calendar name")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid calendar name: %v", request.GetName())
+	}
+
+	// Call domain method to favorite the calendar
+	err = s.domain.FavoriteCalendar(ctx, authAccount, calendar.Parent, calendar.CalendarId)
+	if err != nil {
+		log.Error().Err(err).Msg("domain.FavoriteCalendar failed")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	log.Info().Msg("gRPC FavoriteCalendar success")
+	return &pb.FavoriteCalendarResponse{}, nil
+}
+
+// UnfavoriteCalendar removes a calendar from the authenticated user's favorites.
+func (s *CalendarService) UnfavoriteCalendar(ctx context.Context, request *pb.UnfavoriteCalendarRequest) (*pb.UnfavoriteCalendarResponse, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC UnfavoriteCalendar called")
+
+	authAccount, err := headers.ParseAuthData(ctx)
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
+		return nil, err
+	}
+
+	// Parse the calendar name to get the ID and parent
+	calendar := model.Calendar{}
+	_, err = s.calendarNamer.Parse(request.GetName(), &calendar)
+	if err != nil {
+		log.Warn().Err(err).Msg("invalid calendar name")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid calendar name: %v", request.GetName())
+	}
+
+	// Call domain method to unfavorite the calendar
+	err = s.domain.UnfavoriteCalendar(ctx, authAccount, calendar.Parent, calendar.CalendarId)
+	if err != nil {
+		log.Error().Err(err).Msg("domain.UnfavoriteCalendar failed")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	log.Info().Msg("gRPC UnfavoriteCalendar success")
+	return &pb.UnfavoriteCalendarResponse{}, nil
 }

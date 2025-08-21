@@ -14,6 +14,7 @@ func AllModels() []interface{} {
 		&CircleFavorite{},
 		&Calendar{},
 		&CalendarAccess{},
+		&CalendarFavorite{},
 		&Event{},
 		&EventData{},
 	}

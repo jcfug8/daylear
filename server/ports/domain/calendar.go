@@ -13,6 +13,9 @@ type calendarDomain interface {
 	ListCalendars(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarParent, pageSize int32, offset int64, filter string, fields []string) ([]model.Calendar, error)
 	UpdateCalendar(ctx context.Context, authAccount model.AuthAccount, calendar model.Calendar, fields []string) (model.Calendar, error)
 
+	FavoriteCalendar(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarParent, id model.CalendarId) error
+	UnfavoriteCalendar(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarParent, id model.CalendarId) error
+
 	CreateCalendarAccess(ctx context.Context, authAccount model.AuthAccount, access model.CalendarAccess) (model.CalendarAccess, error)
 	DeleteCalendarAccess(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarAccessParent, id model.CalendarAccessId) error
 	GetCalendarAccess(ctx context.Context, authAccount model.AuthAccount, parent model.CalendarAccessParent, id model.CalendarAccessId, fields []string) (model.CalendarAccess, error)

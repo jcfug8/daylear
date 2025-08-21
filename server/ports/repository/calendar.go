@@ -13,6 +13,9 @@ type calendarClient interface {
 	ListCalendars(ctx context.Context, authAccount model.AuthAccount, pageSize int32, offset int64, filter string, fields []string) ([]model.Calendar, error)
 	UpdateCalendar(ctx context.Context, authAccount model.AuthAccount, calendar model.Calendar, fields []string) (model.Calendar, error)
 
+	CreateCalendarFavorite(ctx context.Context, authAccount model.AuthAccount, id model.CalendarId) error
+	DeleteCalendarFavorite(ctx context.Context, authAccount model.AuthAccount, id model.CalendarId) error
+
 	FindStandardUserCalendarAccess(ctx context.Context, authAccount model.AuthAccount, id model.CalendarId) (model.CalendarAccess, error)
 	FindDelegatedCircleCalendarAccess(ctx context.Context, authAccount model.AuthAccount, id model.CalendarId) (model.CalendarAccess, model.CircleAccess, error)
 	FindDelegatedUserCalendarAccess(ctx context.Context, authAccount model.AuthAccount, id model.CalendarId) (model.CalendarAccess, model.UserAccess, error)

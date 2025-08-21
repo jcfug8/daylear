@@ -19,11 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	CalendarService_CreateCalendar_FullMethodName = "/api.calendars.calendar.v1alpha1.CalendarService/CreateCalendar"
-	CalendarService_ListCalendars_FullMethodName  = "/api.calendars.calendar.v1alpha1.CalendarService/ListCalendars"
-	CalendarService_UpdateCalendar_FullMethodName = "/api.calendars.calendar.v1alpha1.CalendarService/UpdateCalendar"
-	CalendarService_DeleteCalendar_FullMethodName = "/api.calendars.calendar.v1alpha1.CalendarService/DeleteCalendar"
-	CalendarService_GetCalendar_FullMethodName    = "/api.calendars.calendar.v1alpha1.CalendarService/GetCalendar"
+	CalendarService_CreateCalendar_FullMethodName     = "/api.calendars.calendar.v1alpha1.CalendarService/CreateCalendar"
+	CalendarService_ListCalendars_FullMethodName      = "/api.calendars.calendar.v1alpha1.CalendarService/ListCalendars"
+	CalendarService_UpdateCalendar_FullMethodName     = "/api.calendars.calendar.v1alpha1.CalendarService/UpdateCalendar"
+	CalendarService_DeleteCalendar_FullMethodName     = "/api.calendars.calendar.v1alpha1.CalendarService/DeleteCalendar"
+	CalendarService_GetCalendar_FullMethodName        = "/api.calendars.calendar.v1alpha1.CalendarService/GetCalendar"
+	CalendarService_FavoriteCalendar_FullMethodName   = "/api.calendars.calendar.v1alpha1.CalendarService/FavoriteCalendar"
+	CalendarService_UnfavoriteCalendar_FullMethodName = "/api.calendars.calendar.v1alpha1.CalendarService/UnfavoriteCalendar"
 )
 
 // CalendarServiceClient is the client API for CalendarService service.
@@ -42,6 +44,10 @@ type CalendarServiceClient interface {
 	DeleteCalendar(ctx context.Context, in *DeleteCalendarRequest, opts ...grpc.CallOption) (*Calendar, error)
 	// get a calendar
 	GetCalendar(ctx context.Context, in *GetCalendarRequest, opts ...grpc.CallOption) (*Calendar, error)
+	// favorite a calendar
+	FavoriteCalendar(ctx context.Context, in *FavoriteCalendarRequest, opts ...grpc.CallOption) (*FavoriteCalendarResponse, error)
+	// unfavorite a calendar
+	UnfavoriteCalendar(ctx context.Context, in *UnfavoriteCalendarRequest, opts ...grpc.CallOption) (*UnfavoriteCalendarResponse, error)
 }
 
 type calendarServiceClient struct {
@@ -102,6 +108,26 @@ func (c *calendarServiceClient) GetCalendar(ctx context.Context, in *GetCalendar
 	return out, nil
 }
 
+func (c *calendarServiceClient) FavoriteCalendar(ctx context.Context, in *FavoriteCalendarRequest, opts ...grpc.CallOption) (*FavoriteCalendarResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FavoriteCalendarResponse)
+	err := c.cc.Invoke(ctx, CalendarService_FavoriteCalendar_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *calendarServiceClient) UnfavoriteCalendar(ctx context.Context, in *UnfavoriteCalendarRequest, opts ...grpc.CallOption) (*UnfavoriteCalendarResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnfavoriteCalendarResponse)
+	err := c.cc.Invoke(ctx, CalendarService_UnfavoriteCalendar_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CalendarServiceServer is the server API for CalendarService service.
 // All implementations must embed UnimplementedCalendarServiceServer
 // for forward compatibility.
@@ -118,6 +144,10 @@ type CalendarServiceServer interface {
 	DeleteCalendar(context.Context, *DeleteCalendarRequest) (*Calendar, error)
 	// get a calendar
 	GetCalendar(context.Context, *GetCalendarRequest) (*Calendar, error)
+	// favorite a calendar
+	FavoriteCalendar(context.Context, *FavoriteCalendarRequest) (*FavoriteCalendarResponse, error)
+	// unfavorite a calendar
+	UnfavoriteCalendar(context.Context, *UnfavoriteCalendarRequest) (*UnfavoriteCalendarResponse, error)
 	mustEmbedUnimplementedCalendarServiceServer()
 }
 
@@ -142,6 +172,12 @@ func (UnimplementedCalendarServiceServer) DeleteCalendar(context.Context, *Delet
 }
 func (UnimplementedCalendarServiceServer) GetCalendar(context.Context, *GetCalendarRequest) (*Calendar, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCalendar not implemented")
+}
+func (UnimplementedCalendarServiceServer) FavoriteCalendar(context.Context, *FavoriteCalendarRequest) (*FavoriteCalendarResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FavoriteCalendar not implemented")
+}
+func (UnimplementedCalendarServiceServer) UnfavoriteCalendar(context.Context, *UnfavoriteCalendarRequest) (*UnfavoriteCalendarResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnfavoriteCalendar not implemented")
 }
 func (UnimplementedCalendarServiceServer) mustEmbedUnimplementedCalendarServiceServer() {}
 func (UnimplementedCalendarServiceServer) testEmbeddedByValue()                         {}
@@ -254,6 +290,42 @@ func _CalendarService_GetCalendar_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CalendarService_FavoriteCalendar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FavoriteCalendarRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CalendarServiceServer).FavoriteCalendar(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CalendarService_FavoriteCalendar_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CalendarServiceServer).FavoriteCalendar(ctx, req.(*FavoriteCalendarRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CalendarService_UnfavoriteCalendar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnfavoriteCalendarRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CalendarServiceServer).UnfavoriteCalendar(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CalendarService_UnfavoriteCalendar_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CalendarServiceServer).UnfavoriteCalendar(ctx, req.(*UnfavoriteCalendarRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CalendarService_ServiceDesc is the grpc.ServiceDesc for CalendarService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -280,6 +352,14 @@ var CalendarService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCalendar",
 			Handler:    _CalendarService_GetCalendar_Handler,
+		},
+		{
+			MethodName: "FavoriteCalendar",
+			Handler:    _CalendarService_FavoriteCalendar_Handler,
+		},
+		{
+			MethodName: "UnfavoriteCalendar",
+			Handler:    _CalendarService_UnfavoriteCalendar_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

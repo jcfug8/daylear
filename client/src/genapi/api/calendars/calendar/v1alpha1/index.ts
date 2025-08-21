@@ -24,6 +24,10 @@ export type Calendar = {
   //
   // Behaviors: OUTPUT_ONLY
   calendarAccess: Calendar_CalendarAccess | undefined;
+  // whether the current user has favorited this calendar
+  //
+  // Behaviors: OUTPUT_ONLY
+  favorited: boolean | undefined;
 };
 
 // the visibility levels
@@ -182,6 +186,30 @@ export type GetCalendarRequest = {
   name: string | undefined;
 };
 
+// the request to favorite a calendar
+export type FavoriteCalendarRequest = {
+  // the name of the calendar to favorite
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the response to favorite a calendar
+export type FavoriteCalendarResponse = {
+};
+
+// the request to unfavorite a calendar
+export type UnfavoriteCalendarRequest = {
+  // the name of the calendar to unfavorite
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the response to unfavorite a calendar
+export type UnfavoriteCalendarResponse = {
+};
+
 // the calendar service
 export interface CalendarService {
   // create a calendar
@@ -194,6 +222,10 @@ export interface CalendarService {
   DeleteCalendar(request: DeleteCalendarRequest): Promise<Calendar>;
   // get a calendar
   GetCalendar(request: GetCalendarRequest): Promise<Calendar>;
+  // favorite a calendar
+  FavoriteCalendar(request: FavoriteCalendarRequest): Promise<FavoriteCalendarResponse>;
+  // unfavorite a calendar
+  UnfavoriteCalendar(request: UnfavoriteCalendarRequest): Promise<UnfavoriteCalendarResponse>;
 }
 
 type RequestType = {
@@ -319,6 +351,46 @@ export function createCalendarServiceClient(
         service: "CalendarService",
         method: "GetCalendar",
       }) as Promise<Calendar>;
+    },
+    FavoriteCalendar(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `calendars/v1alpha1/${request.name}:favorite`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "CalendarService",
+        method: "FavoriteCalendar",
+      }) as Promise<FavoriteCalendarResponse>;
+    },
+    UnfavoriteCalendar(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `calendars/v1alpha1/${request.name}:unfavorite`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "CalendarService",
+        method: "UnfavoriteCalendar",
+      }) as Promise<UnfavoriteCalendarResponse>;
     },
   };
 }

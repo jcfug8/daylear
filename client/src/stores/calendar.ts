@@ -37,7 +37,7 @@ export const useCalendarsStore = defineStore('calendars', () => {
   // Load my calendars (calendars where I have admin permission)
   async function loadMyCalendars(parent: string) {
     myCalendars.value = []
-    const calendars = await loadCalendars(parent, 'state = 200')
+    const calendars = await loadCalendars(parent, 'state = 200 OR favorited = true')
     myCalendars.value = calendars
   }
 
@@ -73,6 +73,7 @@ export const useCalendarsStore = defineStore('calendars', () => {
       visibility: 'VISIBILITY_LEVEL_PRIVATE',
       description: '',
       calendarAccess: undefined,
+      favorited: false,
     }
   }
 
