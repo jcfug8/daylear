@@ -37,24 +37,28 @@ export const useRecipesStore = defineStore('recipes', () => {
 
   // Load my recipes (recipes where I have admin permission)
   async function loadMyRecipes(parent: string) {
+    myRecipes.value = []
     const recipes = await loadRecipes(parent, 'state = 200 OR favorited = true')
     myRecipes.value = recipes
   }
 
   // Load shared recipes (recipes shared with me - read or write permission)
   async function loadPendingRecipes(parent: string) {
+    sharedPendingRecipes.value = []
     const recipes = await loadRecipes(parent, 'state = 100')
     sharedPendingRecipes.value = recipes
   }
 
   // Load public recipes (recipes with public visibility)
   async function loadPublicRecipes(parent: string) {
+    publicRecipes.value = []
     const recipes = await loadRecipes(parent, 'visibility = 1')
     publicRecipes.value = recipes
   }
 
   async function loadRecipe(recipeName: string) {
     try {
+      recipe.value = undefined
       const result = await recipeService.GetRecipe({ name: recipeName })
       recipe.value = result
     } catch (error) {

@@ -1,13 +1,10 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { circleService, circleAccessService } from '@/api/api'
+import { circleService } from '@/api/api'
 import type {
   Circle,
-  apitypes_VisibilityLevel,
-  apitypes_PermissionLevel,
-  apitypes_AccessState,
+  apitypes_VisibilityLevel
 } from '@/genapi/api/circles/circle/v1alpha1'
-import { useAuthStore } from '@/stores/auth'
 
 export const useCirclesStore = defineStore('circles', () => {
   // const circles = ref<Circle[]>([])
@@ -19,6 +16,7 @@ export const useCirclesStore = defineStore('circles', () => {
 
   async function loadCircle(circleName: string) {
     try {
+      circle.value = undefined
       const result = await circleService.GetCircle({ name: circleName })
       circle.value = result
     } catch (error) {
@@ -96,18 +94,21 @@ export const useCirclesStore = defineStore('circles', () => {
 
   // Load my circles (admin permission)
   async function loadMyCircles(parent: string) {
+    myCircles.value = []
     const circles = await loadCircles(parent,'state = 200')
     myCircles.value = circles
   }
 
   // Load shared circles (accepted or pending)
   async function loadPendingCircles() {
+    sharedPendingCircles.value = []
     const circles = await loadCircles('','state = 100')
     sharedPendingCircles.value = circles
   }
 
   // Load public circles
   async function loadPublicCircles() {
+    publicCircles.value = []
     const circles = await loadCircles('','visibility = 1')
     publicCircles.value = circles
   }

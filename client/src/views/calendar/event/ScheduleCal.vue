@@ -71,14 +71,6 @@ const props = withDefaults(defineProps<{
   showCreateButton: true,
 })
 
-watch(() => props.showCreateButton, (newVal) => {
-  console.log('showCreateButton changed to:', newVal)
-}, { immediate: true })
-
-watch(() => props.showCreateButton, (newVal) => {
-  console.log('calendars changed to:', newVal)
-}, { immediate: true })
-
 // Event dialog state
 const showEventDialog = ref(false)
 const selectedEvent = ref<Event | null>(null)

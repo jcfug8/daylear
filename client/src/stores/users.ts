@@ -15,6 +15,7 @@ export const useUsersStore = defineStore('users', () => {
   async function loadUsers(parent: string, filter?: string) {
     loading.value = true
     try {
+      users.value = []
       const res = await userService.ListUsers({ parent, pageSize: 100, pageToken: undefined, filter })
       users.value = res.users || []
       return users.value
@@ -28,6 +29,7 @@ export const useUsersStore = defineStore('users', () => {
   }
 
   async function loadFriends(parent: string) {
+    friends.value = []
     const result = await loadUsers(parent, 'state = 200')
     friends.value = result.reduce((acc, user) => {
       if (user.name !== parent) {
@@ -38,11 +40,13 @@ export const useUsersStore = defineStore('users', () => {
   }
 
   async function loadPendingFriends(parent: string) {
+    pendingFriends.value = []
     const result = await loadUsers(parent, 'state = 100')
     pendingFriends.value = result
   }
 
   async function loadPublicUsers(parent: string) {
+    publicUsers.value = []
     const result = await loadUsers(parent, '')
     publicUsers.value = result
   }
@@ -50,6 +54,7 @@ export const useUsersStore = defineStore('users', () => {
   async function loadUser(name: string) {
     loading.value = true
     try {
+      currentUser.value = null
       currentUser.value = await userService.GetUser({ name })
     } catch (error) {
       currentUser.value = null

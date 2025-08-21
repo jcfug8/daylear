@@ -36,24 +36,28 @@ export const useCalendarsStore = defineStore('calendars', () => {
 
   // Load my calendars (calendars where I have admin permission)
   async function loadMyCalendars(parent: string) {
+    myCalendars.value = []
     const calendars = await loadCalendars(parent, 'state = 200')
     myCalendars.value = calendars
   }
 
   // Load shared calendars (calendars shared with me - read or write permission)
   async function loadPendingCalendars(parent: string) {
+    sharedPendingCalendars.value = []
     const calendars = await loadCalendars(parent, 'state = 100')
     sharedPendingCalendars.value = calendars
   }
 
   // Load public calendars (calendars with public visibility)
   async function loadPublicCalendars(parent: string) {
+    publicCalendars.value = []
     const calendars = await loadCalendars(parent, 'visibility = 1')
     publicCalendars.value = calendars
   }
 
   async function loadCalendar(calendarName: string) {
     try {
+      calendar.value = undefined
       const result = await calendarService.GetCalendar({ name: calendarName })
       calendar.value = result
     } catch (error) {

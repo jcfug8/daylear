@@ -26,7 +26,7 @@
             />
           </template>
           <template v-else>
-            <v-btn icon variant="text" class="search-icon-btn" @click="expandSearch">
+            <v-btn density="compact" icon variant="text" class="search-icon-btn" @click="expandSearch">
               <v-icon>mdi-magnify</v-icon>
             </v-btn>
           </template>
@@ -55,7 +55,6 @@
       </template>
       <template #pending="{ items, loading }">
         <RecipeGrid :recipes="getFilteredRecipes(items as Recipe[])" :loading="loading as boolean" @accept="onAcceptRecipe" @decline="onDeclineRecipe" />
-        <div v-if="!loading && getFilteredRecipes(items as Recipe[]).length === 0">No pending shared recipes found.</div>
       </template>
       <template #explore="{ items, loading }">
         <div class="d-flex justify-space-between align-center mb-4">
@@ -413,7 +412,6 @@ async function onDeclineRecipe(recipe: Recipe) {
 .search-icon-btn {
   min-width: 44px;
   width: 44px;
-  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
