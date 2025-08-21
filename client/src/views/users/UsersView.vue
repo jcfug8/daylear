@@ -1,11 +1,11 @@
 <template>
   <ListTabsPage :tabs="tabs" ref="tabsPage">
     <template #friends="{ items }">
-      <UserGrid :users="items as User[]" :loading="usersStore.loading" empty-text="No friends found." />
+      <UserGrid :users="(items as User[])" :loading="usersStore.loading" empty-text="No friends found." />
     </template>
     <template #pending="{ items }">
       <UserGrid
-        :users="items as User[]"
+        :users="(items as User[])"
         :loading="usersStore.loading"
         empty-text="No pending requests found."
         show-actions
@@ -15,7 +15,7 @@
       />
     </template>
     <template #explore="{ items }">
-      <UserGrid :users="items as User[]" :loading="usersStore.loading" empty-text="No users found." />
+      <UserGrid :users="(items as User[])" :loading="usersStore.loading" empty-text="No users found." />
     </template>
   </ListTabsPage>
 </template>
@@ -70,7 +70,7 @@ async function onAcceptUser(user: User) {
     await usersStore.acceptUserAccess(user.access.name)
     tabsPage.value?.reloadTab('pending')
   } catch (err) {
-    // Optionally show a notification
+    console.error('Failed to accept user:', err)
   } finally {
     acceptingUserId.value = null
   }
@@ -82,7 +82,7 @@ async function onDeclineUser(user: User) {
     await usersStore.declineUserAccess(user.access.name)
     tabsPage.value?.reloadTab('pending')
   } catch (err) {
-    // Optionally show a notification
+    console.error('Failed to decline user:', err)
   }
 }
 </script>

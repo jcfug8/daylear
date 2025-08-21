@@ -1,9 +1,7 @@
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { User, UserSettings } from '@/genapi/api/users/user/v1alpha1'
-import type { Circle } from '@/genapi/api/circles/circle/v1alpha1'
-import { userService, authService, circleService, userSettingsService } from '@/api/api'
-import type { PermissionLevel  } from '@/genapi/api/types'
+import { userService, authService, userSettingsService } from '@/api/api'
 
 export enum AccountType {
   USER = 'user',
@@ -25,6 +23,7 @@ export const useAuthStore = defineStore('auth', () => {
     imageUri: '',
     access: undefined,
     bio: '',
+    favorited: false,
   })
   const userSettings = ref<UserSettings>({
     name: '',
@@ -71,7 +70,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
     if (value) {
-        let res = await authService.ExchangeToken({
+        const res = await authService.ExchangeToken({
           tokenKey: value,
         })
         if (res.token) {
@@ -127,7 +126,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   async function _setupAuthData() {
     try {
-      let res = await authService.CheckToken({})
+      const res = await authService.CheckToken({})
       if (res.userId) {
         userId.value = res.userId
       } else {
@@ -157,6 +156,7 @@ export const useAuthStore = defineStore('auth', () => {
       imageUri: '',
       access: undefined,
       bio: '',
+      favorited: false,
     }
   }
 
