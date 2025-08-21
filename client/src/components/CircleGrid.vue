@@ -12,7 +12,7 @@
       <v-col class="pa-1" md="3" sm="4" cols="6" v-for="circle in circles" :key="circle.name">
         <v-card
           :to="'/'+circle.name"
-          style="aspect-ratio: 8/6"
+          style="aspect-ratio: 8/6;border-color: lightgrey;border-width: 1.5px;border-style: solid;"
           hover
           class="circle-card"
         >

@@ -10,7 +10,7 @@
         <v-card
           class="user-card"
           hover
-          style="aspect-ratio: 8/6"
+          style="aspect-ratio: 8/6;border-color: lightgrey;border-width: 1.5px;border-style: solid;"
           :to="'/'+user.name"
         >
         <v-card-title class="pt-4 pb-1" style="font-size: 1rem;">

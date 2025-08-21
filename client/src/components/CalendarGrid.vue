@@ -12,6 +12,7 @@
       <v-col class="pa-1" md="3" sm="4" cols="6" v-for="calendar in calendars" :key="calendar.name">
         <v-card
           :to="'/'+calendar.name"
+          style="border-color: lightgrey;border-width: 1.5px;border-style: solid;"
           hover
           class="calendar-card pb-10"
         >
