@@ -14,6 +14,9 @@ type circleClient interface {
 	ListCircles(ctx context.Context, authAccount model.AuthAccount, pageSize int32, offset int64, filter string, fields []string) ([]model.Circle, error)
 	UpdateCircle(ctx context.Context, authAccount model.AuthAccount, circle model.Circle, fields []string) (model.Circle, error)
 
+	CreateCircleFavorite(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) error
+	DeleteCircleFavorite(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) error
+
 	FindStandardUserCircleAccess(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (model.CircleAccess, error)
 	FindDelegatedUserCircleAccess(ctx context.Context, authAccount model.AuthAccount, id model.CircleId) (model.CircleAccess, model.UserAccess, error)
 

@@ -154,14 +154,6 @@
                   "type": "string",
                   "title": "the title of the circle"
                 },
-                "description": {
-                  "type": "string",
-                  "title": "the description of the circle"
-                },
-                "handle": {
-                  "type": "string",
-                  "title": "the unique handle for the circle (like a username, must be unique, user-friendly, and can be used for sharing)"
-                },
                 "imageUri": {
                   "type": "string",
                   "title": "the image url for the circle"
@@ -174,6 +166,19 @@
                   "$ref": "#/definitions/CircleCircleAccess",
                   "title": "circle access data",
                   "readOnly": true
+                },
+                "handle": {
+                  "type": "string",
+                  "title": "the unique handle for the circle (like a username, must be unique, user-friendly, and can be used for sharing)"
+                },
+                "description": {
+                  "type": "string",
+                  "title": "the description of the circle"
+                },
+                "favorited": {
+                  "type": "boolean",
+                  "title": "whether the current user has favorited this circle",
+                  "readOnly": true
                 }
               },
               "title": "the circle to update",
@@ -182,6 +187,90 @@
                 "visibility",
                 "circle"
               ]
+            }
+          }
+        ],
+        "tags": [
+          "CircleService"
+        ]
+      }
+    },
+    "/circles/v1alpha1/{name_1}:favorite": {
+      "post": {
+        "summary": "Favorite a circle",
+        "description": "Favorites a circle by resource name.",
+        "operationId": "CircleService_FavoriteCircle2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1FavoriteCircleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "the name of the circle to favorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/circles/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CircleServiceFavoriteCircleBody"
+            }
+          }
+        ],
+        "tags": [
+          "CircleService"
+        ]
+      }
+    },
+    "/circles/v1alpha1/{name_1}:unfavorite": {
+      "post": {
+        "summary": "Unfavorite a circle",
+        "description": "Unfavorites a circle by resource name.",
+        "operationId": "CircleService_UnfavoriteCircle2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UnfavoriteCircleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "the name of the circle to unfavorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/circles/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CircleServiceUnfavoriteCircleBody"
             }
           }
         ],
@@ -212,7 +301,7 @@
         "parameters": [
           {
             "name": "name",
-            "description": "the name of the circle",
+            "description": "the name of the circle to get",
             "in": "path",
             "required": true,
             "type": "string",
@@ -249,6 +338,90 @@
             "required": true,
             "type": "string",
             "pattern": "circles/[^/]+"
+          }
+        ],
+        "tags": [
+          "CircleService"
+        ]
+      }
+    },
+    "/circles/v1alpha1/{name}:favorite": {
+      "post": {
+        "summary": "Favorite a circle",
+        "description": "Favorites a circle by resource name.",
+        "operationId": "CircleService_FavoriteCircle",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1FavoriteCircleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the circle to favorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CircleServiceFavoriteCircleBody"
+            }
+          }
+        ],
+        "tags": [
+          "CircleService"
+        ]
+      }
+    },
+    "/circles/v1alpha1/{name}:unfavorite": {
+      "post": {
+        "summary": "Unfavorite a circle",
+        "description": "Unfavorites a circle by resource name.",
+        "operationId": "CircleService_UnfavoriteCircle",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UnfavoriteCircleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the circle to unfavorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CircleServiceUnfavoriteCircleBody"
+            }
           }
         ],
         "tags": [
@@ -340,6 +513,14 @@
       },
       "title": "the circle access details"
     },
+    "CircleServiceFavoriteCircleBody": {
+      "type": "object",
+      "title": "the request to favorite a circle"
+    },
+    "CircleServiceUnfavoriteCircleBody": {
+      "type": "object",
+      "title": "the request to unfavorite a circle"
+    },
     "circlev1alpha1Circle": {
       "type": "object",
       "properties": {
@@ -350,14 +531,6 @@
         "title": {
           "type": "string",
           "title": "the title of the circle"
-        },
-        "description": {
-          "type": "string",
-          "title": "the description of the circle"
-        },
-        "handle": {
-          "type": "string",
-          "title": "the unique handle for the circle (like a username, must be unique, user-friendly, and can be used for sharing)"
         },
         "imageUri": {
           "type": "string",
@@ -370,6 +543,19 @@
         "circleAccess": {
           "$ref": "#/definitions/CircleCircleAccess",
           "title": "circle access data",
+          "readOnly": true
+        },
+        "handle": {
+          "type": "string",
+          "title": "the unique handle for the circle (like a username, must be unique, user-friendly, and can be used for sharing)"
+        },
+        "description": {
+          "type": "string",
+          "title": "the description of the circle"
+        },
+        "favorited": {
+          "type": "boolean",
+          "title": "whether the current user has favorited this circle",
           "readOnly": true
         }
       },
@@ -455,6 +641,10 @@
       "description": "- VISIBILITY_LEVEL_UNSPECIFIED: the visibility is not specified\n - VISIBILITY_LEVEL_PUBLIC: the visibility is public\n - VISIBILITY_LEVEL_RESTRICTED: the visibility is restricted\n - VISIBILITY_LEVEL_PRIVATE: the visibility is private\n - VISIBILITY_LEVEL_HIDDEN: the visibility is hidden",
       "title": "the visibility levels"
     },
+    "v1alpha1FavoriteCircleResponse": {
+      "type": "object",
+      "title": "the response to favorite a circle"
+    },
     "v1alpha1ListCirclesResponse": {
       "type": "object",
       "properties": {
@@ -472,6 +662,10 @@
         }
       },
       "title": "the response to list circles"
+    },
+    "v1alpha1UnfavoriteCircleResponse": {
+      "type": "object",
+      "title": "the response to unfavorite a circle"
     }
   },
   "securityDefinitions": {

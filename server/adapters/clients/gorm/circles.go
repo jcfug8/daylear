@@ -78,16 +78,16 @@ func (repo *Client) GetCircle(ctx context.Context, authAccount cmodel.AuthAccoun
 
 	gm := gmodel.Circle{}
 
-	tx := repo.db.WithContext(ctx).
+	err := repo.db.WithContext(ctx).
 		Select(gmodel.CircleFieldMasker.Convert(
 			fields,
 			fieldmask.ExcludeKeys(
 				cmodel.CircleField_CircleAccess,
 			),
 		)).
-		Where("circle.circle_id = ?", id.CircleId)
-
-	err := tx.First(&gm).Error
+		Joins("LEFT JOIN circle_favorite ON circle.circle_id = circle_favorite.circle_id AND circle_favorite.user_id = ?", authAccount.AuthUserId).
+		Where("circle.circle_id = ?", id.CircleId).
+		First(&gm).Error
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get circle row")
 		return cmodel.Circle{}, ConvertGormError(err)
@@ -162,10 +162,12 @@ func (repo *Client) ListCircles(ctx context.Context, authAccount cmodel.AuthAcco
 		}
 		tx = tx.Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ? AND (circle.visibility_level != ? OR circle_access.permission_level = ?)", authAccount.UserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
 			Joins("LEFT JOIN circle_access as ca ON circle.circle_id = ca.circle_id AND ca.recipient_user_id = ? AND (circle.visibility_level != ? OR ca.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Joins("LEFT JOIN circle_favorite ON circle.circle_id = circle_favorite.circle_id AND circle_favorite.user_id = ?", authAccount.UserId).
 			Where("(circle.visibility_level <= ? OR (circle_access.recipient_user_id = ? AND ca.state = ?))",
 				maxVisibilityLevel, authAccount.UserId, types.AccessState_ACCESS_STATE_ACCEPTED)
 	} else {
 		tx = tx.Joins("LEFT JOIN circle_access ON circle.circle_id = circle_access.circle_id AND circle_access.recipient_user_id = ? AND (circle.visibility_level != ? OR circle_access.permission_level = ?)", authAccount.AuthUserId, types.VisibilityLevel_VISIBILITY_LEVEL_HIDDEN, types.PermissionLevel_PERMISSION_LEVEL_ADMIN).
+			Joins("LEFT JOIN circle_favorite ON circle.circle_id = circle_favorite.circle_id AND circle_favorite.user_id = ?", authAccount.AuthUserId).
 			Where("(circle.visibility_level <= ? OR circle_access.recipient_user_id = ?)", types.VisibilityLevel_VISIBILITY_LEVEL_PUBLIC, authAccount.AuthUserId)
 	}
 
@@ -210,4 +212,45 @@ func (repo *Client) CircleHandleExists(ctx context.Context, handle string) (bool
 		return false, err
 	}
 	return count > 0, nil
+}
+
+// CreateCircleFavorite creates a circle favorite for a user.
+func (repo *Client) CreateCircleFavorite(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.CircleId) error {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Interface("authAccount", authAccount).
+		Int64("circleId", id.CircleId).
+		Logger()
+
+	favorite := gmodel.CircleFavorite{
+		CircleId: id.CircleId,
+		UserId:   authAccount.AuthUserId,
+	}
+
+	err := repo.db.WithContext(ctx).Create(&favorite).Error
+	if err != nil {
+		log.Error().Err(err).Msg("unable to create circle favorite")
+		return ConvertGormError(err)
+	}
+
+	log.Info().Msg("circle favorite created successfully")
+	return nil
+}
+
+// DeleteCircleFavorite removes a circle favorite for a user.
+func (repo *Client) DeleteCircleFavorite(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.CircleId) error {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Interface("authAccount", authAccount).
+		Int64("circleId", id.CircleId).
+		Logger()
+
+	err := repo.db.WithContext(ctx).
+		Where("circle_id = ? AND user_id = ?", id.CircleId, authAccount.AuthUserId).
+		Delete(&gmodel.CircleFavorite{}).Error
+	if err != nil {
+		log.Error().Err(err).Msg("unable to delete circle favorite")
+		return ConvertGormError(err)
+	}
+
+	log.Info().Msg("circle favorite deleted successfully")
+	return nil
 }

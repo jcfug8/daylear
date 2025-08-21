@@ -49,6 +49,7 @@ export const useCirclesStore = defineStore('circles', () => {
       circleAccess: undefined,
       handle: '',
       description: '',
+      favorited: false,
     }
   }
 
@@ -95,7 +96,7 @@ export const useCirclesStore = defineStore('circles', () => {
   // Load my circles (admin permission)
   async function loadMyCircles(parent: string) {
     myCircles.value = []
-    const circles = await loadCircles(parent,'state = 200')
+    const circles = await loadCircles(parent,'state = 200 OR favorited = true')
     myCircles.value = circles
   }
 

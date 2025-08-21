@@ -32,16 +32,18 @@ type Circle struct {
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// the title of the circle
 	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	// the description of the circle
-	Description string `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
-	// the unique handle for the circle (like a username, must be unique, user-friendly, and can be used for sharing)
-	Handle string `protobuf:"bytes,6,opt,name=handle,proto3" json:"handle,omitempty"`
 	// the image url for the circle
 	ImageUri string `protobuf:"bytes,3,opt,name=image_uri,json=imageUri,proto3" json:"image_uri,omitempty"`
 	// the visibility of the circle
 	Visibility types.VisibilityLevel `protobuf:"varint,4,opt,name=visibility,proto3,enum=api.types.VisibilityLevel" json:"visibility,omitempty"`
 	// circle access data
-	CircleAccess  *Circle_CircleAccess `protobuf:"bytes,5,opt,name=circle_access,json=circleAccess,proto3" json:"circle_access,omitempty"`
+	CircleAccess *Circle_CircleAccess `protobuf:"bytes,5,opt,name=circle_access,json=circleAccess,proto3" json:"circle_access,omitempty"`
+	// the unique handle for the circle (like a username, must be unique, user-friendly, and can be used for sharing)
+	Handle string `protobuf:"bytes,6,opt,name=handle,proto3" json:"handle,omitempty"`
+	// the description of the circle
+	Description string `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	// whether the current user has favorited this circle
+	Favorited     bool `protobuf:"varint,8,opt,name=favorited,proto3" json:"favorited,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -90,20 +92,6 @@ func (x *Circle) GetTitle() string {
 	return ""
 }
 
-func (x *Circle) GetDescription() string {
-	if x != nil {
-		return x.Description
-	}
-	return ""
-}
-
-func (x *Circle) GetHandle() string {
-	if x != nil {
-		return x.Handle
-	}
-	return ""
-}
-
 func (x *Circle) GetImageUri() string {
 	if x != nil {
 		return x.ImageUri
@@ -123,6 +111,27 @@ func (x *Circle) GetCircleAccess() *Circle_CircleAccess {
 		return x.CircleAccess
 	}
 	return nil
+}
+
+func (x *Circle) GetHandle() string {
+	if x != nil {
+		return x.Handle
+	}
+	return ""
+}
+
+func (x *Circle) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *Circle) GetFavorited() bool {
+	if x != nil {
+		return x.Favorited
+	}
+	return false
 }
 
 // the request to create a circle
@@ -412,7 +421,7 @@ func (x *DeleteCircleRequest) GetName() string {
 // the request to get a circle
 type GetCircleRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// the name of the circle
+	// the name of the circle to get
 	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -455,6 +464,172 @@ func (x *GetCircleRequest) GetName() string {
 	return ""
 }
 
+// the request to favorite a circle
+type FavoriteCircleRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// the name of the circle to favorite
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FavoriteCircleRequest) Reset() {
+	*x = FavoriteCircleRequest{}
+	mi := &file_api_circles_circle_v1alpha1_circle_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FavoriteCircleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FavoriteCircleRequest) ProtoMessage() {}
+
+func (x *FavoriteCircleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_circles_circle_v1alpha1_circle_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FavoriteCircleRequest.ProtoReflect.Descriptor instead.
+func (*FavoriteCircleRequest) Descriptor() ([]byte, []int) {
+	return file_api_circles_circle_v1alpha1_circle_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *FavoriteCircleRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// the response to favorite a circle
+type FavoriteCircleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FavoriteCircleResponse) Reset() {
+	*x = FavoriteCircleResponse{}
+	mi := &file_api_circles_circle_v1alpha1_circle_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FavoriteCircleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FavoriteCircleResponse) ProtoMessage() {}
+
+func (x *FavoriteCircleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_circles_circle_v1alpha1_circle_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FavoriteCircleResponse.ProtoReflect.Descriptor instead.
+func (*FavoriteCircleResponse) Descriptor() ([]byte, []int) {
+	return file_api_circles_circle_v1alpha1_circle_proto_rawDescGZIP(), []int{8}
+}
+
+// the request to unfavorite a circle
+type UnfavoriteCircleRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// the name of the circle to unfavorite
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnfavoriteCircleRequest) Reset() {
+	*x = UnfavoriteCircleRequest{}
+	mi := &file_api_circles_circle_v1alpha1_circle_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnfavoriteCircleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnfavoriteCircleRequest) ProtoMessage() {}
+
+func (x *UnfavoriteCircleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_circles_circle_v1alpha1_circle_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnfavoriteCircleRequest.ProtoReflect.Descriptor instead.
+func (*UnfavoriteCircleRequest) Descriptor() ([]byte, []int) {
+	return file_api_circles_circle_v1alpha1_circle_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *UnfavoriteCircleRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// the response to unfavorite a circle
+type UnfavoriteCircleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnfavoriteCircleResponse) Reset() {
+	*x = UnfavoriteCircleResponse{}
+	mi := &file_api_circles_circle_v1alpha1_circle_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnfavoriteCircleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnfavoriteCircleResponse) ProtoMessage() {}
+
+func (x *UnfavoriteCircleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_circles_circle_v1alpha1_circle_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnfavoriteCircleResponse.ProtoReflect.Descriptor instead.
+func (*UnfavoriteCircleResponse) Descriptor() ([]byte, []int) {
+	return file_api_circles_circle_v1alpha1_circle_proto_rawDescGZIP(), []int{10}
+}
+
 // the circle access details
 type Circle_CircleAccess struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -472,7 +647,7 @@ type Circle_CircleAccess struct {
 
 func (x *Circle_CircleAccess) Reset() {
 	*x = Circle_CircleAccess{}
-	mi := &file_api_circles_circle_v1alpha1_circle_proto_msgTypes[7]
+	mi := &file_api_circles_circle_v1alpha1_circle_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -484,7 +659,7 @@ func (x *Circle_CircleAccess) String() string {
 func (*Circle_CircleAccess) ProtoMessage() {}
 
 func (x *Circle_CircleAccess) ProtoReflect() protoreflect.Message {
-	mi := &file_api_circles_circle_v1alpha1_circle_proto_msgTypes[7]
+	mi := &file_api_circles_circle_v1alpha1_circle_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -532,17 +707,18 @@ var File_api_circles_circle_v1alpha1_circle_proto protoreflect.FileDescriptor
 
 const file_api_circles_circle_v1alpha1_circle_proto_rawDesc = "" +
 	"\n" +
-	"(api/circles/circle/v1alpha1/circle.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1dapi/types/accept_target.proto\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\x96\x05\n" +
+	"(api/circles/circle/v1alpha1/circle.proto\x12\x1bapi.circles.circle.v1alpha1\x1a\x1dapi/types/accept_target.proto\x1a\x1capi/types/access_state.proto\x1a api/types/permission_level.proto\x1a api/types/visibility_level.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x17google/api/client.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a google/protobuf/field_mask.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\"\xb9\x05\n" +
 	"\x06Circle\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
-	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
-	"\vdescription\x18\a \x01(\tB\x03\xe0A\x01R\vdescription\x12\x1b\n" +
-	"\x06handle\x18\x06 \x01(\tB\x03\xe0A\x01R\x06handle\x12 \n" +
+	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12 \n" +
 	"\timage_uri\x18\x03 \x01(\tB\x03\xe0A\x01R\bimageUri\x12?\n" +
 	"\n" +
 	"visibility\x18\x04 \x01(\x0e2\x1a.api.types.VisibilityLevelB\x03\xe0A\x02R\n" +
 	"visibility\x12Z\n" +
-	"\rcircle_access\x18\x05 \x01(\v20.api.circles.circle.v1alpha1.Circle.CircleAccessB\x03\xe0A\x03R\fcircleAccess\x1a\xe9\x01\n" +
+	"\rcircle_access\x18\x05 \x01(\v20.api.circles.circle.v1alpha1.Circle.CircleAccessB\x03\xe0A\x03R\fcircleAccess\x12\x1b\n" +
+	"\x06handle\x18\x06 \x01(\tB\x03\xe0A\x01R\x06handle\x12%\n" +
+	"\vdescription\x18\a \x01(\tB\x03\xe0A\x01R\vdescription\x12!\n" +
+	"\tfavorited\x18\b \x01(\bB\x03\xe0A\x03R\tfavorited\x1a\xe9\x01\n" +
 	"\fCircleAccess\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x03R\x04name\x12J\n" +
 	"\x10permission_level\x18\x02 \x01(\x0e2\x1a.api.types.PermissionLevelB\x03\xe0A\x03R\x0fpermissionLevel\x121\n" +
@@ -571,8 +747,15 @@ const file_api_circles_circle_v1alpha1_circle_proto_rawDesc = "" +
 	"\"api.circles.circle.v1alpha1/CircleR\x04name\"R\n" +
 	"\x10GetCircleRequest\x12>\n" +
 	"\x04name\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\n" +
-	"\"api.circles.circle.v1alpha1/CircleR\x04name2\x8f\n" +
-	"\n" +
+	"\"api.circles.circle.v1alpha1/CircleR\x04name\"W\n" +
+	"\x15FavoriteCircleRequest\x12>\n" +
+	"\x04name\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\n" +
+	"\"api.circles.circle.v1alpha1/CircleR\x04name\"\x18\n" +
+	"\x16FavoriteCircleResponse\"Y\n" +
+	"\x17UnfavoriteCircleRequest\x12>\n" +
+	"\x04name\x18\x01 \x01(\tB*\xe0A\x02\xfaA$\n" +
+	"\"api.circles.circle.v1alpha1/CircleR\x04name\"\x1a\n" +
+	"\x18UnfavoriteCircleResponse2\x9f\x0f\n" +
 	"\rCircleService\x12\xf8\x01\n" +
 	"\fCreateCircle\x120.api.circles.circle.v1alpha1.CreateCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"\x90\x01\x92AQ\n" +
 	"\rCircleService\x12\x0fCreate a circle\x1a/Creates a new circle with the provided details.\xdaA\x10circle,circle_id\x82\xd3\xe4\x93\x02#:\x06circle\"\x19/circles/v1alpha1/circles\x12\xb6\x02\n" +
@@ -583,7 +766,11 @@ const file_api_circles_circle_v1alpha1_circle_proto_rawDesc = "" +
 	"\fDeleteCircle\x120.api.circles.circle.v1alpha1.DeleteCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"x\x92AD\n" +
 	"\rCircleService\x12\x0fDelete a circle\x1a\"Deletes a circle by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02$*\"/circles/v1alpha1/{name=circles/*}\x12\xdf\x01\n" +
 	"\tGetCircle\x12-.api.circles.circle.v1alpha1.GetCircleRequest\x1a#.api.circles.circle.v1alpha1.Circle\"~\x92AJ\n" +
-	"\rCircleService\x12\fGet a circle\x1a+Retrieves a single circle by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02$\x12\"/circles/v1alpha1/{name=circles/*}B\xec\x02\x92AXZD\n" +
+	"\rCircleService\x12\fGet a circle\x1a+Retrieves a single circle by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02$\x12\"/circles/v1alpha1/{name=circles/*}\x12\xbe\x02\n" +
+	"\x0eFavoriteCircle\x122.api.circles.circle.v1alpha1.FavoriteCircleRequest\x1a3.api.circles.circle.v1alpha1.FavoriteCircleResponse\"\xc2\x01\x92AH\n" +
+	"\rCircleService\x12\x11Favorite a circle\x1a$Favorites a circle by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02j:\x01*Z8:\x01*\"3/circles/v1alpha1/{name=users/*/circles/*}:favorite\"+/circles/v1alpha1/{name=circles/*}:favorite\x12\xcc\x02\n" +
+	"\x10UnfavoriteCircle\x124.api.circles.circle.v1alpha1.UnfavoriteCircleRequest\x1a5.api.circles.circle.v1alpha1.UnfavoriteCircleResponse\"\xca\x01\x92AL\n" +
+	"\rCircleService\x12\x13Unfavorite a circle\x1a&Unfavorites a circle by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02n:\x01*Z::\x01*\"5/circles/v1alpha1/{name=users/*/circles/*}:unfavorite\"-/circles/v1alpha1/{name=circles/*}:unfavoriteB\xec\x02\x92AXZD\n" +
 	"B\n" +
 	"\n" +
 	"BearerAuth\x124\b\x02\x12\x1fBearer token for authentication\x1a\rAuthorization \x02b\x10\n" +
@@ -604,44 +791,52 @@ func file_api_circles_circle_v1alpha1_circle_proto_rawDescGZIP() []byte {
 	return file_api_circles_circle_v1alpha1_circle_proto_rawDescData
 }
 
-var file_api_circles_circle_v1alpha1_circle_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_api_circles_circle_v1alpha1_circle_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_api_circles_circle_v1alpha1_circle_proto_goTypes = []any{
-	(*Circle)(nil),                // 0: api.circles.circle.v1alpha1.Circle
-	(*CreateCircleRequest)(nil),   // 1: api.circles.circle.v1alpha1.CreateCircleRequest
-	(*ListCirclesRequest)(nil),    // 2: api.circles.circle.v1alpha1.ListCirclesRequest
-	(*ListCirclesResponse)(nil),   // 3: api.circles.circle.v1alpha1.ListCirclesResponse
-	(*UpdateCircleRequest)(nil),   // 4: api.circles.circle.v1alpha1.UpdateCircleRequest
-	(*DeleteCircleRequest)(nil),   // 5: api.circles.circle.v1alpha1.DeleteCircleRequest
-	(*GetCircleRequest)(nil),      // 6: api.circles.circle.v1alpha1.GetCircleRequest
-	(*Circle_CircleAccess)(nil),   // 7: api.circles.circle.v1alpha1.Circle.CircleAccess
-	(types.VisibilityLevel)(0),    // 8: api.types.VisibilityLevel
-	(*fieldmaskpb.FieldMask)(nil), // 9: google.protobuf.FieldMask
-	(types.PermissionLevel)(0),    // 10: api.types.PermissionLevel
-	(types.AccessState)(0),        // 11: api.types.AccessState
-	(types.AcceptTarget)(0),       // 12: api.types.AcceptTarget
+	(*Circle)(nil),                   // 0: api.circles.circle.v1alpha1.Circle
+	(*CreateCircleRequest)(nil),      // 1: api.circles.circle.v1alpha1.CreateCircleRequest
+	(*ListCirclesRequest)(nil),       // 2: api.circles.circle.v1alpha1.ListCirclesRequest
+	(*ListCirclesResponse)(nil),      // 3: api.circles.circle.v1alpha1.ListCirclesResponse
+	(*UpdateCircleRequest)(nil),      // 4: api.circles.circle.v1alpha1.UpdateCircleRequest
+	(*DeleteCircleRequest)(nil),      // 5: api.circles.circle.v1alpha1.DeleteCircleRequest
+	(*GetCircleRequest)(nil),         // 6: api.circles.circle.v1alpha1.GetCircleRequest
+	(*FavoriteCircleRequest)(nil),    // 7: api.circles.circle.v1alpha1.FavoriteCircleRequest
+	(*FavoriteCircleResponse)(nil),   // 8: api.circles.circle.v1alpha1.FavoriteCircleResponse
+	(*UnfavoriteCircleRequest)(nil),  // 9: api.circles.circle.v1alpha1.UnfavoriteCircleRequest
+	(*UnfavoriteCircleResponse)(nil), // 10: api.circles.circle.v1alpha1.UnfavoriteCircleResponse
+	(*Circle_CircleAccess)(nil),      // 11: api.circles.circle.v1alpha1.Circle.CircleAccess
+	(types.VisibilityLevel)(0),       // 12: api.types.VisibilityLevel
+	(*fieldmaskpb.FieldMask)(nil),    // 13: google.protobuf.FieldMask
+	(types.PermissionLevel)(0),       // 14: api.types.PermissionLevel
+	(types.AccessState)(0),           // 15: api.types.AccessState
+	(types.AcceptTarget)(0),          // 16: api.types.AcceptTarget
 }
 var file_api_circles_circle_v1alpha1_circle_proto_depIdxs = []int32{
-	8,  // 0: api.circles.circle.v1alpha1.Circle.visibility:type_name -> api.types.VisibilityLevel
-	7,  // 1: api.circles.circle.v1alpha1.Circle.circle_access:type_name -> api.circles.circle.v1alpha1.Circle.CircleAccess
+	12, // 0: api.circles.circle.v1alpha1.Circle.visibility:type_name -> api.types.VisibilityLevel
+	11, // 1: api.circles.circle.v1alpha1.Circle.circle_access:type_name -> api.circles.circle.v1alpha1.Circle.CircleAccess
 	0,  // 2: api.circles.circle.v1alpha1.CreateCircleRequest.circle:type_name -> api.circles.circle.v1alpha1.Circle
 	0,  // 3: api.circles.circle.v1alpha1.ListCirclesResponse.circles:type_name -> api.circles.circle.v1alpha1.Circle
 	0,  // 4: api.circles.circle.v1alpha1.UpdateCircleRequest.circle:type_name -> api.circles.circle.v1alpha1.Circle
-	9,  // 5: api.circles.circle.v1alpha1.UpdateCircleRequest.update_mask:type_name -> google.protobuf.FieldMask
-	10, // 6: api.circles.circle.v1alpha1.Circle.CircleAccess.permission_level:type_name -> api.types.PermissionLevel
-	11, // 7: api.circles.circle.v1alpha1.Circle.CircleAccess.state:type_name -> api.types.AccessState
-	12, // 8: api.circles.circle.v1alpha1.Circle.CircleAccess.accept_target:type_name -> api.types.AcceptTarget
+	13, // 5: api.circles.circle.v1alpha1.UpdateCircleRequest.update_mask:type_name -> google.protobuf.FieldMask
+	14, // 6: api.circles.circle.v1alpha1.Circle.CircleAccess.permission_level:type_name -> api.types.PermissionLevel
+	15, // 7: api.circles.circle.v1alpha1.Circle.CircleAccess.state:type_name -> api.types.AccessState
+	16, // 8: api.circles.circle.v1alpha1.Circle.CircleAccess.accept_target:type_name -> api.types.AcceptTarget
 	1,  // 9: api.circles.circle.v1alpha1.CircleService.CreateCircle:input_type -> api.circles.circle.v1alpha1.CreateCircleRequest
 	2,  // 10: api.circles.circle.v1alpha1.CircleService.ListCircles:input_type -> api.circles.circle.v1alpha1.ListCirclesRequest
 	4,  // 11: api.circles.circle.v1alpha1.CircleService.UpdateCircle:input_type -> api.circles.circle.v1alpha1.UpdateCircleRequest
 	5,  // 12: api.circles.circle.v1alpha1.CircleService.DeleteCircle:input_type -> api.circles.circle.v1alpha1.DeleteCircleRequest
 	6,  // 13: api.circles.circle.v1alpha1.CircleService.GetCircle:input_type -> api.circles.circle.v1alpha1.GetCircleRequest
-	0,  // 14: api.circles.circle.v1alpha1.CircleService.CreateCircle:output_type -> api.circles.circle.v1alpha1.Circle
-	3,  // 15: api.circles.circle.v1alpha1.CircleService.ListCircles:output_type -> api.circles.circle.v1alpha1.ListCirclesResponse
-	0,  // 16: api.circles.circle.v1alpha1.CircleService.UpdateCircle:output_type -> api.circles.circle.v1alpha1.Circle
-	0,  // 17: api.circles.circle.v1alpha1.CircleService.DeleteCircle:output_type -> api.circles.circle.v1alpha1.Circle
-	0,  // 18: api.circles.circle.v1alpha1.CircleService.GetCircle:output_type -> api.circles.circle.v1alpha1.Circle
-	14, // [14:19] is the sub-list for method output_type
-	9,  // [9:14] is the sub-list for method input_type
+	7,  // 14: api.circles.circle.v1alpha1.CircleService.FavoriteCircle:input_type -> api.circles.circle.v1alpha1.FavoriteCircleRequest
+	9,  // 15: api.circles.circle.v1alpha1.CircleService.UnfavoriteCircle:input_type -> api.circles.circle.v1alpha1.UnfavoriteCircleRequest
+	0,  // 16: api.circles.circle.v1alpha1.CircleService.CreateCircle:output_type -> api.circles.circle.v1alpha1.Circle
+	3,  // 17: api.circles.circle.v1alpha1.CircleService.ListCircles:output_type -> api.circles.circle.v1alpha1.ListCirclesResponse
+	0,  // 18: api.circles.circle.v1alpha1.CircleService.UpdateCircle:output_type -> api.circles.circle.v1alpha1.Circle
+	0,  // 19: api.circles.circle.v1alpha1.CircleService.DeleteCircle:output_type -> api.circles.circle.v1alpha1.Circle
+	0,  // 20: api.circles.circle.v1alpha1.CircleService.GetCircle:output_type -> api.circles.circle.v1alpha1.Circle
+	8,  // 21: api.circles.circle.v1alpha1.CircleService.FavoriteCircle:output_type -> api.circles.circle.v1alpha1.FavoriteCircleResponse
+	10, // 22: api.circles.circle.v1alpha1.CircleService.UnfavoriteCircle:output_type -> api.circles.circle.v1alpha1.UnfavoriteCircleResponse
+	16, // [16:23] is the sub-list for method output_type
+	9,  // [9:16] is the sub-list for method input_type
 	9,  // [9:9] is the sub-list for extension type_name
 	9,  // [9:9] is the sub-list for extension extendee
 	0,  // [0:9] is the sub-list for field type_name
@@ -658,7 +853,7 @@ func file_api_circles_circle_v1alpha1_circle_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_circles_circle_v1alpha1_circle_proto_rawDesc), len(file_api_circles_circle_v1alpha1_circle_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

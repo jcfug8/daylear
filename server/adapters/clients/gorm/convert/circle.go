@@ -31,6 +31,7 @@ func CircleToCoreModel(g gmodel.Circle) (cmodel.Circle, error) {
 		Handle:          g.Handle,
 		ImageURI:        g.ImageURI,
 		VisibilityLevel: g.VisibilityLevel,
+		Favorited:       g.CircleFavoriteId != 0,
 		CircleAccess: cmodel.CircleAccess{
 			CircleAccessParent: cmodel.CircleAccessParent{CircleId: cmodel.CircleId{CircleId: g.CircleId}},
 			CircleAccessId:     cmodel.CircleAccessId{CircleAccessId: g.CircleAccessId},

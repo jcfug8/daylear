@@ -450,3 +450,91 @@ func slugify(s string) string {
 	s = regexp.MustCompile(`(^-|-$)`).ReplaceAllString(s, "")
 	return s
 }
+
+// FavoriteCircle favorites a circle for the authenticated user.
+func (d *Domain) FavoriteCircle(ctx context.Context, authAccount model.AuthAccount, parent model.CircleParent, id model.CircleId) error {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	if authAccount.AuthUserId == 0 {
+		log.Warn().Msg("user id required")
+		return domain.ErrInvalidArgument{Msg: "user id required"}
+	}
+
+	if id.CircleId == 0 {
+		log.Warn().Msg("circle id required")
+		return domain.ErrInvalidArgument{Msg: "circle id required"}
+	}
+
+	if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
+		_, err := d.determineUserAccess(
+			ctx, authAccount, model.UserId(parent),
+			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN),
+		)
+		if err != nil {
+			log.Error().Err(err).Msg("unable to determine access when favoriting circle")
+			return err
+		}
+	}
+
+	// Get the circle to check access permissions
+	dbCircle, err := d.repo.GetCircle(ctx, authAccount, id, []string{model.CircleField_Visibility})
+	if err != nil {
+		log.Error().Err(err).Msg("unable to get circle for favoriting")
+		return err
+	}
+
+	// Check if the user has access to the circle
+	_, err = d.determineCircleAccess(
+		ctx, authAccount, id,
+		withResourceVisibilityLevel(dbCircle.VisibilityLevel),
+		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_PUBLIC),
+	)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to determine circle access")
+		return err
+	}
+
+	err = d.repo.CreateCircleFavorite(ctx, authAccount, id)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to create circle favorite")
+		return err
+	}
+
+	log.Info().Int64("circleId", id.CircleId).Msg("circle favorited successfully")
+	return nil
+}
+
+// UnfavoriteCircle removes a circle from the authenticated user's favorites.
+func (d *Domain) UnfavoriteCircle(ctx context.Context, authAccount model.AuthAccount, parent model.CircleParent, id model.CircleId) error {
+	log := logutil.EnrichLoggerWithContext(d.log, ctx)
+	if authAccount.AuthUserId == 0 {
+		log.Warn().Msg("user id required")
+		return domain.ErrInvalidArgument{Msg: "user id required"}
+	}
+
+	if id.CircleId == 0 {
+		log.Warn().Msg("circle id required")
+		return domain.ErrInvalidArgument{Msg: "circle id required"}
+	}
+
+	if parent.UserId != 0 {
+		authAccount.UserId = parent.UserId
+		_, err := d.determineUserAccess(
+			ctx, authAccount, model.UserId(parent),
+			withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN),
+		)
+		if err != nil {
+			log.Error().Err(err).Msg("unable to determine access when unfavoriting circle")
+			return err
+		}
+	}
+
+	err := d.repo.DeleteCircleFavorite(ctx, authAccount, id)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to delete circle favorite")
+		return err
+	}
+
+	log.Info().Int64("circleId", id.CircleId).Msg("circle unfavorited successfully")
+	return nil
+}

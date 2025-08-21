@@ -288,6 +288,7 @@ func (s *CircleService) CircleToProto(circle model.Circle, nameIndex ...namer.Fo
 	proto.Handle = circle.Handle
 	proto.ImageUri = circle.ImageURI
 	proto.Visibility = circle.VisibilityLevel
+	proto.Favorited = circle.Favorited
 
 	if circle.CircleAccess.CircleAccessId.CircleAccessId != 0 {
 		name, err := s.accessNamer.Format(circle.CircleAccess)
@@ -303,4 +304,64 @@ func (s *CircleService) CircleToProto(circle model.Circle, nameIndex ...namer.Fo
 	}
 
 	return proto, nil
+}
+
+// FavoriteCircle favorites a circle for the authenticated user.
+func (s *CircleService) FavoriteCircle(ctx context.Context, request *pb.FavoriteCircleRequest) (*pb.FavoriteCircleResponse, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC FavoriteCircle called")
+
+	authAccount, err := headers.ParseAuthData(ctx)
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
+		return nil, err
+	}
+
+	// Parse the circle name to get the ID and parent
+	circle := model.Circle{}
+	_, err = s.circleNamer.Parse(request.GetName(), &circle)
+	if err != nil {
+		log.Warn().Err(err).Msg("invalid circle name")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid circle name: %v", request.GetName())
+	}
+
+	// Call domain method to favorite the circle
+	err = s.domain.FavoriteCircle(ctx, authAccount, circle.Parent, circle.Id)
+	if err != nil {
+		log.Error().Err(err).Msg("domain.FavoriteCircle failed")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	log.Info().Msg("gRPC FavoriteCircle success")
+	return &pb.FavoriteCircleResponse{}, nil
+}
+
+// UnfavoriteCircle removes a circle from the authenticated user's favorites.
+func (s *CircleService) UnfavoriteCircle(ctx context.Context, request *pb.UnfavoriteCircleRequest) (*pb.UnfavoriteCircleResponse, error) {
+	log := logutil.EnrichLoggerWithContext(s.log, ctx)
+	log.Info().Msg("gRPC UnfavoriteCircle called")
+
+	authAccount, err := headers.ParseAuthData(ctx)
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to parse auth data")
+		return nil, err
+	}
+
+	// Parse the circle name to get the ID and parent
+	circle := model.Circle{}
+	_, err = s.circleNamer.Parse(request.GetName(), &circle)
+	if err != nil {
+		log.Warn().Err(err).Msg("invalid circle name")
+		return nil, status.Errorf(codes.InvalidArgument, "invalid circle name: %v", request.GetName())
+	}
+
+	// Call domain method to unfavorite the circle
+	err = s.domain.UnfavoriteCircle(ctx, authAccount, circle.Parent, circle.Id)
+	if err != nil {
+		log.Error().Err(err).Msg("domain.UnfavoriteCircle failed")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	log.Info().Msg("gRPC UnfavoriteCircle success")
+	return &pb.UnfavoriteCircleResponse{}, nil
 }

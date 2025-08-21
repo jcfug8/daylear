@@ -28,6 +28,8 @@ var CircleFieldMasker = fieldmask.NewSQLFieldMasker(Circle{}, map[string][]field
 	cmodel.CircleField_ImageURI:    {{Name: CircleColumn_ImageURI, Table: CircleTable, Updatable: true}},
 	cmodel.CircleField_Visibility:  {{Name: CircleColumn_Visibility, Table: CircleTable, Updatable: true}},
 
+	cmodel.CircleField_Favorited: {{Name: CircleFavoriteFields_CircleFavoriteId, Table: CircleFavoriteTable}},
+
 	cmodel.CircleField_CircleAccess: {
 		{Name: CircleAccessColumn_CircleAccessId, Table: CircleAccessTable},
 		{Name: CircleAccessColumn_PermissionLevel, Table: CircleAccessTable},
@@ -40,6 +42,7 @@ var CircleSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
 	"visibility":       {Name: CircleColumn_Visibility, Table: CircleTable},
 	"permission_level": {Name: CircleAccessColumn_PermissionLevel, Table: CircleAccessTable},
 	"state":            {Name: CircleAccessColumn_State, Table: CircleAccessTable},
+	"favorited":        {Name: CircleFavoriteFields_CircleFavoriteId, Table: CircleFavoriteTable, CustomConverter: favoritedSQLFilterConverter},
 }, true)
 
 // Circle is the GORM model for a circle.
@@ -56,6 +59,9 @@ type Circle struct {
 	PermissionLevel types.PermissionLevel `gorm:"->;-:migration"` // only used for read from a join
 	State           types.AccessState     `gorm:"->;-:migration"` // only used for read from a join
 	AcceptTarget    types.AcceptTarget    `gorm:"->;-:migration"` // only used for read from a join
+
+	// CircleFavorite data
+	CircleFavoriteId int64 `gorm:"->;-:migration"` // only used for read from a join
 }
 
 // TableName sets the table name for the Circle model.

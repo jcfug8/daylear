@@ -198,6 +198,10 @@ func (repo *Client) CreateUserFavorite(ctx context.Context, authAccount cmodel.A
 		FavoritingUserId: authAccount.AuthUserId,
 	}
 
+	if authAccount.UserId != 0 {
+		userFavorite.FavoritingUserId = authAccount.UserId
+	}
+
 	err := repo.db.WithContext(ctx).Create(&userFavorite).Error
 	if err != nil {
 		log.Error().Err(err).Msg("unable to create user favorite")
@@ -215,9 +219,14 @@ func (repo *Client) DeleteUserFavorite(ctx context.Context, authAccount cmodel.A
 		Interface("authAccount", authAccount).
 		Logger()
 
+	userId := authAccount.AuthUserId
+	if authAccount.UserId != 0 {
+		userId = authAccount.UserId
+	}
+
 	err := repo.db.WithContext(ctx).
 		Where("favorited_user_id = ? AND favoriting_user_id = ?",
-			id.UserId, authAccount.AuthUserId).
+			id.UserId, userId).
 		Delete(&gmodel.UserFavorite{}).Error
 	if err != nil {
 		log.Error().Err(err).Msg("unable to delete user favorite")

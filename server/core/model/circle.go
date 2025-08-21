@@ -14,6 +14,7 @@ const (
 	CircleField_Handle      = "handle"
 	CircleField_ImageURI    = "image_uri"
 	CircleField_Visibility  = "visibility"
+	CircleField_Favorited   = "favorited"
 
 	CircleField_CircleAccess = "circle_access"
 )
@@ -27,6 +28,7 @@ type Circle struct {
 	Handle          string
 	ImageURI        string
 	VisibilityLevel types.VisibilityLevel
+	Favorited       bool
 	CircleAccess    CircleAccess
 }
 

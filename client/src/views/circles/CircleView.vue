@@ -109,6 +109,15 @@
             <v-icon>mdi-delete</v-icon>Delete
           </v-btn>
         </div>
+        <v-icon 
+          size="24" 
+          :color="circle.favorited ? 'red' : 'black'"
+          class="favorite-heart"
+          @click="toggleFavorite"
+          style="cursor: pointer;"
+        >
+        {{ circle.favorited ? 'mdi-heart' : 'mdi-heart-outline' }}
+        </v-icon>
       </template>
       <template #recipes-circleRecipes="{ items, loading }">
         <RecipeGrid :recipes="(items as Recipe[])" :loading="(loading as boolean)" />
@@ -758,6 +767,24 @@ async function onEventDeleted() {
   }
 }
 
+// *** Favorite User ***
+
+async function toggleFavorite() {
+  if (!circle.value?.name) return
+  try {
+    if (circle.value.favorited) {
+      await circleService.UnfavoriteCircle({ name: circle.value.name })
+    } else {
+      await circleService.FavoriteCircle({ name: circle.value.name })
+    }
+    // Update the local state
+    circle.value.favorited = !circle.value.favorited
+  } catch (error) {
+    console.error('Error toggling favorite:', error)
+    alertsStore.addAlert('Failed to update favorite status.', 'error')
+  }
+}
+
 </script>
 
 <style scoped>
@@ -773,5 +800,18 @@ async function onEventDeleted() {
   flex-direction: column;
   gap: 8px;
   z-index: 1000;
+}
+
+.favorite-heart {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10000000;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  /* background-color: rgba(255, 255, 255, 0.9); */
+  border-radius: 50%;
+  padding: 4px;
+  transition: all 0.2s ease-in-out;
+  color: red;
 }
 </style>

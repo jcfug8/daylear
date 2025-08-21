@@ -12,14 +12,6 @@ export type Circle = {
   //
   // Behaviors: REQUIRED
   title: string | undefined;
-  // the description of the circle
-  //
-  // Behaviors: OPTIONAL
-  description: string | undefined;
-  // the unique handle for the circle (like a username, must be unique, user-friendly, and can be used for sharing)
-  //
-  // Behaviors: OPTIONAL
-  handle: string | undefined;
   // the image url for the circle
   //
   // Behaviors: OPTIONAL
@@ -32,6 +24,18 @@ export type Circle = {
   //
   // Behaviors: OUTPUT_ONLY
   circleAccess: Circle_CircleAccess | undefined;
+  // the unique handle for the circle (like a username, must be unique, user-friendly, and can be used for sharing)
+  //
+  // Behaviors: OPTIONAL
+  handle: string | undefined;
+  // the description of the circle
+  //
+  // Behaviors: OPTIONAL
+  description: string | undefined;
+  // whether the current user has favorited this circle
+  //
+  // Behaviors: OUTPUT_ONLY
+  favorited: boolean | undefined;
 };
 
 // the visibility levels
@@ -184,10 +188,34 @@ export type DeleteCircleRequest = {
 
 // the request to get a circle
 export type GetCircleRequest = {
-  // the name of the circle
+  // the name of the circle to get
   //
   // Behaviors: REQUIRED
   name: string | undefined;
+};
+
+// the request to favorite a circle
+export type FavoriteCircleRequest = {
+  // the name of the circle to favorite
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the response to favorite a circle
+export type FavoriteCircleResponse = {
+};
+
+// the request to unfavorite a circle
+export type UnfavoriteCircleRequest = {
+  // the name of the circle to unfavorite
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the response to unfavorite a circle
+export type UnfavoriteCircleResponse = {
 };
 
 // the circle service
@@ -202,6 +230,10 @@ export interface CircleService {
   DeleteCircle(request: DeleteCircleRequest): Promise<Circle>;
   // get a circle
   GetCircle(request: GetCircleRequest): Promise<Circle>;
+  // favorite a circle
+  FavoriteCircle(request: FavoriteCircleRequest): Promise<FavoriteCircleResponse>;
+  // unfavorite a circle
+  UnfavoriteCircle(request: UnfavoriteCircleRequest): Promise<UnfavoriteCircleResponse>;
 }
 
 type RequestType = {
@@ -327,6 +359,46 @@ export function createCircleServiceClient(
         service: "CircleService",
         method: "GetCircle",
       }) as Promise<Circle>;
+    },
+    FavoriteCircle(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `circles/v1alpha1/${request.name}:favorite`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "CircleService",
+        method: "FavoriteCircle",
+      }) as Promise<FavoriteCircleResponse>;
+    },
+    UnfavoriteCircle(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `circles/v1alpha1/${request.name}:unfavorite`; // eslint-disable-line quotes
+      const body = JSON.stringify(request);
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "CircleService",
+        method: "UnfavoriteCircle",
+      }) as Promise<UnfavoriteCircleResponse>;
     },
   };
 }

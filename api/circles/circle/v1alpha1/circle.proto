@@ -98,6 +98,42 @@ service CircleService {
       tags: "CircleService"
     };
   }
+
+  // favorite a circle
+  rpc FavoriteCircle(FavoriteCircleRequest) returns (FavoriteCircleResponse) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {
+      post: "/circles/v1alpha1/{name=circles/*}:favorite"
+      body: "*"
+      additional_bindings: {
+        post: "/circles/v1alpha1/{name=users/*/circles/*}:favorite"
+        body: "*"
+      }
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Favorite a circle"
+      description: "Favorites a circle by resource name."
+      tags: "CircleService"
+    };
+  }
+
+  // unfavorite a circle
+  rpc UnfavoriteCircle(UnfavoriteCircleRequest) returns (UnfavoriteCircleResponse) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {
+      post: "/circles/v1alpha1/{name=circles/*}:unfavorite"
+      body: "*"
+      additional_bindings: {
+        post: "/circles/v1alpha1/{name=users/*/circles/*}:unfavorite"
+        body: "*"
+      }
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Unfavorite a circle"
+      description: "Unfavorites a circle by resource name."
+      tags: "CircleService"
+    };
+  }
 }
 
 // the main user circle
@@ -116,12 +152,6 @@ message Circle {
   // the title of the circle
   string title = 2 [(google.api.field_behavior) = REQUIRED];
 
-  // the description of the circle
-  string description = 7 [(google.api.field_behavior) = OPTIONAL];
-
-  // the unique handle for the circle (like a username, must be unique, user-friendly, and can be used for sharing)
-  string handle = 6 [(google.api.field_behavior) = OPTIONAL];
-
   // the image url for the circle
   string image_uri = 3 [(google.api.field_behavior) = OPTIONAL];
 
@@ -130,6 +160,15 @@ message Circle {
 
   // circle access data
   CircleAccess circle_access = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the unique handle for the circle (like a username, must be unique, user-friendly, and can be used for sharing)
+  string handle = 6 [(google.api.field_behavior) = OPTIONAL];
+
+  // the description of the circle
+  string description = 7 [(google.api.field_behavior) = OPTIONAL];
+
+  // whether the current user has favorited this circle
+  bool favorited = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // the circle access details
   message CircleAccess {
@@ -203,9 +242,33 @@ message DeleteCircleRequest {
 
 // the request to get a circle
 message GetCircleRequest {
-  // the name of the circle
+  // the name of the circle to get
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference).type = "api.circles.circle.v1alpha1/Circle"
   ];
 }
+
+// the request to favorite a circle
+message FavoriteCircleRequest {
+  // the name of the circle to favorite
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.circles.circle.v1alpha1/Circle"
+  ];
+}
+
+// the response to favorite a circle
+message FavoriteCircleResponse {}
+
+// the request to unfavorite a circle
+message UnfavoriteCircleRequest {
+  // the name of the circle to unfavorite
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.circles.circle.v1alpha1/Circle"
+  ];
+}
+
+// the response to unfavorite a circle
+message UnfavoriteCircleResponse {}

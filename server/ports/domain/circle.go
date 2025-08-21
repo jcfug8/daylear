@@ -14,6 +14,9 @@ type circleDomain interface {
 	ListCircles(ctx context.Context, authAccount model.AuthAccount, parent model.CircleParent, pageSize int32, offset int64, filter string, fields []string) ([]model.Circle, error)
 	UpdateCircle(ctx context.Context, authAccount model.AuthAccount, recipe model.Circle, fields []string) (model.Circle, error)
 
+	FavoriteCircle(ctx context.Context, authAccount model.AuthAccount, parent model.CircleParent, id model.CircleId) error
+	UnfavoriteCircle(ctx context.Context, authAccount model.AuthAccount, parent model.CircleParent, id model.CircleId) error
+
 	UploadCircleImage(ctx context.Context, authAccount model.AuthAccount, id model.CircleId, imageReader io.Reader) (imageURI string, err error)
 
 	CreateCircleAccess(ctx context.Context, authAccount model.AuthAccount, access model.CircleAccess) (model.CircleAccess, error)

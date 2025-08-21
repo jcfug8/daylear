@@ -19,11 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	CircleService_CreateCircle_FullMethodName = "/api.circles.circle.v1alpha1.CircleService/CreateCircle"
-	CircleService_ListCircles_FullMethodName  = "/api.circles.circle.v1alpha1.CircleService/ListCircles"
-	CircleService_UpdateCircle_FullMethodName = "/api.circles.circle.v1alpha1.CircleService/UpdateCircle"
-	CircleService_DeleteCircle_FullMethodName = "/api.circles.circle.v1alpha1.CircleService/DeleteCircle"
-	CircleService_GetCircle_FullMethodName    = "/api.circles.circle.v1alpha1.CircleService/GetCircle"
+	CircleService_CreateCircle_FullMethodName     = "/api.circles.circle.v1alpha1.CircleService/CreateCircle"
+	CircleService_ListCircles_FullMethodName      = "/api.circles.circle.v1alpha1.CircleService/ListCircles"
+	CircleService_UpdateCircle_FullMethodName     = "/api.circles.circle.v1alpha1.CircleService/UpdateCircle"
+	CircleService_DeleteCircle_FullMethodName     = "/api.circles.circle.v1alpha1.CircleService/DeleteCircle"
+	CircleService_GetCircle_FullMethodName        = "/api.circles.circle.v1alpha1.CircleService/GetCircle"
+	CircleService_FavoriteCircle_FullMethodName   = "/api.circles.circle.v1alpha1.CircleService/FavoriteCircle"
+	CircleService_UnfavoriteCircle_FullMethodName = "/api.circles.circle.v1alpha1.CircleService/UnfavoriteCircle"
 )
 
 // CircleServiceClient is the client API for CircleService service.
@@ -42,6 +44,10 @@ type CircleServiceClient interface {
 	DeleteCircle(ctx context.Context, in *DeleteCircleRequest, opts ...grpc.CallOption) (*Circle, error)
 	// get a circle
 	GetCircle(ctx context.Context, in *GetCircleRequest, opts ...grpc.CallOption) (*Circle, error)
+	// favorite a circle
+	FavoriteCircle(ctx context.Context, in *FavoriteCircleRequest, opts ...grpc.CallOption) (*FavoriteCircleResponse, error)
+	// unfavorite a circle
+	UnfavoriteCircle(ctx context.Context, in *UnfavoriteCircleRequest, opts ...grpc.CallOption) (*UnfavoriteCircleResponse, error)
 }
 
 type circleServiceClient struct {
@@ -102,6 +108,26 @@ func (c *circleServiceClient) GetCircle(ctx context.Context, in *GetCircleReques
 	return out, nil
 }
 
+func (c *circleServiceClient) FavoriteCircle(ctx context.Context, in *FavoriteCircleRequest, opts ...grpc.CallOption) (*FavoriteCircleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FavoriteCircleResponse)
+	err := c.cc.Invoke(ctx, CircleService_FavoriteCircle_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *circleServiceClient) UnfavoriteCircle(ctx context.Context, in *UnfavoriteCircleRequest, opts ...grpc.CallOption) (*UnfavoriteCircleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnfavoriteCircleResponse)
+	err := c.cc.Invoke(ctx, CircleService_UnfavoriteCircle_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CircleServiceServer is the server API for CircleService service.
 // All implementations must embed UnimplementedCircleServiceServer
 // for forward compatibility.
@@ -118,6 +144,10 @@ type CircleServiceServer interface {
 	DeleteCircle(context.Context, *DeleteCircleRequest) (*Circle, error)
 	// get a circle
 	GetCircle(context.Context, *GetCircleRequest) (*Circle, error)
+	// favorite a circle
+	FavoriteCircle(context.Context, *FavoriteCircleRequest) (*FavoriteCircleResponse, error)
+	// unfavorite a circle
+	UnfavoriteCircle(context.Context, *UnfavoriteCircleRequest) (*UnfavoriteCircleResponse, error)
 	mustEmbedUnimplementedCircleServiceServer()
 }
 
@@ -142,6 +172,12 @@ func (UnimplementedCircleServiceServer) DeleteCircle(context.Context, *DeleteCir
 }
 func (UnimplementedCircleServiceServer) GetCircle(context.Context, *GetCircleRequest) (*Circle, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCircle not implemented")
+}
+func (UnimplementedCircleServiceServer) FavoriteCircle(context.Context, *FavoriteCircleRequest) (*FavoriteCircleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FavoriteCircle not implemented")
+}
+func (UnimplementedCircleServiceServer) UnfavoriteCircle(context.Context, *UnfavoriteCircleRequest) (*UnfavoriteCircleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnfavoriteCircle not implemented")
 }
 func (UnimplementedCircleServiceServer) mustEmbedUnimplementedCircleServiceServer() {}
 func (UnimplementedCircleServiceServer) testEmbeddedByValue()                       {}
@@ -254,6 +290,42 @@ func _CircleService_GetCircle_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CircleService_FavoriteCircle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FavoriteCircleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CircleServiceServer).FavoriteCircle(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CircleService_FavoriteCircle_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CircleServiceServer).FavoriteCircle(ctx, req.(*FavoriteCircleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CircleService_UnfavoriteCircle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnfavoriteCircleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CircleServiceServer).UnfavoriteCircle(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CircleService_UnfavoriteCircle_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CircleServiceServer).UnfavoriteCircle(ctx, req.(*UnfavoriteCircleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CircleService_ServiceDesc is the grpc.ServiceDesc for CircleService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -280,6 +352,14 @@ var CircleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCircle",
 			Handler:    _CircleService_GetCircle_Handler,
+		},
+		{
+			MethodName: "FavoriteCircle",
+			Handler:    _CircleService_FavoriteCircle_Handler,
+		},
+		{
+			MethodName: "UnfavoriteCircle",
+			Handler:    _CircleService_UnfavoriteCircle_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
