@@ -16,6 +16,8 @@ const (
 	CalendarField_Description = "description"
 	CalendarField_Visibility  = "visibility"
 	CalendarField_Favorited   = "favorited"
+	CalendarField_CreateTime  = "create_time"
+	CalendarField_UpdateTime  = "update_time"
 
 	CalendarField_CalendarAccess = "calendar_access"
 )

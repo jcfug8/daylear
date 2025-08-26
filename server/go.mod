@@ -56,6 +56,8 @@ require (
 	github.com/aws/smithy-go v1.22.1 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/emersion/go-ical v0.0.0-20240127095438-fc1c9d8fb2b6 // indirect
+	github.com/emersion/go-webdav v0.6.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect

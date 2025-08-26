@@ -18,6 +18,7 @@ import (
 	grpcUsersV1alpha1 "github.com/jcfug8/daylear/server/adapters/services/grpc/users/user/v1alpha1"
 	oauth2 "github.com/jcfug8/daylear/server/adapters/services/http/auth/oauth2"
 	tokenService "github.com/jcfug8/daylear/server/adapters/services/http/auth/token"
+	caldav "github.com/jcfug8/daylear/server/adapters/services/http/caldav"
 	files "github.com/jcfug8/daylear/server/adapters/services/http/files"
 	grpcgateway "github.com/jcfug8/daylear/server/adapters/services/http/grpcgateway"
 	openapi "github.com/jcfug8/daylear/server/adapters/services/http/openapi"
@@ -56,6 +57,7 @@ func start(opts ...fx.Option) error {
 		// driving/primary adapters
 		oauth2.Module,
 		tokenService.Module,
+		caldav.Module,
 		files.Module,
 		grpcgateway.Module,
 		openapi.Module,

@@ -1,5 +1,7 @@
 package model
 
+import "strings"
+
 var _ ResourceId = UserId{}
 
 const (
@@ -58,4 +60,12 @@ func (u UserId) isResourceId() {}
 type UserParent struct {
 	CircleId int64 `aip_pattern:"key=circle"`
 	UserId   int64 `aip_pattern:"key=user"`
+}
+
+func (u User) GetFullName() string {
+	fullName := strings.TrimSpace(u.GivenName + " " + u.FamilyName)
+	if fullName == "" {
+		return u.Username
+	}
+	return fullName
 }

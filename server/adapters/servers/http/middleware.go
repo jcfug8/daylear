@@ -54,10 +54,11 @@ func (m *MiddlewareMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Str("method", r.Method).
 			Stringer("url", r.URL).
 			Int("status", status).
-			Int("size", size).
-			Dur("duration", duration).
+			// Int("size", size).
+			// Dur("duration", duration).
 			Str("content_type", r.Header.Get("Content-Type")).
-			Str("content_length", r.Header.Get("Content-Length")).
+			// Str("content_length", r.Header.Get("Content-Length")).
+			Interface("authorization", r.Header["Authorization"]).
 			Msg("HTTP Request")
 	}))
 

@@ -267,7 +267,7 @@ func (repo *Client) FindDelegatedCircleCalendarAccess(ctx context.Context, authA
 		First(&result)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Warn().Err(res.Error).Msg("delegated circle calendar access not found")
+			log.Debug().Err(res.Error).Msg("delegated circle calendar access not found")
 			return cmodel.CalendarAccess{}, cmodel.CircleAccess{}, repository.ErrNotFound{}
 		}
 		log.Error().Err(res.Error).Msg("unable to find delegated circle calendar access")

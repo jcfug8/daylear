@@ -28,6 +28,8 @@ var CalendarFieldMasker = fieldmask.NewSQLFieldMasker(Calendar{}, map[string][]f
 	cmodel.CalendarField_Title:       {{Name: CalendarColumn_Title, Table: CalendarTable, Updatable: true}},
 	cmodel.CalendarField_Description: {{Name: CalendarColumn_Description, Table: CalendarTable, Updatable: true}},
 	cmodel.CalendarField_Visibility:  {{Name: CalendarColumn_VisibilityLevel, Table: CalendarTable, Updatable: true}},
+	cmodel.CalendarField_CreateTime:  {{Name: CalendarColumn_CreateTime, Table: CalendarTable}},
+	cmodel.CalendarField_UpdateTime:  {{Name: CalendarColumn_UpdateTime, Table: CalendarTable}},
 
 	cmodel.CalendarField_Favorited: {{Name: CalendarFavoriteFields_CalendarFavoriteId, Table: CalendarFavoriteTable}},
 
