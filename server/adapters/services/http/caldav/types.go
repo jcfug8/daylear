@@ -18,8 +18,12 @@ type Href struct {
 	Href string `xml:"D:href"`
 }
 
-type Status struct {
-	Status string `xml:",chardata"`
+type PrivilegeSet struct {
+	Privileges []Privilege `xml:"D:privilege"`
+}
+
+type Privilege struct {
+	Name string `xml:"D:privilege"`
 }
 
 func setCalDAVHeaders(w http.ResponseWriter) {

@@ -12,30 +12,26 @@ import (
 	"github.com/jcfug8/daylear/server/core/model"
 )
 
-// CalDAV XML response structures
-type UserPrincipalMultiStatus struct {
-	XMLName  xml.Name              `xml:"D:multistatus"`
-	XMLNSD   string                `xml:"xmlns:D,attr"`
-	XMLNSC   string                `xml:"xmlns:C,attr"`
-	Response UserPrincipalResponse `xml:"D:response"`
-}
-
-type UserPrincipalResponse struct {
-	Href     string                `xml:"D:href"`
-	Propstat UserPrincipalPropstat `xml:"D:propstat"`
-}
-
-type UserPrincipalPropstat struct {
-	Prop   UserPrincipalProp `xml:"D:prop"`
-	Status Status            `xml:"D:status"`
-}
-
+// User Principal specific property structures
 type UserPrincipalProp struct {
-	ResourceType         ResourceType `xml:"D:resourcetype"`
-	CurrentUserPrincipal Href         `xml:"D:current-user-principal"`
-	DisplayName          string       `xml:"D:displayname"`
-	CalendarHomeSet      Href         `xml:"C:calendar-home-set"`
-	PrincipalURL         Href         `xml:"C:principal-URL"`
+	ResourceType            *ResourceType `xml:"D:resourcetype,omitempty"`
+	DisplayName             string        `xml:"D:displayname,omitempty"`
+	CurrentUserPrincipal    *Href         `xml:"D:current-user-principal,omitempty"`
+	CalendarHomeSet         *Href         `xml:"C:calendar-home-set,omitempty"`
+	PrincipalURL            *Href         `xml:"C:principal-URL,omitempty"`
+	Owner                   string        `xml:"D:owner,omitempty"`
+	CurrentUserPrivilegeSet *PrivilegeSet `xml:"D:current-user-privilege-set,omitempty"`
+	Raw                     []RawXMLValue `xml:",any"`
+}
+
+type UserPrincipalPropNames struct {
+	ResourceType            struct{} `xml:"D:resourcetype"`
+	DisplayName             struct{} `xml:"D:displayname"`
+	CurrentUserPrincipal    struct{} `xml:"D:current-user-principal"`
+	CalendarHomeSet         struct{} `xml:"C:calendar-home-set"`
+	PrincipalURL            struct{} `xml:"C:principal-URL"`
+	Owner                   struct{} `xml:"D:owner"`
+	CurrentUserPrivilegeSet struct{} `xml:"D:current-user-privilege-set"`
 }
 
 func (s *Service) UserPrincipal(w http.ResponseWriter, r *http.Request) {
@@ -74,50 +70,61 @@ func (s *Service) UserPrincipal(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) UserPrincipalOptions(w http.ResponseWriter, r *http.Request) {
-	setCalDAVHeaders(w)
-	w.Header().Set("Allow", "PROPFIND,OPTIONS")
-	w.WriteHeader(http.StatusNoContent)
+
 }
 
 func (s *Service) UserPrincipalPropFind(w http.ResponseWriter, r *http.Request, authAccount model.AuthAccount) {
-	user, err := s.domain.GetOwnUser(r.Context(), authAccount, model.UserId{UserId: authAccount.AuthUserId}, []string{})
+	propFindRequest, err := NewPropFindRequestFromReader(r.Body)
 	if err != nil {
-		s.log.Error().Err(err).Msg("Failed to get user in UserPrincipalPropFind")
+		s.log.Error().Err(err).Msg("Failed to parse PROPFIND request")
+		http.Error(w, "Invalid XML", http.StatusBadRequest)
+		return
+	}
+
+	var foundProps UserPrincipalProp
+	var notFoundProps UserPrincipalProp
+	var propNames *UserPrincipalPropNames
+
+	// Build the response based on what was requested
+	switch propFindRequest.GetRequestType() {
+	case PropFindRequestTypeProp:
+		foundProps, notFoundProps, err = s.buildUserPrincipalPropResponse(r.Context(), r.URL.Path, authAccount, propFindRequest.Prop)
+	case PropFindRequestTypeAllProp:
+		foundProps, err = s.buildUserPrincipalAllPropResponse(r.Context(), r.URL.Path, authAccount)
+	case PropFindRequestTypePropName:
+		propNames = s.buildUserPrincipalPropNameResponse()
+	default:
+		s.log.Error().Msg("Invalid PROPFIND request type")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if err != nil {
+		s.log.Error().Err(err).Msg("Failed to build user principal response")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	// Create the response structure
-	response := UserPrincipalMultiStatus{
-		XMLNSD: "DAV:",
-		XMLNSC: "urn:ietf:params:xml:ns:caldav",
-		Response: UserPrincipalResponse{
-			Href: r.URL.Path,
-			Propstat: UserPrincipalPropstat{
-				Prop: UserPrincipalProp{
-					ResourceType: ResourceType{
-						Collection: &Collection{},
-						Principal:  &Principal{},
-					},
-					DisplayName: user.GetFullName(),
-					CurrentUserPrincipal: Href{
-						Href: fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId),
-					},
-					CalendarHomeSet: Href{
-						Href: fmt.Sprintf("/caldav/principals/%d/calendars", authAccount.AuthUserId),
-					},
-					PrincipalURL: Href{
-						Href: fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId),
-					},
-				},
-				Status: Status{
-					Status: "HTTP/1.1 200 OK",
-				},
-			},
-		},
+	response := Response{Href: r.URL.Path}
+	builder := ResponseBuilder{}
+
+	// Add propstat for found properties
+	if hasAnyUserPrincipalProperties(foundProps) {
+		response = builder.AddPropertyStatus(response, foundProps, 200)
 	}
 
-	responseBytes, err := xml.MarshalIndent(response, "", "  ")
+	// Add propstat for not found properties
+	if hasAnyUserPrincipalProperties(notFoundProps) {
+		response = builder.AddPropertyStatus(response, notFoundProps, 404)
+	}
+
+	if propNames != nil {
+		response = builder.AddPropertyStatus(response, propNames, 200)
+	}
+
+	multistatus := builder.BuildMultiStatusResponse([]Response{response})
+
+	// Marshal and send response
+	responseBytes, err := xml.MarshalIndent(multistatus, "", "  ")
 	if err != nil {
 		s.log.Error().Err(err).Msg("Failed to marshal response in UserPrincipalPropFind")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -131,11 +138,113 @@ func (s *Service) UserPrincipalPropFind(w http.ResponseWriter, r *http.Request, 
 	w.Write(addXMLDeclaration(responseBytes))
 }
 
-func (s *Service) CurrentUserPrincipal(ctx context.Context) (string, error) {
-	authAccount, err := headers.ParseAuthData(ctx)
+func (s *Service) buildUserPrincipalPropResponse(ctx context.Context, href string, authAccount model.AuthAccount, prop *Prop) (foundProps UserPrincipalProp, notFoundProps UserPrincipalProp, err error) {
+	user, err := s.domain.GetOwnUser(ctx, authAccount, model.UserId{UserId: authAccount.AuthUserId}, []string{})
 	if err != nil {
-		return "", err
+		s.log.Error().Err(err).Msg("Failed to get user in UserPrincipalPropFind")
+		return foundProps, notFoundProps, err
 	}
 
-	return fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId), nil
+	// Check each requested property
+	for _, raw := range prop.Raw {
+		switch {
+		case raw.XMLName.Local == "resourcetype":
+			foundProps.ResourceType = &ResourceType{
+				Collection: &Collection{},
+				Principal:  &Principal{},
+			}
+
+		case raw.XMLName.Local == "displayname":
+			foundProps.DisplayName = user.GetFullName()
+
+		case raw.XMLName.Local == "current-user-principal":
+			foundProps.CurrentUserPrincipal = &Href{
+				Href: fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId),
+			}
+
+		case raw.XMLName.Local == "principal-URL":
+			foundProps.PrincipalURL = &Href{
+				Href: fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId),
+			}
+
+		case raw.XMLName.Local == "calendar-home-set":
+			foundProps.CalendarHomeSet = &Href{
+				Href: fmt.Sprintf("/caldav/principals/%d/calendars", authAccount.AuthUserId),
+			}
+
+		case raw.XMLName.Local == "owner":
+			foundProps.Owner = fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId)
+
+		case raw.XMLName.Local == "current-user-privilege-set":
+			foundProps.CurrentUserPrivilegeSet = &PrivilegeSet{
+				Privileges: []Privilege{
+					{Name: "D:read"},
+					{Name: "D:write"},
+					{Name: "D:write-acl"},
+				},
+			}
+
+		default:
+			notFoundProps.Raw = append(notFoundProps.Raw, raw)
+		}
+	}
+
+	return foundProps, notFoundProps, nil
+}
+
+func (s *Service) buildUserPrincipalAllPropResponse(ctx context.Context, href string, authAccount model.AuthAccount) (UserPrincipalProp, error) {
+	user, err := s.domain.GetOwnUser(ctx, authAccount, model.UserId{UserId: authAccount.AuthUserId}, []string{})
+	if err != nil {
+		s.log.Error().Err(err).Msg("Failed to get user in UserPrincipalPropFind")
+		return UserPrincipalProp{}, err
+	}
+
+	return UserPrincipalProp{
+		ResourceType: &ResourceType{
+			Collection: &Collection{},
+			Principal:  &Principal{},
+		},
+		DisplayName: user.GetFullName(),
+		CurrentUserPrincipal: &Href{
+			Href: fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId),
+		},
+		CalendarHomeSet: &Href{
+			Href: fmt.Sprintf("/caldav/principals/%d/calendars", authAccount.AuthUserId),
+		},
+		PrincipalURL: &Href{
+			Href: fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId),
+		},
+		Owner: fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId),
+		CurrentUserPrivilegeSet: &PrivilegeSet{
+			Privileges: []Privilege{
+				{Name: "D:read"},
+				{Name: "D:write"},
+				{Name: "D:write-acl"},
+			},
+		},
+	}, nil
+}
+
+func (s *Service) buildUserPrincipalPropNameResponse() *UserPrincipalPropNames {
+	return &UserPrincipalPropNames{
+		ResourceType:            struct{}{},
+		DisplayName:             struct{}{},
+		CurrentUserPrincipal:    struct{}{},
+		CalendarHomeSet:         struct{}{},
+		PrincipalURL:            struct{}{},
+		Owner:                   struct{}{},
+		CurrentUserPrivilegeSet: struct{}{},
+	}
+}
+
+func hasAnyUserPrincipalProperties(prop UserPrincipalProp) bool {
+	return (prop.ResourceType != nil && prop.ResourceType.Collection != nil) ||
+		(prop.ResourceType != nil && prop.ResourceType.Principal != nil) ||
+		prop.DisplayName != "" ||
+		(prop.CurrentUserPrincipal != nil && prop.CurrentUserPrincipal.Href != "") ||
+		(prop.CalendarHomeSet != nil && prop.CalendarHomeSet.Href != "") ||
+		(prop.PrincipalURL != nil && prop.PrincipalURL.Href != "") ||
+		prop.Owner != "" ||
+		(prop.CurrentUserPrivilegeSet != nil && len(prop.CurrentUserPrivilegeSet.Privileges) > 0) ||
+		len(prop.Raw) > 0
 }

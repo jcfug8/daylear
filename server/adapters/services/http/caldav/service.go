@@ -43,18 +43,23 @@ func (s *Service) Register(m *http.ServeMux) error {
 
 	gmux := mux.NewRouter()
 
-	gmux.HandleFunc("/caldav", s.Root).Methods("OPTIONS", "PROPFIND")
-	gmux.HandleFunc("/caldav/", s.Root).Methods("OPTIONS", "PROPFIND")
+	// These return the principal collection set but they aren't needed right now
+	// gmux.HandleFunc("/caldav", s.Root).Methods("OPTIONS", "PROPFIND")
+	// gmux.HandleFunc("/caldav/", s.Root).Methods("OPTIONS", "PROPFIND")
+
+	// These currently just redirect to the current user principal
 	gmux.HandleFunc("/caldav/.well-known/caldav", s.WellKnown).Methods("OPTIONS", "PROPFIND")
 	gmux.HandleFunc("/caldav/.well-known/caldav/", s.WellKnown).Methods("OPTIONS", "PROPFIND")
 
-	gmux.HandleFunc("/caldav/principals", s.Principals).Methods("PROPFIND", "OPTIONS")
-	gmux.HandleFunc("/caldav/principals/", s.Principals).Methods("PROPFIND", "OPTIONS")
+	// These return the principal collection set but they aren't needed right now
+	// gmux.HandleFunc("/caldav/principals", s.Principals).Methods("PROPFIND", "OPTIONS")
+	// gmux.HandleFunc("/caldav/principals/", s.Principals).Methods("PROPFIND", "OPTIONS")
 	gmux.HandleFunc("/caldav/principals/{userID}", s.UserPrincipal).Methods("PROPFIND", "OPTIONS")
 	gmux.HandleFunc("/caldav/principals/{userID}/", s.UserPrincipal).Methods("PROPFIND", "OPTIONS")
 
-	gmux.HandleFunc("/caldav/principals/{userID}/calendar-home-set", s.CalendarHomeSet).Methods("PROPFIND", "OPTIONS")
-	gmux.HandleFunc("/caldav/principals/{userID}/calendar-home-set/", s.CalendarHomeSet).Methods("PROPFIND", "OPTIONS")
+	// These return the calendar home set but they aren't needed right now
+	// gmux.HandleFunc("/caldav/principals/{userID}/calendar-home-set", s.CalendarHomeSet).Methods("PROPFIND", "OPTIONS")
+	// gmux.HandleFunc("/caldav/principals/{userID}/calendar-home-set/", s.CalendarHomeSet).Methods("PROPFIND", "OPTIONS")
 	gmux.HandleFunc("/caldav/principals/{userID}/calendars", s.Calendars).Methods("PROPFIND", "OPTIONS")
 	gmux.HandleFunc("/caldav/principals/{userID}/calendars/", s.Calendars).Methods("PROPFIND", "OPTIONS")
 
