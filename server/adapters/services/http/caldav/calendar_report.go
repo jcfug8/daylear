@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -53,7 +54,7 @@ func (s *Service) CalendarReport(w http.ResponseWriter, r *http.Request, authAcc
 	case ReportRequestTypeCalendarQuery:
 		responses, err = s.buildCalendarQueryResponse()
 	case ReportRequestTypeCalendarMultiget:
-		responses, err = s.buildCalendarMultigetResponse()
+		responses, err = s.buildCalendarMultigetResponse(r.Context(), authAccount, calendarID, reportRequest.CalendarMultiget)
 	case ReportRequestTypeSyncCollection:
 		responses, err = s.buildSyncCollectionResponse(r.Context(), authAccount, calendarID, reportRequest.SyncCollection)
 	default:
@@ -88,8 +89,42 @@ func (s *Service) buildCalendarQueryResponse() ([]Response, error) {
 	return []Response{}, nil
 }
 
-func (s *Service) buildCalendarMultigetResponse() ([]Response, error) {
-	return []Response{}, nil
+func (s *Service) buildCalendarMultigetResponse(ctx context.Context, authAccount model.AuthAccount, calendarID int64, calendarMultiget *CalendarMultigetReport) ([]Response, error) {
+	filter := ""
+	eventIds := []string{}
+	if len(calendarMultiget.Hrefs) == 0 {
+		return []Response{}, fmt.Errorf("no hrefs provided")
+	}
+
+	for _, href := range calendarMultiget.Hrefs {
+		userId, calendarId, eventId, err := parseEventPath(href)
+		if err != nil {
+			return []Response{}, err
+		}
+		if userId != authAccount.AuthUserId || calendarId != calendarID {
+			return []Response{}, fmt.Errorf("invalid event path")
+		}
+		eventIds = append(eventIds, strconv.FormatInt(eventId, 10))
+	}
+
+	filter = fmt.Sprintf("event_id = any(%s)", strings.Join(eventIds, ","))
+
+	events, err := s.domain.ListEvents(ctx, authAccount, model.EventParent{UserId: authAccount.AuthUserId, CalendarId: calendarID}, 0, 0, filter, []string{})
+	if err != nil {
+		return []Response{}, err
+	}
+
+	responses := []Response{}
+
+	for _, event := range events {
+		eventResponses, err := s._buildEventPropResponse(ctx, authAccount, event, calendarMultiget.Prop)
+		if err != nil {
+			return []Response{}, err
+		}
+		responses = append(responses, eventResponses...)
+	}
+
+	return responses, nil
 }
 
 func (s *Service) buildSyncCollectionResponse(ctx context.Context, authAccount model.AuthAccount, calendarID int64, syncCollection *SyncCollectionReport) ([]Response, error) {

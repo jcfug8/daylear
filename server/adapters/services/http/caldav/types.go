@@ -18,10 +18,6 @@ type ResponseHref struct {
 	Href string `xml:"D:href"`
 }
 
-type RequestHref struct {
-	Href string `xml:"href"`
-}
-
 type PrivilegeSet struct {
 	Privileges []Privilege `xml:"D:privilege"`
 }

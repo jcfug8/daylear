@@ -30,7 +30,7 @@ type CalendarQueryReport struct {
 type CalendarMultigetReport struct {
 	XMLName xml.Name      `xml:"calendar-multiget"`
 	Prop    *Prop         `xml:"prop,omitempty"`
-	Hrefs   []RequestHref `xml:"href,omitempty"`
+	Hrefs   []string      `xml:"href,omitempty"`
 	Raw     []RawXMLValue `xml:",any"`
 }
 

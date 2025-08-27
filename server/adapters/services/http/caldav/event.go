@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/emersion/go-ical"
@@ -86,4 +88,24 @@ func hasAnyEventPropProperties(prop EventProp) bool {
 
 func formatEventPath(userID, calendarID, eventID int64) string {
 	return fmt.Sprintf("/caldav/principals/%d/calendars/%d/events/%d.ics", userID, calendarID, eventID)
+}
+
+func parseEventPath(path string) (int64, int64, int64, error) {
+	parts := strings.Split(path, "/")
+	if len(parts) != 8 {
+		return 0, 0, 0, fmt.Errorf("invalid event path")
+	}
+	userId, err := strconv.ParseInt(parts[3], 10, 64)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	calendarId, err := strconv.ParseInt(parts[5], 10, 64)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	eventId, err := strconv.ParseInt(strings.TrimSuffix(parts[7], ".ics"), 10, 64)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	return userId, calendarId, eventId, nil
 }

@@ -48,6 +48,7 @@ var EventSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
 	"recurrence_end_time": {Name: EventField_RecurrenceEndTime, Table: EventTable},
 	"parent_event_id":     {Name: EventField_ParentEventId, Table: EventTable},
 	"delete_time":         {Name: EventDataField_DeleteTime, Table: EventDataTable},
+	"event_id":            {Name: EventField_EventId, Table: EventTable},
 }, true)
 
 // Event is the GORM model for an event.
