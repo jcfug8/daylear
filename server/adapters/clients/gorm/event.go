@@ -26,6 +26,11 @@ func (c *Client) CreateEvent(ctx context.Context, event model.Event, fields []st
 		return model.Event{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid event: %v", err)}
 	}
 
+	now := time.Now()
+
+	mEventData.CreateTime = &now
+	mEventData.UpdateTime = &now
+
 	res := c.db.WithContext(ctx).
 		Select(gmodel.EventDataFieldMasker.Convert(fields)).
 		Clauses(clause.Returning{}).

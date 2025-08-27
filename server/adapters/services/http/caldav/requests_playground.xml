@@ -521,6 +521,7 @@ curl 'http://localhost:8080/caldav/principals/1/calendars/4/' \
         <C:calendar-data/>
     </D:prop>
     <D:href>/caldav/principals/1/calendars/4/events/48.ics</D:href>
+    <D:href>/caldav/principals/1/calendars/4/events/51.ics</D:href>
 </C:calendar-multiget>'
 
 Response:

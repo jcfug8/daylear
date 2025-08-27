@@ -7,6 +7,7 @@ import (
 
 	"github.com/emersion/go-ical"
 	"github.com/jcfug8/daylear/server/core/model"
+	"github.com/teambition/rrule-go"
 )
 
 // ToICalendar converts a calendar and its events to iCalendar format
@@ -15,8 +16,8 @@ func ToICalendar(cal model.Calendar, events []model.Event) *ical.Calendar {
 	calendar := ical.NewCalendar()
 
 	// Set calendar properties using the correct API
-	// calendar.Props.SetText(ical.PropVersion, "2.0")
-	// calendar.Props.SetText(ical.PropProductID, "-//Daylear//Calendar//EN")
+	calendar.Props.SetText(ical.PropVersion, "2.0")
+	calendar.Props.SetText(ical.PropProductID, "-//Daylear//Calendar//EN")
 	// calendar.Props.SetText(ical.PropCalendarScale, "GREGORIAN")
 	// calendar.Props.SetText(ical.PropMethod, "PUBLISH")
 
@@ -79,11 +80,21 @@ func eventToComponent(event model.Event) *ical.Component {
 
 	// TODO: handle sequence
 	// Set sequence for conflict detection
-	component.Props.SetText(ical.PropSequence, "1")
+	component.Props.Set(&ical.Prop{
+		Name:  ical.PropSequence,
+		Value: "1",
+	})
 
 	// Handle recurrence rules if you have them
 	if event.RecurrenceRule != nil {
-		component.Props.SetText(ical.PropRecurrenceRule, *event.RecurrenceRule)
+		if !strings.HasPrefix(*event.RecurrenceRule, "RRULE:") {
+			*event.RecurrenceRule = "RRULE:" + *event.RecurrenceRule
+		}
+		rule, err := rrule.StrToRRuleSet(*event.RecurrenceRule)
+		if err != nil {
+			return nil
+		}
+		component.Props.SetRecurrenceRule(&rule.GetRRule().Options)
 	}
 
 	// TODO: handle alarms

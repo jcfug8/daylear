@@ -629,3 +629,12 @@ func TestSQLConverter_UsedColumns(t *testing.T) {
 	}
 	assert.Equal(t, expectedUsedColumns, got.UsedColumns)
 }
+
+func TestSQLConverter_AnyFunction(t *testing.T) {
+	converter := newTestConverter()
+	got, err := converter.Convert("any(age,1, 2, 3)")
+	assert.NoError(t, err)
+	assert.Equal(t, "user_age IN ($1,$2,$3)", got.WhereClause)
+	assert.Equal(t, []interface{}{int64(1), int64(2), int64(3)}, got.Params)
+	assert.Equal(t, map[string]int{"user_age": 1}, got.UsedColumns)
+}

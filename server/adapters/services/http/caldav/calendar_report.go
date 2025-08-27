@@ -107,7 +107,7 @@ func (s *Service) buildCalendarMultigetResponse(ctx context.Context, authAccount
 		eventIds = append(eventIds, strconv.FormatInt(eventId, 10))
 	}
 
-	filter = fmt.Sprintf("event_id = any(%s)", strings.Join(eventIds, ","))
+	filter = fmt.Sprintf("any(event_id,%s)", strings.Join(eventIds, ","))
 
 	events, err := s.domain.ListEvents(ctx, authAccount, model.EventParent{UserId: authAccount.AuthUserId, CalendarId: calendarID}, 0, 0, filter, []string{})
 	if err != nil {

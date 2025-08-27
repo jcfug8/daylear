@@ -363,6 +363,13 @@ func (c *Conversion) convertCallExpr(call *expr.Expr_Call) (string, error) {
 		// For the has operator, we only care about the field name
 		return fmt.Sprintf("%s IS NOT NULL", field), nil
 
+	case "any": // Add support for any function
+		if len(args) < 1 {
+			return "", fmt.Errorf("any function requires at least 3 arguments: any(field, value1, value2, ...)")
+		}
+
+		return c.handleAnyFunction(field, args[1:]) // Skip first arg (field name)
+
 	default:
 		return "", fmt.Errorf(errUnsupportedFunc, function)
 	}
@@ -531,4 +538,29 @@ func needsParens(expr *expr.Expr, op string) bool {
 		}
 	}
 	return false
+}
+
+// handleAnyFunction converts an any function call to a SQL IN clause
+func (c *Conversion) handleAnyFunction(field string, args []*expr.Expr) (string, error) {
+	if len(args) == 0 {
+		return "", fmt.Errorf("any function requires at least one value")
+	}
+
+	// Convert all arguments to values
+	values := make([]interface{}, len(args))
+	for i, arg := range args {
+		value, err := c.convertValueExpr(arg)
+		if err != nil {
+			return "", err
+		}
+		values[i] = value
+	}
+
+	// Build IN clause with placeholders
+	placeholders := make([]string, len(values))
+	for i := range values {
+		placeholders[i] = c.addParam(values[i])
+	}
+
+	return fmt.Sprintf("%s IN (%s)", field, strings.Join(placeholders, ",")), nil
 }
