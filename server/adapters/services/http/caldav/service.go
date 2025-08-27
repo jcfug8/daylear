@@ -3,7 +3,6 @@ package caldav
 import (
 	"net/http"
 
-	"github.com/emersion/go-webdav/caldav"
 	"github.com/gorilla/mux"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/ports/domain"
@@ -59,13 +58,9 @@ func (s *Service) Register(m *http.ServeMux) error {
 	gmux.HandleFunc("/caldav/principals/{userID}/calendars", s.Calendars).Methods("PROPFIND", "OPTIONS")
 	gmux.HandleFunc("/caldav/principals/{userID}/calendars/", s.Calendars).Methods("PROPFIND", "OPTIONS")
 
-	caldavHandler := caldav.Handler{
-		Backend: s,
-	}
-
 	// Add calendar objects endpoints for individual calendars and events
-	gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}", caldavHandler.ServeHTTP).Methods("OPTIONS", "PROPFIND", "REPORT")
-	gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}/", caldavHandler.ServeHTTP).Methods("OPTIONS", "PROPFIND", "REPORT")
+	gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}", s.Calendar).Methods("OPTIONS", "PROPFIND", "REPORT")
+	gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}/", s.Calendar).Methods("OPTIONS", "PROPFIND", "REPORT")
 	gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}/{eventID}.ics", s.Event).Methods("OPTIONS", "GET", "PUT", "DELETE")
 
 	m.Handle("/caldav/", headers.NewBasicAuthMiddleware(s.domain)(gmux))
