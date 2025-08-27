@@ -88,9 +88,9 @@ func (s *Service) UserPrincipalPropFind(w http.ResponseWriter, r *http.Request, 
 	// Build the response based on what was requested
 	switch propFindRequest.GetRequestType() {
 	case PropFindRequestTypeProp:
-		foundProps, notFoundProps, err = s.buildUserPrincipalPropResponse(r.Context(), r.URL.Path, authAccount, propFindRequest.Prop)
+		foundProps, notFoundProps, err = s.buildUserPrincipalPropResponse(r.Context(), authAccount, propFindRequest.Prop)
 	case PropFindRequestTypeAllProp:
-		foundProps, err = s.buildUserPrincipalAllPropResponse(r.Context(), r.URL.Path, authAccount)
+		foundProps, err = s.buildUserPrincipalAllPropResponse(r.Context(), authAccount)
 	case PropFindRequestTypePropName:
 		propNames = s.buildUserPrincipalPropNameResponse()
 	default:
@@ -138,7 +138,7 @@ func (s *Service) UserPrincipalPropFind(w http.ResponseWriter, r *http.Request, 
 	w.Write(addXMLDeclaration(responseBytes))
 }
 
-func (s *Service) buildUserPrincipalPropResponse(ctx context.Context, href string, authAccount model.AuthAccount, prop *Prop) (foundProps UserPrincipalProp, notFoundProps UserPrincipalProp, err error) {
+func (s *Service) buildUserPrincipalPropResponse(ctx context.Context, authAccount model.AuthAccount, prop *Prop) (foundProps UserPrincipalProp, notFoundProps UserPrincipalProp, err error) {
 	user, err := s.domain.GetOwnUser(ctx, authAccount, model.UserId{UserId: authAccount.AuthUserId}, []string{})
 	if err != nil {
 		s.log.Error().Err(err).Msg("Failed to get user in UserPrincipalPropFind")
@@ -192,7 +192,7 @@ func (s *Service) buildUserPrincipalPropResponse(ctx context.Context, href strin
 	return foundProps, notFoundProps, nil
 }
 
-func (s *Service) buildUserPrincipalAllPropResponse(ctx context.Context, href string, authAccount model.AuthAccount) (UserPrincipalProp, error) {
+func (s *Service) buildUserPrincipalAllPropResponse(ctx context.Context, authAccount model.AuthAccount) (UserPrincipalProp, error) {
 	user, err := s.domain.GetOwnUser(ctx, authAccount, model.UserId{UserId: authAccount.AuthUserId}, []string{})
 	if err != nil {
 		s.log.Error().Err(err).Msg("Failed to get user in UserPrincipalPropFind")

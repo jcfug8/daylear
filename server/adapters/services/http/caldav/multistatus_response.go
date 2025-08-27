@@ -11,6 +11,7 @@ type MultiStatusResponse struct {
 	XMLName  xml.Name   `xml:"D:multistatus"`
 	XMLNSD   string     `xml:"xmlns:D,attr"`
 	XMLNSC   string     `xml:"xmlns:C,attr"`
+	XMLNSCS  string     `xml:"xmlns:CS,attr"`
 	Response []Response `xml:"D:response"`
 }
 
@@ -35,6 +36,7 @@ func (rb ResponseBuilder) BuildMultiStatusResponse(responses []Response) MultiSt
 	return MultiStatusResponse{
 		XMLNSD:   "DAV:",
 		XMLNSC:   "urn:ietf:params:xml:ns:caldav",
+		XMLNSCS:  "http://calendarserver.org/ns/",
 		Response: responses,
 	}
 }

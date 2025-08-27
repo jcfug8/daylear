@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/emersion/go-webdav/caldav"
 	"github.com/gorilla/mux"
@@ -65,7 +64,7 @@ func (s *Service) CalendarPropFind(w http.ResponseWriter, r *http.Request, authA
 		return
 	}
 
-	calendarID, err := strconv.ParseInt(calendarIDStr, 10, 64)
+	_, err = strconv.ParseInt(calendarIDStr, 10, 64)
 	if err != nil {
 		s.log.Error().Err(err).Msg("Failed to parse calendarID in CalendarPropFind")
 		w.WriteHeader(http.StatusBadRequest)
@@ -78,71 +77,71 @@ func (s *Service) CalendarPropFind(w http.ResponseWriter, r *http.Request, authA
 		return
 	}
 
-	// Get calendar from domain
-	calendar, err := s.domain.GetCalendar(r.Context(), model.AuthAccount{AuthUserId: userID}, model.CalendarParent{UserId: userID}, model.CalendarId{CalendarId: calendarID}, []string{})
-	if err != nil {
-		s.log.Error().Err(err).Int64("userID", userID).Int64("calendarID", calendarID).Msg("Failed to get calendar from domain")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	// // Get calendar from domain
+	// calendar, err := s.domain.GetCalendar(r.Context(), model.AuthAccount{AuthUserId: userID}, model.CalendarParent{UserId: userID}, model.CalendarId{CalendarId: calendarID}, []string{})
+	// if err != nil {
+	// 	s.log.Error().Err(err).Int64("userID", userID).Int64("calendarID", calendarID).Msg("Failed to get calendar from domain")
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
 
-	// Create response for calendar properties
-	response := CalendarsMultiStatus{
-		XMLNSD:  "DAV:",
-		XMLNSC:  "urn:ietf:params:xml:ns:caldav",
-		XMLNSCS: "http://calendarserver.org/ns/",
-		Response: []CalendarsResponse{
-			{
-				Href: r.URL.Path,
-				Propstat: CalendarsPropstat{
-					Prop: CalendarsProp{
-						ResourceType: ResourceType{
-							Calendar:   &Calendar{},
-							Collection: &Collection{},
-						},
-						GetETag:             calendar.UpdateTime.UnixNano(),
-						GetCTag:             calendar.UpdateTime.UnixNano(),
-						GetLastModified:     calendar.UpdateTime.Format(time.RFC1123),
-						DisplayName:         calendar.Title,
-						CalendarDescription: calendar.Description,
-						SupportedCalendarComponentSet: &SupportedCalendarComponentSet{
-							CalendarComponents: []CalendarComponent{
-								{Name: "VEVENT"},
-							},
-						},
-						SupportedCalendarData: &SupportedCalendarData{
-							CalendarData: []CalendarData{
-								{ContentType: "text/calendar", Version: "2.0"},
-							},
-						},
-						SupportedReportSet: &SupportedReportSet{
-							SupportedReports: []SupportedReport{
-								{Report: CalendarReportType{CalendarQuery: &CalendarQuery{}}},
-								{Report: CalendarReportType{CalendarMultiget: &CalendarMultiget{}}},
-								{Report: CalendarReportType{SyncCollection: &SyncCollection{}}},
-							},
-						},
-					},
-					Status: Status{
-						Status: "HTTP/1.1 200 OK",
-					},
-				},
-			},
-		},
-	}
+	// // Create response for calendar properties
+	// response := CalendarsMultiStatus{
+	// 	// XMLNSD:  "DAV:",
+	// 	// XMLNSC:  "urn:ietf:params:xml:ns:caldav",
+	// 	// XMLNSCS: "http://calendarserver.org/ns/",
+	// 	// Response: []CalendarsResponse{
+	// 	// 	{
+	// 	// 		Href: r.URL.Path,
+	// 	// 		Propstat: CalendarsPropstat{
+	// 	// 			Prop: CalendarsProp{
+	// 	// 				ResourceType: ResourceType{
+	// 	// 					Calendar:   &Calendar{},
+	// 	// 					Collection: &Collection{},
+	// 	// 				},
+	// 	// 				GetETag:             calendar.UpdateTime.UnixNano(),
+	// 	// 				GetCTag:             calendar.UpdateTime.UnixNano(),
+	// 	// 				GetLastModified:     calendar.UpdateTime.Format(time.RFC1123),
+	// 	// 				DisplayName:         calendar.Title,
+	// 	// 				CalendarDescription: calendar.Description,
+	// 	// 				SupportedCalendarComponentSet: &SupportedCalendarComponentSet{
+	// 	// 					CalendarComponents: []CalendarComponent{
+	// 	// 						{Name: "VEVENT"},
+	// 	// 					},
+	// 	// 				},
+	// 	// 				SupportedCalendarData: &SupportedCalendarData{
+	// 	// 					CalendarData: []CalendarData{
+	// 	// 						{ContentType: "text/calendar", Version: "2.0"},
+	// 	// 					},
+	// 	// 				},
+	// 	// 				SupportedReportSet: &SupportedReportSet{
+	// 	// 					SupportedReports: []SupportedReport{
+	// 	// 						{Report: CalendarReportType{CalendarQuery: &CalendarQuery{}}},
+	// 	// 						{Report: CalendarReportType{CalendarMultiget: &CalendarMultiget{}}},
+	// 	// 						{Report: CalendarReportType{SyncCollection: &SyncCollection{}}},
+	// 	// 					},
+	// 	// 				},
+	// 	// 			},
+	// 	// 			Status: Status{
+	// 	// 				Status: "HTTP/1.1 200 OK",
+	// 	// 			},
+	// 	// 		},
+	// 	// 	},
+	// 	// },
+	// }
 
-	responseBytes, err := xml.MarshalIndent(response, "", "  ")
-	if err != nil {
-		s.log.Error().Err(err).Msg("Failed to marshal response in CalendarPropFind")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	// responseBytes, err := xml.MarshalIndent(response, "", "  ")
+	// if err != nil {
+	// 	s.log.Error().Err(err).Msg("Failed to marshal response in CalendarPropFind")
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
 
-	setCalDAVHeaders(w)
-	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
-	w.Header().Set("Content-Length", strconv.Itoa(len(responseBytes)))
-	w.WriteHeader(http.StatusMultiStatus)
-	w.Write(addXMLDeclaration(responseBytes))
+	// setCalDAVHeaders(w)
+	// w.Header().Set("Content-Type", "text/xml; charset=utf-8")
+	// w.Header().Set("Content-Length", strconv.Itoa(len(responseBytes)))
+	// w.WriteHeader(http.StatusMultiStatus)
+	// w.Write(addXMLDeclaration(responseBytes))
 }
 
 func (s *Service) CalendarReport(w http.ResponseWriter, r *http.Request, authAccount model.AuthAccount) {
