@@ -81,9 +81,9 @@ func (s *Service) UserPrincipalPropFind(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	var foundProps UserPrincipalProp
-	var notFoundProps UserPrincipalProp
-	var propNames *UserPrincipalPropNames
+	var foundProps map[string]UserPrincipalProp
+	var notFoundProps map[string]UserPrincipalProp
+	var propNames map[string]UserPrincipalPropNames
 
 	// Build the response based on what was requested
 	switch propFindRequest.GetRequestType() {
@@ -92,7 +92,7 @@ func (s *Service) UserPrincipalPropFind(w http.ResponseWriter, r *http.Request, 
 	case PropFindRequestTypeAllProp:
 		foundProps, err = s.buildUserPrincipalAllPropResponse(r.Context(), authAccount)
 	case PropFindRequestTypePropName:
-		propNames = s.buildUserPrincipalPropNameResponse()
+		propNames = s.buildUserPrincipalPropNameResponse(authAccount)
 	default:
 		s.log.Error().Msg("Invalid PROPFIND request type")
 		w.WriteHeader(http.StatusBadRequest)
@@ -104,24 +104,29 @@ func (s *Service) UserPrincipalPropFind(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	response := Response{Href: r.URL.Path}
+	responses := []Response{}
 	builder := ResponseBuilder{}
 
-	// Add propstat for found properties
-	if hasAnyUserPrincipalProperties(foundProps) {
-		response = builder.AddPropertyStatus(response, foundProps, 200)
+	for href, foundP := range foundProps {
+		response := Response{Href: href}
+		// Add propstat for found properties
+		if hasAnyUserPrincipalProperties(foundP) {
+			response = builder.AddPropertyStatus(response, foundP, 200)
+		}
+		// Add propstat for not found properties
+		if notFoundP, ok := notFoundProps[href]; ok && hasAnyUserPrincipalProperties(notFoundP) {
+			response = builder.AddPropertyStatus(response, notFoundP, 404)
+		}
+		responses = append(responses, response)
 	}
 
-	// Add propstat for not found properties
-	if hasAnyUserPrincipalProperties(notFoundProps) {
-		response = builder.AddPropertyStatus(response, notFoundProps, 404)
+	for href, pNames := range propNames {
+		response := Response{Href: href}
+		response = builder.AddPropertyStatus(response, pNames, 200)
+		responses = append(responses, response)
 	}
 
-	if propNames != nil {
-		response = builder.AddPropertyStatus(response, propNames, 200)
-	}
-
-	multistatus := builder.BuildMultiStatusResponse([]Response{response})
+	multistatus := builder.BuildMultiStatusResponse(responses)
 
 	// Marshal and send response
 	responseBytes, err := xml.MarshalIndent(multistatus, "", "  ")
@@ -138,45 +143,48 @@ func (s *Service) UserPrincipalPropFind(w http.ResponseWriter, r *http.Request, 
 	w.Write(addXMLDeclaration(responseBytes))
 }
 
-func (s *Service) buildUserPrincipalPropResponse(ctx context.Context, authAccount model.AuthAccount, prop *Prop) (foundProps UserPrincipalProp, notFoundProps UserPrincipalProp, err error) {
+func (s *Service) buildUserPrincipalPropResponse(ctx context.Context, authAccount model.AuthAccount, prop *Prop) (foundProps map[string]UserPrincipalProp, notFoundProps map[string]UserPrincipalProp, err error) {
 	user, err := s.domain.GetOwnUser(ctx, authAccount, model.UserId{UserId: authAccount.AuthUserId}, []string{})
 	if err != nil {
 		s.log.Error().Err(err).Msg("Failed to get user in UserPrincipalPropFind")
 		return foundProps, notFoundProps, err
 	}
 
+	var foundP UserPrincipalProp
+	var notFoundP UserPrincipalProp
+
 	// Check each requested property
 	for _, raw := range prop.Raw {
 		switch {
 		case raw.XMLName.Local == "resourcetype":
-			foundProps.ResourceType = &ResourceType{
+			foundP.ResourceType = &ResourceType{
 				Collection: &Collection{},
 				Principal:  &Principal{},
 			}
 
 		case raw.XMLName.Local == "displayname":
-			foundProps.DisplayName = user.GetFullName()
+			foundP.DisplayName = user.GetFullName()
 
 		case raw.XMLName.Local == "current-user-principal":
-			foundProps.CurrentUserPrincipal = &Href{
+			foundP.CurrentUserPrincipal = &Href{
 				Href: fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId),
 			}
 
 		case raw.XMLName.Local == "principal-URL":
-			foundProps.PrincipalURL = &Href{
+			foundP.PrincipalURL = &Href{
 				Href: fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId),
 			}
 
 		case raw.XMLName.Local == "calendar-home-set":
-			foundProps.CalendarHomeSet = &Href{
+			foundP.CalendarHomeSet = &Href{
 				Href: fmt.Sprintf("/caldav/principals/%d/calendars", authAccount.AuthUserId),
 			}
 
 		case raw.XMLName.Local == "owner":
-			foundProps.Owner = fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId)
+			foundP.Owner = fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId)
 
 		case raw.XMLName.Local == "current-user-privilege-set":
-			foundProps.CurrentUserPrivilegeSet = &PrivilegeSet{
+			foundP.CurrentUserPrivilegeSet = &PrivilegeSet{
 				Privileges: []Privilege{
 					{Name: "D:read"},
 					{Name: "D:write"},
@@ -185,21 +193,27 @@ func (s *Service) buildUserPrincipalPropResponse(ctx context.Context, authAccoun
 			}
 
 		default:
-			notFoundProps.Raw = append(notFoundProps.Raw, raw)
+			notFoundP.Raw = append(notFoundP.Raw, raw)
 		}
 	}
 
-	return foundProps, notFoundProps, nil
+	userPrincipalPath := fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId)
+
+	return map[string]UserPrincipalProp{
+			userPrincipalPath: foundP,
+		}, map[string]UserPrincipalProp{
+			userPrincipalPath: notFoundP,
+		}, nil
 }
 
-func (s *Service) buildUserPrincipalAllPropResponse(ctx context.Context, authAccount model.AuthAccount) (UserPrincipalProp, error) {
+func (s *Service) buildUserPrincipalAllPropResponse(ctx context.Context, authAccount model.AuthAccount) (map[string]UserPrincipalProp, error) {
 	user, err := s.domain.GetOwnUser(ctx, authAccount, model.UserId{UserId: authAccount.AuthUserId}, []string{})
 	if err != nil {
 		s.log.Error().Err(err).Msg("Failed to get user in UserPrincipalPropFind")
-		return UserPrincipalProp{}, err
+		return nil, err
 	}
 
-	return UserPrincipalProp{
+	foundP := UserPrincipalProp{
 		ResourceType: &ResourceType{
 			Collection: &Collection{},
 			Principal:  &Principal{},
@@ -222,18 +236,28 @@ func (s *Service) buildUserPrincipalAllPropResponse(ctx context.Context, authAcc
 				{Name: "D:write-acl"},
 			},
 		},
+	}
+
+	userPrincipalPath := fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId)
+
+	return map[string]UserPrincipalProp{
+		userPrincipalPath: foundP,
 	}, nil
 }
 
-func (s *Service) buildUserPrincipalPropNameResponse() *UserPrincipalPropNames {
-	return &UserPrincipalPropNames{
-		ResourceType:            struct{}{},
-		DisplayName:             struct{}{},
-		CurrentUserPrincipal:    struct{}{},
-		CalendarHomeSet:         struct{}{},
-		PrincipalURL:            struct{}{},
-		Owner:                   struct{}{},
-		CurrentUserPrivilegeSet: struct{}{},
+func (s *Service) buildUserPrincipalPropNameResponse(authAccount model.AuthAccount) map[string]UserPrincipalPropNames {
+	userPrincipalPath := fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId)
+
+	return map[string]UserPrincipalPropNames{
+		userPrincipalPath: {
+			ResourceType:            struct{}{},
+			DisplayName:             struct{}{},
+			CurrentUserPrincipal:    struct{}{},
+			CalendarHomeSet:         struct{}{},
+			PrincipalURL:            struct{}{},
+			Owner:                   struct{}{},
+			CurrentUserPrivilegeSet: struct{}{},
+		},
 	}
 }
 
