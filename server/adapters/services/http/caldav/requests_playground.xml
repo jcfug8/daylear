@@ -1,0 +1,547 @@
+Calendars PROPFIND
+<?xml version="1.0" encoding="UTF-8"?>
+<D:multistatus xmlns:D="DAV:" xmlns:caldav="urn:ietf:params:xml:ns:caldav" xmlns:cs="http://calendarserver.org/ns/" xmlns:ical="http://apple.com/ns/ical/">
+ <D:response xmlns:carddav="urn:ietf:params:xml:ns:carddav" xmlns:cm="http://cal.me.com/_namespace/" xmlns:md="urn:mobileme:davservices">
+  <D:href>/caldav/v2/jcfug8%40gmail.com/</D:href>
+  <D:propstat>
+   <D:status>HTTP/1.1 200 OK</D:status>
+   <D:prop>
+    <D:resourcetype>
+     <D:collection/>
+    </D:resourcetype>
+   </D:prop>
+  </D:propstat>
+  <D:propstat>
+   <D:status>HTTP/1.1 404 Not Found</D:status>
+   <D:prop>
+    <D:displayname/>
+    <D:current-user-privilege-set/>
+    <ical:calendar-color/>
+   </D:prop>
+  </D:propstat>
+ </D:response>
+ <D:response xmlns:carddav="urn:ietf:params:xml:ns:carddav" xmlns:cm="http://cal.me.com/_namespace/" xmlns:md="urn:mobileme:davservices">
+  <D:href>/caldav/v2/jcfug8%40gmail.com/events/</D:href>
+  <D:propstat>
+   <D:status>HTTP/1.1 200 OK</D:status>
+   <D:prop>
+    <D:displayname>jcfug8@gmail.com</D:displayname>
+    <D:current-user-privilege-set>
+     <D:privilege>
+      <D:read/>
+     </D:privilege>
+     <D:privilege>
+      <caldav:read-free-busy/>
+     </D:privilege>
+     <D:privilege>
+      <D:read-current-user-privilege-set/>
+     </D:privilege>
+     <D:privilege>
+      <D:write/>
+     </D:privilege>
+     <D:privilege>
+      <D:write-content/>
+     </D:privilege>
+     <D:privilege>
+      <D:write-properties/>
+     </D:privilege>
+     <D:privilege>
+      <D:bind/>
+     </D:privilege>
+     <D:privilege>
+      <D:unbind/>
+     </D:privilege>
+    </D:current-user-privilege-set>
+    <ical:calendar-color>#9A9CFFFF</ical:calendar-color>
+    <D:resourcetype>
+     <D:collection/>
+     <caldav:calendar/>
+    </D:resourcetype>
+   </D:prop>
+  </D:propstat>
+ </D:response>
+ <D:response xmlns:carddav="urn:ietf:params:xml:ns:carddav" xmlns:cm="http://cal.me.com/_namespace/" xmlns:md="urn:mobileme:davservices">
+  <D:href>/caldav/v2/family11811223002682706375%40group.calendar.google.com/events/</D:href>
+  <D:propstat>
+   <D:status>HTTP/1.1 200 OK</D:status>
+   <D:prop>
+    <D:displayname>Family</D:displayname>
+    <D:current-user-privilege-set>
+     <D:privilege>
+      <D:read/>
+     </D:privilege>
+     <D:privilege>
+      <caldav:read-free-busy/>
+     </D:privilege>
+     <D:privilege>
+      <D:read-current-user-privilege-set/>
+     </D:privilege>
+     <D:privilege>
+      <D:write/>
+     </D:privilege>
+     <D:privilege>
+      <D:write-content/>
+     </D:privilege>
+     <D:privilege>
+      <D:write-properties/>
+     </D:privilege>
+     <D:privilege>
+      <D:bind/>
+     </D:privilege>
+     <D:privilege>
+      <D:unbind/>
+     </D:privilege>
+    </D:current-user-privilege-set>
+    <ical:calendar-color>#9FC6E7FF</ical:calendar-color>
+    <D:resourcetype>
+     <D:collection/>
+     <caldav:calendar/>
+     <cs:shared/>
+    </D:resourcetype>
+   </D:prop>
+  </D:propstat>
+ </D:response>
+ <D:response xmlns:carddav="urn:ietf:params:xml:ns:carddav" xmlns:cm="http://cal.me.com/_namespace/" xmlns:md="urn:mobileme:davservices">
+  <D:href>/caldav/v2/cln2stbjc4hmgrrcd5i62ua0ctp6utbg5pr2sor1dhimsp31e8n6errfctm6abj3dtmg%40virtual/events/</D:href>
+  <D:propstat>
+   <D:status>HTTP/1.1 200 OK</D:status>
+   <D:prop>
+    <D:displayname>Holidays in United States</D:displayname>
+    <D:current-user-privilege-set>
+     <D:privilege>
+      <D:read/>
+     </D:privilege>
+     <D:privilege>
+      <caldav:read-free-busy/>
+     </D:privilege>
+     <D:privilege>
+      <D:read-current-user-privilege-set/>
+     </D:privilege>
+     <D:privilege>
+      <D:write-properties/>
+     </D:privilege>
+    </D:current-user-privilege-set>
+    <ical:calendar-color>#C2C2C2FF</ical:calendar-color>
+    <D:resourcetype>
+     <D:collection/>
+     <caldav:calendar/>
+     <cs:shared/>
+    </D:resourcetype>
+   </D:prop>
+  </D:propstat>
+ </D:response>
+ <D:response xmlns:carddav="urn:ietf:params:xml:ns:carddav" xmlns:cm="http://cal.me.com/_namespace/" xmlns:md="urn:mobileme:davservices">
+  <D:href>/caldav/v2/236b2d6f9f9ccdc17b5ad115ed28a9a5f2e31ba52f44485fae100275f8cb6c06%40group.calendar.google.com/events/</D:href>
+  <D:propstat>
+   <D:status>HTTP/1.1 200 OK</D:status>
+   <D:prop>
+    <D:displayname>Stake Schedule</D:displayname>
+    <D:current-user-privilege-set>
+     <D:privilege>
+      <D:read/>
+     </D:privilege>
+     <D:privilege>
+      <caldav:read-free-busy/>
+     </D:privilege>
+     <D:privilege>
+      <D:read-current-user-privilege-set/>
+     </D:privilege>
+     <D:privilege>
+      <D:write/>
+     </D:privilege>
+     <D:privilege>
+      <D:write-content/>
+     </D:privilege>
+     <D:privilege>
+      <D:write-properties/>
+     </D:privilege>
+     <D:privilege>
+      <D:bind/>
+     </D:privilege>
+     <D:privilege>
+      <D:unbind/>
+     </D:privilege>
+    </D:current-user-privilege-set>
+    <ical:calendar-color>#FFAD46FF</ical:calendar-color>
+    <D:resourcetype>
+     <D:collection/>
+     <caldav:calendar/>
+     <cs:shared/>
+    </D:resourcetype>
+   </D:prop>
+  </D:propstat>
+ </D:response>
+ <D:response xmlns:carddav="urn:ietf:params:xml:ns:carddav" xmlns:cm="http://cal.me.com/_namespace/" xmlns:md="urn:mobileme:davservices">
+  <D:href>/caldav/v2/qec45juejrphm62b2t799nguso%40group.calendar.google.com/events/</D:href>
+  <D:propstat>
+   <D:status>HTTP/1.1 200 OK</D:status>
+   <D:prop>
+    <D:displayname>JaMo Basic Schedule</D:displayname>
+    <D:current-user-privilege-set>
+     <D:privilege>
+      <D:read/>
+     </D:privilege>
+     <D:privilege>
+      <caldav:read-free-busy/>
+     </D:privilege>
+     <D:privilege>
+      <D:read-current-user-privilege-set/>
+     </D:privilege>
+     <D:privilege>
+      <D:write/>
+     </D:privilege>
+     <D:privilege>
+      <D:write-content/>
+     </D:privilege>
+     <D:privilege>
+      <D:write-properties/>
+     </D:privilege>
+     <D:privilege>
+      <D:bind/>
+     </D:privilege>
+     <D:privilege>
+      <D:unbind/>
+     </D:privilege>
+    </D:current-user-privilege-set>
+    <ical:calendar-color>#F691B2FF</ical:calendar-color>
+    <D:resourcetype>
+     <D:collection/>
+     <caldav:calendar/>
+     <cs:shared/>
+    </D:resourcetype>
+   </D:prop>
+  </D:propstat>
+ </D:response>
+ <D:response xmlns:carddav="urn:ietf:params:xml:ns:carddav" xmlns:cm="http://cal.me.com/_namespace/" xmlns:md="urn:mobileme:davservices">
+  <D:href>/caldav/v2/g3t9oprcbnbcs6il8mtv7ucu74%40group.calendar.google.com/events/</D:href>
+  <D:propstat>
+   <D:status>HTTP/1.1 200 OK</D:status>
+   <D:prop>
+    <D:displayname>JaceMo</D:displayname>
+    <D:current-user-privilege-set>
+     <D:privilege>
+      <D:read/>
+     </D:privilege>
+     <D:privilege>
+      <caldav:read-free-busy/>
+     </D:privilege>
+     <D:privilege>
+      <D:read-current-user-privilege-set/>
+     </D:privilege>
+     <D:privilege>
+      <D:write/>
+     </D:privilege>
+     <D:privilege>
+      <D:write-content/>
+     </D:privilege>
+     <D:privilege>
+      <D:write-properties/>
+     </D:privilege>
+     <D:privilege>
+      <D:bind/>
+     </D:privilege>
+     <D:privilege>
+      <D:unbind/>
+     </D:privilege>
+    </D:current-user-privilege-set>
+    <ical:calendar-color>#1BADF8FF</ical:calendar-color>
+    <D:resourcetype>
+     <D:collection/>
+     <caldav:calendar/>
+     <cs:shared/>
+    </D:resourcetype>
+   </D:prop>
+  </D:propstat>
+ </D:response>
+ <D:response xmlns:carddav="urn:ietf:params:xml:ns:carddav" xmlns:cm="http://cal.me.com/_namespace/" xmlns:md="urn:mobileme:davservices">
+  <D:href>/caldav/v2/8paognr4ek0o5gnfi9jdl1gi7k%40group.calendar.google.com/events/</D:href>
+  <D:propstat>
+   <D:status>HTTP/1.1 200 OK</D:status>
+   <D:prop>
+    <D:displayname>Bishop Schedule</D:displayname>
+    <D:current-user-privilege-set>
+     <D:privilege>
+      <D:read/>
+     </D:privilege>
+     <D:privilege>
+      <caldav:read-free-busy/>
+     </D:privilege>
+     <D:privilege>
+      <D:read-current-user-privilege-set/>
+     </D:privilege>
+     <D:privilege>
+      <D:write/>
+     </D:privilege>
+     <D:privilege>
+      <D:write-content/>
+     </D:privilege>
+     <D:privilege>
+      <D:write-properties/>
+     </D:privilege>
+     <D:privilege>
+      <D:bind/>
+     </D:privilege>
+     <D:privilege>
+      <D:unbind/>
+     </D:privilege>
+    </D:current-user-privilege-set>
+    <ical:calendar-color>#F691B2FF</ical:calendar-color>
+    <D:resourcetype>
+     <D:collection/>
+     <caldav:calendar/>
+     <cs:shared/>
+    </D:resourcetype>
+   </D:prop>
+  </D:propstat>
+ </D:response>
+ <D:response xmlns:carddav="urn:ietf:params:xml:ns:carddav" xmlns:cm="http://cal.me.com/_namespace/" xmlns:md="urn:mobileme:davservices">
+  <D:href>/caldav/v2/jcfug8%40gmail.com/user</D:href>
+  <D:propstat>
+   <D:status>HTTP/1.1 200 OK</D:status>
+   <D:prop>
+    <D:displayname>Jace Fugate</D:displayname>
+    <D:resourcetype>
+     <D:collection/>
+     <D:principal/>
+    </D:resourcetype>
+   </D:prop>
+  </D:propstat>
+  <D:propstat>
+   <D:status>HTTP/1.1 404 Not Found</D:status>
+   <D:prop>
+    <D:current-user-privilege-set/>
+    <ical:calendar-color/>
+   </D:prop>
+  </D:propstat>
+ </D:response>
+ <D:response xmlns:carddav="urn:ietf:params:xml:ns:carddav" xmlns:cm="http://cal.me.com/_namespace/" xmlns:md="urn:mobileme:davservices">
+  <D:href>/caldav/v2/jcfug8%40gmail.com/inbox/</D:href>
+  <D:propstat>
+   <D:status>HTTP/1.1 200 OK</D:status>
+   <D:prop>
+    <D:resourcetype>
+     <D:collection/>
+     <caldav:schedule-inbox/>
+    </D:resourcetype>
+   </D:prop>
+  </D:propstat>
+  <D:propstat>
+   <D:status>HTTP/1.1 404 Not Found</D:status>
+   <D:prop>
+    <D:displayname/>
+    <D:current-user-privilege-set/>
+    <ical:calendar-color/>
+   </D:prop>
+  </D:propstat>
+ </D:response>
+ <D:response xmlns:carddav="urn:ietf:params:xml:ns:carddav" xmlns:cm="http://cal.me.com/_namespace/" xmlns:md="urn:mobileme:davservices">
+  <D:href>/caldav/v2/jcfug8%40gmail.com/outbox/</D:href>
+  <D:propstat>
+   <D:status>HTTP/1.1 200 OK</D:status>
+   <D:prop>
+    <D:resourcetype>
+     <D:collection/>
+     <caldav:schedule-outbox/>
+    </D:resourcetype>
+   </D:prop>
+  </D:propstat>
+  <D:propstat>
+   <D:status>HTTP/1.1 404 Not Found</D:status>
+   <D:prop>
+    <D:displayname/>
+    <D:current-user-privilege-set/>
+    <ical:calendar-color/>
+   </D:prop>
+  </D:propstat>
+ </D:response>
+</D:multistatus>
+
+
+Calendar PROPFIND
+<?xml version="1.0" encoding="UTF-8"?>
+<D:multistatus xmlns:D="DAV:" xmlns:caldav="urn:ietf:params:xml:ns:caldav" xmlns:cs="http://calendarserver.org/ns/" xmlns:ical="http://apple.com/ns/ical/">
+ <D:response xmlns:carddav="urn:ietf:params:xml:ns:carddav" xmlns:cm="http://cal.me.com/_namespace/" xmlns:md="urn:mobileme:davservices">
+  <D:href>/caldav/v2/g3t9oprcbnbcs6il8mtv7ucu74%40group.calendar.google.com/events/</D:href>
+  <D:propstat>
+   <D:status>HTTP/1.1 200 OK</D:status>
+   <D:prop>
+    <D:owner>
+     <D:href>/caldav/v2/g3t9oprcbnbcs6il8mtv7ucu74%40group.calendar.google.com/user</D:href>
+    </D:owner>
+    <D:current-user-privilege-set>
+     <D:privilege>
+      <D:read/>
+     </D:privilege>
+     <D:privilege>
+      <caldav:read-free-busy/>
+     </D:privilege>
+     <D:privilege>
+      <D:read-current-user-privilege-set/>
+     </D:privilege>
+     <D:privilege>
+      <D:write/>
+     </D:privilege>
+     <D:privilege>
+      <D:write-content/>
+     </D:privilege>
+     <D:privilege>
+      <D:write-properties/>
+     </D:privilege>
+     <D:privilege>
+      <D:bind/>
+     </D:privilege>
+     <D:privilege>
+      <D:unbind/>
+     </D:privilege>
+    </D:current-user-privilege-set>
+    <cs:getctag>63891774457</cs:getctag>
+    <D:supported-report-set>
+     <D:supported-report>
+      <D:report>
+       <caldav:calendar-multiget/>
+      </D:report>
+     </D:supported-report>
+     <D:supported-report>
+      <D:report>
+       <caldav:calendar-query/>
+      </D:report>
+     </D:supported-report>
+     <D:supported-report>
+      <D:report>
+       <D:sync-collection/>
+      </D:report>
+     </D:supported-report>
+    </D:supported-report-set>
+    <caldav:supported-calendar-component-set>
+     <caldav:comp name="VEVENT"/>
+    </caldav:supported-calendar-component-set>
+    <D:resourcetype>
+     <D:collection/>
+     <caldav:calendar/>
+     <cs:shared/>
+    </D:resourcetype>
+   </D:prop>
+  </D:propstat>
+  <D:propstat>
+   <D:status>HTTP/1.1 404 Not Found</D:status>
+   <D:prop>
+    <D:current-user-principal/>
+   </D:prop>
+  </D:propstat>
+ </D:response>
+</D:multistatus>
+
+
+Request:
+curl 'http://localhost:8080/caldav/principals/1' \
+  -X PROPFIND \
+  -H 'Content-Type: text/xml; charset=utf-8' \
+  -H 'Depth: 0' \
+  -H 'Authorization: Basic MToxMjM0NTY=' \
+  -d '<?xml version="1.0" encoding="UTF-8"?>
+<D:propfind xmlns:D="DAV:" xmlns:A="http://apple.com/ns/ical/" xmlns:C="urn:ietf:params:xml:ns:caldav">
+  <D:prop>
+    <D:resourcetype/>
+    <D:owner/>
+    <D:displayname/>
+    <D:current-user-principal/>
+    <D:current-user-privilege-set/>
+    <A:calendar-color/>
+    <C:calendar-home-set/>
+  </D:prop>
+</D:propfind>'
+
+
+Request:
+curl 'http://localhost:8080/caldav/principals/1/calendars' \
+  -X PROPFIND \
+  -H 'Content-Type: text/xml; charset=utf-8' \
+  -H 'Depth: 1' \
+  -H 'Authorization: Basic MToxMjM0NTY=' \
+  -d '<?xml version="1.0" encoding="UTF-8"?>
+<D:propfind xmlns:D="DAV:" xmlns:A="http://apple.com/ns/ical/">
+  <D:prop>
+    <D:resourcetype/>
+    <D:displayname/>
+    <D:current-user-privilege-set/>
+    <A:calendar-color/>
+  </D:prop>
+</D:propfind>'
+
+
+Request:
+curl 'http://localhost:8080/caldav/calendars/1/8' \
+  -X PROPFIND \
+  -H 'Accept: text/xml' \
+  -H 'Content-Type: text/xml; charset=utf-8' \
+  -H 'Depth: 1' \
+  -H 'Origin: http://localhost:8080' \
+  -H 'Authorization: Basic MToxMjM0NTY=' \
+  -H 'Connection: keep-alive' \
+  -d '<?xml version="1.0" encoding="UTF-8"?>
+<D:propfind xmlns:D="DAV:">
+  <D:prop>
+    <D:getcontenttype/>
+    <D:resourcetype/>
+    <D:getetag/>
+  </D:prop>
+</D:propfind>'
+
+Response:
+<?xml version="1.0" encoding="UTF-8"?>
+<multistatus xmlns="DAV:"><response xmlns="DAV:"><href>/caldav/calendars/1/8/</href><propstat xmlns="DAV:"><prop xmlns="DAV:"><getcontenttype xmlns="DAV:"></getcontenttype><getetag xmlns="DAV:"></getetag></prop><status>HTTP/1.1 404 Not Found</status></propstat><propstat xmlns="DAV:"><prop xmlns="DAV:"><resourcetype xmlns="DAV:"><collection xmlns="DAV:"></collection><calendar xmlns="urn:ietf:params:xml:ns:caldav"></calendar></resourcetype></prop><status>HTTP/1.1 200 OK</status></propstat></response><response xmlns="DAV:"><href>/caldav/calendars/1/8/</href><propstat xmlns="DAV:"><prop xmlns="DAV:"><getcontenttype xmlns="DAV:">text/calendar</getcontenttype><resourcetype xmlns="DAV:"></resourcetype><getetag xmlns="DAV:">&#34;1755115176424238000&#34;</getetag></prop><status>HTTP/1.1 200 OK</status></propstat></response></multistatus>
+
+
+Request:
+curl 'http://localhost:8080/caldav/principals/1/calendars/8/' \
+  -X REPORT \
+  -H 'Content-Type: text/xml; charset=utf-8' \
+  -H 'Depth: 1' \
+  -H 'Authorization: Basic MToxMjM0NTY=' \
+  -d '<?xml version="1.0" encoding="UTF-8"?>
+<sync-collection xmlns="DAV:">
+  <sync-token/>
+  <sync-level>1</sync-level>
+  <prop>
+    <getcontenttype/>
+    <getetag/>
+  </prop>
+</sync-collection>'
+
+Request:
+curl 'http://localhost:8080/caldav/principals/1/calendars/4/' \
+  -X REPORT \
+  -H 'Content-Type: text/xml; charset=utf-8' \
+  -H 'Depth: 1' \
+  -H 'Authorization: Basic MToxMjM0NTY=' \
+  -d '<?xml version="1.0" encoding="UTF-8"?>
+<C:calendar-multiget xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
+    <D:prop>
+        <D:getetag/>
+        <C:calendar-data/>
+    </D:prop>
+    <D:href>/caldav/principals/1/calendars/4/events/48.ics</D:href>
+</C:calendar-multiget>'
+
+Response:
+<D:multistatus>
+  <!-- All deleted events -->
+  <D:response>
+    <D:href>/calendars/123/event1.ics</D:href>
+    <D:status>HTTP/1.1 404 Not Found</D:status>
+  </D:response>
+  
+  <!-- All modified events -->
+  <D:response>
+    <D:href>/calendars/123/event2.ics</D:href>
+    <D:propstat>...</D:propstat>
+  </D:response>
+  
+  <!-- All new events -->
+  <D:response>
+    <D:href>/calendars/123/event3.ics</D:href>
+    <D:propstat>...</D:propstat>
+  </D:response>
+  
+  <D:sync-token>new-sync-token</D:sync-token>
+</D:multistatus>

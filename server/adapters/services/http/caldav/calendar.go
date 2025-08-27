@@ -1,330 +1,38 @@
 package caldav
 
 import (
-	"context"
-	"encoding/xml"
-	"fmt"
 	"net/http"
-	"strconv"
-	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
-	"github.com/jcfug8/daylear/server/core/model"
-	"github.com/jcfug8/daylear/server/genapi/api/types"
 )
 
-// Calendar specific property structures
-type CalendarProp struct {
-	ResourceType                  *ResourceType                  `xml:"D:resourcetype,omitempty"`
-	DisplayName                   string                         `xml:"D:displayname,omitempty"`
-	GetETag                       int64                          `xml:"D:getetag,omitempty"`
-	GetCTag                       int64                          `xml:"CS:getctag,omitempty"`
-	GetLastModified               string                         `xml:"D:getlastmodified,omitempty"`
-	CalendarDescription           string                         `xml:"C:calendar-description,omitempty"`
-	SupportedCalendarComponentSet *SupportedCalendarComponentSet `xml:"C:supported-calendar-component-set,omitempty"`
-	SupportedCalendarData         *SupportedCalendarData         `xml:"C:supported-calendar-data,omitempty"`
-	SupportedReportSet            *SupportedReportSet            `xml:"D:supported-report-set,omitempty"`
-	CurrentUserPrivilegeSet       *PrivilegeSet                  `xml:"D:current-user-privilege-set,omitempty"`
-	Raw                           []RawXMLValue                  `xml:",any"`
-}
-
-type CalendarPropNames struct {
-	ResourceType                  *struct{} `xml:"D:resourcetype,omitempty"`
-	DisplayName                   *struct{} `xml:"D:displayname,omitempty"`
-	GetETag                       *struct{} `xml:"D:getetag,omitempty"`
-	GetCTag                       *struct{} `xml:"CS:getctag,omitempty"`
-	GetLastModified               *struct{} `xml:"D:getlastmodified,omitempty"`
-	CalendarDescription           *struct{} `xml:"C:calendar-description,omitempty"`
-	SupportedCalendarComponentSet *struct{} `xml:"C:supported-calendar-component-set,omitempty"`
-	SupportedCalendarData         *struct{} `xml:"C:supported-calendar-data,omitempty"`
-	SupportedReportSet            *struct{} `xml:"D:supported-report-set,omitempty"`
-	CurrentUserPrivilegeSet       *struct{} `xml:"D:current-user-privilege-set,omitempty"`
-}
-
-func (b *Service) Calendar(w http.ResponseWriter, r *http.Request) {
-	b.log.Info().Msg("Calendar called")
+func (s *Service) Calendar(w http.ResponseWriter, r *http.Request) {
+	s.log.Info().Msg("Calendar called")
 
 	authAccount, err := headers.ParseAuthData(r.Context())
 	if err != nil {
-		b.log.Error().Err(err).Msg("Failed to parse auth data in Calendar")
+		s.log.Error().Err(err).Msg("Failed to parse auth data in Calendar")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	switch r.Method {
 	case "OPTIONS":
-		setCalDAVHeaders(w)
-		w.Header().Set("Allow", "PROPFIND,OPTIONS,REPORT")
-		w.WriteHeader(http.StatusNoContent)
+		s.CalendarOptions(w, r)
 		return
 	case "PROPFIND":
-		b.CalendarPropFind(w, r, authAccount)
+		s.CalendarPropFind(w, r, authAccount)
+		return
+	case "REPORT":
+		s.CalendarReport(w, r, authAccount)
 		return
 	}
 
 	w.WriteHeader(http.StatusMethodNotAllowed)
 }
 
-func (s *Service) CalendarPropFind(w http.ResponseWriter, r *http.Request, authAccount model.AuthAccount) {
-	s.log.Info().Msg("CalendarPropFind called")
-
-	// Parse path parameters
-	vars := mux.Vars(r)
-	userIDStr := vars["userID"]
-	calendarIDStr := vars["calendarID"]
-
-	userID, err := strconv.ParseInt(userIDStr, 10, 64)
-	if err != nil {
-		s.log.Error().Err(err).Msg("Failed to parse userID in CalendarPropFind")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	calendarID, err := strconv.ParseInt(calendarIDStr, 10, 64)
-	if err != nil {
-		s.log.Error().Err(err).Msg("Failed to parse calendarID in CalendarPropFind")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	if userID != authAccount.AuthUserId {
-		s.log.Error().Int64("userID", userID).Int64("authUserID", authAccount.AuthUserId).Msg("UserID does not match authUserID in CalendarPropFind")
-		w.WriteHeader(http.StatusForbidden)
-		return
-	}
-
-	propFindRequest, err := NewPropFindRequestFromReader(r.Body)
-	if err != nil {
-		s.log.Error().Err(err).Msg("Failed to parse PROPFIND request")
-		http.Error(w, "Invalid XML", http.StatusBadRequest)
-		return
-	}
-
-	responses := []Response{}
-
-	// Build the response based on what was requested
-	switch propFindRequest.GetRequestType() {
-	case PropFindRequestTypeProp:
-		responses, err = s.buildCalendarPropResponse(r.Context(), authAccount, calendarID, propFindRequest.Prop)
-	case PropFindRequestTypeAllProp:
-		responses, err = s.buildCalendarAllPropResponse(r.Context(), authAccount, calendarID)
-	case PropFindRequestTypePropName:
-		responses, err = s.buildCalendarPropNameResponse(r.Context(), authAccount, calendarID)
-	default:
-		s.log.Error().Msg("Invalid PROPFIND request type")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	if err != nil {
-		s.log.Error().Err(err).Msg("Failed to build calendar response")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	multistatus := ResponseBuilder{}.BuildMultiStatusResponse(responses)
-
-	// Marshal and send response
-	responseBytes, err := xml.MarshalIndent(multistatus, "", "  ")
-	if err != nil {
-		s.log.Error().Err(err).Msg("Failed to marshal response in CalendarPropFind")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
+func (s *Service) CalendarOptions(w http.ResponseWriter, r *http.Request) {
 	setCalDAVHeaders(w)
-	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
-	w.Header().Set("Content-Length", strconv.Itoa(len(responseBytes)))
-	w.WriteHeader(http.StatusMultiStatus)
-	w.Write(addXMLDeclaration(responseBytes))
-}
-
-func (s *Service) buildCalendarPropResponse(ctx context.Context, authAccount model.AuthAccount, calendarID int64, prop *Prop) ([]Response, error) {
-	// Get calendar from domain
-	calendar, err := s.domain.GetCalendar(ctx, model.AuthAccount{AuthUserId: authAccount.AuthUserId}, model.CalendarParent{UserId: authAccount.AuthUserId}, model.CalendarId{CalendarId: calendarID}, []string{})
-	if err != nil {
-		s.log.Error().Err(err).Int64("userID", authAccount.AuthUserId).Int64("calendarID", calendarID).Msg("Failed to get calendar from domain")
-		return nil, err
-	}
-
-	return s._buildCalendarPropResponse(ctx, authAccount, calendar, prop)
-}
-
-func (s *Service) _buildCalendarPropResponse(ctx context.Context, authAccount model.AuthAccount, calendar model.Calendar, prop *Prop) ([]Response, error) {
-	var foundP CalendarProp
-	var notFoundP CalendarProp
-
-	// Check each requested property
-	for _, raw := range prop.Raw {
-		switch {
-		case raw.XMLName.Local == "resourcetype":
-			foundP.ResourceType = &ResourceType{
-				Calendar:   &Calendar{},
-				Collection: &Collection{},
-			}
-
-		case raw.XMLName.Local == "displayname":
-			foundP.DisplayName = calendar.Title
-
-		case raw.XMLName.Local == "getetag":
-			foundP.GetETag = calendar.UpdateTime.UnixNano()
-
-		case raw.XMLName.Local == "getctag":
-			foundP.GetCTag = calendar.UpdateTime.UnixNano()
-
-		case raw.XMLName.Local == "getlastmodified":
-			foundP.GetLastModified = calendar.UpdateTime.Format(time.RFC1123)
-
-		case raw.XMLName.Local == "calendar-description":
-			foundP.CalendarDescription = calendar.Description
-
-		case raw.XMLName.Local == "supported-calendar-component-set":
-			foundP.SupportedCalendarComponentSet = &SupportedCalendarComponentSet{
-				CalendarComponents: []CalendarComponent{
-					{Name: "VEVENT"},
-				},
-			}
-
-		case raw.XMLName.Local == "supported-calendar-data":
-			foundP.SupportedCalendarData = &SupportedCalendarData{
-				CalendarData: []CalendarData{
-					{ContentType: "text/calendar", Version: "2.0"},
-				},
-			}
-
-		case raw.XMLName.Local == "supported-report-set":
-			foundP.SupportedReportSet = &SupportedReportSet{
-				SupportedReports: []SupportedReport{
-					{Report: CalendarReportType{CalendarQuery: &CalendarQuery{}}},
-					{Report: CalendarReportType{CalendarMultiget: &CalendarMultiget{}}},
-					{Report: CalendarReportType{SyncCollection: &SyncCollection{}}},
-				},
-			}
-
-		case raw.XMLName.Local == "current-user-privilege-set":
-			privileges := []Privilege{
-				{Name: "D:read"},
-			}
-			if calendar.CalendarAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_WRITE {
-				privileges = append(privileges, Privilege{Name: "D:write"})
-				privileges = append(privileges, Privilege{Name: "D:write-acl"})
-			}
-			foundP.CurrentUserPrivilegeSet = &PrivilegeSet{Privileges: privileges}
-
-		default:
-			notFoundP.Raw = append(notFoundP.Raw, raw)
-		}
-	}
-
-	calendarPath := formatCalendarPath(authAccount.AuthUserId, calendar.CalendarId.CalendarId)
-
-	response := Response{Href: calendarPath}
-	builder := ResponseBuilder{}
-
-	// Add propstat for found properties
-	if hasAnyCalendarPropProperties(foundP) {
-		response = builder.AddPropertyStatus(response, foundP, 200)
-	}
-	// Add propstat for not found properties
-	if hasAnyCalendarPropProperties(notFoundP) {
-		response = builder.AddPropertyStatus(response, notFoundP, 404)
-	}
-
-	return []Response{response}, nil
-}
-
-func (s *Service) buildCalendarAllPropResponse(ctx context.Context, authAccount model.AuthAccount, calendarID int64) ([]Response, error) {
-	// Get calendar from domain
-	calendar, err := s.domain.GetCalendar(ctx, model.AuthAccount{AuthUserId: authAccount.AuthUserId}, model.CalendarParent{UserId: authAccount.AuthUserId}, model.CalendarId{CalendarId: calendarID}, []string{})
-	if err != nil {
-		s.log.Error().Err(err).Int64("userID", authAccount.AuthUserId).Int64("calendarID", calendarID).Msg("Failed to get calendar from domain")
-		return nil, err
-	}
-
-	return s._buildCalendarAllPropResponse(ctx, authAccount, calendar)
-}
-
-func (s *Service) _buildCalendarAllPropResponse(ctx context.Context, authAccount model.AuthAccount, calendar model.Calendar) ([]Response, error) {
-	privileges := []Privilege{
-		{Name: "D:read"},
-	}
-	if calendar.CalendarAccess.PermissionLevel >= types.PermissionLevel_PERMISSION_LEVEL_WRITE {
-		privileges = append(privileges, Privilege{Name: "D:write"})
-		privileges = append(privileges, Privilege{Name: "D:write-acl"})
-	}
-
-	foundP := CalendarProp{
-		ResourceType: &ResourceType{
-			Calendar:   &Calendar{},
-			Collection: &Collection{},
-		},
-		DisplayName:         calendar.Title,
-		GetETag:             calendar.UpdateTime.UnixNano(),
-		GetCTag:             calendar.UpdateTime.UnixNano(),
-		GetLastModified:     calendar.UpdateTime.Format(time.RFC1123),
-		CalendarDescription: calendar.Description,
-		SupportedCalendarComponentSet: &SupportedCalendarComponentSet{
-			CalendarComponents: []CalendarComponent{
-				{Name: "VEVENT"},
-			},
-		},
-		SupportedCalendarData: &SupportedCalendarData{
-			CalendarData: []CalendarData{
-				{ContentType: "text/calendar", Version: "2.0"},
-			},
-		},
-		SupportedReportSet: &SupportedReportSet{
-			SupportedReports: []SupportedReport{
-				{Report: CalendarReportType{CalendarQuery: &CalendarQuery{}}},
-				{Report: CalendarReportType{CalendarMultiget: &CalendarMultiget{}}},
-				{Report: CalendarReportType{SyncCollection: &SyncCollection{}}},
-			},
-		},
-		CurrentUserPrivilegeSet: &PrivilegeSet{Privileges: privileges},
-	}
-
-	calendarPath := formatCalendarPath(authAccount.AuthUserId, calendar.CalendarId.CalendarId)
-
-	response := Response{Href: calendarPath}
-	response = ResponseBuilder{}.AddPropertyStatus(response, foundP, 200)
-
-	return []Response{response}, nil
-}
-
-func (s *Service) buildCalendarPropNameResponse(ctx context.Context, authAccount model.AuthAccount, calendarID int64) ([]Response, error) {
-	calendarPath := formatCalendarPath(authAccount.AuthUserId, calendarID)
-
-	response := Response{Href: calendarPath}
-	response = ResponseBuilder{}.AddPropertyStatus(response, CalendarPropNames{
-		ResourceType:                  &struct{}{},
-		DisplayName:                   &struct{}{},
-		GetETag:                       &struct{}{},
-		GetCTag:                       &struct{}{},
-		GetLastModified:               &struct{}{},
-		CalendarDescription:           &struct{}{},
-		SupportedCalendarComponentSet: &struct{}{},
-		SupportedCalendarData:         &struct{}{},
-		SupportedReportSet:            &struct{}{},
-		CurrentUserPrivilegeSet:       &struct{}{},
-	}, 200)
-
-	return []Response{response}, nil
-}
-
-func hasAnyCalendarPropProperties(prop CalendarProp) bool {
-	return prop.ResourceType != nil ||
-		prop.DisplayName != "" ||
-		prop.GetETag != 0 ||
-		prop.GetCTag != 0 ||
-		prop.GetLastModified != "" ||
-		prop.CalendarDescription != "" ||
-		(prop.SupportedCalendarComponentSet != nil && len(prop.SupportedCalendarComponentSet.CalendarComponents) > 0) ||
-		(prop.SupportedCalendarData != nil && len(prop.SupportedCalendarData.CalendarData) > 0) ||
-		(prop.SupportedReportSet != nil && len(prop.SupportedReportSet.SupportedReports) > 0) ||
-		(prop.CurrentUserPrivilegeSet != nil && len(prop.CurrentUserPrivilegeSet.Privileges) > 0) ||
-		len(prop.Raw) > 0
-}
-
-func formatCalendarPath(userID, calendarID int64) string {
-	return fmt.Sprintf("/calendars/%d/%d/", userID, calendarID)
+	w.Header().Set("Allow", "PROPFIND,OPTIONS,REPORT")
+	w.WriteHeader(http.StatusNoContent)
 }

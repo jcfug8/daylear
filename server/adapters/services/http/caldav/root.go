@@ -27,7 +27,7 @@ type RootPropstat struct {
 }
 
 type RootProp struct {
-	PrincipalCollectionSet Href `xml:"C:principal-collection-set"`
+	PrincipalCollectionSet ResponseHref `xml:"C:principal-collection-set"`
 }
 
 func (s *Service) Root(w http.ResponseWriter, r *http.Request) {
@@ -66,7 +66,7 @@ func (s *Service) RootPropFind(w http.ResponseWriter, r *http.Request, authAccou
 			Href: r.URL.Path,
 			Propstat: RootPropstat{
 				Prop: RootProp{
-					PrincipalCollectionSet: Href{
+					PrincipalCollectionSet: ResponseHref{
 						Href: "/caldav/principals",
 					},
 				},

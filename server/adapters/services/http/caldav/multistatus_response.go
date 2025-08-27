@@ -17,7 +17,8 @@ type MultiStatusResponse struct {
 
 type Response struct {
 	Href      string     `xml:"D:href"`
-	Propstats []Propstat `xml:"D:propstat"`
+	Propstats []Propstat `xml:"D:propstat,omitempty"`
+	Status    *Status    `xml:"D:status,omitempty"`
 }
 
 type Propstat struct {

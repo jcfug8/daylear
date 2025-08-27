@@ -27,6 +27,7 @@ const (
 	EventField_URL                = "url"
 	EventField_Alarms             = "alarms"
 	EventField_RecurrenceEndTime  = "recurrence_end_time"
+	EventField_DeleteTime         = "delete_time"
 )
 
 // Event represents a VEVENT component in iCalendar.
@@ -62,6 +63,7 @@ type Event struct {
 	Geo               LatLng
 	URL               string
 	RecurrenceEndTime *time.Time
+	DeleteTime        *time.Time
 
 	Alarms []*Alarm
 }

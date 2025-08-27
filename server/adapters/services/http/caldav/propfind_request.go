@@ -16,7 +16,6 @@ const (
 
 type PropFindRequest struct {
 	XMLName  xml.Name  `xml:"propfind"`
-	XMLNS    string    `xml:"xmlns:D,attr"`
 	Prop     *Prop     `xml:"prop,omitempty"`
 	AllProp  *struct{} `xml:"allprop,omitempty"`
 	PropName *struct{} `xml:"propname,omitempty"`
@@ -35,18 +34,12 @@ type RawXMLValue struct {
 }
 
 func NewPropFindRequestFromReader(reader io.Reader) (PropFindRequest, error) {
-	decoder := xml.NewDecoder(reader)
-	var propFindRequest PropFindRequest
-	err := decoder.Decode(&propFindRequest)
+	content, err := io.ReadAll(reader)
 	if err != nil {
-		return propFindRequest, err
+		return PropFindRequest{}, err
 	}
 
-	if err := propFindRequest.Validate(); err != nil {
-		return propFindRequest, err
-	}
-
-	return propFindRequest, nil
+	return NewPropFindRequestFromBytes(content)
 }
 
 func NewPropFindRequestFromBytes(bytes []byte) (PropFindRequest, error) {
@@ -100,53 +93,53 @@ func (p PropFindRequest) GetRequestType() PropFindRequestType {
 	return ""
 }
 
-// GetRequestedProperties extracts property names from the request
-func (p Prop) GetRequestedProperties() []string {
-	var properties []string
-	for _, raw := range p.Raw {
-		// Convert XML name to string representation
-		propName := raw.XMLName.Local
-		if raw.XMLName.Space != "" {
-			propName = raw.XMLName.Space + ":" + raw.XMLName.Local
-		}
-		properties = append(properties, propName)
-	}
-	return properties
-}
+// // GetRequestedProperties extracts property names from the request
+// func (p Prop) GetRequestedProperties() []string {
+// 	var properties []string
+// 	for _, raw := range p.Raw {
+// 		// Convert XML name to string representation
+// 		propName := raw.XMLName.Local
+// 		if raw.XMLName.Space != "" {
+// 			propName = raw.XMLName.Space + ":" + raw.XMLName.Local
+// 		}
+// 		properties = append(properties, propName)
+// 	}
+// 	return properties
+// }
 
-// HasProperty checks if a specific property was requested
-func (p Prop) HasProperty(namespace, local string) bool {
-	for _, raw := range p.Raw {
-		if raw.XMLName.Space == namespace && raw.XMLName.Local == local {
-			return true
-		}
-	}
-	return false
-}
+// // HasProperty checks if a specific property was requested
+// func (p Prop) HasProperty(namespace, local string) bool {
+// 	for _, raw := range p.Raw {
+// 		if raw.XMLName.Space == namespace && raw.XMLName.Local == local {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
-// HasPropertyByXMLName checks if a property was requested by its XML name
-func (p Prop) HasPropertyByXMLName(xmlName xml.Name) bool {
-	for _, raw := range p.Raw {
-		if raw.XMLName == xmlName {
-			return true
-		}
-	}
-	return false
-}
+// // HasPropertyByXMLName checks if a property was requested by its XML name
+// func (p Prop) HasPropertyByXMLName(xmlName xml.Name) bool {
+// 	for _, raw := range p.Raw {
+// 		if raw.XMLName == xmlName {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
-// HasPropertyByString checks if a property was requested by its string representation
-func (p Prop) HasPropertyByString(propString string) bool {
-	for _, raw := range p.Raw {
-		var currentProp string
-		if raw.XMLName.Space != "" {
-			currentProp = raw.XMLName.Space + ":" + raw.XMLName.Local
-		} else {
-			currentProp = raw.XMLName.Local
-		}
+// // HasPropertyByString checks if a property was requested by its string representation
+// func (p Prop) HasPropertyByString(propString string) bool {
+// 	for _, raw := range p.Raw {
+// 		var currentProp string
+// 		if raw.XMLName.Space != "" {
+// 			currentProp = raw.XMLName.Space + ":" + raw.XMLName.Local
+// 		} else {
+// 			currentProp = raw.XMLName.Local
+// 		}
 
-		if currentProp == propString {
-			return true
-		}
-	}
-	return false
-}
+// 		if currentProp == propString {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }

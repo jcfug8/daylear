@@ -32,7 +32,7 @@ type CalendarHomeSetPropstat struct {
 
 type CalendarHomeSetProp struct {
 	ResourceType    ResourceType `xml:"D:resourcetype"`
-	CalendarHomeSet Href         `xml:"C:calendar-home-set"`
+	CalendarHomeSet ResponseHref `xml:"C:calendar-home-set"`
 }
 
 func (s *Service) CalendarHomeSet(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +87,7 @@ func (s *Service) CalendarHomeSetPropFind(w http.ResponseWriter, r *http.Request
 					ResourceType: ResourceType{
 						Collection: &Collection{},
 					},
-					CalendarHomeSet: Href{
+					CalendarHomeSet: ResponseHref{
 						Href: fmt.Sprintf("/caldav/principals/%d/calendars", authAccount.AuthUserId),
 					},
 				},

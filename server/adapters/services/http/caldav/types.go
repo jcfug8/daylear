@@ -14,8 +14,12 @@ type Principal struct{}
 
 type Calendar struct{}
 
-type Href struct {
+type ResponseHref struct {
 	Href string `xml:"D:href"`
+}
+
+type RequestHref struct {
+	Href string `xml:"href"`
 }
 
 type PrivilegeSet struct {

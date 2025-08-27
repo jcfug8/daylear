@@ -3,6 +3,7 @@ package gorm
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
@@ -120,17 +121,21 @@ func (c *Client) DeleteEvent(ctx context.Context, id model.EventId) (model.Event
 	eventRes := c.db.WithContext(ctx).
 		Where("event_id = ?", id.EventId).
 		Clauses(clause.Returning{}).
-		Delete(&event)
+		Find(&event)
 
 	if eventRes.Error != nil {
 		log.Error().Err(eventRes.Error).Msg("unable to delete event")
 		return model.Event{}, ConvertGormError(eventRes.Error)
 	}
 
+	deleteTime := time.Now()
+
 	eventDataRes := c.db.WithContext(ctx).
 		Where("event_data_id = ?", event.EventDataId).
 		Clauses(clause.Returning{}).
-		Delete(&eventData)
+		Updates(&gmodel.EventData{
+			DeleteTime: &deleteTime,
+		})
 
 	if eventDataRes.Error != nil {
 		log.Error().Err(eventDataRes.Error).Msg("unable to delete event data")
@@ -169,9 +174,13 @@ func (c *Client) DeleteChildEvents(ctx context.Context, id model.EventId) error 
 		eventDataIds = append(eventDataIds, event.EventDataId)
 	}
 
+	deleteTime := time.Now()
+
 	eventDataRes := c.db.WithContext(ctx).
 		Where("event_data_id IN (?)", eventDataIds).
-		Delete(&gmodel.EventData{})
+		Updates(&gmodel.EventData{
+			DeleteTime: &deleteTime,
+		})
 
 	if eventDataRes.Error != nil {
 		log.Error().Err(eventDataRes.Error).Msg("unable to delete event data")
@@ -209,9 +218,13 @@ func (c *Client) BulkDeleteEvents(ctx context.Context, ids []model.EventId) erro
 		eventDataIds = append(eventDataIds, event.EventDataId)
 	}
 
+	deleteTime := time.Now()
+
 	eventDataRes := c.db.WithContext(ctx).
 		Where("event_data_id IN (?)", eventDataIds).
-		Delete(&gmodel.EventData{})
+		Updates(&gmodel.EventData{
+			DeleteTime: &deleteTime,
+		})
 
 	if eventDataRes.Error != nil {
 		log.Error().Err(eventDataRes.Error).Msg("unable to delete event data")

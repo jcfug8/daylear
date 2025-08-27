@@ -66,7 +66,7 @@ func (s *Service) Register(m *http.ServeMux) error {
 	// Add calendar objects endpoints for individual calendars and events
 	gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}", s.Calendar).Methods("OPTIONS", "PROPFIND", "REPORT")
 	gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}/", s.Calendar).Methods("OPTIONS", "PROPFIND", "REPORT")
-	gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}/{eventID}.ics", s.Event).Methods("OPTIONS", "GET", "PUT", "DELETE")
+	// gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}/{eventID}.ics", s.Event).Methods("OPTIONS", "GET", "PUT", "DELETE")
 
 	m.Handle("/caldav/", headers.NewBasicAuthMiddleware(s.domain)(gmux))
 

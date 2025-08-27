@@ -24,6 +24,7 @@ const (
 	EventDataField_URL         = "url"
 	EventDataField_CreateTime  = "create_time"
 	EventDataField_UpdateTime  = "update_time"
+	EventDataField_DeleteTime  = "delete_time"
 )
 
 var EventDataFieldMasker = fieldmask.NewSQLFieldMasker(EventData{}, map[string][]fieldmask.Field{
@@ -35,6 +36,7 @@ var EventDataFieldMasker = fieldmask.NewSQLFieldMasker(EventData{}, map[string][
 	model.EventField_URL:         {{Name: EventDataField_URL, Table: EventDataTable, Updatable: true}},
 	model.EventField_CreateTime:  {{Name: EventDataField_CreateTime, Table: EventDataTable}},
 	model.EventField_UpdateTime:  {{Name: EventDataField_UpdateTime, Table: EventDataTable}},
+	model.EventField_DeleteTime:  {{Name: EventDataField_DeleteTime, Table: EventDataTable}},
 })
 
 // Point represents a PostgreSQL point type for storing latitude/longitude coordinates
@@ -108,6 +110,7 @@ type EventData struct {
 	// Timestamps
 	CreateTime *time.Time `gorm:"column:create_time;autoCreateTime"`
 	UpdateTime *time.Time `gorm:"column:update_time;autoUpdateTime"`
+	DeleteTime *time.Time `gorm:"column:delete_time;index"`
 }
 
 // TableName sets the table name for the EventData model.

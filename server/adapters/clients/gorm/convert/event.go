@@ -81,6 +81,11 @@ func EventToCoreModel(mEvent gmodel.Event, mEventData gmodel.EventData) (cmodel.
 		updateTime = *mEventData.UpdateTime
 	}
 
+	var deleteTime *time.Time
+	if mEventData.DeleteTime != nil {
+		deleteTime = mEventData.DeleteTime
+	}
+
 	title := ""
 	if mEventData.Title != nil {
 		title = *mEventData.Title
@@ -130,6 +135,7 @@ func EventToCoreModel(mEvent gmodel.Event, mEventData gmodel.EventData) (cmodel.
 		Geo:                geo,
 		URL:                url,
 		RecurrenceEndTime:  &recurrenceEndTime,
+		DeleteTime:         deleteTime,
 	}
 
 	return event, nil
