@@ -451,6 +451,24 @@ curl 'https://localhost:8080/caldav/principals/1' \
   </D:prop>
 </D:propfind>'
 
+curl 'https://daylear.com/.well-known/caldav' \
+  -X PROPFIND \
+  -H 'Content-Type: text/xml; charset=utf-8' \
+  -H 'Depth: 0' \
+  -H 'Authorization: Basic MToxMjM0NTY=' \
+  -d '<?xml version="1.0" encoding="UTF-8"?>
+<D:propfind xmlns:D="DAV:" xmlns:A="http://apple.com/ns/ical/" xmlns:C="urn:ietf:params:xml:ns:caldav">
+  <D:prop>
+    <D:resourcetype/>
+    <D:owner/>
+    <D:displayname/>
+    <D:current-user-principal/>
+    <D:current-user-privilege-set/>
+    <A:calendar-color/>
+    <C:calendar-home-set/>
+  </D:prop>
+</D:propfind>'
+
 
 Request:
 curl 'https://localhost:8080/caldav/principals/1/calendars' \

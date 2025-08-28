@@ -66,9 +66,7 @@ func (s *Service) RootPropFind(w http.ResponseWriter, r *http.Request, authAccou
 			Href: r.URL.Path,
 			Propstat: RootPropstat{
 				Prop: RootProp{
-					PrincipalCollectionSet: ResponseHref{
-						Href: "/caldav/principals",
-					},
+					PrincipalCollectionSet: s.NewResponseHref("/caldav/principals"),
 				},
 				Status: Status{
 					Status: "HTTP/1.1 200 OK",

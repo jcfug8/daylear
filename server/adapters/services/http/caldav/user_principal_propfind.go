@@ -127,19 +127,13 @@ func (s *Service) buildUserPrincipalPropResponse(ctx context.Context, authAccoun
 			foundP.DisplayName = user.GetFullName()
 
 		case raw.XMLName.Local == "current-user-principal":
-			foundP.CurrentUserPrincipal = &ResponseHref{
-				Href: fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId),
-			}
+			foundP.CurrentUserPrincipal = s.NewResponseHrefPointer(fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId))
 
 		case raw.XMLName.Local == "principal-URL":
-			foundP.PrincipalURL = &ResponseHref{
-				Href: fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId),
-			}
+			foundP.PrincipalURL = s.NewResponseHrefPointer(fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId))
 
 		case raw.XMLName.Local == "calendar-home-set":
-			foundP.CalendarHomeSet = &ResponseHref{
-				Href: fmt.Sprintf("/caldav/principals/%d/calendars", authAccount.AuthUserId),
-			}
+			foundP.CalendarHomeSet = s.NewResponseHrefPointer(fmt.Sprintf("/caldav/principals/%d/calendars", authAccount.AuthUserId))
 
 		case raw.XMLName.Local == "owner":
 			foundP.Owner = fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId)
@@ -179,17 +173,11 @@ func (s *Service) buildUserPrincipalAllPropResponse(ctx context.Context, authAcc
 			Collection: &Collection{},
 			Principal:  &Principal{},
 		},
-		DisplayName: user.GetFullName(),
-		CurrentUserPrincipal: &ResponseHref{
-			Href: fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId),
-		},
-		CalendarHomeSet: &ResponseHref{
-			Href: fmt.Sprintf("/caldav/principals/%d/calendars", authAccount.AuthUserId),
-		},
-		PrincipalURL: &ResponseHref{
-			Href: fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId),
-		},
-		Owner: fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId),
+		DisplayName:          user.GetFullName(),
+		CurrentUserPrincipal: s.NewResponseHrefPointer(fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId)),
+		CalendarHomeSet:      s.NewResponseHrefPointer(fmt.Sprintf("/caldav/principals/%d/calendars", authAccount.AuthUserId)),
+		PrincipalURL:         s.NewResponseHrefPointer(fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId)),
+		Owner:                fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId),
 		CurrentUserPrivilegeSet: &PrivilegeSet{
 			Privileges: []Privilege{
 				{Name: "D:read"},

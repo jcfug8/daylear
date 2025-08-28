@@ -87,9 +87,7 @@ func (s *Service) CalendarHomeSetPropFind(w http.ResponseWriter, r *http.Request
 					ResourceType: ResourceType{
 						Collection: &Collection{},
 					},
-					CalendarHomeSet: ResponseHref{
-						Href: fmt.Sprintf("/caldav/principals/%d/calendars", authAccount.AuthUserId),
-					},
+					CalendarHomeSet: s.NewResponseHref(fmt.Sprintf("/caldav/principals/%d/calendars", authAccount.AuthUserId)),
 				},
 				Status: Status{
 					Status: "HTTP/1.1 200 OK",

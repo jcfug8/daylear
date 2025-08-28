@@ -2,9 +2,12 @@ package caldav
 
 import (
 	"net/http"
+	"path"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
+	"github.com/jcfug8/daylear/server/ports/config"
 	"github.com/jcfug8/daylear/server/ports/domain"
 
 	"github.com/rs/zerolog"
@@ -14,7 +17,8 @@ import (
 type Service struct {
 	log zerolog.Logger
 
-	domain domain.Domain
+	domain  domain.Domain
+	apiPath string
 }
 
 type NewServiceParams struct {
@@ -22,12 +26,21 @@ type NewServiceParams struct {
 
 	Log    zerolog.Logger
 	Domain domain.Domain
+	Config config.Client
 }
 
 func NewService(params NewServiceParams) (*Service, error) {
+	apiDomainConfig := params.Config.GetConfig()["apidomain"].(map[string]interface{})
+
+	apiPath, _ := apiDomainConfig["path"].(string)
+	if apiPath != "" && !strings.HasPrefix(apiPath, "/") {
+		apiPath = "/" + apiPath
+	}
+
 	s := &Service{
-		log:    params.Log,
-		domain: params.Domain,
+		log:     params.Log,
+		domain:  params.Domain,
+		apiPath: apiPath,
 	}
 
 	return s, nil
@@ -79,4 +92,15 @@ func (s *Service) Close() error {
 
 func (s *Service) Name() string {
 	return "caldav-service"
+}
+
+func (s *Service) NewResponseHref(p string) ResponseHref {
+	return ResponseHref{
+		Href: path.Join(s.apiPath, p),
+	}
+}
+
+func (s *Service) NewResponseHrefPointer(p string) *ResponseHref {
+	responseHref := s.NewResponseHref(p)
+	return &responseHref
 }
