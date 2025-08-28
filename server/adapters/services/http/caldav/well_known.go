@@ -38,6 +38,6 @@ func (s *Service) WellKnownOptions(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) WellKnownPropFind(w http.ResponseWriter, r *http.Request, authAccount model.AuthAccount) {
-	w.Header().Set("Location", fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId))
+	w.Header().Set("Location", s.NewResponseHref(fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId)).Href)
 	w.WriteHeader(http.StatusPermanentRedirect)
 }

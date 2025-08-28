@@ -451,7 +451,7 @@ curl 'https://localhost:8080/caldav/principals/1' \
   </D:prop>
 </D:propfind>'
 
-curl 'https://daylear.com/.well-known/caldav' \
+curl 'https://localhost:8080/.well-known/caldav' \
   -X PROPFIND \
   -H 'Content-Type: text/xml; charset=utf-8' \
   -H 'Depth: 0' \
