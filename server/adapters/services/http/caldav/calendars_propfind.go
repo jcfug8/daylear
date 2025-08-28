@@ -116,11 +116,15 @@ func (s *Service) CalendarsPropFind(w http.ResponseWriter, r *http.Request, auth
 		return
 	}
 
+	responseBytes = addXMLDeclaration(responseBytes)
+
+	s.log.Info().Msgf("calendars propfind response: %s", string(responseBytes))
+
 	setCalDAVHeaders(w)
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
 	w.Header().Set("Content-Length", strconv.Itoa(len(responseBytes)))
 	w.WriteHeader(http.StatusMultiStatus)
-	w.Write(addXMLDeclaration(responseBytes))
+	w.Write(responseBytes)
 }
 
 func (s *Service) buildCalendarsPropResponse(ctx context.Context, authAccount model.AuthAccount, prop *Prop, depth int) ([]Response, error) {
@@ -157,6 +161,8 @@ func (s *Service) buildCalendarsPropResponse(ctx context.Context, authAccount mo
 		return responses, nil
 	}
 
+	depth--
+
 	// Get calendars from domain
 	calendars, err := s.domain.ListCalendars(ctx, model.AuthAccount{AuthUserId: authAccount.AuthUserId}, model.CalendarParent{UserId: authAccount.AuthUserId}, 1000, 0, "", []string{})
 	if err != nil {
@@ -165,7 +171,7 @@ func (s *Service) buildCalendarsPropResponse(ctx context.Context, authAccount mo
 	}
 
 	for _, calendar := range calendars {
-		calendarResponses, err := s._buildCalendarPropResponse(ctx, authAccount, calendar, prop)
+		calendarResponses, err := s._buildCalendarPropResponse(ctx, authAccount, calendar, prop, depth)
 		if err != nil {
 			s.log.Error().Err(err).Int64("userID", authAccount.AuthUserId).Int64("calendarID", calendar.CalendarId.CalendarId).Msg("Failed to build calendar response")
 			return nil, err
@@ -194,6 +200,8 @@ func (s *Service) buildCalendarsAllPropResponse(ctx context.Context, authAccount
 		return responses, nil
 	}
 
+	depth--
+
 	// Get calendars from domain
 	calendars, err := s.domain.ListCalendars(ctx, model.AuthAccount{AuthUserId: authAccount.AuthUserId}, model.CalendarParent{UserId: authAccount.AuthUserId}, 1000, 0, "", []string{})
 	if err != nil {
@@ -202,7 +210,7 @@ func (s *Service) buildCalendarsAllPropResponse(ctx context.Context, authAccount
 	}
 
 	for _, calendar := range calendars {
-		calendarResponses, err := s._buildCalendarAllPropResponse(ctx, authAccount, calendar)
+		calendarResponses, err := s._buildCalendarAllPropResponse(ctx, authAccount, calendar, depth)
 		if err != nil {
 			s.log.Error().Err(err).Int64("userID", authAccount.AuthUserId).Int64("calendarID", calendar.CalendarId.CalendarId).Msg("Failed to build calendar response")
 			return nil, err
@@ -227,6 +235,8 @@ func (s *Service) buildCalendarsPropNameResponse(ctx context.Context, authAccoun
 		return responses, nil
 	}
 
+	depth--
+
 	calendars, err := s.domain.ListCalendars(ctx, model.AuthAccount{AuthUserId: authAccount.AuthUserId}, model.CalendarParent{UserId: authAccount.AuthUserId}, 1000, 0, "", []string{model.CalendarField_CalendarId})
 	if err != nil {
 		s.log.Error().Err(err).Int64("userID", authAccount.AuthUserId).Msg("Failed to list calendars from domain")
@@ -234,7 +244,7 @@ func (s *Service) buildCalendarsPropNameResponse(ctx context.Context, authAccoun
 	}
 
 	for _, calendar := range calendars {
-		calendarResponses, err := s.buildCalendarPropNameResponse(ctx, authAccount, calendar.CalendarId.CalendarId)
+		calendarResponses, err := s.buildCalendarPropNameResponse(ctx, authAccount, calendar.CalendarId.CalendarId, depth)
 		if err != nil {
 			s.log.Error().Err(err).Int64("userID", authAccount.AuthUserId).Int64("calendarID", calendar.CalendarId.CalendarId).Msg("Failed to build calendar response")
 			return nil, err

@@ -27,7 +27,7 @@ type Propstat struct {
 }
 
 type Status struct {
-	Status string `xml:"D:status"`
+	Status string `xml:",chardata"`
 }
 
 // Generic response builder that can handle any property type

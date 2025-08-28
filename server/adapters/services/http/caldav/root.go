@@ -84,9 +84,11 @@ func (s *Service) RootPropFind(w http.ResponseWriter, r *http.Request, authAccou
 		return
 	}
 
+	responseBytes = addXMLDeclaration(responseBytes)
+
 	setCalDAVHeaders(w)
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
 	w.Header().Set("Content-Length", strconv.Itoa(len(responseBytes)))
 	w.WriteHeader(http.StatusMultiStatus)
-	w.Write(addXMLDeclaration(responseBytes))
+	w.Write(responseBytes)
 }

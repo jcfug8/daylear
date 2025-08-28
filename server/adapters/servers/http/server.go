@@ -25,11 +25,13 @@ type Server interface {
 
 // DefaultServer -
 type DefaultServer struct {
-	l          zerolog.Logger
-	httpServer *http.Server
-	services   []Service
-	mux        *http.ServeMux
-	listener   net.Listener
+	l           zerolog.Logger
+	httpServer  *http.Server
+	services    []Service
+	mux         *http.ServeMux
+	listener    net.Listener
+	sslKeyFile  string
+	sslCertFile string
 }
 
 // NewServer - creates a new http server.
@@ -58,6 +60,8 @@ func NewServer(log zerolog.Logger, lis net.Listener, services []Service, configC
 	if ok {
 		apiHost = fmt.Sprintf("%s:%s", apiHost, apiPort)
 	}
+	sslKeyFile, _ := apiDomainConfig["sslkey"].(string)
+	sslCertFile, _ := apiDomainConfig["sslcrt"].(string)
 
 	apiU := url.URL{
 		Scheme: apiScheme,
@@ -75,9 +79,11 @@ func NewServer(log zerolog.Logger, lis net.Listener, services []Service, configC
 			Addr:    lis.Addr().String(),
 			Handler: NewMiddlewareMux(log, origins, mux),
 		},
-		services: services,
-		mux:      mux,
-		listener: lis,
+		services:    services,
+		mux:         mux,
+		listener:    lis,
+		sslKeyFile:  sslKeyFile,
+		sslCertFile: sslCertFile,
 	}, nil
 }
 
@@ -103,8 +109,16 @@ func (s *DefaultServer) Start() (err error) {
 	}
 
 	go func() {
-		if err := s.httpServer.Serve(lis); err != nil {
-			s.l.Error().Err(err).Msg("failed to serve http server")
+		if s.sslKeyFile != "" && s.sslCertFile != "" {
+			s.l.Info().Msg("serving http server with ssl")
+			if err := s.httpServer.ServeTLS(lis, s.sslCertFile, s.sslKeyFile); err != nil {
+				s.l.Error().Err(err).Msg("failed to serve http server")
+			}
+		} else {
+			s.l.Info().Msg("serving http server without ssl")
+			if err := s.httpServer.Serve(lis); err != nil {
+				s.l.Error().Err(err).Msg("failed to serve http server")
+			}
 		}
 	}()
 

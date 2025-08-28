@@ -78,6 +78,46 @@ func (s *Service) _buildEventPropResponse(_ context.Context, authAccount model.A
 	return []Response{response}, nil
 }
 
+func (s *Service) _buildEventAllPropResponse(ctx context.Context, authAccount model.AuthAccount, event model.Event) ([]Response, error) {
+	cal := icalendar.ToICalendar(model.Calendar{}, []model.Event{event})
+	var buf bytes.Buffer
+	if err := ical.NewEncoder(&buf).Encode(cal); err != nil {
+		return []Response{}, err
+	}
+
+	foundP := EventProp{
+		GetETag:         event.UpdateTime.UnixNano(),
+		GetLastModified: event.UpdateTime.Format(time.RFC1123),
+		CalendarData:    buf.String(),
+		GetContentType:  "text/calendar; charset=utf-8",
+	}
+
+	eventPath := formatEventPath(authAccount.AuthUserId, event.Parent.CalendarId, event.Id.EventId)
+
+	response := Response{Href: eventPath}
+	builder := ResponseBuilder{}
+
+	response = builder.AddPropertyStatus(response, foundP, 200)
+
+	return []Response{response}, nil
+}
+
+func (s *Service) buildEventPropNameResponse(ctx context.Context, authAccount model.AuthAccount, calendarID, eventID int64) ([]Response, error) {
+	eventPath := formatEventPath(authAccount.AuthUserId, calendarID, eventID)
+
+	response := Response{Href: eventPath}
+	builder := ResponseBuilder{}
+
+	response = builder.AddPropertyStatus(response, EventPropNames{
+		GetETag:         &struct{}{},
+		GetLastModified: &struct{}{},
+		CalendarData:    &struct{}{},
+		GetContentType:  &struct{}{},
+	}, 200)
+
+	return []Response{response}, nil
+}
+
 func hasAnyEventPropProperties(prop EventProp) bool {
 	return prop.GetETag != 0 ||
 		prop.CalendarData != "" ||

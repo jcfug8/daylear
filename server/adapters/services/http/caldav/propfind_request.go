@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"io"
+	"log"
 )
 
 type PropFindRequestType string
@@ -43,6 +44,7 @@ func NewPropFindRequestFromReader(reader io.Reader) (PropFindRequest, error) {
 }
 
 func NewPropFindRequestFromBytes(bytes []byte) (PropFindRequest, error) {
+	log.Println("propfind request: " + string(bytes))
 	var propFindRequest PropFindRequest
 	err := xml.Unmarshal(bytes, &propFindRequest)
 	if err != nil {

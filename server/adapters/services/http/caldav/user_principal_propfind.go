@@ -95,11 +95,13 @@ func (s *Service) UserPrincipalPropFind(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
+	responseBytes = addXMLDeclaration(responseBytes)
+
 	setCalDAVHeaders(w)
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
 	w.Header().Set("Content-Length", strconv.Itoa(len(responseBytes)))
 	w.WriteHeader(http.StatusMultiStatus)
-	w.Write(addXMLDeclaration(responseBytes))
+	w.Write(responseBytes)
 }
 
 func (s *Service) buildUserPrincipalPropResponse(ctx context.Context, authAccount model.AuthAccount, prop *Prop) (foundProps map[string]UserPrincipalProp, notFoundProps map[string]UserPrincipalProp, err error) {

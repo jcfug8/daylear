@@ -78,11 +78,13 @@ func (s *Service) CalendarReport(w http.ResponseWriter, r *http.Request, authAcc
 		return
 	}
 
+	responseBytes = addXMLDeclaration(responseBytes)
+
 	setCalDAVHeaders(w)
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
 	w.Header().Set("Content-Length", strconv.Itoa(len(responseBytes)))
 	w.WriteHeader(http.StatusMultiStatus)
-	w.Write(addXMLDeclaration(responseBytes))
+	w.Write(responseBytes)
 }
 
 func (s *Service) buildCalendarQueryResponse() ([]Response, error) {

@@ -25,6 +25,8 @@ type CalendarProp struct {
 	SupportedCalendarData         *SupportedCalendarData         `xml:"C:supported-calendar-data,omitempty"`
 	SupportedReportSet            *SupportedReportSet            `xml:"D:supported-report-set,omitempty"`
 	CurrentUserPrivilegeSet       *PrivilegeSet                  `xml:"D:current-user-privilege-set,omitempty"`
+	SyncToken                     string                         `xml:"D:sync-token,omitempty"`
+	GetContentType                string                         `xml:"D:getcontenttype,omitempty"`
 	Raw                           []RawXMLValue                  `xml:",any"`
 }
 
@@ -39,10 +41,28 @@ type CalendarPropNames struct {
 	SupportedCalendarData         *struct{} `xml:"C:supported-calendar-data,omitempty"`
 	SupportedReportSet            *struct{} `xml:"D:supported-report-set,omitempty"`
 	CurrentUserPrivilegeSet       *struct{} `xml:"D:current-user-privilege-set,omitempty"`
+	SyncToken                     *struct{} `xml:"D:sync-token,omitempty"`
+	GetContentType                *struct{} `xml:"D:getcontenttype,omitempty"`
 }
 
 func (s *Service) CalendarPropFind(w http.ResponseWriter, r *http.Request, authAccount model.AuthAccount) {
 	s.log.Info().Msg("CalendarPropFind called")
+
+	depthStr := r.Header.Get("Depth")
+	if depthStr == "infinity" {
+		depthStr = "1"
+	}
+
+	depth, err := strconv.Atoi(depthStr)
+	if err != nil {
+		s.log.Error().Err(err).Str("depth", depthStr).Msg("Invalid Depth header in Calendars")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if depth > 1 {
+		depth = 1
+	}
 
 	// Parse path parameters
 	vars := mux.Vars(r)
@@ -81,11 +101,11 @@ func (s *Service) CalendarPropFind(w http.ResponseWriter, r *http.Request, authA
 	// Build the response based on what was requested
 	switch propFindRequest.GetRequestType() {
 	case PropFindRequestTypeProp:
-		responses, err = s.buildCalendarPropResponse(r.Context(), authAccount, calendarID, propFindRequest.Prop)
+		responses, err = s.buildCalendarPropResponse(r.Context(), authAccount, calendarID, propFindRequest.Prop, depth)
 	case PropFindRequestTypeAllProp:
-		responses, err = s.buildCalendarAllPropResponse(r.Context(), authAccount, calendarID)
+		responses, err = s.buildCalendarAllPropResponse(r.Context(), authAccount, calendarID, depth)
 	case PropFindRequestTypePropName:
-		responses, err = s.buildCalendarPropNameResponse(r.Context(), authAccount, calendarID)
+		responses, err = s.buildCalendarPropNameResponse(r.Context(), authAccount, calendarID, depth)
 	default:
 		s.log.Error().Msg("Invalid PROPFIND request type")
 		w.WriteHeader(http.StatusBadRequest)
@@ -107,14 +127,18 @@ func (s *Service) CalendarPropFind(w http.ResponseWriter, r *http.Request, authA
 		return
 	}
 
+	responseBytes = addXMLDeclaration(responseBytes)
+
+	s.log.Info().Msgf("calendar propfind response: %s", string(responseBytes))
+
 	setCalDAVHeaders(w)
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
 	w.Header().Set("Content-Length", strconv.Itoa(len(responseBytes)))
 	w.WriteHeader(http.StatusMultiStatus)
-	w.Write(addXMLDeclaration(responseBytes))
+	w.Write(responseBytes)
 }
 
-func (s *Service) buildCalendarPropResponse(ctx context.Context, authAccount model.AuthAccount, calendarID int64, prop *Prop) ([]Response, error) {
+func (s *Service) buildCalendarPropResponse(ctx context.Context, authAccount model.AuthAccount, calendarID int64, prop *Prop, depth int) ([]Response, error) {
 	// Get calendar from domain
 	calendar, err := s.domain.GetCalendar(ctx, model.AuthAccount{AuthUserId: authAccount.AuthUserId}, model.CalendarParent{UserId: authAccount.AuthUserId}, model.CalendarId{CalendarId: calendarID}, []string{})
 	if err != nil {
@@ -122,10 +146,10 @@ func (s *Service) buildCalendarPropResponse(ctx context.Context, authAccount mod
 		return nil, err
 	}
 
-	return s._buildCalendarPropResponse(ctx, authAccount, calendar, prop)
+	return s._buildCalendarPropResponse(ctx, authAccount, calendar, prop, depth)
 }
 
-func (s *Service) _buildCalendarPropResponse(_ context.Context, authAccount model.AuthAccount, calendar model.Calendar, prop *Prop) ([]Response, error) {
+func (s *Service) _buildCalendarPropResponse(ctx context.Context, authAccount model.AuthAccount, calendar model.Calendar, prop *Prop, depth int) ([]Response, error) {
 	var foundP CalendarProp
 	var notFoundP CalendarProp
 
@@ -186,6 +210,12 @@ func (s *Service) _buildCalendarPropResponse(_ context.Context, authAccount mode
 			}
 			foundP.CurrentUserPrivilegeSet = &PrivilegeSet{Privileges: privileges}
 
+		case raw.XMLName.Local == "sync-token":
+			foundP.SyncToken = calendar.UpdateTime.Format(time.RFC3339Nano)
+
+		case raw.XMLName.Local == "getcontenttype":
+			foundP.GetContentType = "text/calendar; charset=utf-8"
+
 		default:
 			notFoundP.Raw = append(notFoundP.Raw, raw)
 		}
@@ -205,10 +235,29 @@ func (s *Service) _buildCalendarPropResponse(_ context.Context, authAccount mode
 		response = builder.AddPropertyStatus(response, notFoundP, 404)
 	}
 
-	return []Response{response}, nil
+	responses := []Response{response}
+
+	if depth == 0 {
+		return responses, nil
+	}
+
+	events, err := s.domain.ListEvents(ctx, authAccount, model.EventParent{UserId: authAccount.AuthUserId, CalendarId: calendar.CalendarId.CalendarId}, 0, 0, "delete_time = null", []string{})
+	if err != nil {
+		return []Response{}, err
+	}
+
+	for _, event := range events {
+		eventResponses, err := s._buildEventPropResponse(ctx, authAccount, event, prop)
+		if err != nil {
+			return []Response{}, err
+		}
+		responses = append(responses, eventResponses...)
+	}
+
+	return responses, nil
 }
 
-func (s *Service) buildCalendarAllPropResponse(ctx context.Context, authAccount model.AuthAccount, calendarID int64) ([]Response, error) {
+func (s *Service) buildCalendarAllPropResponse(ctx context.Context, authAccount model.AuthAccount, calendarID int64, depth int) ([]Response, error) {
 	// Get calendar from domain
 	calendar, err := s.domain.GetCalendar(ctx, model.AuthAccount{AuthUserId: authAccount.AuthUserId}, model.CalendarParent{UserId: authAccount.AuthUserId}, model.CalendarId{CalendarId: calendarID}, []string{})
 	if err != nil {
@@ -216,10 +265,10 @@ func (s *Service) buildCalendarAllPropResponse(ctx context.Context, authAccount 
 		return nil, err
 	}
 
-	return s._buildCalendarAllPropResponse(ctx, authAccount, calendar)
+	return s._buildCalendarAllPropResponse(ctx, authAccount, calendar, depth)
 }
 
-func (s *Service) _buildCalendarAllPropResponse(_ context.Context, authAccount model.AuthAccount, calendar model.Calendar) ([]Response, error) {
+func (s *Service) _buildCalendarAllPropResponse(ctx context.Context, authAccount model.AuthAccount, calendar model.Calendar, depth int) ([]Response, error) {
 	privileges := []Privilege{
 		{Name: "D:read"},
 	}
@@ -256,6 +305,8 @@ func (s *Service) _buildCalendarAllPropResponse(_ context.Context, authAccount m
 			},
 		},
 		CurrentUserPrivilegeSet: &PrivilegeSet{Privileges: privileges},
+		SyncToken:               calendar.UpdateTime.Format(time.RFC3339Nano),
+		GetContentType:          "text/calendar; charset=utf-8",
 	}
 
 	calendarPath := formatCalendarPath(authAccount.AuthUserId, calendar.CalendarId.CalendarId)
@@ -263,10 +314,29 @@ func (s *Service) _buildCalendarAllPropResponse(_ context.Context, authAccount m
 	response := Response{Href: calendarPath}
 	response = ResponseBuilder{}.AddPropertyStatus(response, foundP, 200)
 
-	return []Response{response}, nil
+	responses := []Response{response}
+
+	if depth == 0 {
+		return responses, nil
+	}
+
+	events, err := s.domain.ListEvents(ctx, authAccount, model.EventParent{UserId: authAccount.AuthUserId, CalendarId: calendar.CalendarId.CalendarId}, 0, 0, "delete_time = null", []string{})
+	if err != nil {
+		return []Response{}, err
+	}
+
+	for _, event := range events {
+		eventResponses, err := s._buildEventAllPropResponse(ctx, authAccount, event)
+		if err != nil {
+			return []Response{}, err
+		}
+		responses = append(responses, eventResponses...)
+	}
+
+	return responses, nil
 }
 
-func (s *Service) buildCalendarPropNameResponse(_ context.Context, authAccount model.AuthAccount, calendarID int64) ([]Response, error) {
+func (s *Service) buildCalendarPropNameResponse(ctx context.Context, authAccount model.AuthAccount, calendarID int64, depth int) ([]Response, error) {
 	calendarPath := formatCalendarPath(authAccount.AuthUserId, calendarID)
 
 	response := Response{Href: calendarPath}
@@ -283,7 +353,26 @@ func (s *Service) buildCalendarPropNameResponse(_ context.Context, authAccount m
 		CurrentUserPrivilegeSet:       &struct{}{},
 	}, 200)
 
-	return []Response{response}, nil
+	responses := []Response{response}
+
+	if depth == 0 {
+		return responses, nil
+	}
+
+	events, err := s.domain.ListEvents(ctx, authAccount, model.EventParent{UserId: authAccount.AuthUserId, CalendarId: calendarID}, 0, 0, "delete_time = null", []string{})
+	if err != nil {
+		return []Response{}, err
+	}
+
+	for _, event := range events {
+		eventResponses, err := s.buildEventPropNameResponse(ctx, authAccount, calendarID, event.Id.EventId)
+		if err != nil {
+			return []Response{}, err
+		}
+		responses = append(responses, eventResponses...)
+	}
+
+	return responses, nil
 }
 
 func hasAnyCalendarPropProperties(prop CalendarProp) bool {
