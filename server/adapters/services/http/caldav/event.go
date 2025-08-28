@@ -132,6 +132,7 @@ func (s *Service) formatEventPath(userID, calendarID, eventID int64) string {
 }
 
 func (s *Service) parseEventPath(path string) (int64, int64, int64, error) {
+	s.log.Info().Msgf("Parsing event path: %s", path)
 	path = strings.TrimPrefix(path, s.apiPath)
 	parts := strings.Split(path, "/")
 	if len(parts) != 8 {

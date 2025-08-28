@@ -104,7 +104,7 @@ func (s *Service) buildCalendarMultigetResponse(ctx context.Context, authAccount
 			return []Response{}, err
 		}
 		if userId != authAccount.AuthUserId || calendarId != calendarID {
-			return []Response{}, fmt.Errorf("invalid event path")
+			return []Response{}, fmt.Errorf("invalid user id or calendar id in event path")
 		}
 		eventIds = append(eventIds, strconv.FormatInt(eventId, 10))
 	}
