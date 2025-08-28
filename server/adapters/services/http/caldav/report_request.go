@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"io"
+	"log"
 )
 
 type ReportRequestType string
@@ -75,6 +76,7 @@ func NewReportRequestFromReader(reader io.Reader) (ReportRequest, error) {
 }
 
 func NewReportRequestFromBytes(bytes []byte) (ReportRequest, error) {
+	log.Println("report request: " + string(bytes))
 	root := struct {
 		XMLName xml.Name
 	}{}
