@@ -190,16 +190,13 @@ func (s *Service) buildSyncCollectionResponse(ctx context.Context, authAccount m
 }
 
 func (s *Service) parseCalendarMultigetHref(path string) (int64, int64, int64, error) {
-	s.log.Info().Msgf("Parsing event path: %s", path)
-	path = strings.TrimPrefix(path, s.apiPath)
-	s.log.Info().Msgf("Trimmed event path by removing api path %s: %s", s.apiPath, path)
-	parts := strings.Split(path, "/")
-	if len(parts) == 8 && parts[2] == "principals" && parts[4] == "calendars" && parts[6] == "events" {
-		return s.parseEventPath(path)
-	} else if len(parts) == 7 && parts[2] == "principals" && parts[4] == "calendars" {
-		userId, calendarId, err := s.parseCalendarPath(path)
-		return userId, calendarId, 0, err
+	userId, calendarId, eventId, err := s.parseEventPath(path)
+	if err == nil {
+		return userId, calendarId, eventId, nil
 	}
-	return 0, 0, 0, fmt.Errorf("invalid calendar multiget href")
-
+	userId, calendarId, err = s.parseCalendarPath(path)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	return userId, calendarId, 0, nil
 }

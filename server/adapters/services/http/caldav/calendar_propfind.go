@@ -398,9 +398,10 @@ func (s *Service) formatCalendarPath(userID, calendarID int64) string {
 func (s *Service) parseCalendarPath(path string) (int64, int64, error) {
 	s.log.Info().Msgf("Parsing calendar path: %s", path)
 	path = strings.TrimPrefix(path, s.apiPath)
+	path = strings.TrimSuffix(path, "/")
 	s.log.Info().Msgf("Trimmed calendar path by removing api path %s: %s", s.apiPath, path)
 	parts := strings.Split(path, "/")
-	if len(parts) != 7 {
+	if len(parts) != 6 || parts[2] != "principals" || parts[4] != "calendars" {
 		return 0, 0, fmt.Errorf("invalid calendar path")
 	}
 	userId, err := strconv.ParseInt(parts[3], 10, 64)
