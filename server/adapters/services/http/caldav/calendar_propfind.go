@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -392,4 +393,23 @@ func hasAnyCalendarPropProperties(prop CalendarProp) bool {
 
 func (s *Service) formatCalendarPath(userID, calendarID int64) string {
 	return path.Join(s.apiPath, fmt.Sprintf("/caldav/principals/%d/calendars/%d/", userID, calendarID))
+}
+
+func (s *Service) parseCalendarPath(path string) (int64, int64, error) {
+	s.log.Info().Msgf("Parsing calendar path: %s", path)
+	path = strings.TrimPrefix(path, s.apiPath)
+	s.log.Info().Msgf("Trimmed calendar path by removing api path %s: %s", s.apiPath, path)
+	parts := strings.Split(path, "/")
+	if len(parts) != 7 {
+		return 0, 0, fmt.Errorf("invalid calendar path")
+	}
+	userId, err := strconv.ParseInt(parts[3], 10, 64)
+	if err != nil {
+		return 0, 0, err
+	}
+	calendarId, err := strconv.ParseInt(parts[5], 10, 64)
+	if err != nil {
+		return 0, 0, err
+	}
+	return userId, calendarId, nil
 }

@@ -92,21 +92,38 @@ func (s *Service) buildCalendarQueryResponse() ([]Response, error) {
 }
 
 func (s *Service) buildCalendarMultigetResponse(ctx context.Context, authAccount model.AuthAccount, calendarID int64, calendarMultiget *CalendarMultigetReport) ([]Response, error) {
-	filter := ""
+	var filter string
+	var hrefCalendarId int64
 	eventIds := []string{}
 	if len(calendarMultiget.Hrefs) == 0 {
 		return []Response{}, fmt.Errorf("no hrefs provided")
 	}
 
 	for _, href := range calendarMultiget.Hrefs {
-		userId, calendarId, eventId, err := s.parseEventPath(href)
+		userId, calId, eventId, err := s.parseCalendarMultigetHref(href)
 		if err != nil {
 			return []Response{}, err
 		}
-		if userId != authAccount.AuthUserId || calendarId != calendarID {
+		if userId != authAccount.AuthUserId || calId != calendarID {
 			return []Response{}, fmt.Errorf("invalid user id or calendar id in event path")
 		}
-		eventIds = append(eventIds, strconv.FormatInt(eventId, 10))
+		if eventId == 0 && calId != 0 {
+			if calId != calendarID {
+				return []Response{}, fmt.Errorf("invalid calendar id in event path")
+			}
+			hrefCalendarId = calendarID
+		} else {
+			eventIds = append(eventIds, strconv.FormatInt(eventId, 10))
+		}
+	}
+	responses := []Response{}
+
+	if hrefCalendarId != 0 {
+		calendarResponses, err := s.buildCalendarPropResponse(ctx, authAccount, hrefCalendarId, calendarMultiget.Prop, 0)
+		if err != nil {
+			return []Response{}, err
+		}
+		responses = append(responses, calendarResponses...)
 	}
 
 	filter = fmt.Sprintf("any(event_id,%s)", strings.Join(eventIds, ","))
@@ -115,8 +132,6 @@ func (s *Service) buildCalendarMultigetResponse(ctx context.Context, authAccount
 	if err != nil {
 		return []Response{}, err
 	}
-
-	responses := []Response{}
 
 	for _, event := range events {
 		eventResponses, err := s._buildEventPropResponse(ctx, authAccount, event, calendarMultiget.Prop)
@@ -172,4 +187,19 @@ func (s *Service) buildSyncCollectionResponse(ctx context.Context, authAccount m
 	responses = append(responses, response)
 
 	return responses, nil
+}
+
+func (s *Service) parseCalendarMultigetHref(path string) (int64, int64, int64, error) {
+	s.log.Info().Msgf("Parsing event path: %s", path)
+	path = strings.TrimPrefix(path, s.apiPath)
+	s.log.Info().Msgf("Trimmed event path by removing api path %s: %s", s.apiPath, path)
+	parts := strings.Split(path, "/")
+	if len(parts) == 8 && parts[2] == "principals" && parts[4] == "calendars" && parts[6] == "events" {
+		return s.parseEventPath(path)
+	} else if len(parts) == 7 && parts[2] == "principals" && parts[4] == "calendars" {
+		userId, calendarId, err := s.parseCalendarPath(path)
+		return userId, calendarId, 0, err
+	}
+	return 0, 0, 0, fmt.Errorf("invalid calendar multiget href")
+
 }
