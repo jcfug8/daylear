@@ -62,10 +62,32 @@ func eventToComponent(event model.Event) *ical.Component {
 
 	// Set event properties using the correct API
 	component.Props.SetText(ical.PropUID, fmt.Sprintf("%d", event.Id.EventId))
-	component.Props.SetDateTime(ical.PropDateTimeStamp, event.CreateTime)
-	component.Props.SetDateTime(ical.PropDateTimeStart, event.StartTime)
-	component.Props.SetDateTime(ical.PropDateTimeEnd, *event.EndTime)
+	component.Props.Set(&ical.Prop{
+		Name:  ical.PropDateTimeStamp,
+		Value: event.CreateTime.Format("20060102T150405Z"),
+	})
+	component.Props.Set(&ical.Prop{
+		Name:  ical.PropDateTimeStart,
+		Value: event.StartTime.Format("20060102T150405Z"),
+	})
+
+	component.Props.Set(&ical.Prop{
+		Name:  ical.PropDateTimeEnd,
+		Value: event.EndTime.Format("20060102T150405Z"),
+	})
 	component.Props.SetText(ical.PropSummary, event.Title)
+
+	if len(event.ExcludedDates) > 0 {
+		excludedDates := make([]string, len(event.ExcludedDates))
+		for i, date := range event.ExcludedDates {
+			// format as rfc 5545
+			excludedDates[i] = date.Format("20060102T150405Z")
+		}
+		component.Props.Set(&ical.Prop{
+			Name:  ical.PropExceptionDates,
+			Value: strings.Join(excludedDates, ","),
+		})
+	}
 
 	if event.Description != "" {
 		component.Props.SetText(ical.PropDescription, event.Description)
