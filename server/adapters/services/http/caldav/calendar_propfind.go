@@ -166,13 +166,13 @@ func (s *Service) _buildCalendarPropResponse(ctx context.Context, authAccount mo
 			foundP.DisplayName = calendar.Title
 
 		case raw.XMLName.Local == "getetag":
-			foundP.GetETag = calendar.UpdateTime.UnixNano()
+			foundP.GetETag = calendar.UpdateTime.UTC().UnixNano()
 
 		case raw.XMLName.Local == "getctag":
-			foundP.GetCTag = calendar.UpdateTime.UnixNano()
+			foundP.GetCTag = calendar.EventUpdateTime.UTC().UnixNano()
 
 		case raw.XMLName.Local == "getlastmodified":
-			foundP.GetLastModified = calendar.UpdateTime.Format(time.RFC1123)
+			foundP.GetLastModified = calendar.UpdateTime.UTC().Format(time.RFC1123)
 
 		case raw.XMLName.Local == "calendar-description":
 			foundP.CalendarDescription = calendar.Description
@@ -211,7 +211,7 @@ func (s *Service) _buildCalendarPropResponse(ctx context.Context, authAccount mo
 			foundP.CurrentUserPrivilegeSet = &PrivilegeSet{Privileges: privileges}
 
 		case raw.XMLName.Local == "sync-token":
-			foundP.SyncToken = calendar.UpdateTime.Format(time.RFC3339Nano)
+			foundP.SyncToken = calendar.EventUpdateTime.UTC().Format(time.RFC3339Nano)
 
 		case raw.XMLName.Local == "getcontenttype":
 			foundP.GetContentType = "text/calendar; charset=utf-8"
@@ -283,9 +283,9 @@ func (s *Service) _buildCalendarAllPropResponse(ctx context.Context, authAccount
 			Collection: &Collection{},
 		},
 		DisplayName:         calendar.Title,
-		GetETag:             calendar.UpdateTime.UnixNano(),
-		GetCTag:             calendar.UpdateTime.UnixNano(),
-		GetLastModified:     calendar.UpdateTime.Format(time.RFC1123),
+		GetETag:             calendar.UpdateTime.UTC().UnixNano(),
+		GetCTag:             calendar.EventUpdateTime.UTC().UnixNano(),
+		GetLastModified:     calendar.UpdateTime.UTC().Format(time.RFC1123),
 		CalendarDescription: calendar.Description,
 		SupportedCalendarComponentSet: &SupportedCalendarComponentSet{
 			CalendarComponents: []CalendarComponent{
@@ -305,7 +305,7 @@ func (s *Service) _buildCalendarAllPropResponse(ctx context.Context, authAccount
 			},
 		},
 		CurrentUserPrivilegeSet: &PrivilegeSet{Privileges: privileges},
-		SyncToken:               calendar.UpdateTime.Format(time.RFC3339Nano),
+		SyncToken:               calendar.EventUpdateTime.UTC().Format(time.RFC3339Nano),
 		GetContentType:          "text/calendar; charset=utf-8",
 	}
 

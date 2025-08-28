@@ -10,14 +10,15 @@ var _ ResourceId = CalendarId{}
 
 // CalendarFields defines the calendar fields.
 const (
-	CalendarField_Parent      = "parent"
-	CalendarField_CalendarId  = "id"
-	CalendarField_Title       = "title"
-	CalendarField_Description = "description"
-	CalendarField_Visibility  = "visibility"
-	CalendarField_Favorited   = "favorited"
-	CalendarField_CreateTime  = "create_time"
-	CalendarField_UpdateTime  = "update_time"
+	CalendarField_Parent          = "parent"
+	CalendarField_CalendarId      = "id"
+	CalendarField_Title           = "title"
+	CalendarField_Description     = "description"
+	CalendarField_Visibility      = "visibility"
+	CalendarField_Favorited       = "favorited"
+	CalendarField_CreateTime      = "create_time"
+	CalendarField_UpdateTime      = "update_time"
+	CalendarField_EventUpdateTime = "event_update_time"
 
 	CalendarField_CalendarAccess = "calendar_access"
 )
@@ -39,6 +40,8 @@ type Calendar struct {
 	CreateTime time.Time
 	// UpdateTime is the time the calendar was last updated
 	UpdateTime time.Time
+	// EventUpdateTime is the time the calendar was last updated with events
+	EventUpdateTime time.Time
 	// Favorited indicates whether the current user has favorited this calendar
 	Favorited bool
 

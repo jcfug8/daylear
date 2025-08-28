@@ -2,6 +2,7 @@ package gorm
 
 import (
 	"context"
+	"time"
 
 	"github.com/jcfug8/daylear/server/adapters/clients/gorm/convert"
 	gmodel "github.com/jcfug8/daylear/server/adapters/clients/gorm/model"
@@ -24,6 +25,8 @@ func (repo *Client) CreateCalendar(ctx context.Context, m cmodel.Calendar, field
 		log.Error().Err(err).Msg("invalid calendar when creating calendar row")
 		return cmodel.Calendar{}, repository.ErrInvalidArgument{Msg: "invalid calendar"}
 	}
+
+	gm.EventUpdateTime = time.Now().UTC()
 
 	err = repo.db.WithContext(ctx).
 		Select(gmodel.CalendarFieldMasker.Convert(fields)).
@@ -190,8 +193,10 @@ func (repo *Client) UpdateCalendar(ctx context.Context, authAccount cmodel.AuthA
 		return cmodel.Calendar{}, repository.ErrInvalidArgument{Msg: "invalid calendar"}
 	}
 
+	gm.UpdateTime = time.Now().UTC()
+
 	err = repo.db.WithContext(ctx).
-		Select(gmodel.CalendarFieldMasker.Convert(fields)).
+		Select(append(gmodel.CalendarFieldMasker.Convert(fields), gmodel.CalendarColumn_UpdateTime)).
 		Clauses(&clause.Returning{}).
 		Updates(&gm).Error
 	if err != nil {

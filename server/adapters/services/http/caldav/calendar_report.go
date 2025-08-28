@@ -137,7 +137,7 @@ func (s *Service) buildSyncCollectionResponse(ctx context.Context, authAccount m
 		if err != nil {
 			return []Response{}, err
 		}
-		filter = fmt.Sprintf("update_time >= %s OR delete_time >= %s", syncTime.Format(time.RFC3339), syncTime.Format(time.RFC3339))
+		filter = fmt.Sprintf("update_time >= '%s' OR delete_time >= '%s'", syncTime.UTC().Format(time.RFC3339), syncTime.UTC().Format(time.RFC3339))
 	}
 
 	events, err := s.domain.ListEvents(ctx, authAccount, model.EventParent{UserId: authAccount.AuthUserId, CalendarId: calendarID}, 0, 0, filter, []string{})
@@ -154,6 +154,22 @@ func (s *Service) buildSyncCollectionResponse(ctx context.Context, authAccount m
 		}
 		responses = append(responses, eventResponses...)
 	}
+
+	calendar, err := s.domain.GetCalendar(ctx, authAccount, model.CalendarParent{UserId: authAccount.AuthUserId}, model.CalendarId{CalendarId: calendarID}, []string{})
+	if err != nil {
+		return []Response{}, err
+	}
+
+	calendarProp := CalendarProp{
+		SyncToken: calendar.EventUpdateTime.UTC().Format(time.RFC3339Nano),
+	}
+
+	calendarPath := formatCalendarPath(authAccount.AuthUserId, calendarID)
+	response := Response{Href: calendarPath}
+	builder := ResponseBuilder{}
+
+	response = builder.AddPropertyStatus(response, calendarProp, 200)
+	responses = append(responses, response)
 
 	return responses, nil
 }

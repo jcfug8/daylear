@@ -26,7 +26,7 @@ func (c *Client) CreateEvent(ctx context.Context, event model.Event, fields []st
 		return model.Event{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid event: %v", err)}
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	mEventData.CreateTime = &now
 	mEventData.UpdateTime = &now
@@ -42,13 +42,26 @@ func (c *Client) CreateEvent(ctx context.Context, event model.Event, fields []st
 
 	mEvent.EventDataId = mEventData.EventDataId
 
+	eventFields := gmodel.EventFieldMasker.Convert(fields)
+
 	res = c.db.WithContext(ctx).
-		Select(gmodel.EventFieldMasker.Convert(fields)).
+		Select(eventFields).
 		Clauses(clause.Returning{}).
 		Create(&mEvent)
 	if res.Error != nil {
 		log.Error().Err(err).Msg("unable to create event row")
 		return model.Event{}, ConvertGormError(err)
+	}
+
+	res = c.db.WithContext(ctx).
+		Select(gmodel.CalendarColumn_EventUpdateTime).
+		Where("calendar_id = ?", mEventData.CalendarId).
+		Updates(&gmodel.Calendar{
+			EventUpdateTime: now,
+		})
+	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("unable to update calendar row")
+		return model.Event{}, ConvertGormError(res.Error)
 	}
 
 	event, err = convert.EventToCoreModel(mEvent, mEventData)
@@ -60,60 +73,6 @@ func (c *Client) CreateEvent(ctx context.Context, event model.Event, fields []st
 	return event, nil
 }
 
-// CreateEventClones creates a new event in the database
-func (c *Client) CreateEventClones(ctx context.Context, events []model.Event) ([]model.Event, error) {
-	log := logutil.EnrichLoggerWithContext(c.log, ctx).With().
-		Int("num_events", len(events)).
-		Logger()
-
-	var parentEventId int64
-
-	mEvents := make([]gmodel.Event, len(events))
-	var parentEvent gmodel.Event
-
-	for i, e := range events {
-		if e.ParentEventId == nil {
-			log.Error().Msg("event parent event id is not nil when creating event clones")
-			return []model.Event{}, repository.ErrInvalidArgument{Msg: "event parent event id is not nil when creating event clones"}
-		}
-
-		if parentEventId == 0 {
-			parentEventId = *e.ParentEventId
-			res := c.db.WithContext(ctx).
-				Where("event_id = ?", parentEventId).
-				First(&parentEvent)
-
-			if res.Error != nil {
-				log.Error().Err(res.Error).Msg("unable to get parent event")
-				return []model.Event{}, ConvertGormError(res.Error)
-			}
-		} else if parentEventId != *e.ParentEventId {
-			log.Error().Msg("event parent event id is not the same when creating event clones")
-			return []model.Event{}, repository.ErrInvalidArgument{Msg: "event parent event id is not the same when creating event clones"}
-		}
-
-		mEvent, _, err := convert.EventFromCoreModel(e)
-		if err != nil {
-			log.Error().Err(err).Msg("invalid event when creating event clones")
-			return []model.Event{}, repository.ErrInvalidArgument{Msg: fmt.Sprintf("invalid event: %v", err)}
-		}
-
-		mEvent.EventDataId = parentEvent.EventDataId
-
-		mEvents[i] = mEvent
-	}
-
-	res := c.db.WithContext(ctx).
-		Clauses(clause.Returning{}).
-		Create(&mEvents)
-	if res.Error != nil {
-		log.Error().Err(res.Error).Msg("unable to create event rows")
-		return []model.Event{}, ConvertGormError(res.Error)
-	}
-
-	return events, nil
-}
-
 // DeleteEvent deletes an event from the database
 func (c *Client) DeleteEvent(ctx context.Context, id model.EventId) (model.Event, error) {
 	log := logutil.EnrichLoggerWithContext(c.log, ctx).With().
@@ -121,7 +80,11 @@ func (c *Client) DeleteEvent(ctx context.Context, id model.EventId) (model.Event
 		Logger()
 
 	var event gmodel.Event
-	var eventData gmodel.EventData
+	deleteTime := time.Now().UTC()
+
+	mEventData := gmodel.EventData{
+		DeleteTime: &deleteTime,
+	}
 
 	eventRes := c.db.WithContext(ctx).
 		Where("event_id = ?", id.EventId).
@@ -133,21 +96,28 @@ func (c *Client) DeleteEvent(ctx context.Context, id model.EventId) (model.Event
 		return model.Event{}, ConvertGormError(eventRes.Error)
 	}
 
-	deleteTime := time.Now()
-
 	eventDataRes := c.db.WithContext(ctx).
 		Where("event_data_id = ?", event.EventDataId).
 		Clauses(clause.Returning{}).
-		Updates(&gmodel.EventData{
-			DeleteTime: &deleteTime,
-		})
+		Updates(&mEventData)
 
 	if eventDataRes.Error != nil {
 		log.Error().Err(eventDataRes.Error).Msg("unable to delete event data")
 		return model.Event{}, ConvertGormError(eventDataRes.Error)
 	}
 
-	m, err := convert.EventToCoreModel(event, eventData)
+	res := c.db.WithContext(ctx).
+		Select(gmodel.CalendarColumn_EventUpdateTime).
+		Where("calendar_id = ?", mEventData.CalendarId).
+		Updates(&gmodel.Calendar{
+			EventUpdateTime: time.Now().UTC(),
+		})
+	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("unable to update calendar row")
+		return model.Event{}, ConvertGormError(res.Error)
+	}
+
+	m, err := convert.EventToCoreModel(event, mEventData)
 	if err != nil {
 		log.Error().Err(err).Msg("invalid event row when deleting event")
 		return model.Event{}, fmt.Errorf("unable to read event: %v", err)
@@ -186,10 +156,30 @@ func (c *Client) DeleteChildEvents(ctx context.Context, id model.EventId) error 
 		Updates(&gmodel.EventData{
 			DeleteTime: &deleteTime,
 		})
-
 	if eventDataRes.Error != nil {
 		log.Error().Err(eventDataRes.Error).Msg("unable to delete event data")
 		return ConvertGormError(eventDataRes.Error)
+	}
+
+	mEventData := gmodel.EventData{}
+	res := c.db.WithContext(ctx).
+		Joins("JOIN event ON event.event_data_id = event_data.event_data_id").
+		Where("event.event_id = ?", id.EventId).
+		First(&mEventData)
+	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("unable to get event data")
+		return ConvertGormError(res.Error)
+	}
+
+	res = c.db.WithContext(ctx).
+		Select(gmodel.CalendarColumn_EventUpdateTime).
+		Where("calendar_id = ?", mEventData.CalendarId).
+		Updates(&gmodel.Calendar{
+			EventUpdateTime: time.Now().UTC(),
+		})
+	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("unable to update calendar row")
+		return ConvertGormError(res.Error)
 	}
 
 	return nil
@@ -367,27 +357,39 @@ func (c *Client) UpdateEvent(ctx context.Context, authAccount model.AuthAccount,
 		}
 	}
 
-	dataFields := gmodel.EventDataFieldMasker.Convert(fields, fieldmask.OnlyUpdatable())
-
-	if len(dataFields) > 0 {
-		if mEvent.EventDataId == 0 {
-			res := c.db.WithContext(ctx).
-				Select(gmodel.EventField_EventDataId).
-				Where("event_id = ?", mEvent.EventId).
-				First(&mEvent)
-			if res.Error != nil {
-				log.Error().Err(res.Error).Msg("unable to get event data row")
-			}
-		}
+	if mEvent.EventDataId == 0 {
 		res := c.db.WithContext(ctx).
-			Select(dataFields).
-			Where("event_data_id = ?", mEvent.EventDataId).
-			Clauses(clause.Returning{}).
-			Updates(&mEventData)
+			Select(gmodel.EventField_EventDataId).
+			Where("event_id = ?", mEvent.EventId).
+			First(&mEvent)
 		if res.Error != nil {
-			log.Error().Err(res.Error).Msg("unable to update event data row")
-			return model.Event{}, ConvertGormError(res.Error)
+			log.Error().Err(res.Error).Msg("unable to get event data row")
 		}
+	}
+
+	dataFields := append(gmodel.EventDataFieldMasker.Convert(fields, fieldmask.OnlyUpdatable()), gmodel.EventDataField_UpdateTime)
+	now := time.Now().UTC()
+	mEventData.UpdateTime = &now
+
+	res := c.db.WithContext(ctx).
+		Select(dataFields).
+		Where("event_data_id = ?", mEvent.EventDataId).
+		Clauses(clause.Returning{}).
+		Updates(&mEventData)
+	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("unable to update event data row")
+		return model.Event{}, ConvertGormError(res.Error)
+	}
+
+	res = c.db.WithContext(ctx).
+		Select(gmodel.CalendarColumn_EventUpdateTime).
+		Where("calendar_id = ?", mEventData.CalendarId).
+		Updates(&gmodel.Calendar{
+			EventUpdateTime: time.Now().UTC(),
+		})
+	if res.Error != nil {
+		log.Error().Err(res.Error).Msg("unable to update calendar row")
+		return model.Event{}, ConvertGormError(res.Error)
 	}
 
 	event, err = convert.EventToCoreModel(mEvent, mEventData)

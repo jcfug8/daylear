@@ -54,5 +54,5 @@ func (rw *responseWriter) WriteHeader(code int) {
 
 // generateRequestID generates a unique request ID
 func generateRequestID() string {
-	return time.Now().Format("20060102150405.000000")
+	return time.Now().UTC().Format("20060102150405.000000")
 }

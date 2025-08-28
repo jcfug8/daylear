@@ -47,9 +47,9 @@ func (s *Service) _buildEventPropResponse(_ context.Context, authAccount model.A
 	for _, raw := range prop.Raw {
 		switch {
 		case raw.XMLName.Local == "getetag":
-			foundP.GetETag = event.UpdateTime.UnixNano()
+			foundP.GetETag = event.UpdateTime.UTC().UnixNano()
 		case raw.XMLName.Local == "getlastmodified":
-			foundP.GetLastModified = event.UpdateTime.Format(time.RFC1123)
+			foundP.GetLastModified = event.UpdateTime.UTC().Format(time.RFC1123)
 		case raw.XMLName.Local == "calendar-data":
 			cal := icalendar.ToICalendar(model.Calendar{}, []model.Event{event})
 			var buf bytes.Buffer
@@ -86,8 +86,8 @@ func (s *Service) _buildEventAllPropResponse(ctx context.Context, authAccount mo
 	}
 
 	foundP := EventProp{
-		GetETag:         event.UpdateTime.UnixNano(),
-		GetLastModified: event.UpdateTime.Format(time.RFC1123),
+		GetETag:         event.UpdateTime.UTC().UnixNano(),
+		GetLastModified: event.UpdateTime.UTC().Format(time.RFC1123),
 		CalendarData:    buf.String(),
 		GetContentType:  "text/calendar; charset=utf-8",
 	}

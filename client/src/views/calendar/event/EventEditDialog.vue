@@ -368,6 +368,17 @@ async function update() {
     oldEvent.endTime = new Date(oldEvent.endTime as string).toISOString()
     const diff = Object.keys(newEvent).filter(key => newEvent[key as keyof Event] !== oldEvent[key as keyof Event])
     console.log('diff', diff)
+
+    if ((diff.includes('recurrenceRule') || diff.includes('startTime')) && newEvent.recurrenceRule) { // check if we should ensure that the "unit" has the correct time
+      // get the rrule
+      const rrule = RRule.fromString(newEvent.recurrenceRule)
+      if (rrule.origOptions.until) {
+        // set the until to the new start time
+        rrule.origOptions.until = datetime(rrule.origOptions.until.getUTCFullYear(), rrule.origOptions.until.getUTCMonth()+1, rrule.origOptions.until.getUTCDate(), displayStart.getUTCHours(), displayStart.getUTCMinutes(), displayStart.getUTCSeconds())
+        newEvent.recurrenceRule = RRule.optionsToString(rrule.origOptions)
+      }
+    }
+
     if (diff.length === 0) { // no changes
 
     } else if (props.event.recurrenceRule !== undefined && props.event.recurrenceRule !== '') { // this event was recurring
@@ -377,7 +388,7 @@ async function update() {
         // and tack on the until with the new start time
         if (displayStart.toISOString() != oldEvent.startTime) {
           const rrule = RRule.fromString(props.event.recurrenceRule)
-          rrule.origOptions.until = new Date(displayStart.getUTCFullYear(), displayStart.getUTCMonth()+1, displayStart.getUTCDate(), displayStart.getUTCHours(), displayStart.getUTCMinutes(), displayStart.getUTCSeconds())
+          rrule.origOptions.until = datetime(displayStart.getUTCFullYear(), displayStart.getUTCMonth()+1, displayStart.getUTCDate(), displayStart.getUTCHours(), displayStart.getUTCMinutes(), displayStart.getUTCSeconds())
           rrule.origOptions.count = null
           newEvent.recurrenceRule = RRule.optionsToString(rrule.origOptions)
         }
@@ -524,6 +535,7 @@ async function confirmRecurringUpdate() {
           newEvent.parentEvent = oldEvent.name
           newEvent.recurrenceRule = ''
           newEvent.excludedTimes = []
+          newEvent.overridenStartTime = new Date(displayEvent.start).toISOString()
           const calendarName = newEvent.name?.substring(0, newEvent.name.indexOf('/events/'))
           updatedEvent = await createEvent(newEvent, calendarName)
         }

@@ -232,7 +232,7 @@ func (d *Domain) UpdateEvent(ctx context.Context, authAccount model.AuthAccount,
 		event.RecurrenceEndTime = nil
 		if event.RecurrenceRule != nil && *event.RecurrenceRule != "" {
 			event.RecurrenceEndTime = event.GetLastOccurence(true)
-			filter := fmt.Sprintf("parent_event_id = %d AND start_time > '%s'", event.Id.EventId, event.GetLastOccurence(false).Format(time.RFC3339))
+			filter := fmt.Sprintf("parent_event_id = %d AND start_time > '%s'", event.Id.EventId, event.GetLastOccurence(false).UTC().Format(time.RFC3339))
 			// list all child event ids before or equal to the last occurrence
 			childEvents, err := d.repo.ListEvents(ctx, authAccount, event.Parent, 0, 0, filter, []string{model.EventField_EventId})
 			if err != nil {

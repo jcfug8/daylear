@@ -470,7 +470,8 @@ curl 'https://localhost:8080/caldav/principals/1/calendars' \
 
 
 Request:
-curl 'https://localhost:8080/caldav/calendars/1/8' \
+curl 'https://localhost:8080/caldav/principals/1/calendars/4' \
+  -k \
   -X PROPFIND \
   -H 'Accept: text/xml' \
   -H 'Content-Type: text/xml; charset=utf-8' \
@@ -494,6 +495,7 @@ Response:
 
 Request:
 curl 'https://localhost:8080/caldav/principals/1/calendars/8/' \
+  -k \
   -X REPORT \
   -H 'Content-Type: text/xml; charset=utf-8' \
   -H 'Depth: 1' \
@@ -522,6 +524,7 @@ curl 'https://localhost:8080/caldav/principals/1/calendars/4/' \
         <C:calendar-data/>
     </D:prop>
     <D:href>/caldav/principals/1/calendars/4/events/52.ics</D:href>
+    <D:href>/caldav/principals/1/calendars/4/events/53.ics</D:href>
 </C:calendar-multiget>'
 
 Response:
@@ -548,10 +551,6 @@ Response:
 </D:multistatus>
 
 
-
-DTSTART;TZID=Local:20250819T071500
-            EXDATE:20250825T131500Z
-
-
-DTSTART:20250819T071500Z
- EXDATE:20250825T131500Z
+update_time >= 0001-01-01T00:00:00Z OR delete_time >= 0001-01-01T00:00:00Z","error":"failed to parse filter: 
+update_time >= 0001-01-01T00:00:00Z OR delete_time >= 0001-01-01T00:00:00Z
+                   ^ unexpected trailing token - (1:20)

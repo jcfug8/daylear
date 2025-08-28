@@ -8,7 +8,6 @@ import (
 
 type eventClient interface {
 	CreateEvent(ctx context.Context, event model.Event, fields []string) (model.Event, error)
-	CreateEventClones(ctx context.Context, event []model.Event) ([]model.Event, error)
 	DeleteEvent(ctx context.Context, id model.EventId) (model.Event, error)
 	BulkDeleteEvents(ctx context.Context, ids []model.EventId) error
 	DeleteChildEvents(ctx context.Context, id model.EventId) error

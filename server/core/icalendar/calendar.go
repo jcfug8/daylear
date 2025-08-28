@@ -61,19 +61,23 @@ func eventToComponent(event model.Event) *ical.Component {
 	component := ical.NewComponent(ical.CompEvent)
 
 	// Set event properties using the correct API
-	component.Props.SetText(ical.PropUID, fmt.Sprintf("%d", event.Id.EventId))
+	if event.ParentEventId != nil {
+		component.Props.SetText(ical.PropUID, fmt.Sprintf("%d", *event.ParentEventId))
+	} else {
+		component.Props.SetText(ical.PropUID, fmt.Sprintf("%d", event.Id.EventId))
+	}
 	component.Props.Set(&ical.Prop{
 		Name:  ical.PropDateTimeStamp,
-		Value: event.CreateTime.Format("20060102T150405Z"),
+		Value: event.CreateTime.UTC().Format("20060102T150405Z"),
 	})
 	component.Props.Set(&ical.Prop{
 		Name:  ical.PropDateTimeStart,
-		Value: event.StartTime.Format("20060102T150405Z"),
+		Value: event.StartTime.UTC().Format("20060102T150405Z"),
 	})
 
 	component.Props.Set(&ical.Prop{
 		Name:  ical.PropDateTimeEnd,
-		Value: event.EndTime.Format("20060102T150405Z"),
+		Value: event.EndTime.UTC().Format("20060102T150405Z"),
 	})
 	component.Props.SetText(ical.PropSummary, event.Title)
 
@@ -81,7 +85,7 @@ func eventToComponent(event model.Event) *ical.Component {
 		excludedDates := make([]string, len(event.ExcludedDates))
 		for i, date := range event.ExcludedDates {
 			// format as rfc 5545
-			excludedDates[i] = date.Format("20060102T150405Z")
+			excludedDates[i] = date.UTC().Format("20060102T150405Z")
 		}
 		component.Props.Set(&ical.Prop{
 			Name:  ical.PropExceptionDates,
@@ -117,6 +121,13 @@ func eventToComponent(event model.Event) *ical.Component {
 			return nil
 		}
 		component.Props.SetRecurrenceRule(&rule.GetRRule().Options)
+	}
+
+	if event.OverridenStartTime != nil {
+		component.Props.Set(&ical.Prop{
+			Name:  ical.PropRecurrenceID,
+			Value: event.OverridenStartTime.UTC().Format("20060102T150405Z"),
+		})
 	}
 
 	// TODO: handle alarms

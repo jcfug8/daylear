@@ -20,16 +20,18 @@ const (
 	CalendarColumn_VisibilityLevel = "visibility_level"
 	CalendarColumn_CreateTime      = "create_time"
 	CalendarColumn_UpdateTime      = "update_time"
+	CalendarColumn_EventUpdateTime = "event_update_time"
 )
 
 var CalendarFieldMasker = fieldmask.NewSQLFieldMasker(Calendar{}, map[string][]fieldmask.Field{
-	cmodel.CalendarField_Parent:      {{Name: CalendarColumn_CalendarId, Table: CalendarTable}},
-	cmodel.CalendarField_CalendarId:  {{Name: CalendarColumn_CalendarId, Table: CalendarTable}},
-	cmodel.CalendarField_Title:       {{Name: CalendarColumn_Title, Table: CalendarTable, Updatable: true}},
-	cmodel.CalendarField_Description: {{Name: CalendarColumn_Description, Table: CalendarTable, Updatable: true}},
-	cmodel.CalendarField_Visibility:  {{Name: CalendarColumn_VisibilityLevel, Table: CalendarTable, Updatable: true}},
-	cmodel.CalendarField_CreateTime:  {{Name: CalendarColumn_CreateTime, Table: CalendarTable}},
-	cmodel.CalendarField_UpdateTime:  {{Name: CalendarColumn_UpdateTime, Table: CalendarTable}},
+	cmodel.CalendarField_Parent:          {{Name: CalendarColumn_CalendarId, Table: CalendarTable}},
+	cmodel.CalendarField_CalendarId:      {{Name: CalendarColumn_CalendarId, Table: CalendarTable}},
+	cmodel.CalendarField_Title:           {{Name: CalendarColumn_Title, Table: CalendarTable, Updatable: true}},
+	cmodel.CalendarField_Description:     {{Name: CalendarColumn_Description, Table: CalendarTable, Updatable: true}},
+	cmodel.CalendarField_Visibility:      {{Name: CalendarColumn_VisibilityLevel, Table: CalendarTable, Updatable: true}},
+	cmodel.CalendarField_CreateTime:      {{Name: CalendarColumn_CreateTime, Table: CalendarTable}},
+	cmodel.CalendarField_UpdateTime:      {{Name: CalendarColumn_UpdateTime, Table: CalendarTable}},
+	cmodel.CalendarField_EventUpdateTime: {{Name: CalendarColumn_EventUpdateTime, Table: CalendarTable}},
 
 	cmodel.CalendarField_Favorited: {{Name: CalendarFavoriteFields_CalendarFavoriteId, Table: CalendarFavoriteTable}},
 
@@ -54,7 +56,8 @@ type Calendar struct {
 	Description     string                `gorm:"column:description"`
 	VisibilityLevel types.VisibilityLevel `gorm:"column:visibility_level;not null;default:1"`
 	CreateTime      time.Time             `gorm:"column:create_time;autoCreateTime"`
-	UpdateTime      time.Time             `gorm:"column:update_time;autoUpdateTime"`
+	UpdateTime      time.Time             `gorm:"column:update_time"`
+	EventUpdateTime time.Time             `gorm:"column:event_update_time;default:NOW()"`
 
 	// CalendarAccess data (only used for read from a join)
 	CalendarAccessId int64                 `gorm:"->;-:migration"`

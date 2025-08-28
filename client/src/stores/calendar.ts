@@ -152,7 +152,7 @@ export const useCalendarsStore = defineStore('calendars', () => {
         parent: calendarName,
         pageSize: undefined,
         pageToken: undefined,
-        filter: undefined,
+        filter: 'delete_time = null',
       })
       return res.events ?? []
     } catch (error) {
