@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -32,7 +33,7 @@ func (s *Service) _buildEventPropResponse(_ context.Context, authAccount model.A
 	var foundP EventProp
 	var notFoundP EventProp
 
-	eventPath := formatEventPath(authAccount.AuthUserId, event.Parent.CalendarId, event.Id.EventId)
+	eventPath := s.formatEventPath(authAccount.AuthUserId, event.Parent.CalendarId, event.Id.EventId)
 
 	if event.DeleteTime != nil {
 		return []Response{
@@ -92,7 +93,7 @@ func (s *Service) _buildEventAllPropResponse(ctx context.Context, authAccount mo
 		GetContentType:  "text/calendar; charset=utf-8",
 	}
 
-	eventPath := formatEventPath(authAccount.AuthUserId, event.Parent.CalendarId, event.Id.EventId)
+	eventPath := s.formatEventPath(authAccount.AuthUserId, event.Parent.CalendarId, event.Id.EventId)
 
 	response := Response{Href: eventPath}
 	builder := ResponseBuilder{}
@@ -103,7 +104,7 @@ func (s *Service) _buildEventAllPropResponse(ctx context.Context, authAccount mo
 }
 
 func (s *Service) buildEventPropNameResponse(ctx context.Context, authAccount model.AuthAccount, calendarID, eventID int64) ([]Response, error) {
-	eventPath := formatEventPath(authAccount.AuthUserId, calendarID, eventID)
+	eventPath := s.formatEventPath(authAccount.AuthUserId, calendarID, eventID)
 
 	response := Response{Href: eventPath}
 	builder := ResponseBuilder{}
@@ -126,11 +127,12 @@ func hasAnyEventPropProperties(prop EventProp) bool {
 		len(prop.Raw) > 0
 }
 
-func formatEventPath(userID, calendarID, eventID int64) string {
-	return fmt.Sprintf("/caldav/principals/%d/calendars/%d/events/%d.ics", userID, calendarID, eventID)
+func (s *Service) formatEventPath(userID, calendarID, eventID int64) string {
+	return path.Join(s.apiPath, fmt.Sprintf("/caldav/principals/%d/calendars/%d/events/%d.ics", userID, calendarID, eventID))
 }
 
-func parseEventPath(path string) (int64, int64, int64, error) {
+func (s *Service) parseEventPath(path string) (int64, int64, int64, error) {
+	path = strings.TrimPrefix(path, s.apiPath)
 	parts := strings.Split(path, "/")
 	if len(parts) != 8 {
 		return 0, 0, 0, fmt.Errorf("invalid event path")

@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
+	"path"
 	"strconv"
 
 	"github.com/jcfug8/daylear/server/core/model"
@@ -144,7 +145,7 @@ func (s *Service) buildCalendarsPropResponse(ctx context.Context, authAccount mo
 		}
 	}
 
-	calendarHomeSetPath := formatCalendarHomeSetPath(authAccount.AuthUserId)
+	calendarHomeSetPath := s.formatCalendarHomeSetPath(authAccount.AuthUserId)
 	response := Response{Href: calendarHomeSetPath}
 	builder := ResponseBuilder{}
 
@@ -190,7 +191,7 @@ func (s *Service) buildCalendarsAllPropResponse(ctx context.Context, authAccount
 		DisplayName: "Calendars",
 	}
 
-	calendarHomeSetPath := formatCalendarHomeSetPath(authAccount.AuthUserId)
+	calendarHomeSetPath := s.formatCalendarHomeSetPath(authAccount.AuthUserId)
 	response := Response{Href: calendarHomeSetPath}
 	response = ResponseBuilder{}.AddPropertyStatus(response, foundP, 200)
 
@@ -222,7 +223,7 @@ func (s *Service) buildCalendarsAllPropResponse(ctx context.Context, authAccount
 }
 
 func (s *Service) buildCalendarsPropNameResponse(ctx context.Context, authAccount model.AuthAccount, depth int) ([]Response, error) {
-	calendarHomeSetPath := formatCalendarHomeSetPath(authAccount.AuthUserId)
+	calendarHomeSetPath := s.formatCalendarHomeSetPath(authAccount.AuthUserId)
 	response := Response{Href: calendarHomeSetPath}
 	response = ResponseBuilder{}.AddPropertyStatus(response, CalendarCollectionPropNames{
 		ResourceType: &struct{}{},
@@ -261,6 +262,6 @@ func hasAnyCalendarCollectionPropProperties(prop CalendarCollectionProp) bool {
 		len(prop.Raw) > 0
 }
 
-func formatCalendarHomeSetPath(userId int64) string {
-	return fmt.Sprintf("/caldav/principals/%d/calendars", userId)
+func (s *Service) formatCalendarHomeSetPath(userId int64) string {
+	return path.Join(s.apiPath, fmt.Sprintf("/caldav/principals/%d/calendars", userId))
 }

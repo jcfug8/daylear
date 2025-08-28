@@ -99,7 +99,7 @@ func (s *Service) buildCalendarMultigetResponse(ctx context.Context, authAccount
 	}
 
 	for _, href := range calendarMultiget.Hrefs {
-		userId, calendarId, eventId, err := parseEventPath(href)
+		userId, calendarId, eventId, err := s.parseEventPath(href)
 		if err != nil {
 			return []Response{}, err
 		}
@@ -164,7 +164,7 @@ func (s *Service) buildSyncCollectionResponse(ctx context.Context, authAccount m
 		SyncToken: calendar.EventUpdateTime.UTC().Format(time.RFC3339Nano),
 	}
 
-	calendarPath := formatCalendarPath(authAccount.AuthUserId, calendarID)
+	calendarPath := s.formatCalendarPath(authAccount.AuthUserId, calendarID)
 	response := Response{Href: calendarPath}
 	builder := ResponseBuilder{}
 

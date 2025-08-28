@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
+	"path"
 	"strconv"
 	"time"
 
@@ -221,7 +222,7 @@ func (s *Service) _buildCalendarPropResponse(ctx context.Context, authAccount mo
 		}
 	}
 
-	calendarPath := formatCalendarPath(authAccount.AuthUserId, calendar.CalendarId.CalendarId)
+	calendarPath := s.formatCalendarPath(authAccount.AuthUserId, calendar.CalendarId.CalendarId)
 
 	response := Response{Href: calendarPath}
 	builder := ResponseBuilder{}
@@ -309,7 +310,7 @@ func (s *Service) _buildCalendarAllPropResponse(ctx context.Context, authAccount
 		GetContentType:          "text/calendar; charset=utf-8",
 	}
 
-	calendarPath := formatCalendarPath(authAccount.AuthUserId, calendar.CalendarId.CalendarId)
+	calendarPath := s.formatCalendarPath(authAccount.AuthUserId, calendar.CalendarId.CalendarId)
 
 	response := Response{Href: calendarPath}
 	response = ResponseBuilder{}.AddPropertyStatus(response, foundP, 200)
@@ -337,7 +338,7 @@ func (s *Service) _buildCalendarAllPropResponse(ctx context.Context, authAccount
 }
 
 func (s *Service) buildCalendarPropNameResponse(ctx context.Context, authAccount model.AuthAccount, calendarID int64, depth int) ([]Response, error) {
-	calendarPath := formatCalendarPath(authAccount.AuthUserId, calendarID)
+	calendarPath := s.formatCalendarPath(authAccount.AuthUserId, calendarID)
 
 	response := Response{Href: calendarPath}
 	response = ResponseBuilder{}.AddPropertyStatus(response, CalendarPropNames{
@@ -389,6 +390,6 @@ func hasAnyCalendarPropProperties(prop CalendarProp) bool {
 		len(prop.Raw) > 0
 }
 
-func formatCalendarPath(userID, calendarID int64) string {
-	return fmt.Sprintf("/caldav/principals/%d/calendars/%d/", userID, calendarID)
+func (s *Service) formatCalendarPath(userID, calendarID int64) string {
+	return path.Join(s.apiPath, fmt.Sprintf("/caldav/principals/%d/calendars/%d/", userID, calendarID))
 }
