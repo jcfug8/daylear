@@ -404,10 +404,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/calendarscalendarv1alpha1Access",
-              "required": [
-                "access"
-              ]
+              "$ref": "#/definitions/calendarscalendarv1alpha1Access"
             }
           }
         ],

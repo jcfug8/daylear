@@ -1,5 +1,5 @@
 import { createRecipeServiceClient, createRecipeAccessServiceClient } from '@/genapi/api/meals/recipe/v1alpha1'
-import { createUserServiceClient, createUserAccessServiceClient, createUserSettingsServiceClient } from '@/genapi/api/users/user/v1alpha1'
+import { createUserServiceClient, createUserAccessServiceClient, createUserSettingsServiceClient, createAccessKeyServiceClient } from '@/genapi/api/users/user/v1alpha1'
 import { createCircleServiceClient, createCircleAccessServiceClient } from '@/genapi/api/circles/circle/v1alpha1'
 import { createCalendarServiceClient, createCalendarAccessServiceClient, createEventServiceClient } from '@/genapi/api/calendars/calendar/v1alpha1'
 import { createAuthServiceClient } from './auth'
@@ -68,6 +68,7 @@ export const recipeAccessService = createRecipeAccessServiceClient(authenticated
 export const userService = createUserServiceClient(authenticatedFetchHandler('application/json'))
 export const userSettingsService = createUserSettingsServiceClient(authenticatedFetchHandler('application/json'))
 export const userAccessService = createUserAccessServiceClient(authenticatedFetchHandler('application/json'))
+export const accessKeyService = createAccessKeyServiceClient(authenticatedFetchHandler('application/json'))
 export const authService = createAuthServiceClient(authenticatedFetchHandler('application/json'))
 export const circleService = createCircleServiceClient(authenticatedFetchHandler('application/json'))
 export const circleAccessService = createCircleAccessServiceClient(authenticatedFetchHandler('application/json'))

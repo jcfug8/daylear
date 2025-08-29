@@ -11,6 +11,7 @@ type Client interface {
 	userClient
 	calendarClient
 	eventClient
+	accessKeyClient
 
 	Begin(context.Context) (TxClient, error)
 	Migrate() error
@@ -23,6 +24,7 @@ type TxClient interface {
 	userClient
 	calendarClient
 	eventClient
+	accessKeyClient
 
 	Commit() error
 	Rollback()

@@ -2,6 +2,265 @@
 /* eslint-disable camelcase */
 // @ts-nocheck
 
+// This represents the data about a user's access key
+export type AccessKey = {
+  // The name of the access key
+  //
+  // Behaviors: IDENTIFIER
+  name: string | undefined;
+  // The title of the access key
+  //
+  // Behaviors: REQUIRED
+  title: string | undefined;
+  // The description of the access key
+  //
+  // Behaviors: OPTIONAL
+  description: string | undefined;
+  // The access key
+  //
+  // Behaviors: OUTPUT_ONLY
+  unencryptedAccessKey: string | undefined;
+};
+
+// The request to create an access key
+export type CreateAccessKeyRequest = {
+  // parent
+  //
+  // Behaviors: REQUIRED
+  parent: string | undefined;
+  // The access key to create
+  //
+  // Behaviors: REQUIRED
+  accessKey: AccessKey | undefined;
+};
+
+// The request to delete an access key
+export type DeleteAccessKeyRequest = {
+  // name
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// The request to get an access key
+export type GetAccessKeyRequest = {
+  // name
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// The request to list access keys
+export type ListAccessKeysRequest = {
+  // parent
+  //
+  // Behaviors: REQUIRED
+  parent: string | undefined;
+  // The filter to apply to the list
+  //
+  // Behaviors: OPTIONAL
+  filter: string | undefined;
+  // The page size to apply to the list
+  //
+  // Behaviors: OPTIONAL
+  pageSize: number | undefined;
+  // The page token to apply to the list
+  //
+  // Behaviors: OPTIONAL
+  pageToken: string | undefined;
+};
+
+// The response to list access keys
+export type ListAccessKeysResponse = {
+  // The list of access keys
+  accessKeys: AccessKey[] | undefined;
+  // The next page token
+  nextPageToken: string | undefined;
+};
+
+// The request to update an access key
+export type UpdateAccessKeyRequest = {
+  // access key
+  //
+  // Behaviors: REQUIRED
+  accessKey: AccessKey | undefined;
+  // update mask
+  //
+  // Behaviors: OPTIONAL
+  updateMask: wellKnownFieldMask | undefined;
+};
+
+// In JSON, a field mask is encoded as a single string where paths are
+// separated by a comma. Fields name in each path are converted
+// to/from lower-camel naming conventions.
+// As an example, consider the following message declarations:
+//
+//     message Profile {
+//       User user = 1;
+//       Photo photo = 2;
+//     }
+//     message User {
+//       string display_name = 1;
+//       string address = 2;
+//     }
+//
+// In proto a field mask for `Profile` may look as such:
+//
+//     mask {
+//       paths: "user.display_name"
+//       paths: "photo"
+//     }
+//
+// In JSON, the same mask is represented as below:
+//
+//     {
+//       mask: "user.displayName,photo"
+//     }
+type wellKnownFieldMask = string;
+
+// The user recipient list service
+export interface AccessKeyService {
+  // Create an access to a user
+  CreateAccessKey(request: CreateAccessKeyRequest): Promise<AccessKey>;
+  // Delete an access to a user
+  DeleteAccessKey(request: DeleteAccessKeyRequest): Promise<wellKnownEmpty>;
+  // Get an access to a user
+  GetAccessKey(request: GetAccessKeyRequest): Promise<AccessKey>;
+  // List accesses to a user
+  ListAccessKeys(request: ListAccessKeysRequest): Promise<ListAccessKeysResponse>;
+  // Update an access key
+  UpdateAccessKey(request: UpdateAccessKeyRequest): Promise<AccessKey>;
+}
+
+type RequestType = {
+  path: string;
+  method: string;
+  body: string | null;
+};
+
+type RequestHandler = (request: RequestType, meta: { service: string, method: string }) => Promise<unknown>;
+
+export function createAccessKeyServiceClient(
+  handler: RequestHandler
+): AccessKeyService {
+  return {
+    CreateAccessKey(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.parent) {
+        throw new Error("missing required field request.parent");
+      }
+      const path = `users/v1alpha1/${request.parent}/accessKeys`; // eslint-disable-line quotes
+      const body = JSON.stringify(request?.accessKey ?? {});
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "AccessKeyService",
+        method: "CreateAccessKey",
+      }) as Promise<AccessKey>;
+    },
+    DeleteAccessKey(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `users/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "AccessKeyService",
+        method: "DeleteAccessKey",
+      }) as Promise<wellKnownEmpty>;
+    },
+    GetAccessKey(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `users/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "AccessKeyService",
+        method: "GetAccessKey",
+      }) as Promise<AccessKey>;
+    },
+    ListAccessKeys(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.parent) {
+        throw new Error("missing required field request.parent");
+      }
+      const path = `users/v1alpha1/${request.parent}/accessKeys`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.filter) {
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
+      }
+      if (request.pageSize) {
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
+      }
+      if (request.pageToken) {
+        queryParams.push(`pageToken=${encodeURIComponent(request.pageToken.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "AccessKeyService",
+        method: "ListAccessKeys",
+      }) as Promise<ListAccessKeysResponse>;
+    },
+    UpdateAccessKey(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.accessKey?.name) {
+        throw new Error("missing required field request.access_key.name");
+      }
+      const path = `users/v1alpha1/${request.accessKey.name}`; // eslint-disable-line quotes
+      const body = JSON.stringify(request?.accessKey ?? {});
+      const queryParams: string[] = [];
+      if (request.updateMask) {
+        queryParams.push(`updateMask=${encodeURIComponent(request.updateMask.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "PATCH",
+        body,
+      }, {
+        service: "AccessKeyService",
+        method: "UpdateAccessKey",
+      }) as Promise<AccessKey>;
+    },
+  };
+}
+// An empty JSON object
+type wellKnownEmpty = Record<never, never>;
+
 // the main user object with public fields
 export type User = {
   // the name of the user
@@ -138,34 +397,6 @@ export type UpdateUserRequest = {
   updateMask: wellKnownFieldMask | undefined;
 };
 
-// In JSON, a field mask is encoded as a single string where paths are
-// separated by a comma. Fields name in each path are converted
-// to/from lower-camel naming conventions.
-// As an example, consider the following message declarations:
-//
-//     message Profile {
-//       User user = 1;
-//       Photo photo = 2;
-//     }
-//     message User {
-//       string display_name = 1;
-//       string address = 2;
-//     }
-//
-// In proto a field mask for `Profile` may look as such:
-//
-//     mask {
-//       paths: "user.display_name"
-//       paths: "photo"
-//     }
-//
-// In JSON, the same mask is represented as below:
-//
-//     {
-//       mask: "user.displayName,photo"
-//     }
-type wellKnownFieldMask = string;
-
 // the request to favorite a user
 export type FavoriteUserRequest = {
   // the name of the user to favorite
@@ -203,14 +434,6 @@ export interface UserService {
   // unfavorite a user
   UnfavoriteUser(request: UnfavoriteUserRequest): Promise<UnfavoriteUserResponse>;
 }
-
-type RequestType = {
-  path: string;
-  method: string;
-  body: string | null;
-};
-
-type RequestHandler = (request: RequestType, meta: { service: string, method: string }) => Promise<unknown>;
 
 export function createUserServiceClient(
   handler: RequestHandler
@@ -583,9 +806,6 @@ export function createUserAccessServiceClient(
     },
   };
 }
-// An empty JSON object
-type wellKnownEmpty = Record<never, never>;
-
 // the main user settings object
 export type UserSettings = {
   // the name of the user

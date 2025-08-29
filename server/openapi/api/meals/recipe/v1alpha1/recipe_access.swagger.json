@@ -475,10 +475,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/mealsrecipev1alpha1Access",
-              "required": [
-                "access"
-              ]
+              "$ref": "#/definitions/mealsrecipev1alpha1Access"
             }
           }
         ],
@@ -575,10 +572,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/mealsrecipev1alpha1Access",
-              "required": [
-                "access"
-              ]
+              "$ref": "#/definitions/mealsrecipev1alpha1Access"
             }
           }
         ],

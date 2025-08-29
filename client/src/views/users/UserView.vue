@@ -113,6 +113,64 @@
         {{ user.favorited ? 'mdi-heart' : 'mdi-heart-outline' }}
         </v-icon>
       </template>
+      <template #accessKeys="{ items, loading }">
+        <v-container>
+          <v-row>
+            <v-col cols="12">
+              <v-card>
+                <v-card-title class="d-flex align-center justify-space-between">
+                  <span>Access Keys</span>
+                  <v-btn
+                    color="primary"
+                    @click="showCreateAccessKeyDialog = true"
+                    prepend-icon="mdi-plus"
+                  >
+                    Create Access Key
+                  </v-btn>
+                </v-card-title>
+                <v-card-text>
+                  <div v-if="loading" class="text-center pa-4">
+                    <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                  </div>
+                  <div v-else-if="!items || items.length === 0" class="text-center pa-4 text-grey">
+                    No access keys found.
+                  </div>
+                  <v-list v-else>
+                    <v-list-item
+                      v-for="accessKey in (items as AccessKey[])"
+                      :key="accessKey.name"
+                      class="mb-2"
+                    >
+                      <template v-slot:prepend>
+                        <v-icon icon="mdi-key"></v-icon>
+                      </template>
+                      <v-list-item-title>{{ accessKey.title }}</v-list-item-title>
+                      <v-list-item-subtitle v-if="accessKey.description">
+                        {{ accessKey.description }}
+                      </v-list-item-subtitle>
+                      <template v-slot:append>
+                        <v-btn
+                          icon="mdi-pencil"
+                          variant="text"
+                          size="small"
+                          @click="editAccessKey(accessKey)"
+                        ></v-btn>
+                        <v-btn
+                          icon="mdi-delete"
+                          variant="text"
+                          size="small"
+                          color="error"
+                          @click="confirmDeleteAccessKey(accessKey)"
+                        ></v-btn>
+                      </template>
+                    </v-list-item>
+                  </v-list>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-container>
+      </template>
       <template #recipes="{ items, loading }">
         <RecipeGrid :recipes="(items as Recipe[])" :loading="(loading as boolean)" />
         <!-- Recipe Tab FAB -->
@@ -239,6 +297,183 @@
     @remove-access="unshareUser"
     @permission-change="updatePermission"
   />
+
+  <!-- Create Access Key Dialog -->
+  <v-dialog v-model="showCreateAccessKeyDialog" max-width="500">
+    <v-card>
+      <v-card-title class="text-h5">
+        Create Access Key
+      </v-card-title>
+      <v-card-text>
+        <v-form @submit.prevent="createAccessKey">
+          <v-text-field
+            v-model="accessKeyTitle"
+            label="Title"
+            required
+            :rules="[v => !!v || 'Title is required']"
+          ></v-text-field>
+          <v-textarea
+            v-model="accessKeyDescription"
+            label="Description (optional)"
+            rows="3"
+          ></v-textarea>
+        </v-form>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="grey" variant="text" @click="showCreateAccessKeyDialog = false">
+          Cancel
+        </v-btn>
+        <v-btn 
+          color="primary" 
+          @click="createAccessKey" 
+          :loading="creatingAccessKey"
+          :disabled="!accessKeyTitle.trim()"
+        >
+          Create
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Edit Access Key Dialog -->
+  <v-dialog v-model="showEditAccessKeyDialog" max-width="500">
+    <v-card>
+      <v-card-title class="text-h5">
+        Edit Access Key
+      </v-card-title>
+      <v-card-text>
+        <v-form @submit.prevent="updateAccessKey">
+          <v-text-field
+            v-model="accessKeyTitle"
+            label="Title"
+            required
+            :rules="[v => !!v || 'Title is required']"
+          ></v-text-field>
+          <v-textarea
+            v-model="accessKeyDescription"
+            label="Description (optional)"
+            rows="3"
+          ></v-textarea>
+        </v-form>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="grey" variant="text" @click="showEditAccessKeyDialog = false">
+          Cancel
+        </v-btn>
+        <v-btn 
+          color="primary" 
+          @click="updateAccessKey"
+          :disabled="!accessKeyTitle.trim()"
+        >
+          Update
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Delete Access Key Confirmation Dialog -->
+  <v-dialog v-model="showDeleteAccessKeyDialog" max-width="500">
+    <v-card>
+      <v-card-title class="text-h5 d-flex align-center">
+        <v-icon color="error" class="mr-2">mdi-alert-circle</v-icon>
+        Delete Access Key
+      </v-card-title>
+      <v-card-text>
+        <div class="mb-4">
+          <p class="text-body-1 mb-2">
+            Are you sure you want to delete the access key <strong>"{{ deletingAccessKey?.title }}"</strong>?
+          </p>
+          <div class="text-caption text-grey">
+            <v-icon size="small" class="mr-1">mdi-information</v-icon>
+            This action cannot be undone. Any systems using this access key will no longer be able to authenticate.
+          </div>
+        </div>
+        
+        <v-card variant="outlined" class="pa-3" color="error">
+          <div class="text-subtitle-2 mb-2">Access Key Details:</div>
+          <div class="mb-2">
+            <strong>Title:</strong> {{ deletingAccessKey?.title }}
+          </div>
+          <div v-if="deletingAccessKey?.description" class="mb-2">
+            <strong>Description:</strong> {{ deletingAccessKey?.description }}
+          </div>
+        </v-card>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="grey" variant="text" @click="showDeleteAccessKeyDialog = false">
+          Cancel
+        </v-btn>
+        <v-btn 
+          color="error" 
+          @click="deleteAccessKey"
+          :loading="isDeletingAccessKey"
+        >
+          Delete Access Key
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Created Access Key Dialog -->
+  <v-dialog v-model="showCreatedKeyDialog" max-width="600" persistent>
+    <v-card>
+      <v-card-title class="text-h5 d-flex align-center">
+        <v-icon color="success" class="mr-2">mdi-check-circle</v-icon>
+        Access Key Created Successfully!
+      </v-card-title>
+      <v-card-text>
+        <div class="mb-4">
+          <p class="text-body-1 mb-2">
+            Your access key has been created. <strong>Copy this key now</strong> - you won't be able to see it again!
+          </p>
+          <div class="text-caption text-grey">
+            <v-icon size="small" class="mr-1">mdi-information</v-icon>
+            This is the only time you'll see the unencrypted access key. Store it securely.
+          </div>
+        </div>
+        
+        <v-card variant="outlined" class="pa-3 mb-3">
+          <div class="text-subtitle-2 mb-2">Access Key Details:</div>
+          <div class="mb-2">
+            <strong>Title:</strong> {{ newlyCreatedAccessKey?.title }}
+          </div>
+          <div class="mb-3" v-if="newlyCreatedAccessKey?.description">
+            <strong>Description:</strong> {{ newlyCreatedAccessKey?.description }}
+          </div>
+          
+          <div class="mb-2">
+            <strong>Access Key:</strong>
+          </div>
+          <v-text-field
+            :model-value="newlyCreatedAccessKey?.unencryptedAccessKey || ''"
+            readonly
+            variant="outlined"
+            density="compact"
+            class="mb-2"
+            append-inner-icon="mdi-content-copy"
+            @click:append-inner="copyAccessKey"
+          ></v-text-field>
+          
+          <div class="text-caption text-grey">
+            <v-icon size="small" class="mr-1">mdi-alert</v-icon>
+            Keep this key secure and don't share it with others.
+          </div>
+        </v-card>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn 
+          color="primary" 
+          @click="closeCreatedKeyDialog"
+        >
+          Got it!
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
   </v-container>
 </template>
 
@@ -254,7 +489,7 @@ import { useAuthStore } from '@/stores/auth'
 import { hasWritePermission, hasAdminPermission, hasWriteOnlyPermission } from '@/utils/permissions'
 import { userAccessService } from '@/api/api'
 import type { DeleteAccessRequest, ListAccessesRequest } from '@/genapi/api/meals/recipe/v1alpha1'
-import type { CreateAccessRequest, Access, User } from '@/genapi/api/users/user/v1alpha1'
+import type { CreateAccessRequest, Access, User, AccessKey } from '@/genapi/api/users/user/v1alpha1'
 import { useAlertStore } from '@/stores/alerts'
 import UserGrid from '@/components/UserGrid.vue'
 import CircleGrid from '@/components/CircleGrid.vue'
@@ -325,24 +560,42 @@ async function onEventDeleted() {
   }
 }
 
-const tabs = [
-  {
-    label: 'General',
-    value: 'general',
-  },
-  {
-    label: 'Recipes',
-    value: 'recipes',
-    loader: async () => {
-      if (!user.value?.name) return []
-      // The parent resource for user recipes is the user's resource name
-      await recipesStore.loadMyRecipes(user.value.name)
-      return [...recipesStore.myRecipes]
+const tabs = computed(() => {
+  const baseTabs: any[] = [
+    {
+      label: 'General',
+      value: 'general',
     },
-  },
-  {
-    label: 'Friends',
-    value: 'friends',
+    {
+      label: 'Recipes',
+      value: 'recipes',
+      loader: async () => {
+        if (!user.value?.name) return []
+        // The parent resource for user recipes is the user's resource name
+        await recipesStore.loadMyRecipes(user.value.name)
+        return [...recipesStore.myRecipes]
+      },
+    },
+  ]
+
+  // Only show Access Keys tab if user has admin permissions
+  if (hasAdminPermission(user.value?.access?.permissionLevel)) {
+    baseTabs.splice(1, 0, {
+      label: 'Access Keys',
+      value: 'accessKeys',
+      loader: async () => {
+        if (!user.value?.name) return []
+        await usersStore.loadAccessKeys(user.value.name)
+        return [...usersStore.accessKeys]
+      },
+    })
+  }
+
+  // Add remaining tabs
+  baseTabs.push(
+    {
+      label: 'Friends',
+      value: 'friends',
     loader: async () => {
       if (!user.value?.name) return []
       await usersStore.loadFriends(user.value.name)
@@ -366,8 +619,11 @@ const tabs = [
       await calendarsStore.loadMyCalendars(user.value.name)
       return [...calendarsStore.myCalendars]
     },
-  },
-]
+  }
+  )
+
+  return baseTabs
+})
 
 const authStore = useAuthStore()
 
@@ -405,6 +661,19 @@ const cancelingRequest = ref(false)
 const acceptingRequest = ref(false)
 const decliningRequest = ref(false)
 
+// *** Access Keys ***
+const showCreateAccessKeyDialog = ref(false)
+const showEditAccessKeyDialog = ref(false)
+const editingAccessKey = ref<AccessKey | null>(null)
+const creatingAccessKey = ref(false)
+const accessKeyTitle = ref('')
+const accessKeyDescription = ref('')
+const newlyCreatedAccessKey = ref<AccessKey | null>(null)
+const showCreatedKeyDialog = ref(false)
+const showDeleteAccessKeyDialog = ref(false)
+const deletingAccessKey = ref<AccessKey | null>(null)
+const isDeletingAccessKey = ref(false)
+
 async function handleRemoveAccess() {
   if (!user.value?.access?.name) return
 
@@ -426,6 +695,119 @@ async function handleRemoveAccess() {
     removingAccess.value = false
     showRemoveAccessDialog.value = false
   }
+}
+
+// *** Access Key Methods ***
+async function createAccessKey() {
+  if (!user.value?.name || !accessKeyTitle.value.trim()) return
+  
+  creatingAccessKey.value = true
+  try {
+    const newAccessKey = await usersStore.createAccessKey(user.value.name, accessKeyTitle.value.trim(), accessKeyDescription.value.trim() || undefined)
+    
+    // Store the newly created key to show the unencrypted value
+    newlyCreatedAccessKey.value = newAccessKey
+    
+    // Clear form and close create dialog
+    accessKeyTitle.value = ''
+    accessKeyDescription.value = ''
+    showCreateAccessKeyDialog.value = false
+    
+    // Show the dialog with the generated key
+    showCreatedKeyDialog.value = true
+    
+    // Refresh the access keys tab
+    await tabsPage.value?.reloadTab('accessKeys')
+    
+    alertsStore.addAlert('Access key created successfully!', 'success')
+  } catch (error) {
+    const msg = `Error creating access key: ${error instanceof Error ? error.message : String(error)}`
+    console.error(msg)
+    alertsStore.addAlert(msg, 'error')
+  } finally {
+    creatingAccessKey.value = false
+  }
+}
+
+function editAccessKey(accessKey: AccessKey) {
+  editingAccessKey.value = accessKey
+  accessKeyTitle.value = accessKey.title || ''
+  accessKeyDescription.value = accessKey.description || ''
+  showEditAccessKeyDialog.value = true
+}
+
+async function updateAccessKey() {
+  if (!editingAccessKey.value || !accessKeyTitle.value.trim()) return
+  
+  try {
+    const updateMask: string[] = []
+    if (editingAccessKey.value.title !== accessKeyTitle.value.trim()) {
+      updateMask.push('title')
+    }
+    if (editingAccessKey.value.description !== accessKeyDescription.value.trim()) {
+      updateMask.push('description')
+    }
+    
+    if (updateMask.length > 0) {
+      await usersStore.updateAccessKey({
+        ...editingAccessKey.value,
+        title: accessKeyTitle.value.trim(),
+        description: accessKeyDescription.value.trim(),
+      }, updateMask)
+      
+      alertsStore.addAlert('Access key updated successfully!', 'success')
+      showEditAccessKeyDialog.value = false
+      editingAccessKey.value = null
+      accessKeyTitle.value = ''
+      accessKeyDescription.value = ''
+      // Refresh the access keys tab
+      await tabsPage.value?.reloadTab('accessKeys')
+    }
+  } catch (error) {
+    const msg = `Error updating access key: ${error instanceof Error ? error.message : String(error)}`
+    console.error(msg)
+    alertsStore.addAlert(msg, 'error')
+  }
+}
+
+function confirmDeleteAccessKey(accessKey: AccessKey) {
+  deletingAccessKey.value = accessKey
+  showDeleteAccessKeyDialog.value = true
+}
+
+async function deleteAccessKey() {
+  if (!deletingAccessKey.value?.name) return
+  
+  isDeletingAccessKey.value = true
+  try {
+    await usersStore.deleteAccessKey(deletingAccessKey.value.name)
+    alertsStore.addAlert('Access key deleted successfully!', 'success')
+    
+    // Close dialog and clear state
+    showDeleteAccessKeyDialog.value = false
+    deletingAccessKey.value = null
+    
+    // Refresh the access keys tab
+    await tabsPage.value?.reloadTab('accessKeys')
+  } catch (error) {
+    const msg = `Error deleting access key: ${error instanceof Error ? error.message : String(error)}`
+    console.error(msg)
+    alertsStore.addAlert(msg, 'error')
+  } finally {
+    isDeletingAccessKey.value = false
+  }
+}
+
+function copyAccessKey() {
+  if (newlyCreatedAccessKey.value?.unencryptedAccessKey) {
+    navigator.clipboard.writeText(newlyCreatedAccessKey.value.unencryptedAccessKey)
+    alertsStore.addAlert('Access key copied to clipboard!', 'success')
+  }
+}
+
+function closeCreatedKeyDialog() {
+  showCreatedKeyDialog.value = false
+  newlyCreatedAccessKey.value = null
 }
 
 async function handleCancelRequest() {

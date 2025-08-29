@@ -3,7 +3,7 @@ package headers
 import (
 	"context"
 	"net/http"
-	"strconv"
+	"strings"
 
 	"github.com/jcfug8/daylear/server/ports/domain"
 )
@@ -18,14 +18,10 @@ func NewBasicAuthMiddleware(domain domain.Domain) func(next http.Handler) http.H
 				return
 			}
 
-			userId, err := strconv.ParseInt(username, 10, 64)
-			if err != nil {
-				w.Header().Set("WWW-Authenticate", `Basic realm="Access Key"`)
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
-				return
-			}
+			// if the username has an @, use the part before the @
+			username = strings.Split(username, "@")[0]
 
-			user, err := domain.AuthenticateByAccessKey(r.Context(), userId, password)
+			user, err := domain.AuthenticateByAccessKey(r.Context(), username, password)
 			if err != nil {
 				w.Header().Set("WWW-Authenticate", `Basic realm="Access Key"`)
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)

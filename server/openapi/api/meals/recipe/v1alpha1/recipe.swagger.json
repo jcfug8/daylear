@@ -95,10 +95,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1alpha1Recipe",
-              "required": [
-                "recipe"
-              ]
+              "$ref": "#/definitions/v1alpha1Recipe"
             }
           },
           {
@@ -561,10 +558,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1alpha1Recipe",
-              "required": [
-                "recipe"
-              ]
+              "$ref": "#/definitions/v1alpha1Recipe"
             }
           },
           {
@@ -668,10 +662,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1alpha1Recipe",
-              "required": [
-                "recipe"
-              ]
+              "$ref": "#/definitions/v1alpha1Recipe"
             }
           },
           {

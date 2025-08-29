@@ -95,10 +95,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1alpha1Calendar",
-              "required": [
-                "calendar"
-              ]
+              "$ref": "#/definitions/v1alpha1Calendar"
             }
           },
           {
@@ -927,10 +924,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1alpha1Calendar",
-              "required": [
-                "calendar"
-              ]
+              "$ref": "#/definitions/v1alpha1Calendar"
             }
           }
         ],

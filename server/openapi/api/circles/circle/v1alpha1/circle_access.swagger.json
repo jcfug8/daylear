@@ -292,10 +292,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/circlescirclev1alpha1Access",
-              "required": [
-                "access"
-              ]
+              "$ref": "#/definitions/circlescirclev1alpha1Access"
             }
           }
         ],

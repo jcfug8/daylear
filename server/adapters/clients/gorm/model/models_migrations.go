@@ -8,6 +8,7 @@ func AllModels() []interface{} {
 		&RecipeFavorite{},
 		&User{},
 		&UserAccess{},
+		&AccessKey{},
 		&UserFavorite{},
 		&Circle{},
 		&CircleAccess{},

@@ -295,10 +295,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1alpha1Event",
-              "required": [
-                "event"
-              ]
+              "$ref": "#/definitions/v1alpha1Event"
             }
           }
         ],

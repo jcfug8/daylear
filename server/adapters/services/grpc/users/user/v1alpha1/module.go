@@ -16,6 +16,7 @@ var Module = fx.Module(
 			fx.As(new(pb.UserServiceServer)),
 			fx.As(new(pb.UserSettingsServiceServer)),
 			fx.As(new(pb.UserAccessServiceServer)),
+			fx.As(new(pb.AccessKeyServiceServer)),
 		),
 		fx.Annotate(
 			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.User]() },
@@ -46,6 +47,16 @@ var Module = fx.Module(
 				return fieldmask.NewProtoFieldMasker(&pb.UserSettings{}, userSettingsFieldMap)
 			},
 			fx.ResultTags(`name:"v1alpha1UserSettingsFieldMasker"`),
+		),
+		fx.Annotate(
+			func() (fieldmask.FieldMasker, error) {
+				return fieldmask.NewProtoFieldMasker(&pb.AccessKey{}, accessKeyFieldMap)
+			},
+			fx.ResultTags(`name:"v1alpha1AccessKeyFieldMasker"`),
+		),
+		fx.Annotate(
+			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.AccessKey]() },
+			fx.ResultTags(`name:"v1alpha1AccessKeyNamer"`),
 		),
 	),
 )

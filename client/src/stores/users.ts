@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { userService, userSettingsService, userAccessService } from '@/api/api'
-import type { User, UserSettings } from '@/genapi/api/users/user/v1alpha1'
+import { userService, userSettingsService, userAccessService, accessKeyService } from '@/api/api'
+import type { User, UserSettings, AccessKey } from '@/genapi/api/users/user/v1alpha1'
 
 export const useUsersStore = defineStore('users', () => {
   const users = ref<User[]>([])
@@ -11,6 +11,8 @@ export const useUsersStore = defineStore('users', () => {
   const loading = ref(false)
   const currentUser = ref<User | null>(null)
   const currentUserSettings = ref<UserSettings | null>(null)
+  const accessKeys = ref<AccessKey[]>([])
+  const accessKeysLoading = ref(false)
 
   async function loadUsers(parent: string, filter?: string) {
     loading.value = true
@@ -145,23 +147,103 @@ export const useUsersStore = defineStore('users', () => {
     }
   }
 
+  async function loadAccessKeys(parent: string) {
+    accessKeysLoading.value = true
+    try {
+      accessKeys.value = []
+      const res = await accessKeyService.ListAccessKeys({ parent, pageSize: 100, pageToken: undefined, filter: undefined })
+      accessKeys.value = res.accessKeys || []
+      return accessKeys.value
+    } catch (error) {
+      accessKeys.value = []
+      console.error('Failed to load access keys:', error)
+      return []
+    } finally {
+      accessKeysLoading.value = false
+    }
+  }
+
+  async function createAccessKey(parent: string, title: string, description?: string) {
+    accessKeysLoading.value = true
+    try {
+      const newAccessKey = await accessKeyService.CreateAccessKey({
+        parent,
+        accessKey: {
+          name: undefined,
+          title,
+          description,
+          unencryptedAccessKey: undefined,
+        }
+      })
+      // Refresh the access keys list
+      await loadAccessKeys(parent)
+      return newAccessKey
+    } catch (error) {
+      console.error('Failed to create access key:', error)
+      throw error
+    } finally {
+      accessKeysLoading.value = false
+    }
+  }
+
+  async function deleteAccessKey(name: string) {
+    accessKeysLoading.value = true
+    try {
+      await accessKeyService.DeleteAccessKey({ name })
+      // Remove from local state
+      accessKeys.value = accessKeys.value.filter(key => key.name !== name)
+    } catch (error) {
+      console.error('Failed to delete access key:', error)
+      throw error
+    } finally {
+      accessKeysLoading.value = false
+    }
+  }
+
+  async function updateAccessKey(accessKey: AccessKey, updateMask?: string[]) {
+    accessKeysLoading.value = true
+    try {
+      const updatedAccessKey = await accessKeyService.UpdateAccessKey({
+        accessKey,
+        updateMask: updateMask ? updateMask.join(',') : undefined,
+      })
+      // Update in local state
+      const index = accessKeys.value.findIndex(key => key.name === accessKey.name)
+      if (index !== -1) {
+        accessKeys.value[index] = updatedAccessKey
+      }
+      return updatedAccessKey
+    } catch (error) {
+      console.error('Failed to update access key:', error)
+      throw error
+    } finally {
+      accessKeysLoading.value = false
+    }
+  }
+
   return {
     users,
     friends,
     pendingFriends,
     publicUsers,
     loading,
+    currentUser,
+    currentUserSettings,
+    accessKeys,
+    accessKeysLoading,
     loadUsers,
     loadFriends,
     loadPendingFriends,
     loadPublicUsers,
-    currentUser,
-    currentUserSettings,
     loadUser,
     loadUserSettings,
     updateUser,
     updateUserSettings,
     acceptUserAccess,
     declineUserAccess,
+    loadAccessKeys,
+    createAccessKey,
+    deleteAccessKey,
+    updateAccessKey,
   }
 }) 

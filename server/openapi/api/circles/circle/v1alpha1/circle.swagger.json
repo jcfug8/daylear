@@ -95,10 +95,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/circlev1alpha1Circle",
-              "required": [
-                "circle"
-              ]
+              "$ref": "#/definitions/circlev1alpha1Circle"
             }
           },
           {

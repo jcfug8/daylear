@@ -22,6 +22,8 @@ type NewUserServiceParams struct {
 	AccessNamer             namer.ReflectNamer    `name:"v1alpha1UserAccessNamer"`
 	UserSettingsNamer       namer.ReflectNamer    `name:"v1alpha1UserSettingsNamer"`
 	UserSettingsFieldMasker fieldmask.FieldMasker `name:"v1alpha1UserSettingsFieldMasker"`
+	AccessKeyNamer          namer.ReflectNamer    `name:"v1alpha1AccessKeyNamer"`
+	AccessKeyFieldMasker    fieldmask.FieldMasker `name:"v1alpha1AccessKeyFieldMasker"`
 }
 
 // NewUserService creates a new UserService.
@@ -34,6 +36,8 @@ func NewUserService(params NewUserServiceParams) (*UserService, error) {
 		accessNamer:             params.AccessNamer,
 		userSettingsNamer:       params.UserSettingsNamer,
 		userSettingsFieldMasker: params.UserSettingsFieldMasker,
+		accessKeyNamer:          params.AccessKeyNamer,
+		accessKeyFieldMasker:    params.AccessKeyFieldMasker,
 	}, nil
 }
 
@@ -42,6 +46,7 @@ type UserService struct {
 	pb.UnimplementedUserServiceServer
 	pb.UnimplementedUserAccessServiceServer
 	pb.UnimplementedUserSettingsServiceServer
+	pb.UnimplementedAccessKeyServiceServer
 	domain                  domain.Domain
 	log                     zerolog.Logger
 	userFieldMasker         fieldmask.FieldMasker `name:"v1alpha1UserFieldMasker"`
@@ -49,6 +54,8 @@ type UserService struct {
 	accessNamer             namer.ReflectNamer
 	userSettingsNamer       namer.ReflectNamer
 	userSettingsFieldMasker fieldmask.FieldMasker
+	accessKeyNamer          namer.ReflectNamer
+	accessKeyFieldMasker    fieldmask.FieldMasker
 }
 
 // Register registers s to the grpc implementation of the service.
@@ -56,5 +63,6 @@ func (s *UserService) Register(server *grpc.Server) error {
 	pb.RegisterUserServiceServer(server, s)
 	pb.RegisterUserAccessServiceServer(server, s)
 	pb.RegisterUserSettingsServiceServer(server, s)
+	pb.RegisterAccessKeyServiceServer(server, s)
 	return nil
 }

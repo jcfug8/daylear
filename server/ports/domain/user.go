@@ -10,7 +10,7 @@ import (
 type userDomain interface {
 	CreateUser(ctx context.Context, user model.User) (model.User, error)
 	IdentifyUser(ctx context.Context, user model.User) (model.User, error)
-	AuthenticateByAccessKey(ctx context.Context, userId int64, secretKey string) (model.User, error)
+	AuthenticateByAccessKey(ctx context.Context, username string, secretKey string) (model.User, error)
 
 	DeleteUser(ctx context.Context, authAccount model.AuthAccount, id model.UserId) (model.User, error)
 	GetUser(ctx context.Context, authAccount model.AuthAccount, parent model.UserParent, id model.UserId, fields []string) (model.User, error)

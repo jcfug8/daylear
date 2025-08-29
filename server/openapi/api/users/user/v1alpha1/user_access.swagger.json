@@ -218,10 +218,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/usersuserv1alpha1Access",
-              "required": [
-                "access"
-              ]
+              "$ref": "#/definitions/usersuserv1alpha1Access"
             }
           }
         ],
