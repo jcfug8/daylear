@@ -63,9 +63,9 @@ func (s *Service) Register(m *http.ServeMux) error {
 	gmux.HandleFunc("/caldav/.well-known/caldav", s.WellKnown).Methods("OPTIONS", "PROPFIND")
 	gmux.HandleFunc("/caldav/.well-known/caldav/", s.WellKnown).Methods("OPTIONS", "PROPFIND")
 
-	// These return the principal collection set but they aren't needed right now
-	// gmux.HandleFunc("/caldav/principals", s.Principals).Methods("PROPFIND", "OPTIONS")
-	// gmux.HandleFunc("/caldav/principals/", s.Principals).Methods("PROPFIND", "OPTIONS")
+	gmux.HandleFunc("/caldav/principals", s.Principals).Methods("PROPFIND", "OPTIONS")
+	gmux.HandleFunc("/caldav/principals/", s.Principals).Methods("PROPFIND", "OPTIONS")
+
 	gmux.HandleFunc("/caldav/principals/{userID}", s.UserPrincipal).Methods("PROPFIND", "OPTIONS")
 	gmux.HandleFunc("/caldav/principals/{userID}/", s.UserPrincipal).Methods("PROPFIND", "OPTIONS")
 
