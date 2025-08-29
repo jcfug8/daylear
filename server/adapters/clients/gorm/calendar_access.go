@@ -238,7 +238,7 @@ func (repo *Client) FindStandardUserCalendarAccess(ctx context.Context, authAcco
 		First(&calendarAccess)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Warn().Err(res.Error).Msg("standard user calendar access not found")
+			log.Debug().Err(res.Error).Msg("standard user calendar access not found")
 			return cmodel.CalendarAccess{}, repository.ErrNotFound{}
 		}
 		log.Error().Err(res.Error).Msg("unable to find standard user calendar access")
@@ -296,7 +296,7 @@ func (repo *Client) FindDelegatedUserCalendarAccess(ctx context.Context, authAcc
 		First(&result)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Warn().Err(res.Error).Msg("delegated user calendar access not found")
+			log.Debug().Err(res.Error).Msg("delegated user calendar access not found")
 			return cmodel.CalendarAccess{}, cmodel.UserAccess{}, repository.ErrNotFound{}
 		}
 		log.Error().Err(res.Error).Msg("unable to find delegated user calendar access")

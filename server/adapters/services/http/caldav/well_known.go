@@ -32,8 +32,8 @@ func (s *Service) WellKnown(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) WellKnownOptions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Allow", "GET,OPTIONS")
-	w.Header().Set("DAV", "1, 2, calendar-access, calendar-schedule")
-	w.Header().Set("CalDAV", "calendar-access, calendar-schedule")
+	w.Header().Set("DAV", "1, 2, calendar-access")
+	w.Header().Set("CalDAV", "calendar-access")
 	w.WriteHeader(http.StatusOK)
 }
 

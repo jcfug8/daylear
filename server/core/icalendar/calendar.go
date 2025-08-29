@@ -18,8 +18,8 @@ func ToICalendar(cal model.Calendar, events []model.Event) *ical.Calendar {
 	// Set calendar properties using the correct API
 	calendar.Props.SetText(ical.PropVersion, "2.0")
 	calendar.Props.SetText(ical.PropProductID, "-//Daylear//Calendar//EN")
-	// calendar.Props.SetText(ical.PropCalendarScale, "GREGORIAN")
-	// calendar.Props.SetText(ical.PropMethod, "PUBLISH")
+	calendar.Props.SetText(ical.PropCalendarScale, "GREGORIAN")
+	calendar.Props.SetText(ical.PropMethod, "PUBLISH")
 
 	// Add events
 	for _, event := range events {

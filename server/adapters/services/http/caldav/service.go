@@ -56,9 +56,8 @@ func (s *Service) Register(m *http.ServeMux) error {
 
 	gmux := mux.NewRouter()
 
-	// These return the principal collection set but they aren't needed right now
-	// gmux.HandleFunc("/caldav", s.Root).Methods("OPTIONS", "PROPFIND")
-	// gmux.HandleFunc("/caldav/", s.Root).Methods("OPTIONS", "PROPFIND")
+	gmux.HandleFunc("/caldav", s.Root).Methods("OPTIONS", "PROPFIND")
+	gmux.HandleFunc("/caldav/", s.Root).Methods("OPTIONS", "PROPFIND")
 
 	// These currently just redirect to the current user principal
 	gmux.HandleFunc("/caldav/.well-known/caldav", s.WellKnown).Methods("OPTIONS", "PROPFIND")
@@ -70,16 +69,17 @@ func (s *Service) Register(m *http.ServeMux) error {
 	gmux.HandleFunc("/caldav/principals/{userID}", s.UserPrincipal).Methods("PROPFIND", "OPTIONS")
 	gmux.HandleFunc("/caldav/principals/{userID}/", s.UserPrincipal).Methods("PROPFIND", "OPTIONS")
 
-	// These return the calendar home set but they aren't needed right now
-	// gmux.HandleFunc("/caldav/principals/{userID}/calendar-home-set", s.CalendarHomeSet).Methods("PROPFIND", "OPTIONS")
-	// gmux.HandleFunc("/caldav/principals/{userID}/calendar-home-set/", s.CalendarHomeSet).Methods("PROPFIND", "OPTIONS")
+	gmux.HandleFunc("/caldav/principals/{userID}/calendar-home-set", s.CalendarHomeSet).Methods("PROPFIND", "OPTIONS")
+	gmux.HandleFunc("/caldav/principals/{userID}/calendar-home-set/", s.CalendarHomeSet).Methods("PROPFIND", "OPTIONS")
+
 	gmux.HandleFunc("/caldav/principals/{userID}/calendars", s.Calendars).Methods("PROPFIND", "OPTIONS")
 	gmux.HandleFunc("/caldav/principals/{userID}/calendars/", s.Calendars).Methods("PROPFIND", "OPTIONS")
 
 	// Add calendar objects endpoints for individual calendars and events
-	gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}", s.Calendar).Methods("OPTIONS", "PROPFIND", "REPORT")
-	gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}/", s.Calendar).Methods("OPTIONS", "PROPFIND", "REPORT")
-	// gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}/{eventID}.ics", s.Event).Methods("OPTIONS", "GET", "PUT", "DELETE")
+	gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}", s.Calendar).Methods("OPTIONS", "PROPFIND", "REPORT", "GET")
+	gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}/", s.Calendar).Methods("OPTIONS", "PROPFIND", "REPORT", "GET")
+
+	gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}/events/{eventID}.ics", s.Event).Methods("OPTIONS", "GET")
 
 	m.Handle("/caldav/", headers.NewBasicAuthMiddleware(s.domain)(gmux))
 

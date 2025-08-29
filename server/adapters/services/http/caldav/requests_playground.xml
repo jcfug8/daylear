@@ -469,6 +469,25 @@ curl 'https://daylear.com/api/caldav/principals/1' \
   </D:prop>
 </D:propfind>'
 
+Request:
+curl 'https://localhost:8080/caldav/principals/1/calendar-home-set' \
+  -X PROPFIND \
+  -H 'Content-Type: text/xml; charset=utf-8' \
+  -H 'Depth: 0' \
+  -H 'Authorization: Basic MToxMjM0NTY=' \
+  -d '<?xml version="1.0" encoding="UTF-8"?>
+<D:propfind xmlns:D="DAV:" xmlns:A="http://apple.com/ns/ical/" xmlns:C="urn:ietf:params:xml:ns:caldav">
+  <D:prop>
+    <D:resourcetype/>
+    <D:owner/>
+    <D:displayname/>
+    <D:current-user-principal/>
+    <D:current-user-privilege-set/>
+    <A:calendar-color/>
+    <C:calendar-home-set/>
+  </D:prop>
+</D:propfind>'
+
 
 Request:
 curl 'https://localhost:8080/caldav/principals/1/calendars' \
@@ -568,7 +587,3 @@ Response:
   <D:sync-token>new-sync-token</D:sync-token>
 </D:multistatus>
 
-
-update_time >= 0001-01-01T00:00:00Z OR delete_time >= 0001-01-01T00:00:00Z","error":"failed to parse filter: 
-update_time >= 0001-01-01T00:00:00Z OR delete_time >= 0001-01-01T00:00:00Z
-                   ^ unexpected trailing token - (1:20)

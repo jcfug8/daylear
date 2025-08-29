@@ -80,6 +80,8 @@ func (s *Service) CalendarReport(w http.ResponseWriter, r *http.Request, authAcc
 
 	responseBytes = addXMLDeclaration(responseBytes)
 
+	s.log.Info().Msgf("Calendar Report Response: %s", string(responseBytes))
+
 	setCalDAVHeaders(w)
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
 	w.Header().Set("Content-Length", strconv.Itoa(len(responseBytes)))

@@ -3,9 +3,7 @@ package caldav
 import (
 	"context"
 	"encoding/xml"
-	"fmt"
 	"net/http"
-	"path"
 	"strconv"
 
 	"github.com/jcfug8/daylear/server/core/model"
@@ -260,8 +258,4 @@ func hasAnyCalendarCollectionPropProperties(prop CalendarCollectionProp) bool {
 	return prop.ResourceType != nil ||
 		prop.DisplayName != "" ||
 		len(prop.Raw) > 0
-}
-
-func (s *Service) formatCalendarHomeSetPath(userId int64) string {
-	return path.Join(s.apiPath, fmt.Sprintf("/caldav/principals/%d/calendars", userId))
 }

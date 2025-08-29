@@ -26,6 +26,9 @@ func (s *Service) Calendar(w http.ResponseWriter, r *http.Request) {
 	case "REPORT":
 		s.CalendarReport(w, r, authAccount)
 		return
+	case "GET":
+		s.CalendarGet(w, r, authAccount)
+		return
 	}
 
 	w.WriteHeader(http.StatusMethodNotAllowed)
@@ -33,6 +36,6 @@ func (s *Service) Calendar(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) CalendarOptions(w http.ResponseWriter, r *http.Request) {
 	setCalDAVHeaders(w)
-	w.Header().Set("Allow", "PROPFIND,OPTIONS,REPORT")
+	w.Header().Set("Allow", "PROPFIND,OPTIONS,REPORT,GET")
 	w.WriteHeader(http.StatusNoContent)
 }

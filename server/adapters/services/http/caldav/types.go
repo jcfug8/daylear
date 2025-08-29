@@ -27,8 +27,8 @@ type Privilege struct {
 }
 
 func setCalDAVHeaders(w http.ResponseWriter) {
-	w.Header().Set("DAV", "1, 2, calendar-access, calendar-schedule")
-	w.Header().Set("CalDAV", "calendar-access, calendar-schedule")
+	w.Header().Set("DAV", "1, 2, calendar-access")
+	w.Header().Set("CalDAV", "calendar-access")
 }
 
 func addXMLDeclaration(response []byte) []byte {
