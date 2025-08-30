@@ -3,6 +3,7 @@ package caldav
 import (
 	"context"
 	"encoding/xml"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -13,6 +14,9 @@ import (
 type RootProp struct {
 	ResourceType            *ResourceType `xml:"D:resourcetype,omitempty"`
 	PrincipalCollectionSet  *ResponseHref `xml:"C:principal-collection-set,omitempty"`
+	CurrentUserPrincipal    *ResponseHref `xml:"D:current-user-principal,omitempty"`
+	PrincipalURL            *ResponseHref `xml:"D:principal-URL,omitempty"`
+	CalendarHomeSet         *ResponseHref `xml:"C:calendar-home-set,omitempty"`
 	CurrentUserPrivilegeSet *PrivilegeSet `xml:"D:current-user-privilege-set,omitempty"`
 	DisplayName             string        `xml:"D:displayname,omitempty"`
 	Raw                     []RawXMLValue `xml:",any"`
@@ -21,6 +25,8 @@ type RootProp struct {
 type RootPropNames struct {
 	ResourceType            *struct{} `xml:"D:resourcetype,omitempty"`
 	PrincipalCollectionSet  *struct{} `xml:"C:principal-collection-set,omitempty"`
+	CurrentUserPrincipal    *struct{} `xml:"D:current-user-principal,omitempty"`
+	PrincipalURL            *struct{} `xml:"D:principal-URL,omitempty"`
 	CurrentUserPrivilegeSet *struct{} `xml:"D:current-user-privilege-set,omitempty"`
 	DisplayName             *struct{} `xml:"D:displayname,omitempty"`
 }
@@ -70,6 +76,8 @@ func (s *Service) RootPropFind(w http.ResponseWriter, r *http.Request, authAccou
 
 	responseBytes = addXMLDeclaration(responseBytes)
 
+	s.log.Info().Msg("RootPropFind response: " + string(responseBytes))
+
 	setCalDAVHeaders(w)
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
 	w.Header().Set("Content-Length", strconv.Itoa(len(responseBytes)))
@@ -90,6 +98,12 @@ func (s *Service) buildRootPropResponse(ctx context.Context, authAccount model.A
 			}
 		case raw.XMLName.Local == "principal-collection-set":
 			foundP.PrincipalCollectionSet = s.NewResponseHrefPointer("/caldav/principals")
+		case raw.XMLName.Local == "current-user-principal":
+			foundP.CurrentUserPrincipal = s.NewResponseHrefPointer(fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId))
+		case raw.XMLName.Local == "principal-URL":
+			foundP.PrincipalURL = s.NewResponseHrefPointer(fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId))
+		case raw.XMLName.Local == "calendar-home-set":
+			foundP.CalendarHomeSet = s.NewResponseHrefPointer(fmt.Sprintf("/caldav/principals/%d/calendars", authAccount.AuthUserId))
 		case raw.XMLName.Local == "current-user-privilege-set":
 			privileges := []Privilege{
 				{Name: "D:read"},
@@ -102,7 +116,7 @@ func (s *Service) buildRootPropResponse(ctx context.Context, authAccount model.A
 		}
 	}
 
-	rootPath := "/"
+	rootPath := s.NewResponseHref("/").Href
 	response := Response{Href: rootPath}
 	builder := ResponseBuilder{}
 
@@ -120,7 +134,7 @@ func (s *Service) buildRootPropResponse(ctx context.Context, authAccount model.A
 	return responses, nil
 }
 
-func (s *Service) buildRootAllPropResponse(ctx context.Context, authAccount model.AuthAccount) ([]Response, error) {
+func (s *Service) buildRootAllPropResponse(_ context.Context, authAccount model.AuthAccount) ([]Response, error) {
 	privileges := []Privilege{
 		{Name: "D:read"},
 	}
@@ -130,12 +144,14 @@ func (s *Service) buildRootAllPropResponse(ctx context.Context, authAccount mode
 			Collection: &Collection{},
 		},
 		PrincipalCollectionSet:  s.NewResponseHrefPointer("/caldav/principals"),
+		CurrentUserPrincipal:    s.NewResponseHrefPointer(fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId)),
+		PrincipalURL:            s.NewResponseHrefPointer(fmt.Sprintf("/caldav/principals/%d", authAccount.AuthUserId)),
+		CalendarHomeSet:         s.NewResponseHrefPointer(fmt.Sprintf("/caldav/principals/%d/calendars", authAccount.AuthUserId)),
 		CurrentUserPrivilegeSet: &PrivilegeSet{Privileges: privileges},
 		DisplayName:             "Daylear Calendar Server",
 	}
 
-	rootPath := "/"
-	response := Response{Href: rootPath}
+	response := Response{Href: s.NewResponseHref("/caldav/").Href}
 	response = ResponseBuilder{}.AddPropertyStatus(response, foundP, 200)
 
 	responses := []Response{response}
@@ -163,6 +179,9 @@ func (s *Service) buildRootPropNameResponse(ctx context.Context, authAccount mod
 func hasAnyRootPropProperties(prop RootProp) bool {
 	return prop.ResourceType != nil ||
 		prop.PrincipalCollectionSet != nil ||
+		prop.CurrentUserPrincipal != nil ||
+		prop.PrincipalURL != nil ||
+		prop.CalendarHomeSet != nil ||
 		prop.CurrentUserPrivilegeSet != nil ||
 		prop.DisplayName != "" ||
 		len(prop.Raw) > 0

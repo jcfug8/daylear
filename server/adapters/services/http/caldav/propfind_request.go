@@ -45,10 +45,17 @@ func NewPropFindRequestFromReader(reader io.Reader) (PropFindRequest, error) {
 
 func NewPropFindRequestFromBytes(bytes []byte) (PropFindRequest, error) {
 	log.Println("propfind request: " + string(bytes))
+
 	var propFindRequest PropFindRequest
-	err := xml.Unmarshal(bytes, &propFindRequest)
-	if err != nil {
-		return propFindRequest, err
+	if len(bytes) == 0 {
+		propFindRequest = PropFindRequest{
+			AllProp: &struct{}{},
+		}
+	} else {
+		err := xml.Unmarshal(bytes, &propFindRequest)
+		if err != nil {
+			return propFindRequest, err
+		}
 	}
 
 	if err := propFindRequest.Validate(); err != nil {

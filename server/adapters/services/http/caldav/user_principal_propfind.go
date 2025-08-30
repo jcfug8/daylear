@@ -16,7 +16,7 @@ type UserPrincipalProp struct {
 	DisplayName             string        `xml:"D:displayname,omitempty"`
 	CurrentUserPrincipal    *ResponseHref `xml:"D:current-user-principal,omitempty"`
 	CalendarHomeSet         *ResponseHref `xml:"C:calendar-home-set,omitempty"`
-	PrincipalURL            *ResponseHref `xml:"C:principal-URL,omitempty"`
+	PrincipalURL            *ResponseHref `xml:"D:principal-URL,omitempty"`
 	Owner                   string        `xml:"D:owner,omitempty"`
 	CurrentUserPrivilegeSet *PrivilegeSet `xml:"D:current-user-privilege-set,omitempty"`
 	Raw                     []RawXMLValue `xml:",any"`
@@ -27,7 +27,7 @@ type UserPrincipalPropNames struct {
 	DisplayName             struct{} `xml:"D:displayname"`
 	CurrentUserPrincipal    struct{} `xml:"D:current-user-principal"`
 	CalendarHomeSet         struct{} `xml:"C:calendar-home-set"`
-	PrincipalURL            struct{} `xml:"C:principal-URL"`
+	PrincipalURL            struct{} `xml:"D:principal-URL"`
 	Owner                   struct{} `xml:"D:owner"`
 	CurrentUserPrivilegeSet struct{} `xml:"D:current-user-privilege-set"`
 }
@@ -96,6 +96,8 @@ func (s *Service) UserPrincipalPropFind(w http.ResponseWriter, r *http.Request, 
 	}
 
 	responseBytes = addXMLDeclaration(responseBytes)
+
+	s.log.Info().Msg("UserPrincipalPropFind response: " + string(responseBytes))
 
 	setCalDAVHeaders(w)
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")

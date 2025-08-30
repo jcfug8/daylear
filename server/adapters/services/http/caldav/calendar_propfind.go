@@ -29,7 +29,8 @@ type CalendarProp struct {
 	CurrentUserPrivilegeSet       *PrivilegeSet                  `xml:"D:current-user-privilege-set,omitempty"`
 	SyncToken                     string                         `xml:"D:sync-token,omitempty"`
 	GetContentType                string                         `xml:"D:getcontenttype,omitempty"`
-	Raw                           []RawXMLValue                  `xml:",any"`
+	// Timezone?
+	Raw []RawXMLValue `xml:",any"`
 }
 
 type CalendarPropNames struct {
@@ -284,21 +285,21 @@ func (s *Service) _buildCalendarAllPropResponse(ctx context.Context, authAccount
 			Calendar:   &Calendar{},
 			Collection: &Collection{},
 		},
-		DisplayName:         calendar.Title,
-		GetETag:             calendar.UpdateTime.UTC().UnixNano(),
-		GetCTag:             calendar.EventUpdateTime.UTC().UnixNano(),
-		GetLastModified:     calendar.UpdateTime.UTC().Format(time.RFC1123),
-		CalendarDescription: calendar.Description,
-		SupportedCalendarComponentSet: &SupportedCalendarComponentSet{
-			CalendarComponents: []CalendarComponent{
-				{Name: "VEVENT"},
-			},
-		},
-		SupportedCalendarData: &SupportedCalendarData{
-			CalendarData: []CalendarData{
-				{ContentType: "text/calendar", Version: "2.0"},
-			},
-		},
+		DisplayName:     calendar.Title,
+		GetETag:         calendar.UpdateTime.UTC().UnixNano(),
+		GetCTag:         calendar.EventUpdateTime.UTC().UnixNano(),
+		GetLastModified: calendar.UpdateTime.UTC().Format(time.RFC1123),
+		// CalendarDescription: calendar.Description, Should not be returned by an allProp request via RFC4791
+		// SupportedCalendarComponentSet: &SupportedCalendarComponentSet{ Should not be returned by an allProp request via RFC4791
+		// 	CalendarComponents: []CalendarComponent{
+		// 		{Name: "VEVENT"},
+		// 	},
+		// },
+		// SupportedCalendarData: &SupportedCalendarData{ Should not be returned by an allProp request via RFC4791
+		// 	CalendarData: []CalendarData{
+		// 		{ContentType: "text/calendar", Version: "2.0"},
+		// 	},
+		// },
 		SupportedReportSet: &SupportedReportSet{
 			SupportedReports: []SupportedReport{
 				{Report: CalendarReportType{CalendarQuery: &CalendarQuery{}}},

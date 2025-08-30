@@ -27,12 +27,12 @@ type Privilege struct {
 }
 
 func setCalDAVHeaders(w http.ResponseWriter) {
-	w.Header().Set("DAV", "1, 2, calendar-access")
+	w.Header().Set("DAV", "1, calendar-access")
 	w.Header().Set("CalDAV", "calendar-access")
 }
 
 func addXMLDeclaration(response []byte) []byte {
-	// declaration := []byte(`<?xml version="1.0" encoding="utf-8"?>`)
-	// return append(declaration, response...)
-	return response
+	declaration := []byte(`<?xml version="1.0" encoding="utf-8"?>`)
+	return append(declaration, response...)
+	// return response
 }

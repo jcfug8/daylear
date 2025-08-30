@@ -69,6 +69,8 @@ func (s *Service) PrincipalsPropFind(w http.ResponseWriter, r *http.Request, aut
 
 	responseBytes = addXMLDeclaration(responseBytes)
 
+	s.log.Info().Msg("PrincipalsPropFind response: " + string(responseBytes))
+
 	setCalDAVHeaders(w)
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
 	w.Header().Set("Content-Length", strconv.Itoa(len(responseBytes)))

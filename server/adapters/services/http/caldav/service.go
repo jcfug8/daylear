@@ -53,6 +53,8 @@ func (s *Service) Register(m *http.ServeMux) error {
 	wellKnownGMux := mux.NewRouter()
 	wellKnownGMux.HandleFunc("/.well-known/caldav", s.WellKnown).Methods("GET", "OPTIONS", "PROPFIND")
 	m.Handle("/.well-known/caldav", headers.NewBasicAuthMiddleware(s.domain)(wellKnownGMux))
+	wellKnownGMux.HandleFunc("/.well-known/caldav/", s.WellKnown).Methods("GET", "OPTIONS", "PROPFIND")
+	m.Handle("/.well-known/caldav/", headers.NewBasicAuthMiddleware(s.domain)(wellKnownGMux))
 
 	gmux := mux.NewRouter()
 
@@ -81,6 +83,7 @@ func (s *Service) Register(m *http.ServeMux) error {
 
 	gmux.HandleFunc("/caldav/principals/{userID}/calendars/{calendarID}/events/{eventID}.ics", s.Event).Methods("OPTIONS", "GET")
 
+	m.Handle("/caldav", headers.NewBasicAuthMiddleware(s.domain)(gmux))
 	m.Handle("/caldav/", headers.NewBasicAuthMiddleware(s.domain)(gmux))
 
 	return nil
@@ -95,8 +98,12 @@ func (s *Service) Name() string {
 }
 
 func (s *Service) NewResponseHref(p string) ResponseHref {
+	href := path.Join(s.apiPath, p)
+	if strings.HasSuffix(p, "/") && !strings.HasSuffix(href, "/") {
+		href = href + "/"
+	}
 	return ResponseHref{
-		Href: path.Join(s.apiPath, p),
+		Href: href,
 	}
 }
 

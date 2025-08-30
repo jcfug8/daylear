@@ -2,27 +2,17 @@ package headers
 
 import (
 	"context"
+	"io"
+	"log"
 	"net/http"
 	"strings"
 
 	"github.com/jcfug8/daylear/server/core/model"
-	namer "github.com/jcfug8/daylear/server/core/namer"
-	circlePb "github.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1"
 	"github.com/jcfug8/daylear/server/ports/domain"
 	"github.com/jcfug8/daylear/server/ports/fileretriever"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
-
-func init() {
-	var err error
-	circleNamer, err = namer.NewReflectNamer[*circlePb.Circle]()
-	if err != nil {
-		panic(err)
-	}
-}
-
-var circleNamer namer.ReflectNamer
 
 type keyType string
 
@@ -33,6 +23,18 @@ const AuthorizationHeaderKey = "Authorization"
 func NewAuthTokenMiddleware(domain domain.Domain) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/" {
+				body := r.Body
+				bodyBytes, err := io.ReadAll(body)
+				if err != nil {
+					log.Printf("Failed to read body: %v", err)
+					return
+				}
+				log.Printf("Body: %s", string(bodyBytes))
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+
 			token, err := GetAuthToken(r)
 			if err != nil {
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
