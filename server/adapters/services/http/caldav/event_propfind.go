@@ -29,54 +29,77 @@ type EventPropNames struct {
 	GetContentType  *struct{} `xml:"D:getcontenttype,omitempty"`
 }
 
-func (s *Service) _buildEventPropResponse(_ context.Context, authAccount model.AuthAccount, event model.Event, prop *Prop) ([]Response, error) {
-	var foundP EventProp
-	var notFoundP EventProp
+func (s *Service) _buildEventPropResponse(_ context.Context, authAccount model.AuthAccount, events []model.Event, prop *Prop) ([]Response, error) {
+	responses := []Response{}
 
-	eventPath := s.formatEventPath(authAccount.AuthUserId, event.Parent.CalendarId, event.Id.EventId)
+	groupedEvents := cleanAndGroupParentAndChildEvents(events)
 
-	if event.DeleteTime != nil {
-		return []Response{
-			{
-				Href:   eventPath,
-				Status: &Status{Status: "HTTP/1.1 404 Not Found"},
-			},
-		}, nil
-	}
-
-	// Check each requested property
-	for _, raw := range prop.Raw {
-		switch {
-		case raw.XMLName.Local == "getetag":
-			foundP.GetETag = event.UpdateTime.UTC().UnixNano()
-		case raw.XMLName.Local == "getlastmodified":
-			foundP.GetLastModified = event.UpdateTime.UTC().Format(time.RFC1123)
-		case raw.XMLName.Local == "calendar-data":
-			cal := icalendar.ToICalendar(model.Calendar{}, []model.Event{event})
-			var buf bytes.Buffer
-			if err := ical.NewEncoder(&buf).Encode(cal); err != nil {
-				return []Response{}, err
+	for eventId, events := range groupedEvents {
+		var foundP EventProp
+		var notFoundP EventProp
+		var deleteTime *time.Time
+		mostRecentUpdateTime := events[0].UpdateTime
+		for _, event := range events {
+			if event.UpdateTime.After(mostRecentUpdateTime) {
+				mostRecentUpdateTime = event.UpdateTime
 			}
-			foundP.CalendarData = buf.String()
-		case raw.XMLName.Local == "getcontenttype":
-			foundP.GetContentType = "text/calendar; charset=utf-8"
-		default:
-			notFoundP.Raw = append(notFoundP.Raw, raw)
+			if event.ParentEventId == nil && deleteTime != nil {
+				deleteTime = event.DeleteTime
+			}
 		}
+
+		var calendarId int64
+		if events[0].ParentEventId == nil && calendarId == 0 {
+			calendarId = events[0].Parent.CalendarId
+		}
+
+		eventPath := s.formatEventPath(authAccount.AuthUserId, calendarId, eventId)
+
+		if deleteTime != nil {
+			return []Response{
+				{
+					Href:   eventPath,
+					Status: &Status{Status: "HTTP/1.1 404 Not Found"},
+				},
+			}, nil
+		}
+
+		// Check each requested property
+		for _, raw := range prop.Raw {
+			switch {
+			case raw.XMLName.Local == "getetag":
+				foundP.GetETag = mostRecentUpdateTime.UTC().UnixNano()
+			case raw.XMLName.Local == "getlastmodified":
+				foundP.GetLastModified = mostRecentUpdateTime.UTC().Format(time.RFC1123)
+			case raw.XMLName.Local == "calendar-data":
+				cal := icalendar.ToICalendar(model.Calendar{}, events)
+				var buf bytes.Buffer
+				if err := ical.NewEncoder(&buf).Encode(cal); err != nil {
+					return []Response{}, err
+				}
+				foundP.CalendarData = buf.String()
+			case raw.XMLName.Local == "getcontenttype":
+				foundP.GetContentType = "text/calendar; charset=utf-8"
+			default:
+				notFoundP.Raw = append(notFoundP.Raw, raw)
+			}
+		}
+
+		response := Response{Href: eventPath}
+		builder := ResponseBuilder{}
+
+		if hasAnyEventPropProperties(foundP) {
+			response = builder.AddPropertyStatus(response, foundP, 200)
+		}
+
+		if hasAnyEventPropProperties(notFoundP) {
+			response = builder.AddPropertyStatus(response, notFoundP, 404)
+		}
+
+		responses = append(responses, response)
 	}
 
-	response := Response{Href: eventPath}
-	builder := ResponseBuilder{}
-
-	if hasAnyEventPropProperties(foundP) {
-		response = builder.AddPropertyStatus(response, foundP, 200)
-	}
-
-	if hasAnyEventPropProperties(notFoundP) {
-		response = builder.AddPropertyStatus(response, notFoundP, 404)
-	}
-
-	return []Response{response}, nil
+	return responses, nil
 }
 
 func (s *Service) _buildEventAllPropResponse(ctx context.Context, authAccount model.AuthAccount, event model.Event) ([]Response, error) {
@@ -153,4 +176,26 @@ func (s *Service) parseEventPath(path string) (int64, int64, int64, error) {
 		return 0, 0, 0, err
 	}
 	return userId, calendarId, eventId, nil
+}
+
+func cleanAndGroupParentAndChildEvents(events []model.Event) map[int64][]model.Event {
+	groupedEvents := map[int64][]model.Event{}
+	for _, event := range events {
+		// remove the event from the list if its a delete child event
+		if event.ParentEventId != nil && event.DeleteTime != nil {
+			continue
+		}
+
+		eventId := event.Id.EventId
+		// if the event is a child event, use the parent event id
+		if event.ParentEventId != nil {
+			eventId = *event.ParentEventId
+		}
+
+		if e := groupedEvents[eventId]; e == nil {
+			groupedEvents[eventId] = []model.Event{}
+		}
+		groupedEvents[eventId] = append(groupedEvents[eventId], event)
+	}
+	return groupedEvents
 }

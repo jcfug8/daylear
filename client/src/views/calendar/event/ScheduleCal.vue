@@ -240,29 +240,53 @@ function colorThemeForId(id: string): { lightColors: ColorDef; darkColors: Color
 
 const scheduleEvents = computed<CalendarEventExternal[]>(() => {
   const source = props.events ?? []
+
+  const excludeTimesMap = new Map<string, string[]>()
   
   return source
     .filter((event): event is Event => Boolean(event))
     .map((event) => {
       const { id, calendarId } = parseName(event.name)
+      const { id: parentEventId } = parseName(event.parentEvent ?? '')
       const start = toScheduleXDateTime(event.startTime as string)
       const end = toScheduleXDateTime(event.endTime as string) || ''
+
+      const determinedId = parentEventId ? parentEventId : id ?? ''
 
       if (!id || !calendarId || !start) return null
 
       const rrule = event.recurrenceRule ? event.recurrenceRule.replace('RRULE:', '') : null
-      const exdate = event.excludedTimes ? event.excludedTimes.map(time => toScheduleXDateTime(time as string)) : null
+      
+      if (parentEventId) {
+        const overridenStartTime = toScheduleXDateTime(event.overridenStartTime as string)
+        if (overridenStartTime) {
+          if (excludeTimesMap.get(parentEventId)) {
+            excludeTimesMap.get(parentEventId)?.push(overridenStartTime)
+          } else {
+            excludeTimesMap.set(parentEventId, [overridenStartTime])
+          }
+        }
+      } else {
+        const exdate = event.excludedTimes ? event.excludedTimes.map(time => toScheduleXDateTime(time as string)??'') : []
+        if (exdate) {
+          if (excludeTimesMap.get(id)) {
+            excludeTimesMap.get(id)?.push(...exdate)
+          } else {
+            excludeTimesMap.set(id, exdate)
+          }
+        }
+      }
       
       const baseEvent: CalendarEventExternal = {
         name: event.name,
-        id,
+        id: id,
         start,
         end,
         title: event.title ?? '',
         description: event.description ?? '',
         calendarId,
         rrule,
-        exdate,
+        exdate: excludeTimesMap.get(determinedId) ?? [],
       }
       
       return baseEvent

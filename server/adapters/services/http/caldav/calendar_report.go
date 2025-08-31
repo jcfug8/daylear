@@ -132,20 +132,18 @@ func (s *Service) buildCalendarMultigetResponse(ctx context.Context, authAccount
 		return responses, nil
 	}
 
-	filter = fmt.Sprintf("any(event_id,%s)", strings.Join(eventIds, ","))
+	filter = fmt.Sprintf("any(event_id,%s) OR any(parent_event_id,%s)", strings.Join(eventIds, ","), strings.Join(eventIds, ","))
 
 	events, err := s.domain.ListEvents(ctx, authAccount, model.EventParent{UserId: authAccount.AuthUserId, CalendarId: calendarID}, 0, 0, filter, []string{})
 	if err != nil {
 		return []Response{}, err
 	}
 
-	for _, event := range events {
-		eventResponses, err := s._buildEventPropResponse(ctx, authAccount, event, calendarMultiget.Prop)
-		if err != nil {
-			return []Response{}, err
-		}
-		responses = append(responses, eventResponses...)
+	eventResponses, err := s._buildEventPropResponse(ctx, authAccount, events, calendarMultiget.Prop)
+	if err != nil {
+		return []Response{}, err
 	}
+	responses = append(responses, eventResponses...)
 
 	return responses, nil
 }
@@ -168,13 +166,11 @@ func (s *Service) buildSyncCollectionResponse(ctx context.Context, authAccount m
 
 	responses := []Response{}
 
-	for _, event := range events {
-		eventResponses, err := s._buildEventPropResponse(ctx, authAccount, event, syncCollection.Prop)
-		if err != nil {
-			return []Response{}, err
-		}
-		responses = append(responses, eventResponses...)
+	eventResponses, err := s._buildEventPropResponse(ctx, authAccount, events, syncCollection.Prop)
+	if err != nil {
+		return []Response{}, err
 	}
+	responses = append(responses, eventResponses...)
 
 	calendar, err := s.domain.GetCalendar(ctx, authAccount, model.CalendarParent{UserId: authAccount.AuthUserId}, model.CalendarId{CalendarId: calendarID}, []string{})
 	if err != nil {

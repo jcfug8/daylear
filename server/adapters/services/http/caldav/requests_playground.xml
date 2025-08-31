@@ -469,7 +469,7 @@ curl 'https://daylear.com/api/caldav/principals/1' \
   -X PROPFIND \
   -H 'Content-Type: text/xml; charset=utf-8' \
   -H 'Depth: 0' \
-  -H 'Authorization: Basic MToxMjM0NTY=' \
+  -H 'Authorization: Basic amNmdWc4OmhhaWwtNDEzNDUtZnVqaS1henVyZQ==' \
   -d '<?xml version="1.0" encoding="UTF-8"?>
 <D:propfind xmlns:D="DAV:" xmlns:A="http://apple.com/ns/ical/" xmlns:C="urn:ietf:params:xml:ns:caldav">
   <D:prop>
@@ -488,7 +488,7 @@ curl 'https://localhost:8080/caldav/principals/1/calendar-home-set' \
   -X PROPFIND \
   -H 'Content-Type: text/xml; charset=utf-8' \
   -H 'Depth: 0' \
-  -H 'Authorization: Basic MToxMjM0NTY=' \
+  -H 'Authorization: Basic amNmdWc4OmhhaWwtNDEzNDUtZnVqaS1henVyZQ==' \
   -d '<?xml version="1.0" encoding="UTF-8"?>
 <D:propfind xmlns:D="DAV:" xmlns:A="http://apple.com/ns/ical/" xmlns:C="urn:ietf:params:xml:ns:caldav">
   <D:prop>
@@ -508,7 +508,7 @@ curl 'https://localhost:8080/caldav/principals/1/calendars' \
   -X PROPFIND \
   -H 'Content-Type: text/xml; charset=utf-8' \
   -H 'Depth: 1' \
-  -H 'Authorization: Basic MToxMjM0NTY=' \
+  -H 'Authorization: Basic amNmdWc4OmhhaWwtNDEzNDUtZnVqaS1henVyZQ==' \
   -d '<?xml version="1.0" encoding="UTF-8"?>
 <D:propfind xmlns:D="DAV:" xmlns:A="http://apple.com/ns/ical/">
   <D:prop>
@@ -528,7 +528,7 @@ curl 'https://localhost:8080/caldav/principals/1/calendars/4' \
   -H 'Content-Type: text/xml; charset=utf-8' \
   -H 'Depth: 1' \
   -H 'Origin: https://localhost:8080' \
-  -H 'Authorization: Basic MToxMjM0NTY=' \
+  -H 'Authorization: Basic amNmdWc4OmhhaWwtNDEzNDUtZnVqaS1henVyZQ==' \
   -H 'Connection: keep-alive' \
   -d '<?xml version="1.0" encoding="UTF-8"?>
 <D:propfind xmlns:D="DAV:">
@@ -550,7 +550,7 @@ curl 'https://localhost:8080/caldav/principals/1/calendars/8/' \
   -X REPORT \
   -H 'Content-Type: text/xml; charset=utf-8' \
   -H 'Depth: 1' \
-  -H 'Authorization: Basic MToxMjM0NTY=' \
+  -H 'Authorization: Basic amNmdWc4OmhhaWwtNDEzNDUtZnVqaS1henVyZQ==' \
   -d '<?xml version="1.0" encoding="UTF-8"?>
 <sync-collection xmlns="DAV:">
   <sync-token/>
@@ -567,15 +567,18 @@ curl 'https://localhost:8080/caldav/principals/1/calendars/4/' \
   -X REPORT \
   -H 'Content-Type: text/xml; charset=utf-8' \
   -H 'Depth: 1' \
-  -H 'Authorization: Basic MToxMjM0NTY=' \
+  -H 'Authorization: Basic amNmdWc4OmhhaWwtNDEzNDUtZnVqaS1henVyZQ==' \
   -d '<?xml version="1.0" encoding="UTF-8"?>
 <C:calendar-multiget xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
     <D:prop>
         <D:getetag/>
         <C:calendar-data/>
     </D:prop>
+    <D:href>/caldav/principals/1/calendars/4</D:href>
     <D:href>/caldav/principals/1/calendars/4/events/57.ics</D:href>
-    <D:href>/caldav/principals/1/calendars/4/</D:href>
+    <D:href>/caldav/principals/1/calendars/4/events/51.ics</D:href>
+    <D:href>/caldav/principals/1/calendars/4/events/58.ics</D:href>
+    <D:href>/caldav/principals/1/calendars/4/events/60.ics</D:href>
 </C:calendar-multiget>'
 
 Response:

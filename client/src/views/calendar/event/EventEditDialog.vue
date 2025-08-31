@@ -524,17 +524,11 @@ async function confirmRecurringUpdate() {
         } else {
           newEvent.startTime = new Date(form.value.start).toISOString()
           newEvent.endTime = new Date(form.value.end).toISOString()
-          // update the old event's excluded times the the start time of
-          // the new event
-          if (!oldEvent.excludedTimes) {
-            oldEvent.excludedTimes = []
-          }
-          oldEvent.excludedTimes.push(new Date(displayEvent.start).toISOString())
+      
           updatedEvent = await updateEvent(oldEvent)
 
           newEvent.parentEvent = oldEvent.name
           newEvent.recurrenceRule = ''
-          newEvent.excludedTimes = []
           newEvent.overridenStartTime = new Date(displayEvent.start).toISOString()
           const calendarName = newEvent.name?.substring(0, newEvent.name.indexOf('/events/'))
           updatedEvent = await createEvent(newEvent, calendarName)

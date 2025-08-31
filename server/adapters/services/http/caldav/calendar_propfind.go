@@ -249,13 +249,11 @@ func (s *Service) _buildCalendarPropResponse(ctx context.Context, authAccount mo
 		return []Response{}, err
 	}
 
-	for _, event := range events {
-		eventResponses, err := s._buildEventPropResponse(ctx, authAccount, event, prop)
-		if err != nil {
-			return []Response{}, err
-		}
-		responses = append(responses, eventResponses...)
+	eventResponses, err := s._buildEventPropResponse(ctx, authAccount, events, prop)
+	if err != nil {
+		return []Response{}, err
 	}
+	responses = append(responses, eventResponses...)
 
 	return responses, nil
 }
