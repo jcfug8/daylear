@@ -1006,5 +1006,184 @@ export function createEventServiceClient(
     },
   };
 }
+// the event recipe
+export type EventRecipe = {
+  // the name of the event recipe
+  //
+  // Behaviors: IDENTIFIER
+  name: string | undefined;
+  // the name of the recipe
+  //
+  // Behaviors: REQUIRED
+  recipe: string | undefined;
+  // the create time of the event recipe
+  //
+  // Behaviors: OUTPUT_ONLY
+  createTime: wellKnownTimestamp | undefined;
+};
+
+// the request to create an event recipe
+export type CreateEventRecipeRequest = {
+  // the parent of the event recipe
+  //
+  // Behaviors: REQUIRED
+  parent: string | undefined;
+  // the event recipe to create
+  //
+  // Behaviors: REQUIRED
+  eventRecipe: EventRecipe | undefined;
+};
+
+// the request to get an event recipe
+export type GetEventRecipeRequest = {
+  // the name of the event recipe
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the request to delete an event recipe
+export type DeleteEventRecipeRequest = {
+  // the name of the event recipe
+  //
+  // Behaviors: REQUIRED
+  name: string | undefined;
+};
+
+// the request to list event recipes
+export type ListEventRecipesRequest = {
+  // the parent of the event recipes
+  //
+  // Behaviors: REQUIRED
+  parent: string | undefined;
+  // The maximum number of events to return
+  //
+  // Behaviors: OPTIONAL
+  pageSize: number | undefined;
+  // The next_page_token value returned from a previous List request, if any
+  //
+  // Behaviors: OPTIONAL
+  pageToken: string | undefined;
+  // A filter expression that filters events listed in the response
+  //
+  // Behaviors: OPTIONAL
+  filter: string | undefined;
+};
+
+// the response to list event recipes
+export type ListEventRecipesResponse = {
+  // the event recipes
+  eventRecipes: EventRecipe[] | undefined;
+  // the next page token
+  nextPageToken: string | undefined;
+};
+
+// the event recipe service
+export interface EventRecipeService {
+  // create an event recipe
+  CreateEventRecipe(request: CreateEventRecipeRequest): Promise<EventRecipe>;
+  // get an event recipe
+  GetEventRecipe(request: GetEventRecipeRequest): Promise<EventRecipe>;
+  // delete an event recipe
+  DeleteEventRecipe(request: DeleteEventRecipeRequest): Promise<EventRecipe>;
+  // list event recipes
+  ListEventRecipes(request: ListEventRecipesRequest): Promise<ListEventRecipesResponse>;
+}
+
+export function createEventRecipeServiceClient(
+  handler: RequestHandler
+): EventRecipeService {
+  return {
+    CreateEventRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.parent) {
+        throw new Error("missing required field request.parent");
+      }
+      const path = `calendars/v1alpha1/${request.parent}/eventRecipes`; // eslint-disable-line quotes
+      const body = JSON.stringify(request?.eventRecipe ?? {});
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "POST",
+        body,
+      }, {
+        service: "EventRecipeService",
+        method: "CreateEventRecipe",
+      }) as Promise<EventRecipe>;
+    },
+    GetEventRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `calendars/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "EventRecipeService",
+        method: "GetEventRecipe",
+      }) as Promise<EventRecipe>;
+    },
+    DeleteEventRecipe(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.name) {
+        throw new Error("missing required field request.name");
+      }
+      const path = `calendars/v1alpha1/${request.name}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "DELETE",
+        body,
+      }, {
+        service: "EventRecipeService",
+        method: "DeleteEventRecipe",
+      }) as Promise<EventRecipe>;
+    },
+    ListEventRecipes(request) { // eslint-disable-line @typescript-eslint/no-unused-vars
+      if (!request.parent) {
+        throw new Error("missing required field request.parent");
+      }
+      const path = `calendars/v1alpha1/${request.parent}`; // eslint-disable-line quotes
+      const body = null;
+      const queryParams: string[] = [];
+      if (request.pageSize) {
+        queryParams.push(`pageSize=${encodeURIComponent(request.pageSize.toString())}`)
+      }
+      if (request.pageToken) {
+        queryParams.push(`pageToken=${encodeURIComponent(request.pageToken.toString())}`)
+      }
+      if (request.filter) {
+        queryParams.push(`filter=${encodeURIComponent(request.filter.toString())}`)
+      }
+      let uri = path;
+      if (queryParams.length > 0) {
+        uri += `?${queryParams.join("&")}`
+      }
+      return handler({
+        path: uri,
+        method: "GET",
+        body,
+      }, {
+        service: "EventRecipeService",
+        method: "ListEventRecipes",
+      }) as Promise<ListEventRecipesResponse>;
+    },
+  };
+}
 
 // @@protoc_insertion_point(typescript-http-eof)

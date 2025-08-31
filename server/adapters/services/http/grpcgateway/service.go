@@ -28,6 +28,7 @@ type Service struct {
 	calendarAccessService       calendarV1alpha1.CalendarAccessServiceServer
 	eventV1alpha1Service        calendarV1alpha1.EventServiceServer
 	accessKeyService            userV1alpha1.AccessKeyServiceServer
+	eventRecipeV1alpha1Service  calendarV1alpha1.EventRecipeServiceServer
 	domain                      domain.Domain
 }
 
@@ -45,6 +46,7 @@ type NewServiceParams struct {
 	CalendarAccessService       calendarV1alpha1.CalendarAccessServiceServer
 	EventV1alpha1Service        calendarV1alpha1.EventServiceServer
 	AccessKeyService            userV1alpha1.AccessKeyServiceServer
+	EventRecipeV1alpha1Service  calendarV1alpha1.EventRecipeServiceServer
 	Domain                      domain.Domain
 }
 
@@ -61,6 +63,7 @@ func NewService(params NewServiceParams) *Service {
 		calendarAccessService:       params.CalendarAccessService,
 		eventV1alpha1Service:        params.EventV1alpha1Service,
 		accessKeyService:            params.AccessKeyService,
+		eventRecipeV1alpha1Service:  params.EventRecipeV1alpha1Service,
 		domain:                      params.Domain,
 	}
 }
@@ -122,6 +125,11 @@ func (s *Service) Register(m *http.ServeMux) error {
 		return err
 	}
 	err = userV1alpha1.RegisterAccessKeyServiceHandlerServer(ctx, mux, s.accessKeyService)
+	if err != nil {
+		log.Printf("Failed to register gRPC gateway: %v", err)
+		return err
+	}
+	err = calendarV1alpha1.RegisterEventRecipeServiceHandlerServer(ctx, mux, s.eventRecipeV1alpha1Service)
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
 		return err

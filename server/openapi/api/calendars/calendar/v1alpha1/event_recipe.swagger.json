@@ -1,0 +1,269 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/calendars/calendar/v1alpha1/event_recipe.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "EventRecipeService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/calendars/v1alpha1/{name}": {
+      "get": {
+        "summary": "Get an event recipe",
+        "description": "Retrieves details about a specific event recipe.",
+        "operationId": "EventRecipeService_GetEventRecipe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1EventRecipe"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the event recipe",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "calendars/[^/]+/events/[^/]+/eventRecipes/[^/]+"
+          }
+        ],
+        "tags": [
+          "EventRecipeService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete an event recipe",
+        "description": "Deletes an event recipe by resource name.",
+        "operationId": "EventRecipeService_DeleteEventRecipe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1EventRecipe"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the event recipe",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "calendars/[^/]+/events/[^/]+/eventRecipes/[^/]+"
+          }
+        ],
+        "tags": [
+          "EventRecipeService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{parent}": {
+      "get": {
+        "summary": "List event recipes",
+        "description": "Lists all event recipes in the specified calendar.",
+        "operationId": "EventRecipeService_ListEventRecipes",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListEventRecipesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the event recipes",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "calendars/[^/]+/events/[^/]+/eventRecipes"
+          },
+          {
+            "name": "pageSize",
+            "description": "The maximum number of events to return",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "The next_page_token value returned from a previous List request, if any",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "A filter expression that filters events listed in the response",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "EventRecipeService"
+        ]
+      }
+    },
+    "/calendars/v1alpha1/{parent}/eventRecipes": {
+      "post": {
+        "summary": "Create an event recipe",
+        "description": "Creates a new event recipe for the specified event and recipe.",
+        "operationId": "EventRecipeService_CreateEventRecipe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1EventRecipe"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the event recipe",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "calendars/[^/]+/events/[^/]+"
+          },
+          {
+            "name": "eventRecipe",
+            "description": "the event recipe to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1EventRecipe"
+            }
+          }
+        ],
+        "tags": [
+          "EventRecipeService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1alpha1EventRecipe": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the event recipe"
+        },
+        "recipe": {
+          "type": "string",
+          "title": "the name of the recipe"
+        },
+        "createTime": {
+          "type": "string",
+          "format": "date-time",
+          "title": "the create time of the event recipe",
+          "readOnly": true
+        }
+      },
+      "title": "the event recipe",
+      "required": [
+        "recipe"
+      ]
+    },
+    "v1alpha1ListEventRecipesResponse": {
+      "type": "object",
+      "properties": {
+        "eventRecipes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1EventRecipe"
+          },
+          "title": "the event recipes"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "title": "the next page token"
+        }
+      },
+      "title": "the response to list event recipes"
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "description": "Bearer token for authentication",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

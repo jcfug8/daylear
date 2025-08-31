@@ -11,6 +11,7 @@ type Client interface {
 	userClient
 	calendarClient
 	eventClient
+	eventRecipeClient
 	accessKeyClient
 
 	Begin(context.Context) (TxClient, error)
@@ -24,6 +25,7 @@ type TxClient interface {
 	userClient
 	calendarClient
 	eventClient
+	eventRecipeClient
 	accessKeyClient
 
 	Commit() error

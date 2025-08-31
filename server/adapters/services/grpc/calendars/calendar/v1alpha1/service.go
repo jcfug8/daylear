@@ -25,6 +25,9 @@ type NewCalendarServiceParams struct {
 	UserNamer                 namer.ReflectNamer    `name:"v1alpha1UserNamer"`
 	CircleNamer               namer.ReflectNamer    `name:"v1alpha1CircleNamer"`
 	EventNamer                namer.ReflectNamer    `name:"v1alpha1EventNamer"`
+	EventRecipeNamer          namer.ReflectNamer    `name:"v1alpha1EventRecipeNamer"`
+	RecipeNamer               namer.ReflectNamer    `name:"v1alpha1RecipeNamer"`
+	EventRecipeFieldMasker    fieldmask.FieldMasker `name:"v1alpha1EventRecipeFieldMasker"`
 }
 
 // NewCalendarService creates a new CalendarService.
@@ -40,6 +43,9 @@ func NewCalendarService(params NewCalendarServiceParams) (*CalendarService, erro
 		userNamer:                 params.UserNamer,
 		circleNamer:               params.CircleNamer,
 		eventNamer:                params.EventNamer,
+		eventRecipeNamer:          params.EventRecipeNamer,
+		recipeNamer:               params.RecipeNamer,
+		eventRecipeFieldMasker:    params.EventRecipeFieldMasker,
 	}, nil
 }
 
@@ -48,6 +54,7 @@ type CalendarService struct {
 	pb.UnimplementedCalendarServiceServer
 	pb.UnimplementedCalendarAccessServiceServer
 	pb.UnimplementedEventServiceServer
+	pb.UnimplementedEventRecipeServiceServer
 	domain                    domain.Domain
 	log                       zerolog.Logger
 	calendarNamer             namer.ReflectNamer
@@ -58,6 +65,9 @@ type CalendarService struct {
 	userNamer                 namer.ReflectNamer
 	circleNamer               namer.ReflectNamer
 	eventNamer                namer.ReflectNamer
+	eventRecipeNamer          namer.ReflectNamer
+	recipeNamer               namer.ReflectNamer
+	eventRecipeFieldMasker    fieldmask.FieldMasker
 }
 
 // Register registers s to the grpc implementation of the service.
@@ -65,5 +75,6 @@ func (s *CalendarService) Register(server *grpc.Server) error {
 	pb.RegisterCalendarServiceServer(server, s)
 	pb.RegisterCalendarAccessServiceServer(server, s)
 	pb.RegisterEventServiceServer(server, s)
+	pb.RegisterEventRecipeServiceServer(server, s)
 	return nil
 }

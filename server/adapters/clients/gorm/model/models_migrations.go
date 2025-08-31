@@ -18,5 +18,6 @@ func AllModels() []interface{} {
 		&CalendarFavorite{},
 		&Event{},
 		&EventData{},
+		&EventRecipe{},
 	}
 }

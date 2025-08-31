@@ -8,5 +8,6 @@ type Domain interface {
 	tokenDomain
 	calendarDomain
 	eventDomain
+	eventRecipeDomain
 	accessKeyDomain
 }

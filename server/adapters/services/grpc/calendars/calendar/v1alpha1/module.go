@@ -15,6 +15,7 @@ var Module = fx.Module(
 		func(s *CalendarService) pb.CalendarServiceServer { return s },
 		func(s *CalendarService) pb.CalendarAccessServiceServer { return s },
 		func(s *CalendarService) pb.EventServiceServer { return s },
+		func(s *CalendarService) pb.EventRecipeServiceServer { return s },
 		fx.Annotate(
 			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.Calendar]() },
 			fx.ResultTags(`name:"v1alpha1CalendarNamer"`),
@@ -26,6 +27,10 @@ var Module = fx.Module(
 		fx.Annotate(
 			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.Event]() },
 			fx.ResultTags(`name:"v1alpha1EventNamer"`),
+		),
+		fx.Annotate(
+			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.EventRecipe]() },
+			fx.ResultTags(`name:"v1alpha1EventRecipeNamer"`),
 		),
 		fx.Annotate(
 			func() (fieldmask.FieldMasker, error) {
@@ -44,6 +49,12 @@ var Module = fx.Module(
 				return fieldmask.NewProtoFieldMasker(&pb.Event{}, eventFieldMap)
 			},
 			fx.ResultTags(`name:"v1alpha1EventFieldMasker"`),
+		),
+		fx.Annotate(
+			func() (fieldmask.FieldMasker, error) {
+				return fieldmask.NewProtoFieldMasker(&pb.EventRecipe{}, eventRecipeFieldMap)
+			},
+			fx.ResultTags(`name:"v1alpha1EventRecipeFieldMasker"`),
 		),
 	),
 )
