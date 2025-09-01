@@ -100,6 +100,9 @@ export const useRecipesStore = defineStore('recipes', () => {
     }
     console.log('Creating recipe with data:', recipe.value)
     console.log('Parent path:', parent)
+
+    cleanRecipe()
+
     try {
       const created = await recipeService.CreateRecipe({
         parent,
@@ -121,6 +124,9 @@ export const useRecipesStore = defineStore('recipes', () => {
     if (!recipe.value.name) {
       throw new Error('Recipe must have a name to be updated')
     }
+
+    cleanRecipe()
+
     try {
       const updated = await recipeService.UpdateRecipe({
         recipe: recipe.value,
@@ -132,6 +138,29 @@ export const useRecipesStore = defineStore('recipes', () => {
       console.error('Failed to update recipe:', error)
       throw error
     }
+  }
+
+  function cleanRecipe() {
+    if (!recipe.value) {
+      return
+    }
+    // default ingredient ammount to 0 if not set
+    recipe.value.ingredientGroups?.forEach((group) => {
+      group.ingredients?.forEach((ingredient) => {
+        if (!ingredient.measurementAmount) {
+          ingredient.measurementAmount = 0
+        }
+        if (!ingredient.measurementType) {
+          ingredient.measurementType = 'MEASUREMENT_TYPE_UNSPECIFIED'
+        }
+        if (!ingredient.secondMeasurementAmount) {
+          ingredient.secondMeasurementAmount = 0
+        }
+        if (!ingredient.secondMeasurementType) {
+          ingredient.secondMeasurementType = 'MEASUREMENT_TYPE_UNSPECIFIED'
+        }
+      })
+    })
   }
 
   async function acceptRecipe(accessName: string) {
