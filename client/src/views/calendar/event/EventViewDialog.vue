@@ -101,6 +101,33 @@
             </div>
           </div>
         </div>
+
+        <!-- Linked Recipes -->
+        <div v-if="eventRecipes.length > 0" class="mb-4">
+          <div class="text-caption text-medium-emphasis mb-2">Linked Recipes</div>
+          <div v-if="loadingEventRecipes" class="text-body-1">
+            <v-progress-circular indeterminate size="16" class="mr-2" />
+            Loading recipes...
+          </div>
+          <div v-else class="text-body-1">
+            <div v-for="eventRecipe in eventRecipes" :key="eventRecipe.name" class="mb-2">
+              <div v-if="getRecipeForEventRecipe(eventRecipe)" class="d-flex align-center">
+                <v-icon class="mr-2" size="small">mdi-food</v-icon>
+                <router-link 
+                  :to="getRecipeRoute(getRecipeForEventRecipe(eventRecipe)!)"
+                  class="text-decoration-none text-primary"
+                  @click="close()"
+                >
+                  {{ getRecipeForEventRecipe(eventRecipe)?.title || 'Untitled Recipe' }}
+                </router-link>
+              </div>
+              <div v-else class="d-flex align-center text-medium-emphasis">
+                <v-icon class="mr-2" size="small">mdi-food</v-icon>
+                <span>Recipe not found</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </v-card-text>
 
       <v-card-actions>
@@ -137,6 +164,8 @@
     :display-event="eventOccurrence"
     :event="event"
     :calendars="[calendar]"
+    :event-recipes="eventRecipes"
+    :recipes="recipes"
     @updated="handleEventUpdated"
     @deleted="handleEventDeleted"
   />
@@ -144,10 +173,12 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import type { Calendar, Event } from '@/genapi/api/calendars/calendar/v1alpha1'
+import type { Calendar, Event, EventRecipe } from '@/genapi/api/calendars/calendar/v1alpha1'
+import type { Recipe } from '@/genapi/api/meals/recipe/v1alpha1'
 import EventEditDialog from './EventEditDialog.vue'
 import { RecurrenceRuleDisplay } from '@/components/calendar'
 import type { CalendarEventExternal } from '@schedule-x/calendar'
+import { eventRecipeService, recipeService } from '@/api/api'
 
 const props = withDefaults(defineProps<{
   modelValue: boolean
@@ -170,6 +201,11 @@ const emit = defineEmits<{
 const internalOpen = ref<boolean>(props.modelValue)
 const showEditDialog = ref<boolean>(false)
 
+// Event recipes state
+const eventRecipes = ref<EventRecipe[]>([])
+const recipes = ref<Recipe[]>([])
+const loadingEventRecipes = ref(false)
+
 // Watch for prop changes and update internal state
 watch(() => props.modelValue, (newValue) => {
   internalOpen.value = newValue
@@ -185,6 +221,13 @@ watch(internalOpen, (newValue) => {
   // Reset edit dialog when main dialog closes
   if (!newValue) {
     showEditDialog.value = false
+  }
+})
+
+// Watch for dialog opening to load event recipes
+watch(internalOpen, (isOpen) => {
+  if (isOpen && props.event) {
+    loadEventRecipes()
   }
 })
 
@@ -252,6 +295,64 @@ function handleEventUpdated(event: Event) {
 function handleEventDeleted(event: Event) {
   emit('deleted', event)
   showEditDialog.value = false
+}
+
+// Load event recipes for the current event
+async function loadEventRecipes() {
+  if (!props.event?.name) return
+  
+  loadingEventRecipes.value = true
+  try {
+    const response = await eventRecipeService.ListEventRecipes({
+      parent: props.event.name,
+      pageSize: undefined,
+      pageToken: undefined,
+      filter: undefined
+    })
+    
+    eventRecipes.value = response.eventRecipes || []
+    
+    // Load recipe details for each event recipe
+    await loadRecipes()
+  } catch (error) {
+    console.error('Error loading event recipes:', error)
+    eventRecipes.value = []
+  } finally {
+    loadingEventRecipes.value = false
+  }
+}
+
+// Load recipe details for all event recipes
+async function loadRecipes() {
+  recipes.value = []
+  
+  for (const eventRecipe of eventRecipes.value) {
+    if (eventRecipe.recipe) {
+      try {
+        const recipe = await recipeService.GetRecipe({
+          name: eventRecipe.recipe
+        })
+        recipes.value.push(recipe)
+      } catch (error) {
+        console.error('Error loading recipe:', eventRecipe.recipe, error)
+      }
+    }
+  }
+}
+
+// Get recipe for a specific event recipe
+function getRecipeForEventRecipe(eventRecipe: EventRecipe): Recipe | undefined {
+  return recipes.value.find(recipe => recipe.name === eventRecipe.recipe)
+}
+
+// Get recipe route for a specific recipe
+function getRecipeRoute(recipe: Recipe): string {
+  if (!recipe.name) return '/recipes'
+  
+  // Extract recipe ID from the full recipe name
+  // Recipe name format: recipes/{recipe_id}
+  const recipeId = recipe.name.split('/').pop()
+  return `/recipes/${recipeId}`
 }
 </script>
 

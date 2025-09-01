@@ -255,6 +255,10 @@
         <v-icon>mdi-pencil</v-icon>
         Edit
       </v-btn>
+      <v-btn color="success" density="compact" @click="openCreateEventDialog">
+        <v-icon>mdi-calendar-plus</v-icon>
+        Schedule Event
+      </v-btn>
       <v-btn density="compact" v-if="!hasReadPermission(recipe.recipeAccess?.permissionLevel) && !recipe.recipeAccess" color="primary" @click="handleRequestAccess" :loading="requestingAccess">
         <v-icon>mdi-account-plus</v-icon>Request Access
       </v-btn>
@@ -310,6 +314,13 @@
       @remove-access="unshareRecipe"
       @permission-change="updatePermission"
       @approve-access="acceptRecipeFromShareDialog"
+    />
+
+    <!-- Event Create Dialog -->
+    <EventCreateDialog
+      v-model="showCreateEventDialog"
+      :calendars="writableCalendars"
+      @created="handleEventCreated"
     />
   </div>
   <!-- Remove Access Dialog -->
@@ -411,21 +422,25 @@
 <script setup lang="ts">
 import type { Recipe_MeasurementType, apitypes_VisibilityLevel, Recipe_Ingredient_MeasurementConjunction } from '@/genapi/api/meals/recipe/v1alpha1'
 import type { Access, CreateAccessRequest, ListAccessesRequest, DeleteAccessRequest } from '@/genapi/api/meals/recipe/v1alpha1'
-import type { PermissionLevel } from '@/genapi/api/types' 
+import type { PermissionLevel } from '@/genapi/api/types'
+import type { Calendar, Event } from '@/genapi/api/calendars/calendar/v1alpha1' 
 import { useRecipesStore } from '@/stores/recipes'
 import { useRecipeFormStore } from '@/stores/recipeForm'
 import { storeToRefs } from 'pinia'
 import { onMounted, onBeforeUnmount, watch, computed, ref, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { recipeService, recipeAccessService, fileService } from '@/api/api'
+import { recipeService, recipeAccessService, fileService, eventRecipeService } from '@/api/api'
 import { useAuthStore } from '@/stores/auth'
 import { hasWritePermission, hasAdminPermission, hasReadPermission } from '@/utils/permissions'
 import ShareDialog from '@/components/common/ShareDialog.vue'
 import { useAlertStore } from '@/stores/alerts'
+import EventCreateDialog from '@/views/calendar/event/EventCreateDialog.vue'
+import { useCalendarsStore } from '@/stores/calendar'
 
 const authStore = useAuthStore()
 const recipesStore = useRecipesStore()
 const recipeFormStore = useRecipeFormStore()
+const calendarsStore = useCalendarsStore()
 const route = useRoute()
 const router = useRouter()
 const alertsStore = useAlertStore()
@@ -559,15 +574,7 @@ function initializeCheckedState() {
 
 watch(recipe, initializeCheckedState, { immediate: true })
 
-onMounted(async () => {
-  // First check URL hash
-  const currentHash = route.hash
-  if (currentHash in hashToTab) {
-    tab.value = hashToTab[currentHash]
-  }
 
-  await recipesStore.loadRecipe(trimmedRecipeName.value)
-})
 
 // *** Tabs ***
 
@@ -1091,6 +1098,69 @@ async function shareWithCircle({ circleName, permission }: { circleName: string,
 
 const requestingAccess = ref(false)
 
+// Event creation state
+const showCreateEventDialog = ref(false)
+const writableCalendars = ref<Calendar[]>([])
+
+// Load writable calendars when component mounts
+onMounted(async () => {
+  // First check URL hash
+  const currentHash = route.hash
+  if (currentHash in hashToTab) {
+    tab.value = hashToTab[currentHash]
+  }
+
+  await recipesStore.loadRecipe(trimmedRecipeName.value)
+  
+  // Load writable calendars for event creation
+  await loadWritableCalendars()
+})
+
+async function loadWritableCalendars() {
+  if (!authStore.user?.name) return
+  
+  try {
+    await calendarsStore.loadMyCalendars(authStore.user.name)
+    // Get the calendars from the store after loading
+    const { myCalendars } = storeToRefs(calendarsStore)
+    writableCalendars.value = myCalendars.value.filter((calendar: Calendar) => {
+      // Check if user has write permission to this specific calendar
+      const calendarAccess = calendar.calendarAccess
+      if (!calendarAccess?.permissionLevel) return false
+      
+      return calendarAccess.permissionLevel === 'PERMISSION_LEVEL_WRITE' || 
+             calendarAccess.permissionLevel === 'PERMISSION_LEVEL_ADMIN'
+    })
+  } catch (error) {
+    console.error('Error loading writable calendars:', error)
+    writableCalendars.value = []
+  }
+}
+
+function openCreateEventDialog() {
+  showCreateEventDialog.value = true
+}
+
+async function handleEventCreated(event: Event) {
+  if (!recipe.value?.name || !event?.name) return
+  
+  try {
+    // Create event_recipe relationship
+    await eventRecipeService.CreateEventRecipe({
+      parent: event.name, // Use the full event name as parent
+      eventRecipe: {
+        name: undefined, // Will be set by server
+        recipe: recipe.value.name, // Use the full recipe name
+        createTime: undefined, // Will be set by server
+      }
+    })
+    
+    alertsStore.addAlert('Event created and linked to recipe successfully!', 'success')
+  } catch (error) {
+    console.error('Error creating event-recipe relationship:', error)
+    alertsStore.addAlert(error instanceof Error ? error.message : 'Failed to link event to recipe', 'error')
+  }
+}
 
 async function handleRequestAccess() {
   if (!recipe.value?.name) return

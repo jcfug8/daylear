@@ -82,7 +82,7 @@
         ]
       }
     },
-    "/calendars/v1alpha1/{parent}": {
+    "/calendars/v1alpha1/{parent}/eventRecipes": {
       "get": {
         "summary": "List event recipes",
         "description": "Lists all event recipes in the specified calendar.",
@@ -108,7 +108,7 @@
             "in": "path",
             "required": true,
             "type": "string",
-            "pattern": "calendars/[^/]+/events/[^/]+/eventRecipes"
+            "pattern": "calendars/[^/]+/events/[^/]+"
           },
           {
             "name": "pageSize",
@@ -136,9 +136,7 @@
         "tags": [
           "EventRecipeService"
         ]
-      }
-    },
-    "/calendars/v1alpha1/{parent}/eventRecipes": {
+      },
       "post": {
         "summary": "Create an event recipe",
         "description": "Creates a new event recipe for the specified event and recipe.",

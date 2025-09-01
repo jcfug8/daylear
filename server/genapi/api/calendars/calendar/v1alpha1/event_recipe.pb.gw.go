@@ -283,7 +283,7 @@ func RegisterEventRecipeServiceHandlerServer(ctx context.Context, mux *runtime.S
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.calendars.calendar.v1alpha1.EventRecipeService/ListEventRecipes", runtime.WithHTTPPathPattern("/calendars/v1alpha1/{parent=calendars/*/events/*/eventRecipes}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/api.calendars.calendar.v1alpha1.EventRecipeService/ListEventRecipes", runtime.WithHTTPPathPattern("/calendars/v1alpha1/{parent=calendars/*/events/*}/eventRecipes"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -392,7 +392,7 @@ func RegisterEventRecipeServiceHandlerClient(ctx context.Context, mux *runtime.S
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.calendars.calendar.v1alpha1.EventRecipeService/ListEventRecipes", runtime.WithHTTPPathPattern("/calendars/v1alpha1/{parent=calendars/*/events/*/eventRecipes}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/api.calendars.calendar.v1alpha1.EventRecipeService/ListEventRecipes", runtime.WithHTTPPathPattern("/calendars/v1alpha1/{parent=calendars/*/events/*}/eventRecipes"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -412,7 +412,7 @@ var (
 	pattern_EventRecipeService_CreateEventRecipe_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 0, 1, 0, 2, 2, 1, 0, 4, 4, 5, 3, 2, 4}, []string{"calendars", "v1alpha1", "events", "parent", "eventRecipes"}, ""))
 	pattern_EventRecipeService_GetEventRecipe_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 0, 1, 0, 2, 2, 1, 0, 2, 3, 1, 0, 4, 6, 5, 4}, []string{"calendars", "v1alpha1", "events", "eventRecipes", "name"}, ""))
 	pattern_EventRecipeService_DeleteEventRecipe_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 0, 1, 0, 2, 2, 1, 0, 2, 3, 1, 0, 4, 6, 5, 4}, []string{"calendars", "v1alpha1", "events", "eventRecipes", "name"}, ""))
-	pattern_EventRecipeService_ListEventRecipes_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 0, 1, 0, 2, 2, 1, 0, 2, 3, 4, 5, 5, 4}, []string{"calendars", "v1alpha1", "events", "eventRecipes", "parent"}, ""))
+	pattern_EventRecipeService_ListEventRecipes_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 0, 1, 0, 2, 2, 1, 0, 4, 4, 5, 3, 2, 4}, []string{"calendars", "v1alpha1", "events", "parent", "eventRecipes"}, ""))
 )
 
 var (

@@ -67,6 +67,24 @@ func (repo *Client) DeleteEventRecipe(ctx context.Context, id cmodel.EventRecipe
 	return m, nil
 }
 
+// BulkDeleteEventRecipes deletes all event recipes for an event
+func (repo *Client) BulkDeleteEventRecipes(ctx context.Context, eventId cmodel.EventId) error {
+	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().
+		Int64("eventId", eventId.EventId).
+		Logger()
+
+	err := repo.db.WithContext(ctx).
+		Where("event_id = ?", eventId.EventId).
+		Delete(&gmodel.EventRecipe{}).Error
+	if err != nil {
+		log.Error().Err(err).Msg("unable to bulk delete event recipes")
+		return ConvertGormError(err)
+	}
+
+	log.Info().Msg("event recipes deleted successfully")
+	return nil
+}
+
 // GetEventRecipe retrieves an event recipe
 func (repo *Client) GetEventRecipe(ctx context.Context, authAccount cmodel.AuthAccount, id cmodel.EventRecipeId, fields []string) (cmodel.EventRecipe, error) {
 	log := logutil.EnrichLoggerWithContext(repo.log, ctx).With().

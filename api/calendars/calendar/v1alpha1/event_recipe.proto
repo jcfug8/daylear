@@ -68,7 +68,7 @@ service EventRecipeService {
   // list event recipes
   rpc ListEventRecipes(ListEventRecipesRequest) returns (ListEventRecipesResponse) {
     option (google.api.method_signature) = "parent";
-    option (google.api.http) = {get: "/calendars/v1alpha1/{parent=calendars/*/events/*/eventRecipes}"};
+    option (google.api.http) = {get: "/calendars/v1alpha1/{parent=calendars/*/events/*}/eventRecipes"};
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "List event recipes"
       description: "Lists all event recipes in the specified calendar."

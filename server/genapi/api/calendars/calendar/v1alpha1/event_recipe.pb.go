@@ -401,7 +401,7 @@ const file_api_calendars_calendar_v1alpha1_event_recipe_proto_rawDesc = "" +
 	"\x11DeleteEventRecipe\x129.api.calendars.calendar.v1alpha1.DeleteEventRecipeRequest\x1a,.api.calendars.calendar.v1alpha1.EventRecipe\"\xa7\x01\x92AW\n" +
 	"\x12EventRecipeService\x12\x16Delete an event recipe\x1a)Deletes an event recipe by resource name.\xdaA\x04name\x82\xd3\xe4\x93\x02@*>/calendars/v1alpha1/{name=calendars/*/events/*/eventRecipes/*}\x12\xb8\x02\n" +
 	"\x10ListEventRecipes\x128.api.calendars.calendar.v1alpha1.ListEventRecipesRequest\x1a9.api.calendars.calendar.v1alpha1.ListEventRecipesResponse\"\xae\x01\x92A\\\n" +
-	"\x12EventRecipeService\x12\x12List event recipes\x1a2Lists all event recipes in the specified calendar.\xdaA\x06parent\x82\xd3\xe4\x93\x02@\x12>/calendars/v1alpha1/{parent=calendars/*/events/*/eventRecipes}B\x8b\x03\x92AXZD\n" +
+	"\x12EventRecipeService\x12\x12List event recipes\x1a2Lists all event recipes in the specified calendar.\xdaA\x06parent\x82\xd3\xe4\x93\x02@\x12>/calendars/v1alpha1/{parent=calendars/*/events/*}/eventRecipesB\x8b\x03\x92AXZD\n" +
 	"B\n" +
 	"\n" +
 	"BearerAuth\x124\b\x02\x12\x1fBearer token for authentication\x1a\rAuthorization \x02b\x10\n" +

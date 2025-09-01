@@ -93,6 +93,12 @@ func (d *Domain) DeleteEvent(ctx context.Context, authAccount model.AuthAccount,
 		return model.Event{}, domain.ErrInternal{Msg: "unable to delete child events"}
 	}
 
+	err = d.repo.BulkDeleteEventRecipes(ctx, id)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to delete event recipes")
+		return model.Event{}, domain.ErrInternal{Msg: "unable to delete event recipes"}
+	}
+
 	return dbEvent, nil
 }
 

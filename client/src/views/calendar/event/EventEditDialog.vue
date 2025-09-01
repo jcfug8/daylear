@@ -15,6 +15,38 @@
           :disabled="updating"
           @validation-change="onValidationChange"
         />
+
+        <!-- Linked Recipes Section -->
+        <div v-if="eventRecipes && eventRecipes.length > 0" class="mt-6">
+          <div class="text-subtitle-1 mb-3">Linked Recipes</div>
+          <v-list density="compact">
+            <v-list-item
+              v-for="eventRecipe in eventRecipes"
+              :key="eventRecipe.name"
+              class="px-0"
+              :class="{ 'text-medium-emphasis': isEventRecipeMarkedForDeletion(eventRecipe) }"
+            >
+              <template #prepend>
+                <v-icon>mdi-food</v-icon>
+              </template>
+              <v-list-item-title
+                :style="isEventRecipeMarkedForDeletion(eventRecipe) ? 'text-decoration: line-through;' : ''"
+              >
+                {{ getRecipeTitle(eventRecipe) }}
+              </v-list-item-title>
+              <template #append>
+                <v-btn
+                  :icon="isEventRecipeMarkedForDeletion(eventRecipe) ? 'mdi-undo' : 'mdi-delete'"
+                  variant="text"
+                  size="small"
+                  :color="isEventRecipeMarkedForDeletion(eventRecipe) ? 'primary' : 'error'"
+                  :disabled="updating"
+                  @click="toggleEventRecipeDeletion(eventRecipe)"
+                />
+              </template>
+            </v-list-item>
+          </v-list>
+        </div>
       </v-card-text>
       <v-card-actions>
         <v-spacer />
@@ -113,8 +145,9 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, onBeforeUnmount } from 'vue'
-import type { Calendar, Event } from '@/genapi/api/calendars/calendar/v1alpha1'
-import { eventService } from '@/api/api'
+import type { Calendar, Event, EventRecipe } from '@/genapi/api/calendars/calendar/v1alpha1'
+import type { Recipe } from '@/genapi/api/meals/recipe/v1alpha1'
+import { eventService, eventRecipeService } from '@/api/api'
 import EventForm, { type EventFormData } from './EventForm.vue'
 import type { CalendarEventExternal } from '@schedule-x/calendar'
 import { datetime, RRule } from 'rrule'
@@ -127,11 +160,15 @@ const props = withDefaults(defineProps<{
   displayEvent: CalendarEventExternal | null
   event: Event | null
   calendars: Calendar[]
+  eventRecipes?: EventRecipe[]
+  recipes?: Recipe[]
 }>(), {
   modelValue: false,
   displayEvent: null,
   event: null,
   calendars: () => [],
+  eventRecipes: () => [],
+  recipes: () => [],
 })
 
 const emit = defineEmits<{
@@ -157,6 +194,9 @@ const pendingUpdateData = ref<{
 const pendingDeleteData = ref<{
   availableOptions?: RecurringDeleteOption[]
 } | null>(null)
+
+// Event recipe management
+const eventRecipesToDelete = ref<string[]>([]) // Store event recipe names to delete
 
 const form = ref<EventFormData>({
   calendarName: null,
@@ -445,6 +485,8 @@ async function update() {
 
     
     if (updatedEvent) {
+      // Process event recipe deletions after successful event update
+      await processEventRecipeDeletions()
       emit('updated', updatedEvent)
     }
     close()
@@ -555,6 +597,8 @@ async function confirmRecurringUpdate() {
     }
     
     if (updatedEvent) {
+      // Process event recipe deletions after successful event update
+      await processEventRecipeDeletions()
       emit('updated', updatedEvent)
     }
     close()
@@ -754,6 +798,48 @@ function updateRecurrenceRulesForAllFutureEventsDelete(oldEvent: Event, currentE
 
 function onValidationChange(isValid: boolean) {
   hasValidationErrors.value = !isValid
+}
+
+// Event recipe helper functions
+function getRecipeTitle(eventRecipe: EventRecipe): string {
+  const recipe = props.recipes?.find(r => r.name === eventRecipe.recipe)
+  return recipe?.title || 'Untitled Recipe'
+}
+
+function isEventRecipeMarkedForDeletion(eventRecipe: EventRecipe): boolean {
+  return eventRecipe.name ? eventRecipesToDelete.value.includes(eventRecipe.name) : false
+}
+
+function toggleEventRecipeDeletion(eventRecipe: EventRecipe) {
+  if (!eventRecipe.name) return
+  
+  if (eventRecipesToDelete.value.includes(eventRecipe.name)) {
+    // Remove from deletion list (undo)
+    eventRecipesToDelete.value = eventRecipesToDelete.value.filter(name => name !== eventRecipe.name)
+  } else {
+    // Add to deletion list
+    eventRecipesToDelete.value.push(eventRecipe.name)
+  }
+}
+
+
+
+// Process event recipe deletions after event update
+async function processEventRecipeDeletions() {
+  if (eventRecipesToDelete.value.length === 0) return
+  
+  for (const eventRecipeName of eventRecipesToDelete.value) {
+    try {
+      await eventRecipeService.DeleteEventRecipe({
+        name: eventRecipeName
+      })
+    } catch (error) {
+      console.error('Error deleting event recipe:', eventRecipeName, error)
+    }
+  }
+  
+  // Clear the deletion list
+  eventRecipesToDelete.value = []
 }
 </script>
 

@@ -57,7 +57,7 @@
         </v-card>
         <!-- Accept button for pending recipes -->
         <v-btn
-          v-if="recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING'"
+          v-if="recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING' && recipe.recipeAccess?.acceptTarget === 'ACCEPT_TARGET_RECIPIENT'"
           color="success"
           class="accept-btn"
           @click.stop.prevent="$emit('accept', recipe)"

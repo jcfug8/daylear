@@ -1158,7 +1158,7 @@ export function createEventRecipeServiceClient(
       if (!request.parent) {
         throw new Error("missing required field request.parent");
       }
-      const path = `calendars/v1alpha1/${request.parent}`; // eslint-disable-line quotes
+      const path = `calendars/v1alpha1/${request.parent}/eventRecipes`; // eslint-disable-line quotes
       const body = null;
       const queryParams: string[] = [];
       if (request.pageSize) {
