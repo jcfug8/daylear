@@ -1,0 +1,976 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/lists/list/v1alpha1/list.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "ListService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/lists/v1alpha1/lists": {
+      "get": {
+        "summary": "List lists",
+        "description": "Retrieves a paginated list of lists. Supports filtering and pagination.",
+        "operationId": "ListService_ListLists",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListListsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pageSize",
+            "description": "returned page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "used to specify the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "parent",
+            "description": "the parent of the lists",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ListService"
+        ]
+      },
+      "post": {
+        "summary": "Create a list",
+        "description": "Creates a new list with the provided details.",
+        "operationId": "ListService_CreateList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1List"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "list",
+            "description": "the list to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1List"
+            }
+          },
+          {
+            "name": "listId",
+            "description": "the id of the list",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "parent",
+            "description": "the parent of the list",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ListService"
+        ]
+      }
+    },
+    "/lists/v1alpha1/{list.name}": {
+      "patch": {
+        "summary": "Update a list",
+        "description": "Updates the details of an existing list.",
+        "operationId": "ListService_UpdateList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1List"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "list.name",
+            "description": "the name of the list",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+"
+          },
+          {
+            "name": "list",
+            "description": "the list to update",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "title": "the title of the list"
+                },
+                "description": {
+                  "type": "string",
+                  "title": "the description of the list"
+                },
+                "showCompleted": {
+                  "type": "boolean",
+                  "title": "show completed"
+                },
+                "visibility": {
+                  "$ref": "#/definitions/typesVisibilityLevel",
+                  "title": "the visibility of the list"
+                },
+                "listAccess": {
+                  "$ref": "#/definitions/ListListAccess",
+                  "title": "the access details for the current user/circle",
+                  "readOnly": true
+                },
+                "createTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "the time the list was created (UTC)",
+                  "readOnly": true
+                },
+                "updateTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "the time the list was last updated (UTC)",
+                  "readOnly": true
+                },
+                "favorited": {
+                  "type": "boolean",
+                  "title": "favorited",
+                  "readOnly": true
+                },
+                "sections": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/ListListSection"
+                  },
+                  "title": "the sections of the list",
+                  "readOnly": true
+                }
+              },
+              "title": "the list to update",
+              "required": [
+                "title",
+                "showCompleted",
+                "visibility",
+                "list"
+              ]
+            }
+          }
+        ],
+        "tags": [
+          "ListService"
+        ]
+      }
+    },
+    "/lists/v1alpha1/{name}": {
+      "get": {
+        "summary": "Get a list",
+        "description": "Retrieves a single list by resource name.",
+        "operationId": "ListService_GetList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1List"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the list to get",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+"
+          }
+        ],
+        "tags": [
+          "ListService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a list",
+        "description": "Deletes a list by resource name.",
+        "operationId": "ListService_DeleteList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1List"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the list to delete",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+"
+          }
+        ],
+        "tags": [
+          "ListService"
+        ]
+      }
+    },
+    "/lists/v1alpha1/{parent_1}/lists": {
+      "get": {
+        "summary": "List lists",
+        "description": "Retrieves a paginated list of lists. Supports filtering and pagination.",
+        "operationId": "ListService_ListLists3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListListsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent_1",
+            "description": "the parent of the lists",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+"
+          },
+          {
+            "name": "pageSize",
+            "description": "returned page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "used to specify the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ListService"
+        ]
+      },
+      "post": {
+        "summary": "Create a list",
+        "description": "Creates a new list with the provided details.",
+        "operationId": "ListService_CreateList3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1List"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent_1",
+            "description": "the parent of the list",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+"
+          },
+          {
+            "name": "list",
+            "description": "the list to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1List"
+            }
+          },
+          {
+            "name": "listId",
+            "description": "the id of the list",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ListService"
+        ]
+      }
+    },
+    "/lists/v1alpha1/{parent}/lists": {
+      "get": {
+        "summary": "List lists",
+        "description": "Retrieves a paginated list of lists. Supports filtering and pagination.",
+        "operationId": "ListService_ListLists2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListListsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the lists",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "pageSize",
+            "description": "returned page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "used to specify the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ListService"
+        ]
+      },
+      "post": {
+        "summary": "Create a list",
+        "description": "Creates a new list with the provided details.",
+        "operationId": "ListService_CreateList2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1List"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the list",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+"
+          },
+          {
+            "name": "list",
+            "description": "the list to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1List"
+            }
+          },
+          {
+            "name": "listId",
+            "description": "the id of the list",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ListService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name_1}:favorite": {
+      "post": {
+        "summary": "Favorite a list",
+        "description": "Favorites a list by resource name.",
+        "operationId": "ListService_FavoriteList2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1FavoriteListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "the name of the list to favorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/lists/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ListServiceFavoriteListBody"
+            }
+          }
+        ],
+        "tags": [
+          "ListService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name_1}:unfavorite": {
+      "post": {
+        "summary": "Unfavorite a list",
+        "description": "Unfavorites a list by resource name.",
+        "operationId": "ListService_UnfavoriteList2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UnfavoriteListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "the name of the list to unfavorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/lists/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ListServiceUnfavoriteListBody"
+            }
+          }
+        ],
+        "tags": [
+          "ListService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name_2}:favorite": {
+      "post": {
+        "summary": "Favorite a list",
+        "description": "Favorites a list by resource name.",
+        "operationId": "ListService_FavoriteList3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1FavoriteListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_2",
+            "description": "the name of the list to favorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/lists/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ListServiceFavoriteListBody"
+            }
+          }
+        ],
+        "tags": [
+          "ListService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name_2}:unfavorite": {
+      "post": {
+        "summary": "Unfavorite a list",
+        "description": "Unfavorites a list by resource name.",
+        "operationId": "ListService_UnfavoriteList3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UnfavoriteListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_2",
+            "description": "the name of the list to unfavorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "users/[^/]+/lists/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ListServiceUnfavoriteListBody"
+            }
+          }
+        ],
+        "tags": [
+          "ListService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name}:favorite": {
+      "post": {
+        "summary": "Favorite a list",
+        "description": "Favorites a list by resource name.",
+        "operationId": "ListService_FavoriteList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1FavoriteListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the list to favorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ListServiceFavoriteListBody"
+            }
+          }
+        ],
+        "tags": [
+          "ListService"
+        ]
+      }
+    },
+    "/meals/v1alpha1/{name}:unfavorite": {
+      "post": {
+        "summary": "Unfavorite a list",
+        "description": "Unfavorites a list by resource name.",
+        "operationId": "ListService_UnfavoriteList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UnfavoriteListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the list to unfavorite",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ListServiceUnfavoriteListBody"
+            }
+          }
+        ],
+        "tags": [
+          "ListService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ListListAccess": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the list access",
+          "readOnly": true
+        },
+        "permissionLevel": {
+          "$ref": "#/definitions/typesPermissionLevel",
+          "title": "the permission of the list",
+          "readOnly": true
+        },
+        "state": {
+          "$ref": "#/definitions/typesAccessState",
+          "title": "the access state of the user to the list",
+          "readOnly": true
+        },
+        "acceptTarget": {
+          "$ref": "#/definitions/typesAcceptTarget",
+          "title": "the accept target of the list",
+          "readOnly": true
+        }
+      },
+      "title": "the list access details"
+    },
+    "ListListSection": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the list section",
+          "readOnly": true
+        },
+        "title": {
+          "type": "string",
+          "title": "the name of the list section",
+          "readOnly": true
+        }
+      },
+      "title": "the details for a list section"
+    },
+    "ListServiceFavoriteListBody": {
+      "type": "object",
+      "title": "the request to favorite a list"
+    },
+    "ListServiceUnfavoriteListBody": {
+      "type": "object",
+      "title": "the request to unfavorite a list"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "typesAcceptTarget": {
+      "type": "string",
+      "enum": [
+        "ACCEPT_TARGET_UNSPECIFIED",
+        "ACCEPT_TARGET_RECIPIENT",
+        "ACCEPT_TARGET_RESOURCE"
+      ],
+      "default": "ACCEPT_TARGET_UNSPECIFIED",
+      "description": "- ACCEPT_TARGET_UNSPECIFIED: Acceptance not required or not applicable\n - ACCEPT_TARGET_RECIPIENT: The recipient or someone with correct access to the recipient can accept the access request\n - ACCEPT_TARGET_RESOURCE: The resource owner or someone with correct access to the resource can accept the access request",
+      "title": "The target of the accept action, or who can accept the access request"
+    },
+    "typesAccessState": {
+      "type": "string",
+      "enum": [
+        "ACCESS_STATE_UNSPECIFIED",
+        "ACCESS_STATE_PENDING",
+        "ACCESS_STATE_ACCEPTED"
+      ],
+      "default": "ACCESS_STATE_UNSPECIFIED",
+      "description": "- ACCESS_STATE_UNSPECIFIED: This status should never get used.\n - ACCESS_STATE_PENDING: The access is pending and can either be accepted or deleted.\n - ACCESS_STATE_ACCEPTED: The access is accepted and can be deleted.",
+      "title": "the visibility levels"
+    },
+    "typesPermissionLevel": {
+      "type": "string",
+      "enum": [
+        "PERMISSION_LEVEL_UNSPECIFIED",
+        "PERMISSION_LEVEL_PUBLIC",
+        "PERMISSION_LEVEL_READ",
+        "PERMISSION_LEVEL_WRITE",
+        "PERMISSION_LEVEL_ADMIN"
+      ],
+      "default": "PERMISSION_LEVEL_UNSPECIFIED",
+      "description": "- PERMISSION_LEVEL_UNSPECIFIED: the permission is not specified\n - PERMISSION_LEVEL_PUBLIC: the permission is public\n - PERMISSION_LEVEL_READ: the permission is read\n - PERMISSION_LEVEL_WRITE: the permission is write\n - PERMISSION_LEVEL_ADMIN: the permission is admin",
+      "title": "the permission levels"
+    },
+    "typesVisibilityLevel": {
+      "type": "string",
+      "enum": [
+        "VISIBILITY_LEVEL_UNSPECIFIED",
+        "VISIBILITY_LEVEL_PUBLIC",
+        "VISIBILITY_LEVEL_RESTRICTED",
+        "VISIBILITY_LEVEL_PRIVATE",
+        "VISIBILITY_LEVEL_HIDDEN"
+      ],
+      "default": "VISIBILITY_LEVEL_UNSPECIFIED",
+      "description": "- VISIBILITY_LEVEL_UNSPECIFIED: the visibility is not specified\n - VISIBILITY_LEVEL_PUBLIC: the visibility is public\n - VISIBILITY_LEVEL_RESTRICTED: the visibility is restricted\n - VISIBILITY_LEVEL_PRIVATE: the visibility is private\n - VISIBILITY_LEVEL_HIDDEN: the visibility is hidden",
+      "title": "the visibility levels"
+    },
+    "v1alpha1FavoriteListResponse": {
+      "type": "object",
+      "title": "the response to favorite a list"
+    },
+    "v1alpha1List": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the list"
+        },
+        "title": {
+          "type": "string",
+          "title": "the title of the list"
+        },
+        "description": {
+          "type": "string",
+          "title": "the description of the list"
+        },
+        "showCompleted": {
+          "type": "boolean",
+          "title": "show completed"
+        },
+        "visibility": {
+          "$ref": "#/definitions/typesVisibilityLevel",
+          "title": "the visibility of the list"
+        },
+        "listAccess": {
+          "$ref": "#/definitions/ListListAccess",
+          "title": "the access details for the current user/circle",
+          "readOnly": true
+        },
+        "createTime": {
+          "type": "string",
+          "format": "date-time",
+          "title": "the time the list was created (UTC)",
+          "readOnly": true
+        },
+        "updateTime": {
+          "type": "string",
+          "format": "date-time",
+          "title": "the time the list was last updated (UTC)",
+          "readOnly": true
+        },
+        "favorited": {
+          "type": "boolean",
+          "title": "favorited",
+          "readOnly": true
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ListListSection"
+          },
+          "title": "the sections of the list",
+          "readOnly": true
+        }
+      },
+      "title": "the main list object",
+      "required": [
+        "title",
+        "showCompleted",
+        "visibility"
+      ]
+    },
+    "v1alpha1ListListsResponse": {
+      "type": "object",
+      "properties": {
+        "lists": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1List"
+          },
+          "title": "the lists"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "title": "the next page token"
+        }
+      },
+      "title": "the response to list lists"
+    },
+    "v1alpha1UnfavoriteListResponse": {
+      "type": "object",
+      "title": "the response to unfavorite a list"
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "description": "Bearer token for authentication",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

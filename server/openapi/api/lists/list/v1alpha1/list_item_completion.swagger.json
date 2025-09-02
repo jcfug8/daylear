@@ -1,0 +1,361 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/lists/list/v1alpha1/list_item_completion.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "ListItemCompletionService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/lists/v1alpha1/{listItemCompletion.name}": {
+      "patch": {
+        "summary": "Update a listItemCompletion",
+        "description": "Updates the details of an existing listItemCompletion.",
+        "operationId": "ListItemCompletionService_UpdateListItemCompletion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListItemCompletion"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "listItemCompletion.name",
+            "description": "the name of the listItemCompletion",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+/listItems/[^/]+/listItemCompletions/[^/]+"
+          },
+          {
+            "name": "listItemCompletion",
+            "description": "the listItemCompletion to update",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "title": "the title of the listItemCompletion"
+                },
+                "listSection": {
+                  "type": "string",
+                  "title": "List Section"
+                },
+                "points": {
+                  "type": "integer",
+                  "format": "int32",
+                  "title": "points"
+                },
+                "createTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "the time the listItemCompletion was created (UTC)",
+                  "readOnly": true
+                },
+                "updateTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "the time the listItemCompletion was last updated (UTC)",
+                  "readOnly": true
+                }
+              },
+              "title": "the listItemCompletion to update",
+              "required": [
+                "title",
+                "listSection",
+                "points",
+                "listItemCompletion"
+              ]
+            }
+          }
+        ],
+        "tags": [
+          "ListItemCompletionService"
+        ]
+      }
+    },
+    "/lists/v1alpha1/{name}": {
+      "get": {
+        "summary": "Get a listItemCompletion",
+        "description": "Retrieves a single listItemCompletion by resource name.",
+        "operationId": "ListItemCompletionService_GetListItemCompletion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListItemCompletion"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the listItemCompletion to get",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+/listItems/[^/]+/listItemCompletions/[^/]+"
+          }
+        ],
+        "tags": [
+          "ListItemCompletionService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a listItemCompletion",
+        "description": "Deletes a listItemCompletion by resource name.",
+        "operationId": "ListItemCompletionService_DeleteListItemCompletion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListItemCompletion"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the listItemCompletion to delete",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+/listItems/[^/]+/listItemCompletions/[^/]+"
+          }
+        ],
+        "tags": [
+          "ListItemCompletionService"
+        ]
+      }
+    },
+    "/lists/v1alpha1/{parent}/listItemCompletions": {
+      "get": {
+        "summary": "ListItemCompletion list_items",
+        "description": "Retrieves a paginated listItemCompletion of listItemCompletions. Supports filtering and pagination.",
+        "operationId": "ListItemCompletionService_ListListItemCompletions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListListItemCompletionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the listItemCompletions",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+/listItems/[^/]+"
+          },
+          {
+            "name": "pageSize",
+            "description": "returned page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "used to specify the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ListItemCompletionService"
+        ]
+      },
+      "post": {
+        "summary": "Create a listItemCompletion",
+        "description": "Creates a new listItemCompletion with the provided details.",
+        "operationId": "ListItemCompletionService_CreateListItemCompletion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListItemCompletion"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the listItemCompletion",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+/listItems/[^/]+"
+          },
+          {
+            "name": "listItemCompletion",
+            "description": "the listItemCompletion to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListItemCompletion"
+            }
+          }
+        ],
+        "tags": [
+          "ListItemCompletionService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1alpha1ListItemCompletion": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the listItemCompletion"
+        },
+        "title": {
+          "type": "string",
+          "title": "the title of the listItemCompletion"
+        },
+        "listSection": {
+          "type": "string",
+          "title": "List Section"
+        },
+        "points": {
+          "type": "integer",
+          "format": "int32",
+          "title": "points"
+        },
+        "createTime": {
+          "type": "string",
+          "format": "date-time",
+          "title": "the time the listItemCompletion was created (UTC)",
+          "readOnly": true
+        },
+        "updateTime": {
+          "type": "string",
+          "format": "date-time",
+          "title": "the time the listItemCompletion was last updated (UTC)",
+          "readOnly": true
+        }
+      },
+      "title": "the main listItemCompletion object",
+      "required": [
+        "title",
+        "listSection",
+        "points"
+      ]
+    },
+    "v1alpha1ListListItemCompletionsResponse": {
+      "type": "object",
+      "properties": {
+        "listItemCompletions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1ListItemCompletion"
+          },
+          "title": "the listItemCompletions"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "title": "the next page token"
+        }
+      },
+      "title": "the response to listItemCompletion listItemCompletions"
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "description": "Bearer token for authentication",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

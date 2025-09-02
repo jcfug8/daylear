@@ -8,6 +8,7 @@ import (
 type Client interface {
 	circleClient
 	recipeClient
+	listClient
 	userClient
 	calendarClient
 	eventClient
@@ -22,6 +23,7 @@ type Client interface {
 type TxClient interface {
 	circleClient
 	recipeClient
+	listClient
 	userClient
 	calendarClient
 	eventClient

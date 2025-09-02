@@ -1,0 +1,791 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/lists/list/v1alpha1/list_access.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "ListAccessService",
+      "description": "List Access management",
+      "externalDocs": {
+        "description": "Daylear API Documentation",
+        "url": "https://daylear.com/docs"
+      }
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/lists/v1alpha1/{access.name_1}": {
+      "patch": {
+        "summary": "Update a list access",
+        "description": "Updates the permission level or recipient for a list access.",
+        "operationId": "ListAccessService_UpdateAccess2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/listslistv1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "access.name_1",
+            "description": "The name of the access",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/lists/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "access",
+            "description": "access",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "requester": {
+                  "$ref": "#/definitions/listslistv1alpha1AccessRequesterOrRecipient",
+                  "title": "the name of the requester",
+                  "readOnly": true
+                },
+                "recipient": {
+                  "$ref": "#/definitions/listslistv1alpha1AccessRequesterOrRecipient",
+                  "title": "the name of the recipient"
+                },
+                "level": {
+                  "$ref": "#/definitions/typesPermissionLevel",
+                  "title": "the permission level of the access"
+                },
+                "state": {
+                  "$ref": "#/definitions/typesAccessState",
+                  "title": "the status of the access",
+                  "readOnly": true
+                },
+                "acceptTarget": {
+                  "$ref": "#/definitions/typesAcceptTarget",
+                  "title": "the accept target of the access",
+                  "readOnly": true
+                }
+              },
+              "title": "access",
+              "required": [
+                "recipient",
+                "level",
+                "access"
+              ]
+            }
+          }
+        ],
+        "tags": [
+          "ListAccessService"
+        ]
+      }
+    },
+    "/lists/v1alpha1/{access.name}": {
+      "patch": {
+        "summary": "Update a list access",
+        "description": "Updates the permission level or recipient for a list access.",
+        "operationId": "ListAccessService_UpdateAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/listslistv1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "access.name",
+            "description": "The name of the access",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "access",
+            "description": "access",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "requester": {
+                  "$ref": "#/definitions/listslistv1alpha1AccessRequesterOrRecipient",
+                  "title": "the name of the requester",
+                  "readOnly": true
+                },
+                "recipient": {
+                  "$ref": "#/definitions/listslistv1alpha1AccessRequesterOrRecipient",
+                  "title": "the name of the recipient"
+                },
+                "level": {
+                  "$ref": "#/definitions/typesPermissionLevel",
+                  "title": "the permission level of the access"
+                },
+                "state": {
+                  "$ref": "#/definitions/typesAccessState",
+                  "title": "the status of the access",
+                  "readOnly": true
+                },
+                "acceptTarget": {
+                  "$ref": "#/definitions/typesAcceptTarget",
+                  "title": "the accept target of the access",
+                  "readOnly": true
+                }
+              },
+              "title": "access",
+              "required": [
+                "recipient",
+                "level",
+                "access"
+              ]
+            }
+          }
+        ],
+        "tags": [
+          "ListAccessService"
+        ]
+      }
+    },
+    "/lists/v1alpha1/{name_1}": {
+      "get": {
+        "summary": "Get a list access",
+        "description": "Retrieves details about a specific list access.",
+        "operationId": "ListAccessService_GetAccess2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/listslistv1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/lists/[^/]+/accesses/[^/]+"
+          }
+        ],
+        "tags": [
+          "ListAccessService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a list access",
+        "description": "Removes a user's or circle's access to a list.",
+        "operationId": "ListAccessService_DeleteAccess2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/lists/[^/]+/accesses/[^/]+"
+          }
+        ],
+        "tags": [
+          "ListAccessService"
+        ]
+      }
+    },
+    "/lists/v1alpha1/{name_1}:accept": {
+      "post": {
+        "summary": "Accept a list access",
+        "description": "Accepts a pending list access, changing its state from PENDING to ACCEPTED.",
+        "operationId": "ListAccessService_AcceptListAccess2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1AcceptListAccessResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name_1",
+            "description": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/lists/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ListAccessServiceAcceptListAccessBody"
+            }
+          }
+        ],
+        "tags": [
+          "ListAccessService"
+        ]
+      }
+    },
+    "/lists/v1alpha1/{name}": {
+      "get": {
+        "summary": "Get a list access",
+        "description": "Retrieves details about a specific list access.",
+        "operationId": "ListAccessService_GetAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/listslistv1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+/accesses/[^/]+"
+          }
+        ],
+        "tags": [
+          "ListAccessService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a list access",
+        "description": "Removes a user's or circle's access to a list.",
+        "operationId": "ListAccessService_DeleteAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+/accesses/[^/]+"
+          }
+        ],
+        "tags": [
+          "ListAccessService"
+        ]
+      }
+    },
+    "/lists/v1alpha1/{name}:accept": {
+      "post": {
+        "summary": "Accept a list access",
+        "description": "Accepts a pending list access, changing its state from PENDING to ACCEPTED.",
+        "operationId": "ListAccessService_AcceptListAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1AcceptListAccessResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "name",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+/accesses/[^/]+"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ListAccessServiceAcceptListAccessBody"
+            }
+          }
+        ],
+        "tags": [
+          "ListAccessService"
+        ]
+      }
+    },
+    "/lists/v1alpha1/{parent_1}/accesses": {
+      "get": {
+        "summary": "List list accesses",
+        "description": "Lists all users and circles with access to a list. If no list is provided, the response will only return the accesses for the current user (or circle if the circle header is provided).",
+        "operationId": "ListAccessService_ListAccesses2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/listslistv1alpha1ListAccessesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent_1",
+            "description": "parent",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/lists/[^/]+"
+          },
+          {
+            "name": "filter",
+            "description": "The filter to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "description": "The page size to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "The page token to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ListAccessService"
+        ]
+      },
+      "post": {
+        "summary": "Grant a user or circle access to a list",
+        "description": "Grants a user or circle a specific permission level to a list.",
+        "operationId": "ListAccessService_CreateAccess2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/listslistv1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent_1",
+            "description": "parent",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "circles/[^/]+/lists/[^/]+"
+          },
+          {
+            "name": "access",
+            "description": "The access to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/listslistv1alpha1Access"
+            }
+          }
+        ],
+        "tags": [
+          "ListAccessService"
+        ]
+      }
+    },
+    "/lists/v1alpha1/{parent}/accesses": {
+      "get": {
+        "summary": "List list accesses",
+        "description": "Lists all users and circles with access to a list. If no list is provided, the response will only return the accesses for the current user (or circle if the circle header is provided).",
+        "operationId": "ListAccessService_ListAccesses",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/listslistv1alpha1ListAccessesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "parent",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+"
+          },
+          {
+            "name": "filter",
+            "description": "The filter to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "description": "The page size to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "The page token to apply to the list",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ListAccessService"
+        ]
+      },
+      "post": {
+        "summary": "Grant a user or circle access to a list",
+        "description": "Grants a user or circle a specific permission level to a list.",
+        "operationId": "ListAccessService_CreateAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/listslistv1alpha1Access"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "parent",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+"
+          },
+          {
+            "name": "access",
+            "description": "The access to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/listslistv1alpha1Access"
+            }
+          }
+        ],
+        "tags": [
+          "ListAccessService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ListAccessServiceAcceptListAccessBody": {
+      "type": "object",
+      "title": "The request to accept a list access"
+    },
+    "listslistv1alpha1Access": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "The name of the access"
+        },
+        "requester": {
+          "$ref": "#/definitions/listslistv1alpha1AccessRequesterOrRecipient",
+          "title": "the name of the requester",
+          "readOnly": true
+        },
+        "recipient": {
+          "$ref": "#/definitions/listslistv1alpha1AccessRequesterOrRecipient",
+          "title": "the name of the recipient"
+        },
+        "level": {
+          "$ref": "#/definitions/typesPermissionLevel",
+          "title": "the permission level of the access"
+        },
+        "state": {
+          "$ref": "#/definitions/typesAccessState",
+          "title": "the status of the access",
+          "readOnly": true
+        },
+        "acceptTarget": {
+          "$ref": "#/definitions/typesAcceptTarget",
+          "title": "the accept target of the access",
+          "readOnly": true
+        }
+      },
+      "title": "This represents the data about a user's or circle's access to a list",
+      "required": [
+        "recipient",
+        "level"
+      ]
+    },
+    "listslistv1alpha1AccessCircle": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the circle"
+        },
+        "title": {
+          "type": "string",
+          "title": "the title of the circle",
+          "readOnly": true
+        },
+        "handle": {
+          "type": "string",
+          "title": "the handle of the circle",
+          "readOnly": true
+        }
+      },
+      "title": "circle data",
+      "required": [
+        "name"
+      ]
+    },
+    "listslistv1alpha1AccessRequesterOrRecipient": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/listslistv1alpha1AccessUser",
+          "title": "the name of the user"
+        },
+        "circle": {
+          "$ref": "#/definitions/listslistv1alpha1AccessCircle",
+          "title": "the name of the circle"
+        }
+      },
+      "title": "the requester or recipient of the access"
+    },
+    "listslistv1alpha1AccessUser": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the user"
+        },
+        "username": {
+          "type": "string",
+          "title": "the username of the user",
+          "readOnly": true
+        },
+        "givenName": {
+          "type": "string",
+          "title": "the full name of the user",
+          "readOnly": true
+        },
+        "familyName": {
+          "type": "string",
+          "title": "the last name of the user",
+          "readOnly": true
+        }
+      },
+      "title": "user data",
+      "required": [
+        "name"
+      ]
+    },
+    "listslistv1alpha1ListAccessesResponse": {
+      "type": "object",
+      "properties": {
+        "accesses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/listslistv1alpha1Access"
+          },
+          "title": "The list of accesses"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "title": "The next page token"
+        }
+      },
+      "title": "The response to list accesses to a list"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "typesAcceptTarget": {
+      "type": "string",
+      "enum": [
+        "ACCEPT_TARGET_UNSPECIFIED",
+        "ACCEPT_TARGET_RECIPIENT",
+        "ACCEPT_TARGET_RESOURCE"
+      ],
+      "default": "ACCEPT_TARGET_UNSPECIFIED",
+      "description": "- ACCEPT_TARGET_UNSPECIFIED: Acceptance not required or not applicable\n - ACCEPT_TARGET_RECIPIENT: The recipient or someone with correct access to the recipient can accept the access request\n - ACCEPT_TARGET_RESOURCE: The resource owner or someone with correct access to the resource can accept the access request",
+      "title": "The target of the accept action, or who can accept the access request"
+    },
+    "typesAccessState": {
+      "type": "string",
+      "enum": [
+        "ACCESS_STATE_UNSPECIFIED",
+        "ACCESS_STATE_PENDING",
+        "ACCESS_STATE_ACCEPTED"
+      ],
+      "default": "ACCESS_STATE_UNSPECIFIED",
+      "description": "- ACCESS_STATE_UNSPECIFIED: This status should never get used.\n - ACCESS_STATE_PENDING: The access is pending and can either be accepted or deleted.\n - ACCESS_STATE_ACCEPTED: The access is accepted and can be deleted.",
+      "title": "the visibility levels"
+    },
+    "typesPermissionLevel": {
+      "type": "string",
+      "enum": [
+        "PERMISSION_LEVEL_UNSPECIFIED",
+        "PERMISSION_LEVEL_PUBLIC",
+        "PERMISSION_LEVEL_READ",
+        "PERMISSION_LEVEL_WRITE",
+        "PERMISSION_LEVEL_ADMIN"
+      ],
+      "default": "PERMISSION_LEVEL_UNSPECIFIED",
+      "description": "- PERMISSION_LEVEL_UNSPECIFIED: the permission is not specified\n - PERMISSION_LEVEL_PUBLIC: the permission is public\n - PERMISSION_LEVEL_READ: the permission is read\n - PERMISSION_LEVEL_WRITE: the permission is write\n - PERMISSION_LEVEL_ADMIN: the permission is admin",
+      "title": "the permission levels"
+    },
+    "v1alpha1AcceptListAccessResponse": {
+      "type": "object",
+      "title": "The response to accept a list access"
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "description": "Bearer token for authentication",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

@@ -1,0 +1,369 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/lists/list/v1alpha1/list_item.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "ListItemService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/lists/v1alpha1/{listItem.name}": {
+      "patch": {
+        "summary": "Update a listItem",
+        "description": "Updates the details of an existing listItem.",
+        "operationId": "ListItemService_UpdateListItem",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListItem"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "listItem.name",
+            "description": "the name of the listItem",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+/listItems/[^/]+"
+          },
+          {
+            "name": "listItem",
+            "description": "the listItem to update",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "title": "the title of the listItem"
+                },
+                "listSection": {
+                  "type": "string",
+                  "title": "List Section"
+                },
+                "points": {
+                  "type": "integer",
+                  "format": "int32",
+                  "title": "points"
+                },
+                "recurrenceRule": {
+                  "type": "string",
+                  "title": "the recurrence rule of the listItem"
+                },
+                "createTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "the time the listItem was created (UTC)",
+                  "readOnly": true
+                },
+                "updateTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "the time the listItem was last updated (UTC)",
+                  "readOnly": true
+                }
+              },
+              "title": "the listItem to update",
+              "required": [
+                "title",
+                "listSection",
+                "points",
+                "listItem"
+              ]
+            }
+          }
+        ],
+        "tags": [
+          "ListItemService"
+        ]
+      }
+    },
+    "/lists/v1alpha1/{name}": {
+      "get": {
+        "summary": "Get a listItem",
+        "description": "Retrieves a single listItem by resource name.",
+        "operationId": "ListItemService_GetListItem",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListItem"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the listItem to get",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+/listItems/[^/]+"
+          }
+        ],
+        "tags": [
+          "ListItemService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete a listItem",
+        "description": "Deletes a listItem by resource name.",
+        "operationId": "ListItemService_DeleteListItem",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListItem"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "the name of the listItem to delete",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+/listItems/[^/]+"
+          }
+        ],
+        "tags": [
+          "ListItemService"
+        ]
+      }
+    },
+    "/lists/v1alpha1/{parent}/listItems": {
+      "get": {
+        "summary": "ListItem list_items",
+        "description": "Retrieves a paginated listItem of listItems. Supports filtering and pagination.",
+        "operationId": "ListItemService_ListListItems",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListListItemsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the listItems",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+"
+          },
+          {
+            "name": "pageSize",
+            "description": "returned page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "used to specify the page token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "used to specify the filter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ListItemService"
+        ]
+      },
+      "post": {
+        "summary": "Create a listItem",
+        "description": "Creates a new listItem with the provided details.",
+        "operationId": "ListItemService_CreateListItem",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListItem"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "parent",
+            "description": "the parent of the listItem",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "pattern": "lists/[^/]+"
+          },
+          {
+            "name": "listItem",
+            "description": "the listItem to create",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListItem"
+            }
+          }
+        ],
+        "tags": [
+          "ListItemService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1alpha1ListItem": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "the name of the listItem"
+        },
+        "title": {
+          "type": "string",
+          "title": "the title of the listItem"
+        },
+        "listSection": {
+          "type": "string",
+          "title": "List Section"
+        },
+        "points": {
+          "type": "integer",
+          "format": "int32",
+          "title": "points"
+        },
+        "recurrenceRule": {
+          "type": "string",
+          "title": "the recurrence rule of the listItem"
+        },
+        "createTime": {
+          "type": "string",
+          "format": "date-time",
+          "title": "the time the listItem was created (UTC)",
+          "readOnly": true
+        },
+        "updateTime": {
+          "type": "string",
+          "format": "date-time",
+          "title": "the time the listItem was last updated (UTC)",
+          "readOnly": true
+        }
+      },
+      "title": "the main listItem object",
+      "required": [
+        "title",
+        "listSection",
+        "points"
+      ]
+    },
+    "v1alpha1ListListItemsResponse": {
+      "type": "object",
+      "properties": {
+        "listItems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1ListItem"
+          },
+          "title": "the listItems"
+        },
+        "nextPageToken": {
+          "type": "string",
+          "title": "the next page token"
+        }
+      },
+      "title": "the response to listItem listItems"
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "description": "Bearer token for authentication",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

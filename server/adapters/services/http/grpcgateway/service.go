@@ -11,6 +11,7 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	calendarV1alpha1 "github.com/jcfug8/daylear/server/genapi/api/calendars/calendar/v1alpha1"
 	circleV1alpha1 "github.com/jcfug8/daylear/server/genapi/api/circles/circle/v1alpha1"
+	listsV1alpha1 "github.com/jcfug8/daylear/server/genapi/api/lists/list/v1alpha1"
 	recipesV1alpha1 "github.com/jcfug8/daylear/server/genapi/api/meals/recipe/v1alpha1"
 	userV1alpha1 "github.com/jcfug8/daylear/server/genapi/api/users/user/v1alpha1"
 	"github.com/jcfug8/daylear/server/ports/domain"
@@ -29,6 +30,8 @@ type Service struct {
 	eventV1alpha1Service        calendarV1alpha1.EventServiceServer
 	accessKeyService            userV1alpha1.AccessKeyServiceServer
 	eventRecipeV1alpha1Service  calendarV1alpha1.EventRecipeServiceServer
+	listsV1alpha1Service        listsV1alpha1.ListServiceServer
+	listAccessService           listsV1alpha1.ListAccessServiceServer
 	domain                      domain.Domain
 }
 
@@ -47,6 +50,8 @@ type NewServiceParams struct {
 	EventV1alpha1Service        calendarV1alpha1.EventServiceServer
 	AccessKeyService            userV1alpha1.AccessKeyServiceServer
 	EventRecipeV1alpha1Service  calendarV1alpha1.EventRecipeServiceServer
+	ListsV1alpha1Service        listsV1alpha1.ListServiceServer
+	ListAccessService           listsV1alpha1.ListAccessServiceServer
 	Domain                      domain.Domain
 }
 
@@ -64,6 +69,8 @@ func NewService(params NewServiceParams) *Service {
 		eventV1alpha1Service:        params.EventV1alpha1Service,
 		accessKeyService:            params.AccessKeyService,
 		eventRecipeV1alpha1Service:  params.EventRecipeV1alpha1Service,
+		listsV1alpha1Service:        params.ListsV1alpha1Service,
+		listAccessService:           params.ListAccessService,
 		domain:                      params.Domain,
 	}
 }
@@ -130,6 +137,16 @@ func (s *Service) Register(m *http.ServeMux) error {
 		return err
 	}
 	err = calendarV1alpha1.RegisterEventRecipeServiceHandlerServer(ctx, mux, s.eventRecipeV1alpha1Service)
+	if err != nil {
+		log.Printf("Failed to register gRPC gateway: %v", err)
+		return err
+	}
+	err = listsV1alpha1.RegisterListServiceHandlerServer(ctx, mux, s.listsV1alpha1Service)
+	if err != nil {
+		log.Printf("Failed to register gRPC gateway: %v", err)
+		return err
+	}
+	err = listsV1alpha1.RegisterListAccessServiceHandlerServer(ctx, mux, s.listAccessService)
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
 		return err

@@ -1,0 +1,285 @@
+syntax = "proto3";
+
+package api.lists.list.v1alpha1;
+
+import "api/types/accept_target.proto";
+import "api/types/access_state.proto";
+import "api/types/permission_level.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  security_definitions: {
+    security: {
+      key: "BearerAuth"
+      value: {
+        type: TYPE_API_KEY
+        in: IN_HEADER
+        name: "Authorization"
+        description: "Bearer token for authentication"
+      }
+    }
+  }
+  security: {
+    security_requirement: {
+      key: "BearerAuth"
+      value: {}
+    }
+  }
+};
+
+// The list recipient list service
+service ListAccessService {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    description: "List Access management"
+    external_docs: {
+      url: "https://daylear.com/docs"
+      description: "Daylear API Documentation"
+    }
+  };
+
+  // Create an access to a list
+  rpc CreateAccess(CreateAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "parent,access";
+    option (google.api.http) = {
+      post: "/lists/v1alpha1/{parent=lists/*}/accesses"
+      body: "access"
+      additional_bindings: {
+        post: "/lists/v1alpha1/{parent=circles/*/lists/*}/accesses"
+        body: "access"
+      }
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Grant a user or circle access to a list"
+      description: "Grants a user or circle a specific permission level to a list."
+      tags: "ListAccessService"
+    };
+  }
+
+  // Delete an access to a list
+  rpc DeleteAccess(DeleteAccessRequest) returns (google.protobuf.Empty) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {
+      delete: "/lists/v1alpha1/{name=lists/*/accesses/*}"
+      additional_bindings: {delete: "/lists/v1alpha1/{name=circles/*/lists/*/accesses/*}"}
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Delete a list access"
+      description: "Removes a user's or circle's access to a list."
+      tags: "ListAccessService"
+    };
+  }
+
+  // Get an access to a list
+  rpc GetAccess(GetAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {
+      get: "/lists/v1alpha1/{name=lists/*/accesses/*}"
+      additional_bindings: {get: "/lists/v1alpha1/{name=circles/*/lists/*/accesses/*}"}
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get a list access"
+      description: "Retrieves details about a specific list access."
+      tags: "ListAccessService"
+    };
+  }
+
+  // List accesses to a list
+  rpc ListAccesses(ListAccessesRequest) returns (ListAccessesResponse) {
+    option (google.api.method_signature) = "parent";
+    option (google.api.http) = {
+      get: "/lists/v1alpha1/{parent=lists/*}/accesses"
+      additional_bindings: {get: "/lists/v1alpha1/{parent=circles/*/lists/*}/accesses"}
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "List list accesses"
+      description: "Lists all users and circles with access to a list. If no list is provided, the response will only return the accesses for the current user (or circle if the circle header is provided)."
+      tags: "ListAccessService"
+    };
+  }
+
+  // Update an access to a list
+  rpc UpdateAccess(UpdateAccessRequest) returns (Access) {
+    option (google.api.method_signature) = "access,update_mask";
+    option (google.api.http) = {
+      patch: "/lists/v1alpha1/{access.name=lists/*/accesses/*}"
+      body: "access"
+      additional_bindings: {
+        patch: "/lists/v1alpha1/{access.name=circles/*/lists/*/accesses/*}"
+        body: "access"
+      }
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Update a list access"
+      description: "Updates the permission level or recipient for a list access."
+      tags: "ListAccessService"
+    };
+  }
+
+  // Accept a list access
+  rpc AcceptListAccess(AcceptListAccessRequest) returns (AcceptListAccessResponse) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {
+      post: "/lists/v1alpha1/{name=lists/*/accesses/*}:accept"
+      body: "*"
+      additional_bindings: {
+        post: "/lists/v1alpha1/{name=circles/*/lists/*/accesses/*}:accept"
+        body: "*"
+      }
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Accept a list access"
+      description: "Accepts a pending list access, changing its state from PENDING to ACCEPTED."
+      tags: "ListAccessService"
+    };
+  }
+}
+
+// This represents the data about a user's or circle's access to a list
+message Access {
+  option (google.api.resource) = {
+    type: "api.lists.list.v1alpha1/Access"
+    pattern: "lists/{list}/accesses/{access}"
+    pattern: "circles/{circle}/lists/{list}/accesses/{access}"
+    plural: "accesses"
+    singular: "access"
+  };
+
+  // The name of the access
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // the name of the requester
+  RequesterOrRecipient requester = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the name of the recipient
+  RequesterOrRecipient recipient = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // the permission level of the access
+  api.types.PermissionLevel level = 4 [(google.api.field_behavior) = REQUIRED];
+
+  // the status of the access
+  api.types.AccessState state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the accept target of the access
+  api.types.AcceptTarget accept_target = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the requester or recipient of the access
+  message RequesterOrRecipient {
+    oneof name {
+      // the name of the user
+      User user = 1;
+      // the name of the circle
+      Circle circle = 2;
+    }
+  }
+
+  // user data
+  message User {
+    // the name of the user
+    string name = 1 [(google.api.field_behavior) = REQUIRED];
+
+    // the username of the user
+    string username = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the full name of the user
+    string given_name = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the last name of the user
+    string family_name = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+
+  // circle data
+  message Circle {
+    // the name of the circle
+    string name = 1 [(google.api.field_behavior) = REQUIRED];
+
+    // the title of the circle
+    string title = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+    // the handle of the circle
+    string handle = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  }
+}
+
+// The request to create an access to a list
+message CreateAccessRequest {
+  // parent
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.lists.list.v1alpha1/List"
+  ];
+
+  // The access to create
+  Access access = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request to delete an access to a list
+message DeleteAccessRequest {
+  // name
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.lists.list.v1alpha1/Access"
+  ];
+}
+
+// The request to get an access to a list
+message GetAccessRequest {
+  // name
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.lists.list.v1alpha1/Access"
+  ];
+}
+
+// The request to list accesses to a list
+message ListAccessesRequest {
+  // parent
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.lists.list.v1alpha1/List"
+  ];
+
+  // The filter to apply to the list
+  string filter = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // The page size to apply to the list
+  int32 page_size = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // The page token to apply to the list
+  string page_token = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The response to list accesses to a list
+message ListAccessesResponse {
+  // The list of accesses
+  repeated Access accesses = 1;
+
+  // The next page token
+  string next_page_token = 2;
+}
+
+// The request to update an access to a list
+message UpdateAccessRequest {
+  // access
+  Access access = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // update mask
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The request to accept a list access
+message AcceptListAccessRequest {
+  // name
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.lists.list.v1alpha1/Access"
+  ];
+}
+
+// The response to accept a list access
+message AcceptListAccessResponse {}

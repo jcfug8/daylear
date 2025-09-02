@@ -223,3 +223,12 @@ func (d *Domain) determineUserAccess(ctx context.Context, authAccount model.Auth
 	}
 	return access.(model.UserAccess), nil
 }
+
+// determineListAccess - convenience function to determine the list access for a given list id that wraps the determineAccess function
+func (d *Domain) determineListAccess(ctx context.Context, authAccount model.AuthAccount, listId model.ListId, options ...determineAccessOption) (model.ListAccess, error) {
+	access, err := d.determineAccess(ctx, authAccount, listId, options...)
+	if err != nil {
+		return model.ListAccess{}, err
+	}
+	return access.(model.ListAccess), nil
+}

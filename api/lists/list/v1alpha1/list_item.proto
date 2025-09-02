@@ -1,0 +1,194 @@
+syntax = "proto3";
+
+package api.lists.list.v1alpha1;
+
+import "api/types/accept_target.proto";
+import "api/types/access_state.proto";
+import "api/types/permission_level.proto";
+import "api/types/visibility_level.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  security_definitions: {
+    security: {
+      key: "BearerAuth"
+      value: {
+        type: TYPE_API_KEY
+        in: IN_HEADER
+        name: "Authorization"
+        description: "Bearer token for authentication"
+      }
+    }
+  }
+  security: {
+    security_requirement: {
+      key: "BearerAuth"
+      value: {}
+    }
+  }
+};
+
+// the listItem service
+service ListItemService {
+  // create a listItem
+  rpc CreateListItem(CreateListItemRequest) returns (ListItem) {
+    option (google.api.method_signature) = "parent,list_item";
+    option (google.api.http) = {
+      post: "/lists/v1alpha1/{parent=lists/*}/listItems"
+      body: "list_item"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Create a listItem"
+      description: "Creates a new listItem with the provided details."
+      tags: "ListItemService"
+    };
+  }
+
+  // listItem listItems
+  rpc ListListItems(ListListItemsRequest) returns (ListListItemsResponse) {
+    option (google.api.method_signature) = "parent";
+    option (google.api.http) = {get: "/lists/v1alpha1/{parent=lists/*}/listItems"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "ListItem list_items"
+      description: "Retrieves a paginated listItem of listItems. Supports filtering and pagination."
+      tags: "ListItemService"
+    };
+  }
+
+  // update a listItem
+  rpc UpdateListItem(UpdateListItemRequest) returns (ListItem) {
+    option (google.api.method_signature) = "list_item,update_mask";
+    option (google.api.http) = {
+      patch: "/lists/v1alpha1/{list_item.name=lists/*/listItems/*}"
+      body: "list_item"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Update a listItem"
+      description: "Updates the details of an existing listItem."
+      tags: "ListItemService"
+    };
+  }
+
+  // delete` a listItem
+  rpc DeleteListItem(DeleteListItemRequest) returns (ListItem) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {delete: "/lists/v1alpha1/{name=lists/*/listItems/*}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Delete a listItem"
+      description: "Deletes a listItem by resource name."
+      tags: "ListItemService"
+    };
+  }
+
+  // get a listItem
+  rpc GetListItem(GetListItemRequest) returns (ListItem) {
+    option (google.api.method_signature) = "name";
+    option (google.api.http) = {get: "/lists/v1alpha1/{name=lists/*/listItems/*}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get a listItem"
+      description: "Retrieves a single listItem by resource name."
+      tags: "ListItemService"
+    };
+  }
+}
+
+// the main listItem object
+message ListItem {
+  option (google.api.resource) = {
+    type: "api.lists.list.v1alpha1/ListItem"
+    pattern: "lists/{list}/listItems/{list_item}"
+    plural: "listItems"
+    singular: "listItem"
+  };
+
+  // the name of the listItem
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // the title of the listItem
+  string title = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // List Section
+  string list_section = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // points
+  int32 points = 4 [(google.api.field_behavior) = REQUIRED];
+
+  // the recurrence rule of the listItem
+  string recurrence_rule = 5 [(google.api.field_behavior) = OPTIONAL];
+
+  // the time the listItem was created (UTC)
+  google.protobuf.Timestamp create_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // the time the listItem was last updated (UTC)
+  google.protobuf.Timestamp update_time = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// the request to create a listItem
+message CreateListItemRequest {
+  // the parent of the listItem
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.lists/list.v1alpha1/List"
+  ];
+
+  // the listItem to create
+  ListItem list_item = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// the request to listItem listItems
+message ListListItemsRequest {
+  // the parent of the listItems
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.lists/list.v1alpha1/List"
+  ];
+  // returned page
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+  // used to specify the page token
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+  // used to specify the filter
+  string filter = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// the response to listItem listItems
+message ListListItemsResponse {
+  // the listItems
+  repeated ListItem list_items = 1;
+  // the next page token
+  string next_page_token = 2;
+}
+
+// the request to update a listItem
+message UpdateListItemRequest {
+  // the listItem to update
+  ListItem list_item = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // the fields to update
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// the request to delete a listItem
+message DeleteListItemRequest {
+  // the name of the listItem to delete
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.lists.list.v1alpha1/ListItem"
+  ];
+}
+
+// the request to get a listItem
+message GetListItemRequest {
+  // the name of the listItem to get
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "api.lists.list.v1alpha1/ListItem"
+  ];
+}
