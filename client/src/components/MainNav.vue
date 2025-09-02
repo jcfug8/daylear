@@ -40,6 +40,12 @@
         value="circles"
         :to="{ name: 'circles' }"
       ></v-list-item>
+      <v-list-item
+        prepend-icon="mdi-format-list-bulleted"
+        title="Lists"
+        value="lists"
+        :to="{ name: 'lists' }"
+      ></v-list-item>
     </v-list>
   </v-navigation-drawer>
   <v-navigation-drawer temporary location="right" v-model="accountDrawer" v-if="isLoggedIn">

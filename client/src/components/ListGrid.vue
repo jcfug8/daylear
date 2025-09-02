@@ -1,0 +1,174 @@
+<template>
+  <v-container>
+    <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-4"></v-progress-linear>
+    
+    <div v-if="!loading && lists.length === 0" class="text-center py-8">
+      <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-format-list-bulleted</v-icon>
+      <h3 class="text-grey-lighten-1 mb-2">No lists found</h3>
+      <p class="text-grey-lighten-1">Try switching to a different tab or check back later.</p>
+    </div>
+
+    <v-row v-if="!loading && lists.length > 0">
+      <v-col class="pa-1" md="3" sm="4" cols="6" v-for="list in lists" :key="list.name">
+        <v-card
+          :to="'/'+list.name"
+          style="aspect-ratio: 8/6;border-color: lightgrey;border-width: 1.5px;border-style: solid;"
+          hover
+          class="list-card"
+        >
+          <v-card-title style="font-size: 1rem;">
+            {{ list.title }}
+            <v-icon 
+                v-if="list.favorited"
+                size="24" 
+                class="favorite-heart"
+              >
+              mdi-heart
+              </v-icon>
+          </v-card-title>
+          <v-card-subtitle style="font-size: 0.8rem;">
+            {{ list.description }}
+          </v-card-subtitle>
+          <v-img
+            class="mt-2"
+            style="background-color: lightgray"
+            height="100%"
+            :src="list.imageUri"
+            cover
+          >
+            <template v-slot:placeholder>
+              <v-row class="fill-height ma-0" align="center" justify="center">
+                <v-icon size="48" color="grey-lighten-1">mdi-format-list-bulleted</v-icon>
+              </v-row>
+            </template>
+          </v-img>
+          
+          <!-- Permission level indicator -->
+          <v-chip
+            v-if="list.listAccess?.permissionLevel"
+            size="small"
+            variant="elevated"
+            :color="getPermissionColor(list.listAccess?.permissionLevel)"
+            class="permission-chip"
+          >
+            {{ getPermissionText(list.listAccess?.permissionLevel) }}
+          </v-chip>
+
+          <!-- Show completed indicator -->
+          <v-chip
+            v-if="list.showCompleted"
+            size="small"
+            variant="elevated"
+            color="green"
+            class="show-completed-chip"
+          >
+            Show Completed
+          </v-chip>
+
+        </v-card>
+        <!-- Accept button for pending lists -->
+        <v-btn
+          v-if="list.listAccess?.state === 'ACCESS_STATE_PENDING' && list.listAccess?.acceptTarget === 'ACCEPT_TARGET_RECIPIENT'"
+          color="success"
+          class="accept-btn"
+          @click.stop.prevent="$emit('accept', list)"
+          block
+        >
+          Accept
+        </v-btn>
+        <v-btn
+          v-if="list.listAccess?.state === 'ACCESS_STATE_PENDING'"
+          color="error"
+          class="decline-btn"
+          @click.stop.prevent="$emit('decline', list)"
+          block
+        >
+          Decline
+        </v-btn>
+      </v-col>
+    </v-row>
+  </v-container>
+</template>
+
+<script setup lang="ts">
+import type { List } from '@/genapi/api/lists/list/v1alpha1'
+
+interface Props {
+  lists: List[]
+  loading?: boolean
+}
+
+defineProps<Props>()
+
+function getPermissionColor(permission: string) {
+  switch (permission) {
+    case 'PERMISSION_LEVEL_ADMIN':
+      return 'primary'
+    case 'PERMISSION_LEVEL_WRITE':
+      return 'orange'
+    case 'PERMISSION_LEVEL_READ':
+      return 'blue-grey'
+    case 'PERMISSION_LEVEL_PUBLIC':
+      return 'green'
+    default:
+      return 'grey'
+  }
+}
+
+function getPermissionText(permission: string) {
+  switch (permission) {
+    case 'PERMISSION_LEVEL_ADMIN':
+      return 'Admin'
+    case 'PERMISSION_LEVEL_WRITE':
+      return 'Write'
+    case 'PERMISSION_LEVEL_READ':
+      return 'Read'
+    case 'PERMISSION_LEVEL_PUBLIC':
+      return 'Public'
+    default:
+      return permission.replace('PERMISSION_LEVEL_', '').toLowerCase()
+  }
+}
+</script>
+
+<style scoped>
+.list-card {
+  transition: transform 0.2s ease-in-out;
+  position: relative;
+}
+
+.list-card:hover {
+  transform: translateY(-4px);
+}
+
+.permission-chip {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 1;
+}
+
+.show-completed-chip {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  z-index: 1;
+}
+
+.favorite-heart {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  border-radius: 50%;
+  padding: 4px;
+  transition: all 0.2s ease-in-out;
+  color: red;
+}
+
+.accept-btn, .decline-btn {
+  margin-top: 8px;
+  border-radius: 4px;
+}
+</style>

@@ -1,4 +1,5 @@
 import { createRecipeServiceClient, createRecipeAccessServiceClient } from '@/genapi/api/meals/recipe/v1alpha1'
+import { createListServiceClient, createListAccessServiceClient, createListItemServiceClient, createListItemCompletionServiceClient } from '@/genapi/api/lists/list/v1alpha1'
 import { createUserServiceClient, createUserAccessServiceClient, createUserSettingsServiceClient, createAccessKeyServiceClient } from '@/genapi/api/users/user/v1alpha1'
 import { createCircleServiceClient, createCircleAccessServiceClient } from '@/genapi/api/circles/circle/v1alpha1'
 import { createCalendarServiceClient, createCalendarAccessServiceClient, createEventServiceClient, createEventRecipeServiceClient } from '@/genapi/api/calendars/calendar/v1alpha1'
@@ -65,6 +66,10 @@ export async function fetchApiSpecs(): Promise<ApiSpec[]> {
 
 export const recipeService = createRecipeServiceClient(authenticatedFetchHandler('application/json'))
 export const recipeAccessService = createRecipeAccessServiceClient(authenticatedFetchHandler('application/json'))
+export const listService = createListServiceClient(authenticatedFetchHandler('application/json'))
+export const listAccessService = createListAccessServiceClient(authenticatedFetchHandler('application/json'))
+export const listItemService = createListItemServiceClient(authenticatedFetchHandler('application/json'))
+export const listItemCompletionService = createListItemCompletionServiceClient(authenticatedFetchHandler('application/json'))
 export const userService = createUserServiceClient(authenticatedFetchHandler('application/json'))
 export const userSettingsService = createUserSettingsServiceClient(authenticatedFetchHandler('application/json'))
 export const userAccessService = createUserAccessServiceClient(authenticatedFetchHandler('application/json'))

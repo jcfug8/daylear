@@ -176,19 +176,22 @@ func extractStructKeyDetailsRec(typ reflect.Type, patternVarMap map[string]patte
 // getPatternsDetails parses the proto resource descriptor and returns all resource name patterns,
 // including any extra patterns provided. Patterns are indexed by their order (extra patterns start at 100).
 func getPatternsDetails(resource proto.Message, extraPatterns []string) (map[int]patternDetails, error) {
-	resourceOption := &annotations.ResourceDescriptor{}
-	if resource != nil {
-		resourceOption = proto.GetExtension(
-			resource.ProtoReflect().Descriptor().Options().(*descriptorpb.MessageOptions),
-			annotations.E_Resource,
-		).(*annotations.ResourceDescriptor)
+	resourceOption := proto.GetExtension(
+		resource.ProtoReflect().Descriptor().Options().(*descriptorpb.MessageOptions),
+		annotations.E_Resource,
+	).(*annotations.ResourceDescriptor)
+
+	if resourceOption == nil {
+		resourceOption = &annotations.ResourceDescriptor{
+			Pattern: []string{},
+		}
 	}
 
 	// Start the extra patterns at index 100
 	patterns := make([]string, 100)
 	copy(patterns, resourceOption.Pattern)
 	for _, pattern := range extraPatterns {
-		if err := resourcename.Validate(pattern); err != nil {
+		if err := resourcename.ValidatePattern(pattern); err != nil {
 			return nil, fmt.Errorf("extra pattern %s is invalid: %w", pattern, err)
 		}
 	}

@@ -206,6 +206,38 @@ const router = createRouter({
       },
     },
     {
+      path: '/lists',
+      name: 'lists',
+      component: () => import('../views/lists/ListsView.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/lists/:listId',
+      name: 'list',
+      component: () => import('../views/lists/ListView.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/lists/create',
+      name: 'listCreate',
+      component: () => import('../views/lists/ListCreate.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/circles/:circleId/lists/create',
+      name: 'circleListCreate',
+      component: () => import('../views/lists/ListCreate.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
       path: '/api-docs',
       name: 'api-docs',
       component: () => import('../views/ApiDocsView.vue'),
