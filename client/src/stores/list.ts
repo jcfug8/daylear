@@ -141,9 +141,6 @@ export const useListStore = defineStore('list', () => {
     }
     // Clean up sections - ensure each section has required fields
     list.value.sections.forEach((section) => {
-      if (!section.name) {
-        section.name = crypto.randomUUID()
-      }
       if (!section.title) {
         section.title = 'Untitled Section'
       }

@@ -85,7 +85,6 @@
               "title": "the listItem to update",
               "required": [
                 "title",
-                "listSection",
                 "points",
                 "listItem"
               ]
@@ -330,7 +329,6 @@
       "title": "the main listItem object",
       "required": [
         "title",
-        "listSection",
         "points"
       ]
     },

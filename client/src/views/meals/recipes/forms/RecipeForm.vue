@@ -65,7 +65,6 @@ import RecipeGeneralForm from './RecipeGeneralForm.vue'
 import RecipeIngredientsForm from './RecipeIngredientsForm.vue'
 import RecipeDirectionsForm from './RecipeDirectionsForm.vue'
 import { useRecipeFormStore } from '@/stores/recipeForm'
-import { fileService } from '@/api/api'
 
 const props = defineProps<{
   modelValue: Recipe
@@ -119,7 +118,7 @@ const tabToHash: Record<string, string> = {
   directions: '#directions',
 }
 
-function handleImageSelected(file: File | null, url: string | null) {
+function handleImageSelected(file: File | null) {
   pendingImageFile.value = file
 }
 

@@ -121,7 +121,17 @@ func (d *Domain) GetEvent(ctx context.Context, authAccount model.AuthAccount, pa
 		return model.Event{}, domain.ErrInvalidArgument{Msg: "event id is required"}
 	}
 
-	_, err = d.determineCalendarAccess(ctx, authAccount, model.CalendarId{CalendarId: parent.CalendarId}, withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ))
+	dbCalendar, err := d.repo.GetCalendar(ctx, authAccount, model.CalendarId{CalendarId: parent.CalendarId}, []string{model.CalendarField_Visibility})
+	if err != nil {
+		log.Error().Err(err).Msg("unable to get calendar")
+		return model.Event{}, domain.ErrInternal{Msg: "unable to get calendar"}
+	}
+
+	_, err = d.determineCalendarAccess(
+		ctx, authAccount, model.CalendarId{CalendarId: parent.CalendarId},
+		withResourceVisibilityLevel(dbCalendar.VisibilityLevel),
+		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_READ),
+	)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine access when creating event")
 		return model.Event{}, err

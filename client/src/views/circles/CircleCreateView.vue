@@ -66,6 +66,7 @@ onMounted(() => {
     visibility: 'VISIBILITY_LEVEL_PUBLIC' as apitypes_VisibilityLevel,
     circleAccess: undefined,
     description: '',
+    favorited: false,
   }
 })
 </script>

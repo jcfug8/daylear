@@ -198,12 +198,31 @@ func (d *Domain) UpdateList(ctx context.Context, authAccount model.AuthAccount, 
 
 	_, err = d.determineListAccess(
 		ctx, authAccount, list.Id,
-		withResourceVisibilityLevel(previousDbList.VisibilityLevel),
 		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_WRITE),
 	)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to determine list access")
 		return model.List{}, err
+	}
+
+	previousSectionMap := make(map[int64]model.ListSection)
+	for _, section := range previousDbList.Sections {
+		previousSectionMap[section.Id] = section
+	}
+
+	for i, section := range list.Sections {
+		if section.Title == "" {
+			log.Warn().Msg("title is required when updating a list section")
+			return model.List{}, domain.ErrInvalidArgument{Msg: "title is required"}
+		}
+		if _, ok := previousSectionMap[section.Id]; !ok && section.Id != 0 {
+			log.Warn().Msg("invalid section id when updating a list")
+			return model.List{}, domain.ErrInvalidArgument{Msg: "invalid section id"}
+		}
+
+		if section.Id == 0 {
+			section.Id = dbList.CreateTime.UnixMilli() + int64(i)
+		}
 	}
 
 	dbList, err = d.repo.UpdateList(ctx, authAccount, list, fields)
@@ -252,8 +271,24 @@ func (d *Domain) DeleteList(ctx context.Context, authAccount model.AuthAccount, 
 	}
 
 	// TODO:delete accesses
+	err = d.repo.BulkDeleteListAccess(ctx, model.ListAccessParent{ListId: id})
+	if err != nil {
+		log.Error().Err(err).Msg("unable to bulk delete list accesses")
+		return err
+	}
+
 	// TODO:delete items
+	err = d.repo.BulkDeleteListItems(ctx, model.ListItemParent{ListId: id})
+	if err != nil {
+		log.Error().Err(err).Msg("unable to bulk delete list items")
+		return err
+	}
 	// TODO:delete favorites
+	err = d.repo.BulkDeleteListFavorites(ctx, id)
+	if err != nil {
+		log.Error().Err(err).Msg("unable to bulk delete list favorites")
+		return err
+	}
 	// TODO:delete completions
 
 	err = tx.Commit()

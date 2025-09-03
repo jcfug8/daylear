@@ -238,6 +238,30 @@ const router = createRouter({
       },
     },
     {
+      path: '/lists/:listId/edit',
+      name: 'listEdit',
+      component: () => import('../views/lists/ListEdit.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/users/:userId/lists/:listId/edit',
+      name: 'userListEdit',
+      component: () => import('../views/lists/ListEdit.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/circles/:circleId/lists/:listId/edit',
+      name: 'circleListEdit',
+      component: () => import('../views/lists/ListEdit.vue'),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
       path: '/api-docs',
       name: 'api-docs',
       component: () => import('../views/ApiDocsView.vue'),

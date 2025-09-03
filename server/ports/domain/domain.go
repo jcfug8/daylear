@@ -11,4 +11,5 @@ type Domain interface {
 	eventRecipeDomain
 	accessKeyDomain
 	listDomain
+	listItemDomain
 }

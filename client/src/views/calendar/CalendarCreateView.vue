@@ -55,6 +55,7 @@ onMounted(() => {
     visibility: 'VISIBILITY_LEVEL_PRIVATE' as apitypes_VisibilityLevel,
     description: '',
     calendarAccess: undefined,
+    favorited: false,
   }
 })
 </script>

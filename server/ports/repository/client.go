@@ -14,6 +14,7 @@ type Client interface {
 	eventClient
 	eventRecipeClient
 	accessKeyClient
+	listItemClient
 
 	Begin(context.Context) (TxClient, error)
 	Migrate() error
@@ -29,6 +30,7 @@ type TxClient interface {
 	eventClient
 	eventRecipeClient
 	accessKeyClient
+	listItemClient
 
 	Commit() error
 	Rollback()

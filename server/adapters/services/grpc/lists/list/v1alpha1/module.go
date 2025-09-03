@@ -14,6 +14,7 @@ var Module = fx.Module(
 		NewListService,
 		func(s *ListService) pb.ListServiceServer { return s },
 		func(s *ListService) pb.ListAccessServiceServer { return s },
+		func(s *ListService) pb.ListItemServiceServer { return s },
 		fx.Annotate(
 			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.Access]() },
 			fx.ResultTags(`name:"v1alpha1ListAccessNamer"`),
@@ -29,6 +30,10 @@ var Module = fx.Module(
 			fx.ResultTags(`name:"v1alpha1ListSectionNamer"`),
 		),
 		fx.Annotate(
+			func() (namer.ReflectNamer, error) { return namer.NewReflectNamer[*pb.ListItem]() },
+			fx.ResultTags(`name:"v1alpha1ListItemNamer"`),
+		),
+		fx.Annotate(
 			func() (fieldmask.FieldMasker, error) {
 				return fieldmask.NewProtoFieldMasker(&pb.List{}, listFieldMap)
 			},
@@ -40,6 +45,13 @@ var Module = fx.Module(
 				return fieldmask.NewProtoFieldMasker(&pb.Access{}, listAccessFieldMap)
 			},
 			fx.ResultTags(`name:"v1alpha1ListAccessFieldMasker"`),
+		),
+
+		fx.Annotate(
+			func() (fieldmask.FieldMasker, error) {
+				return fieldmask.NewProtoFieldMasker(&pb.ListItem{}, listItemFieldMap)
+			},
+			fx.ResultTags(`name:"v1alpha1ListItemFieldMasker"`),
 		),
 	),
 )

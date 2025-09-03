@@ -205,7 +205,6 @@
               "title": "the list to update",
               "required": [
                 "title",
-                "showCompleted",
                 "visibility",
                 "list"
               ]
@@ -933,7 +932,6 @@
       "title": "the main list object",
       "required": [
         "title",
-        "showCompleted",
         "visibility"
       ]
     },

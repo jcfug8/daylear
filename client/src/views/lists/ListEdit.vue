@@ -73,7 +73,7 @@
       @click="saveList"
     >
       <v-icon>mdi-content-save</v-icon>
-      Create List
+      Save Changes
     </v-btn>
   </v-form>
 </template>
@@ -110,17 +110,15 @@ const visibilityOptions = [
   { title: 'Hidden', value: 'VISIBILITY_LEVEL_HIDDEN', subtitle: 'List is hidden from everyone' },
 ]
 
-const circleName = computed(() => {
-  return route.path.replace('/lists/create', '').slice(1)
+const trimmedListName = computed(() => {
+  return route.path.substring(route.path.indexOf('lists/')).replace('/edit', '')
 })
-
-
 
 function navigateBack() {
   if (route.params.circleId) {
     router.push({ name: 'circle', params: { circleId: route.params.circleId } })
   } else {
-    router.push({ name: 'lists' })
+    router.push('/' + listStore.list?.name || '/lists')
   }
 }
 
@@ -129,20 +127,23 @@ async function saveList() {
     throw new Error('User not authenticated')
   }
   
+  if (!listStore.list?.name) {
+    throw new Error('List not found')
+  }
+  
   saving.value = true
   try {
-    const list = await listStore.createList(circleName.value ? circleName.value : authStore.user!.name!)
+    const list = await listStore.updateList()
     router.push('/' + list.name!)
   } catch (err) {
-    alertStore.addAlert(err instanceof Error ? "Unable to create list\n" + err.message : String(err), 'error')
+    alertStore.addAlert(err instanceof Error ? "Unable to update list\n" + err.message : String(err), 'error')
   } finally {
     saving.value = false
   }
 }
 
-onMounted(() => {
-  // Initialize an empty list
-  listStore.initEmptyList()
+onMounted(async () => {
+  // Load the existing list
+  await listStore.loadList(trimmedListName.value)
 })
 </script>
-

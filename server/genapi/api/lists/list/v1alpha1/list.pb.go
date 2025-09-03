@@ -797,7 +797,7 @@ const file_api_lists_list_v1alpha1_list_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x12%\n" +
 	"\vdescription\x18\x03 \x01(\tB\x03\xe0A\x01R\vdescription\x12*\n" +
-	"\x0eshow_completed\x18\x04 \x01(\bB\x03\xe0A\x02R\rshowCompleted\x12?\n" +
+	"\x0eshow_completed\x18\x04 \x01(\bB\x03\xe0A\x01R\rshowCompleted\x12?\n" +
 	"\n" +
 	"visibility\x18\x05 \x01(\x0e2\x1a.api.types.VisibilityLevelB\x03\xe0A\x02R\n" +
 	"visibility\x12N\n" +

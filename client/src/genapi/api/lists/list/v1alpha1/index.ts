@@ -18,7 +18,7 @@ export type List = {
   description: string | undefined;
   // show completed
   //
-  // Behaviors: REQUIRED
+  // Behaviors: OPTIONAL
   showCompleted: boolean | undefined;
   // the visibility of the list
   //
@@ -755,7 +755,7 @@ export type ListItem = {
   title: string | undefined;
   // List Section
   //
-  // Behaviors: REQUIRED
+  // Behaviors: OPTIONAL
   listSection: string | undefined;
   // points
   //

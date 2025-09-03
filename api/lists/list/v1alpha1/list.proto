@@ -177,7 +177,7 @@ message List {
   string description = 3 [(google.api.field_behavior) = OPTIONAL];
 
   // show completed
-  bool show_completed = 4 [(google.api.field_behavior) = REQUIRED];
+  bool show_completed = 4 [(google.api.field_behavior) = OPTIONAL];
 
   // the visibility of the list
   api.types.VisibilityLevel visibility = 5 [(google.api.field_behavior) = REQUIRED];
@@ -202,7 +202,7 @@ message List {
     // the name of the list section
     string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
     // the name of the list section
-    string title = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+    string title = 2 [(google.api.field_behavior) = REQUIRED];
   }
 
   // the list access details

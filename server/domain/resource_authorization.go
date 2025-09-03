@@ -107,6 +107,17 @@ func (d *Domain) determineAccess(ctx context.Context, authAccount model.AuthAcco
 			return d.repo.FindDelegatedUserRecipeAccess(ctx, authAccount, i)
 		}
 		determinedAccess = model.RecipeAccess{}
+	case model.ListId:
+		config.findStandardUserAccess = func() (model.Access, error) {
+			return d.repo.FindStandardUserListAccess(ctx, authAccount, i)
+		}
+		config.findDelegatedCircleAccess = func() (model.Access, model.CircleAccess, error) {
+			return d.repo.FindDelegatedCircleListAccess(ctx, authAccount, i)
+		}
+		config.findDelegatedUserAccess = func() (model.Access, model.UserAccess, error) {
+			return d.repo.FindDelegatedUserListAccess(ctx, authAccount, i)
+		}
+		determinedAccess = model.ListAccess{}
 	case model.UserId:
 		config.findStandardUserAccess = func() (model.Access, error) {
 			// if the user is requesting access to their own user, return the admin access

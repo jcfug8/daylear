@@ -19,5 +19,9 @@ func AllModels() []interface{} {
 		&Event{},
 		&EventData{},
 		&EventRecipe{},
+		&List{},
+		&ListAccess{},
+		&ListFavorite{},
+		&ListItem{},
 	}
 }

@@ -32,6 +32,7 @@ type Service struct {
 	eventRecipeV1alpha1Service  calendarV1alpha1.EventRecipeServiceServer
 	listsV1alpha1Service        listsV1alpha1.ListServiceServer
 	listAccessService           listsV1alpha1.ListAccessServiceServer
+	listItemV1alpha1Service     listsV1alpha1.ListItemServiceServer
 	domain                      domain.Domain
 }
 
@@ -52,6 +53,7 @@ type NewServiceParams struct {
 	EventRecipeV1alpha1Service  calendarV1alpha1.EventRecipeServiceServer
 	ListsV1alpha1Service        listsV1alpha1.ListServiceServer
 	ListAccessService           listsV1alpha1.ListAccessServiceServer
+	ListItemV1alpha1Service     listsV1alpha1.ListItemServiceServer
 	Domain                      domain.Domain
 }
 
@@ -71,6 +73,7 @@ func NewService(params NewServiceParams) *Service {
 		eventRecipeV1alpha1Service:  params.EventRecipeV1alpha1Service,
 		listsV1alpha1Service:        params.ListsV1alpha1Service,
 		listAccessService:           params.ListAccessService,
+		listItemV1alpha1Service:     params.ListItemV1alpha1Service,
 		domain:                      params.Domain,
 	}
 }
@@ -147,6 +150,11 @@ func (s *Service) Register(m *http.ServeMux) error {
 		return err
 	}
 	err = listsV1alpha1.RegisterListAccessServiceHandlerServer(ctx, mux, s.listAccessService)
+	if err != nil {
+		log.Printf("Failed to register gRPC gateway: %v", err)
+		return err
+	}
+	err = listsV1alpha1.RegisterListItemServiceHandlerServer(ctx, mux, s.listItemV1alpha1Service)
 	if err != nil {
 		log.Printf("Failed to register gRPC gateway: %v", err)
 		return err

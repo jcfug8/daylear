@@ -116,7 +116,7 @@ message ListItem {
   string title = 2 [(google.api.field_behavior) = REQUIRED];
 
   // List Section
-  string list_section = 3 [(google.api.field_behavior) = REQUIRED];
+  string list_section = 3 [(google.api.field_behavior) = OPTIONAL];
 
   // points
   int32 points = 4 [(google.api.field_behavior) = REQUIRED];

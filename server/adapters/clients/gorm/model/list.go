@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	ListTable = "lists"
+	ListTable = "list"
 )
 
 const (
@@ -25,30 +25,28 @@ const (
 )
 
 var ListFieldMasker = fieldmask.NewSQLFieldMasker(List{}, map[string][]fieldmask.Field{
-	model.ListField_Id:              {{Name: ListFields_ListId}},
-	model.ListField_Title:           {{Name: ListFields_Title}},
-	model.ListField_Description:     {{Name: ListFields_Description}},
-	model.ListField_ShowCompleted:   {{Name: ListFields_ShowCompleted}},
-	model.ListField_VisibilityLevel: {{Name: ListFields_VisibilityLevel}},
-	model.ListField_Sections:        {{Name: ListFields_Sections}},
-	model.ListField_CreateTime:      {{Name: ListFields_CreateTime}},
-	model.ListField_UpdateTime:      {{Name: ListFields_UpdateTime}},
-	model.ListField_Favorited:       {{Name: ListFavoriteFields_ListFavoriteId}},
+	model.ListField_Id:              {{Name: ListFields_ListId, Table: ListTable}},
+	model.ListField_Title:           {{Name: ListFields_Title, Table: ListTable}},
+	model.ListField_Description:     {{Name: ListFields_Description, Table: ListTable}},
+	model.ListField_ShowCompleted:   {{Name: ListFields_ShowCompleted, Table: ListTable}},
+	model.ListField_VisibilityLevel: {{Name: ListFields_VisibilityLevel, Table: ListTable}},
+	model.ListField_Sections:        {{Name: ListFields_Sections, Table: ListTable}},
+	model.ListField_CreateTime:      {{Name: ListFields_CreateTime, Table: ListTable}},
+	model.ListField_UpdateTime:      {{Name: ListFields_UpdateTime, Table: ListTable}},
+	model.ListField_Favorited:       {{Name: ListFavoriteFields_ListFavoriteId, Table: ListFavoriteTable}},
 	model.ListField_ListAccess: {
-		{Name: ListAccessFields_ListAccessId},
-		{Name: ListAccessFields_PermissionLevel},
-		{Name: ListAccessFields_State},
-		{Name: ListAccessFields_AcceptTarget},
+		{Name: ListAccessFields_ListAccessId, Table: ListAccessTable},
+		{Name: ListAccessFields_PermissionLevel, Table: ListAccessTable},
+		{Name: ListAccessFields_State, Table: ListAccessTable},
+		{Name: ListAccessFields_AcceptTarget, Table: ListAccessTable},
 	},
 })
 
 var ListSQLConverter = filter.NewSQLConverter(map[string]filter.Field{
-	model.ListField_Title:           {Name: ListFields_Title, Table: ListTable},
-	model.ListField_Description:     {Name: ListFields_Description, Table: ListTable},
-	model.ListField_ShowCompleted:   {Name: ListFields_ShowCompleted, Table: ListTable},
-	model.ListField_VisibilityLevel: {Name: ListFields_VisibilityLevel, Table: ListTable},
-	model.ListField_CreateTime:      {Name: ListFields_CreateTime, Table: ListTable},
-	model.ListField_UpdateTime:      {Name: ListFields_UpdateTime, Table: ListTable},
+	"visibility": {Name: ListFields_VisibilityLevel, Table: ListTable},
+	"permission": {Name: ListAccessFields_PermissionLevel, Table: ListAccessTable},
+	"state":      {Name: ListAccessFields_State, Table: ListAccessTable},
+	"favorited":  {Name: ListFavoriteFields_ListFavoriteId, Table: ListFavoriteTable, CustomConverter: favoritedSQLFilterConverter},
 }, true)
 
 // List -

@@ -12,7 +12,7 @@
       <v-col class="pa-1" md="3" sm="4" cols="6" v-for="list in lists" :key="list.name">
         <v-card
           :to="'/'+list.name"
-          style="aspect-ratio: 8/6;border-color: lightgrey;border-width: 1.5px;border-style: solid;"
+          style="aspect-ratio: 8/3;border-color: lightgrey;border-width: 1.5px;border-style: solid;"
           hover
           class="list-card"
         >
@@ -29,19 +29,6 @@
           <v-card-subtitle style="font-size: 0.8rem;">
             {{ list.description }}
           </v-card-subtitle>
-          <v-img
-            class="mt-2"
-            style="background-color: lightgray"
-            height="100%"
-            :src="list.imageUri"
-            cover
-          >
-            <template v-slot:placeholder>
-              <v-row class="fill-height ma-0" align="center" justify="center">
-                <v-icon size="48" color="grey-lighten-1">mdi-format-list-bulleted</v-icon>
-              </v-row>
-            </template>
-          </v-img>
           
           <!-- Permission level indicator -->
           <v-chip
@@ -53,18 +40,6 @@
           >
             {{ getPermissionText(list.listAccess?.permissionLevel) }}
           </v-chip>
-
-          <!-- Show completed indicator -->
-          <v-chip
-            v-if="list.showCompleted"
-            size="small"
-            variant="elevated"
-            color="green"
-            class="show-completed-chip"
-          >
-            Show Completed
-          </v-chip>
-
         </v-card>
         <!-- Accept button for pending lists -->
         <v-btn

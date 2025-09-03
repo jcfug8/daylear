@@ -34,6 +34,7 @@ const editedCircle = ref<Circle>({
   visibility: 'VISIBILITY_LEVEL_PUBLIC' as apitypes_VisibilityLevel,
   circleAccess: undefined,
   description: '',
+  favorited: false,
 })
 
 const pendingImageFile = ref<File | null>(null)
