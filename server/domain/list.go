@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"time"
 
 	"github.com/jcfug8/daylear/server/core/logutil"
 	model "github.com/jcfug8/daylear/server/core/model"
@@ -41,6 +42,20 @@ func (d *Domain) CreateList(ctx context.Context, authAccount model.AuthAccount, 
 		if err != nil {
 			log.Error().Err(err).Msg("unable to determine user access")
 			return model.List{}, err
+		}
+	}
+
+	for i, section := range list.Sections {
+		if section.Title == "" {
+			log.Warn().Msg("title is required when updating a list section")
+			return model.List{}, domain.ErrInvalidArgument{Msg: "title is required"}
+		}
+
+		if section.Id == 0 {
+			list.Sections[i].Id = time.Now().UnixMilli() + int64(i)
+		} else {
+			log.Warn().Msg("invalid section id when creating a list")
+			return model.List{}, domain.ErrInvalidArgument{Msg: "invalid section id"}
 		}
 	}
 
@@ -221,7 +236,7 @@ func (d *Domain) UpdateList(ctx context.Context, authAccount model.AuthAccount, 
 		}
 
 		if section.Id == 0 {
-			section.Id = dbList.CreateTime.UnixMilli() + int64(i)
+			list.Sections[i].Id = time.Now().UnixMilli() + int64(i)
 		}
 	}
 

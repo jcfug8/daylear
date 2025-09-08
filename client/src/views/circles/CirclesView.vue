@@ -20,7 +20,7 @@
       <v-btn
         color="primary"
         density="compact"
-        style="position: fixed; bottom: 16px; right: 16px"
+        style="position: fixed; bottom: 56px; right: 16px"
         :to="{ name: 'circleCreate' }"
       >
         <v-icon>mdi-plus</v-icon>

@@ -1,53 +1,45 @@
 <template>
-  <v-app-bar density="compact">
-    <template #prepend>
-      <v-app-bar-nav-icon @click.stop="toggleNavDrawer" v-if="isLoggedIn"></v-app-bar-nav-icon>
-    </template>
-    <v-app-bar-title class="d-flex justify-center align-center">
-      <div class="d-flex justify-center align-center">Daylear</div>
-      <div class="text-caption">Plan It Make It Do It</div>
+  <v-app-bar id="top-nav" color="primary" elevation="0" density="compact">
+    <v-app-bar-title >
+      Daylear
     </v-app-bar-title>
     <template #append>
-      <v-btn rounded="0" width="100" icon @click.stop="toggleAccountDrawer" v-if="isLoggedIn" stacked>
-        <v-icon>mdi-account-circle</v-icon>
-        <span class="text-caption">{{ user?.username }}</span>
-      </v-btn>
+      <v-app-bar-nav-icon @click.stop="toggleAccountDrawer" v-if="isLoggedIn">
+      </v-app-bar-nav-icon>
     </template>
   </v-app-bar>
-  <v-navigation-drawer temporary v-if="isLoggedIn" v-model="navDrawer" density="compact">
-    <v-list nav>
-      <v-list-item
-        prepend-icon="mdi-book-open-page-variant"
-        title="Recipes"
-        value="recipes"
+  <v-bottom-navigation bg-color="primary" id="bottom-nav" v-if="isLoggedIn" density="compact">
+      <v-btn
+        density="compact"
         :to="{ name: 'recipes' }"
-      ></v-list-item>
-      <v-list-item
-        prepend-icon="mdi-calendar"
-        title="Calendars"
-        value="calendars"
+      >
+        <v-icon>mdi-book-open-page-variant</v-icon>
+      </v-btn>
+      <v-btn
+        density="compact"
         :to="{ name: 'calendars' }"
-      ></v-list-item>
-      <v-list-item
-        prepend-icon="mdi-account"
-        title="Users"
-        value="users"
+      >
+        <v-icon>mdi-calendar</v-icon>
+      </v-btn>
+      <v-btn
+        density="compact"
         :to="{ name: 'users' }"
-      ></v-list-item>
-      <v-list-item
-        prepend-icon="mdi-account-group"
-        title="Circles"
-        value="circles"
+      >
+        <v-icon>mdi-account</v-icon>
+      </v-btn>
+      <v-btn
+        density="compact"
         :to="{ name: 'circles' }"
-      ></v-list-item>
-      <v-list-item
-        prepend-icon="mdi-format-list-bulleted"
-        title="Lists"
-        value="lists"
+      >
+        <v-icon>mdi-account-group</v-icon>
+      </v-btn>
+      <v-btn
+        density="compact"
         :to="{ name: 'lists' }"
-      ></v-list-item>
-    </v-list>
-  </v-navigation-drawer>
+      >
+        <v-icon>mdi-format-list-bulleted</v-icon>
+      </v-btn>
+  </v-bottom-navigation>
   <v-navigation-drawer temporary location="right" v-model="accountDrawer" v-if="isLoggedIn">
     <v-list>
       <v-list-item

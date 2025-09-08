@@ -57,6 +57,8 @@ import {
   VProgressCircular,      
   VCombobox,
   VAvatar,
+  VBottomNavigation,
+  VSystemBar,
 } from 'vuetify/components'
 import 'vuetify/styles' // Import Vuetify styles
 import '@mdi/font/css/materialdesignicons.css' // Import Material Design Icons
@@ -121,6 +123,8 @@ const vuetify = createVuetify({
     VProgressCircular,
     VCombobox,
     VAvatar,
+    VBottomNavigation,
+    VSystemBar,
   },
 })
 

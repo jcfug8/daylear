@@ -8,6 +8,7 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/lists/list/v1alpha1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -307,7 +308,7 @@ func (s *ListService) ListItemToProto(mListItem model.ListItem) (*pb.ListItem, e
 	}
 
 	if mListItem.ListSectionId != 0 {
-		name, err := s.listSectionNamer.Format(mListItem.ListSectionId)
+		name, err := s.listSectionNamer.Format(mListItem, namer.AsPatternIndex(-1))
 		if err != nil {
 			return nil, err
 		}
@@ -337,11 +338,13 @@ func (s *ListService) ListItemFromProto(pbListItem *pb.ListItem, parent model.Li
 	}
 
 	if pbListItem.GetListSection() != "" {
-		_, err := s.listSectionNamer.Parse(pbListItem.GetListSection(), &mListItem.ListSectionId)
+		_, err := s.listSectionNamer.Parse(pbListItem.GetListSection(), &mListItem)
 		if err != nil {
 			return model.ListItem{}, err
 		}
 	}
+
+	mListItem.Parent = parent
 
 	return mListItem, nil
 }

@@ -125,7 +125,7 @@
           v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
           color="primary"
           density="compact"
-          style="position: fixed; bottom: 16px; right: 16px"
+          style="position: fixed; bottom: 56px; right: 16px"
           :to="'/'+circle.name+'/recipes/create'"
         >
           <v-icon>mdi-plus</v-icon>
@@ -144,7 +144,7 @@
           v-if="hasWritePermission(circle.circleAccess?.permissionLevel)"
           color="primary"
           density="compact"
-          style="position: fixed; bottom: 16px; right: 16px"
+          style="position: fixed; bottom: 56px; right: 16px"
           @click="showShareDialog = true"
         >
           <v-icon>mdi-share-variant</v-icon>
@@ -169,7 +169,7 @@
           color="primary"
           density="compact"
           class="text-none"
-          style="position: fixed; bottom: 16px; left: 16px; z-index: 10;"
+          style="position: fixed; bottom: 56px; left: 16px; z-index: 10;"
           @click="toggleViewMode"
         >
           <v-icon class="mr-1">{{ viewMode === 'grid' ? 'mdi-calendar-month' : 'mdi-view-grid' }}</v-icon>
@@ -180,7 +180,7 @@
           v-if="hasWritePermission(circle.circleAccess?.permissionLevel) && viewMode === 'grid'"
           color="primary"
           density="compact"
-          style="position: fixed; bottom: 16px; right: 16px"
+          style="position: fixed; bottom: 56px; right: 16px"
           :to="{ name: 'circleCalendarCreate', params: { circleId: circle.name?.split('/').pop() } }"
         >
           <v-icon>mdi-plus</v-icon>
@@ -794,7 +794,7 @@ async function toggleFavorite() {
 
 .fab-container {
   position: fixed;
-  bottom: 16px;
+  bottom: 56px;
   right: 16px;
   display: flex;
   flex-direction: column;

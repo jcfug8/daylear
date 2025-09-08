@@ -1,158 +1,161 @@
 <template>
-  <div v-if="recipe" style="padding-bottom: 84px;">
-    <v-app-bar density="compact">
-      <v-tabs style="width: 100%" v-model="tab" center-active show-arrows fixed-tabs>
-        <v-tab value="general">
-          <v-icon left>mdi-information-outline</v-icon>
-          <span class="text-caption">General</span>
-        </v-tab>
-        <v-tab value="ingredients">
-          <v-icon>mdi-food-apple-outline</v-icon>
-          <span class="text-caption">Ingredients</span>
-        </v-tab>
-        <v-tab value="directions">
-          <v-icon>mdi-format-list-numbered</v-icon>
-          <span class="text-caption">Directions</span>
-        </v-tab>
-      </v-tabs>
-    </v-app-bar>
+  <div v-if="recipe" class="position-relative" style="padding-bottom: 84px;">
+    <v-container max-width="600" class="pa-1">
+      <v-row no-gutters>
+        <v-col cols="10">
+          <div class="text-h5">
+            {{ recipe.title }}
+          </div>
+        </v-col>
+        <v-col cols="2" class="text-right">
+          <v-btn class="text-h5" id="recipe-menu-btn" variant="text">
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+          <v-menu activator="#recipe-menu-btn">
+            <v-list>
+              <v-list-item v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)" color="primary"
+                density="compact" :to="'/' + recipe.name + '/edit'">
+                <v-icon>mdi-pencil</v-icon>
+                Edit
+              </v-list-item>
+              <v-list-item color="success" density="compact" @click="openCreateEventDialog">
+                <v-icon>mdi-calendar-plus</v-icon>
+                Schedule Event
+              </v-list-item>
+              <v-list-item density="compact"
+                v-if="!hasReadPermission(recipe.recipeAccess?.permissionLevel) && !recipe.recipeAccess" color="primary"
+                @click="handleRequestAccess" :loading="requestingAccess">
+                <v-icon>mdi-account-plus</v-icon>Request Access
+              </v-list-item>
+              <v-list-item
+                v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel) && recipe.visibility !== 'VISIBILITY_LEVEL_HIDDEN'"
+                color="primary" density="compact" @click="showShareDialog = true">
+                <v-icon>mdi-share-variant</v-icon>
+                Manage Access
+              </v-list-item>
+              <v-list-item density="compact"
+                v-if="recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING' && recipe.recipeAccess?.acceptTarget !== 'ACCEPT_TARGET_RECIPIENT'"
+                color="warning" @click="showCancelRequestDialog = true">
+                <v-icon>mdi-close</v-icon>Cancel Request
+              </v-list-item>
+              <v-list-item
+                v-if="!hasAdminPermission(recipe.recipeAccess?.permissionLevel) && recipe.recipeAccess?.state === 'ACCESS_STATE_ACCEPTED'"
+                color="warning" density="compact" @click="showRemoveAccessDialog = true">
+                <v-icon>mdi-link-variant-off</v-icon>
+                Remove Access
+              </v-list-item>
+              <v-list-item v-if="hasAdminPermission(recipe.recipeAccess?.permissionLevel)" color="error"
+                density="compact" @click="showDeleteDialog = true">
+                <v-icon>mdi-delete</v-icon>
+                Delete
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </v-col>
+        <v-col cols="12">
+          <div class="image-container">
+            <v-icon size="24" :color="recipe.favorited ? 'red' : 'black'" class="favorite-heart" @click="toggleFavorite"
+              style="cursor: pointer;">
+              {{ recipe.favorited ? 'mdi-heart' : 'mdi-heart-outline' }}
+            </v-icon>
+            <v-img v-if="recipe.imageUri" style="background-color: lightgray" :src="recipe.imageUri" cover height="150">
+              <template #placeholder>
+                <v-row class="fill-height ma-0" align="center" justify="center">
+                  <v-progress-circular indeterminate color="grey lighten-5"></v-progress-circular>
+                </v-row>
+              </template>
+            </v-img>
+            <div v-else class="d-flex align-center justify-center"
+              style="background-color: lightgray; height: 300px; border-radius: 4px;">
+              <div class="text-center">
+                <v-icon size="64" color="grey-darken-1">mdi-image-outline</v-icon>
+                <div class="text-grey-darken-1 mt-2">No image available</div>
+              </div>
+            </div>
+            <v-btn v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel) && !recipe.imageUri"
+              class="generate-image-btn" color="warning" @click="openGenerateImageModal"
+              style="position: absolute; bottom: 8px; right: 8px; z-index: 2;" :loading="generatingImage"
+              :disabled="generatingImage" title="Generate Image">
+              <v-icon>mdi-image-auto-adjust</v-icon>
+              Generate Image
+            </v-btn>
+          </div>
+        </v-col>
+      </v-row>
+      <v-row no-gutters>
+        <v-col class="text-caption"  v-if="recipe.prepDuration && recipe.prepDuration !== '0s'">
+          <v-icon>mdi-knife</v-icon> {{ parseDuration(recipe.prepDuration ? recipe.prepDuration : "0") }}mins
+        </v-col>
+        <v-col class="text-caption"  v-if="recipe.cookDuration && recipe.cookDuration !== '0s'">
+          <v-icon>mdi-stove</v-icon> {{ parseDuration(recipe.cookDuration ? recipe.cookDuration : "0") }}mins
+        </v-col>
+        <v-col class="text-caption"  v-if="recipe.totalDuration && recipe.totalDuration !== '0s'">
+          <v-icon>mdi-clock</v-icon> {{ parseDuration(recipe.totalDuration ? recipe.totalDuration : "0") }}mins
+        </v-col>
+        <v-col class="text-caption"  v-if="recipe.yieldAmount">
+          <v-icon>mdi-food-apple-outline</v-icon> {{ recipe.yieldAmount }}
+        </v-col>
+      </v-row>
+      <v-row no-gutters>
+        <v-col cols="12" class="text-center mb-1">
+          <v-chip class="ma-1" v-if="recipe.cookingMethod" label color="green"><v-icon icon="mdi-toaster-oven"
+              start></v-icon>{{
+                recipe.cookingMethod }}</v-chip>
+          <v-chip class="ma-1" v-for="category in recipe.categories" :key="category" label color="blue"><v-icon
+              icon="mdi-label" start></v-icon>{{ category }}</v-chip>
+          <v-chip class="ma-1" v-for="cuisine in recipe.cuisines" :key="cuisine" label color="orange"><v-icon
+              icon="mdi-chef-hat" start></v-icon>{{ cuisine }}</v-chip>
+        </v-col>
+        <v-col cols="12" class="text-caption">
+          <div v-if="recipe.citation">
+            <span v-if="isUrl(recipe.citation)">
+              <a :href="recipe.citation" target="_blank" rel="noopener">{{ recipe.citation }}</a>
+            </span>
+            <span v-else>
+              {{ recipe.citation }}
+            </span>
+          </div>
+        </v-col>
+        <v-col cols="12">
+          <div class="text-body-2">
+            {{ recipe.description }}
+          </div>
+        </v-col>
+        <!-- <v-col cols="12">
+          <div class="mt-4">
+            <div v-if="selectedVisibilityDescription" class="mt-2">
+              <v-alert :icon="selectedVisibilityIcon" density="compact" variant="tonal"
+                :color="selectedVisibilityColor">
+                <div class="text-body-2">
+                  <strong>{{ selectedVisibilityLabel }}:</strong> {{ selectedVisibilityDescription }}
+                </div>
+              </v-alert>
+            </div>
+          </div>
+        </v-col> -->
+      </v-row>
+    </v-container>
+    <v-divider></v-divider>
+    <v-tabs class="position-sticky" style="width: 100%;z-index: 2;top: 48px;" bg-color="white" v-model="tab" center-active show-arrows fixed-tabs>
+      <v-tab value="ingredients">
+        <v-icon>mdi-food-apple-outline</v-icon>
+        <span class="text-caption">Ingredients</span>
+      </v-tab>
+      <v-tab value="directions">
+        <v-icon>mdi-format-list-numbered</v-icon>
+        <span class="text-caption">Directions</span>
+      </v-tab>
+    </v-tabs>
     <v-tabs-window v-model="tab">
-      <v-tabs-window-item value="general">
-        <v-container max-width="600" class="pa-1">
-          <v-row>
-            <v-col class="pt-5">
-              <div class="text-h4">
-                {{ recipe.title }}
-              </div>
-              <div class="text-body-1">
-                {{ recipe.description }}
-              </div>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-spacer></v-spacer>
-            <v-col align-self="auto" cols="12" sm="8">
-              <div class="image-container">
-                <v-img 
-                  v-if="recipe.imageUri" 
-                  class="mt-1" 
-                  style="background-color: lightgray" 
-                  :src="recipe.imageUri" 
-                  cover
-                  height="300"
-                >
-                  <template #placeholder>
-                    <v-row class="fill-height ma-0" align="center" justify="center">
-                      <v-progress-circular indeterminate color="grey lighten-5"></v-progress-circular>
-                    </v-row>
-                  </template>
-                </v-img>
-                <div 
-                  v-else 
-                  class="mt-1 d-flex align-center justify-center"
-                  style="background-color: lightgray; height: 300px; border-radius: 4px;"
-                >
-                  <div class="text-center">
-                    <v-icon size="64" color="grey-darken-1">mdi-image-outline</v-icon>
-                    <div class="text-grey-darken-1 mt-2">No image available</div>
-                  </div>
-                </div>
-                <v-btn
-                  v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel) && !recipe.imageUri"
-                  class="generate-image-btn"
-                  color="warning"
-                  @click="openGenerateImageModal"
-                  style="position: absolute; bottom: 8px; right: 8px; z-index: 2;"
-                  :loading="generatingImage"
-                  :disabled="generatingImage"
-                  title="Generate Image"
-                >
-                  <v-icon>mdi-image-auto-adjust</v-icon>
-                  Generate Image
-                </v-btn>
-              </div>
-            </v-col>
-            <v-spacer></v-spacer>
-          </v-row>
-
-          <!-- New Recipe Fields -->
-          <v-row>
-            <v-col cols="12">
-              <div v-if="recipe.citation">
-                <span v-if="isUrl(recipe.citation)">
-                  <a :href="recipe.citation" target="_blank" rel="noopener">{{ recipe.citation }}</a>
-                </span>
-                <span v-else>
-                  {{ recipe.citation }}
-                </span>
-              </div>
-              <div v-if="recipe.prepDuration && recipe.prepDuration !== '0s'">
-                <strong>Prep Time:</strong> {{ parseDuration(recipe.prepDuration ? recipe.prepDuration : "0") }}
-              </div>
-              <div v-if="recipe.cookDuration && recipe.cookDuration !== '0s'">
-                <strong>Cook Time:</strong> {{ parseDuration(recipe.cookDuration ? recipe.cookDuration : "0") }}
-              </div>
-              <div v-if="recipe.totalDuration && recipe.totalDuration !== '0s'">
-                <strong>Total Time:</strong> {{ parseDuration(recipe.totalDuration ? recipe.totalDuration : "0") }}
-              </div>
-              <div v-if="recipe.cookingMethod">
-                <strong>Cooking Method:</strong> {{ recipe.cookingMethod }}
-              </div>
-              <div v-if="recipe.categories && recipe.categories.length">
-                <strong>Categories:</strong> {{ recipe.categories.join(', ') }}
-              </div>
-              <div v-if="recipe.yieldAmount">
-                <strong>Yield:</strong> {{ recipe.yieldAmount }}
-              </div>
-              <div v-if="recipe.cuisines && recipe.cuisines.length">
-                <strong>Cuisines:</strong> {{ recipe.cuisines.join(', ') }}
-              </div>
-              <!-- <div v-if="createTimeString">
-                <strong>Created:</strong> {{ formatDate(createTimeString) }}
-              </div>
-              <div v-if="updateTimeString">
-                <strong>Updated:</strong> {{ formatDate(updateTimeString) }}
-              </div> -->
-            </v-col>
-          </v-row>
-
-          <!-- Visibility Section -->
-          <v-row>
-            <v-col cols="12">
-              <div class="mt-4">
-                <div v-if="selectedVisibilityDescription" class="mt-2">
-                  <v-alert
-                    :icon="selectedVisibilityIcon"
-                    density="compact"
-                    variant="tonal"
-                    :color="selectedVisibilityColor"
-                  >
-                    <div class="text-body-2">
-                      <strong>{{ selectedVisibilityLabel }}:</strong> {{ selectedVisibilityDescription }}
-                    </div>
-                  </v-alert>
-                </div>
-              </div>
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-tabs-window-item>
       <v-tabs-window-item value="ingredients">
         <v-container max-width="600">
           <!-- Multiplier Card -->
           <v-card class="mb-2" outlined>
             <v-card-text class="d-flex align-center">
               <span class="mr-4 font-weight-medium">Multiplier</span>
-              <v-select
-                v-model="ingredientMultiplier"
-                :items="multiplierOptions"
-                :item-title="x => `${x}x`"
-                :item-value="x => x"
-                :menu-props="{ maxHeight: '200px' }"
-                hide-details
-                density="compact"
-                style="max-width: 120px;"
-              />
+              <v-select v-model="ingredientMultiplier" :items="multiplierOptions" :item-title="x => `${x}x`"
+                :item-value="x => x" :menu-props="{ maxHeight: '200px' }" hide-details density="compact"
+                style="max-width: 120px;" />
             </v-card-text>
           </v-card>
           <!-- Ingredients List -->
@@ -162,39 +165,44 @@
               <v-list>
                 <v-list-item class="ingredient-item" v-for="(ingredient, j) in ingredientGroup.ingredients" :key="j">
                   <div class="d-flex align-center" style="width: 100%;">
-                    <v-checkbox v-model="checkedIngredients[i][j]" class="mr-2" hide-details density="compact" style="margin-bottom: 0;" />
+                    <v-checkbox v-model="checkedIngredients[i][j]" class="mr-2" hide-details density="compact"
+                      style="margin-bottom: 0;" />
                     <span :style="checkedIngredients[i][j] ? 'text-decoration: line-through; color: #888;' : ''">
                       <strong>
                         <span v-if="ingredient.measurementAmount && ingredient.measurementType">
                           <span>
                             {{ isFranctional(ingredient.measurementType)
-                              ? toFraction(getDisplayAmount(ingredient.measurementAmount, i, j, ingredient.measurementType))
-                              : formatAmountDisplay(getDisplayAmount(ingredient.measurementAmount, i, j, ingredient.measurementType))
+                              ? toFraction(getDisplayAmount(ingredient.measurementAmount, i, j,
+                                ingredient.measurementType))
+                              : formatAmountDisplay(getDisplayAmount(ingredient.measurementAmount, i, j,
+                                ingredient.measurementType))
                             }}
                           </span>
                           <span
                             :style="'cursor: pointer; text-decoration: underline dotted; -webkit-text-decoration: underline dotted; margin-left: 2px;'"
-                            @click="handleUnitClick(i, j, ingredient.measurementType)"
-                            title="Click to change unit"
-                          >
-                            {{ measurementTypeLabel(getDisplayUnit(i, j, ingredient.measurementType), getDisplayAmount(ingredient.measurementAmount, i, j, ingredient.measurementType)) }}
+                            @click="handleUnitClick(i, j, ingredient.measurementType)" title="Click to change unit">
+                            {{ measurementTypeLabel(getDisplayUnit(i, j, ingredient.measurementType),
+                              getDisplayAmount(ingredient.measurementAmount, i, j, ingredient.measurementType)) }}
                           </span>
                         </span>
-                        <template v-if="ingredient.measurementConjunction && ingredient.secondMeasurementAmount && ingredient.secondMeasurementType">
+                        <template
+                          v-if="ingredient.measurementConjunction && ingredient.secondMeasurementAmount && ingredient.secondMeasurementType">
                           {{ renderConjunction(ingredient.measurementConjunction) }}
                           <span v-if="ingredient.secondMeasurementAmount && ingredient.secondMeasurementType">
                             <span>
                               {{ isFranctional(ingredient.secondMeasurementType)
-                                ? toFraction(getDisplayAmount(ingredient.secondMeasurementAmount, i, j, ingredient.secondMeasurementType, true))
-                                : formatAmountDisplay(getDisplayAmount(ingredient.secondMeasurementAmount, i, j, ingredient.secondMeasurementType, true))
+                                ? toFraction(getDisplayAmount(ingredient.secondMeasurementAmount, i, j,
+                                  ingredient.secondMeasurementType, true))
+                                : formatAmountDisplay(getDisplayAmount(ingredient.secondMeasurementAmount, i, j,
+                                  ingredient.secondMeasurementType, true))
                               }}
                             </span>
-                            <span
-                              :style="'cursor: pointer; text-decoration: underline dotted; margin-left: 2px;'"
+                            <span :style="'cursor: pointer; text-decoration: underline dotted; margin-left: 2px;'"
                               @click="handleUnitClick(i, j, ingredient.secondMeasurementType, true)"
-                              title="Click to change unit"
-                            >
-                              {{ measurementTypeLabel(getDisplayUnit(i, j, ingredient.secondMeasurementType, true), getDisplayAmount(ingredient.secondMeasurementAmount, i, j, ingredient.secondMeasurementType, true)) }}
+                              title="Click to change unit">
+                              {{ measurementTypeLabel(getDisplayUnit(i, j, ingredient.secondMeasurementType, true),
+                                getDisplayAmount(ingredient.secondMeasurementAmount, i, j,
+                                  ingredient.secondMeasurementType, true)) }}
                             </span>
                           </span>
                         </template>
@@ -214,19 +222,12 @@
             <v-card-title v-if="direction.title">{{ direction.title }}</v-card-title>
             <v-card-text>
               <v-list>
-                <v-list-item  v-for="(step, n) in direction.steps" :key="n">
+                <v-list-item v-for="(step, n) in direction.steps" :key="n">
                   <div class="d-flex align-start" style="width: 100%;">
-                    <v-checkbox
-                      v-model="checkedDirections[i][n]"
-                      class="mr-2"
-                      hide-details
-                      density="compact"
-                      style="margin-bottom: 0; align-self: flex-start;"
-                    />
-                    <span
-                      :style="checkedDirections[i][n] ? 'text-decoration: line-through; color: #888;' : ''"
-                      style="margin-left: 4px; flex: 1 1 0; word-break: break-word;"
-                    >
+                    <v-checkbox v-model="checkedDirections[i][n]" class="mr-2" hide-details density="compact"
+                      style="margin-bottom: 0; align-self: flex-start;" />
+                    <span :style="checkedDirections[i][n] ? 'text-decoration: line-through; color: #888;' : ''"
+                      style="margin-left: 4px; flex: 1 1 0; word-break: break-word;">
                       <span class="font-weight-bold" style="display: inline;">Step {{ n + 1 }}</span>
                       {{ step }}
                     </span>
@@ -237,91 +238,28 @@
           </v-card>
         </v-container>
       </v-tabs-window-item>
-      <v-icon 
-        size="24" 
-        :color="recipe.favorited ? 'red' : 'black'"
-        class="favorite-heart"
-        @click="toggleFavorite"
-        style="cursor: pointer;"
-      >
-      {{ recipe.favorited ? 'mdi-heart' : 'mdi-heart-outline' }}
-      </v-icon>
     </v-tabs-window>
 
-
-    <!-- Floating action buttons container -->
-    <div class="fab-container">
-      <v-btn v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel)" color="primary" density="compact" :to="'/'+recipe.name+'/edit'">
-        <v-icon>mdi-pencil</v-icon>
-        Edit
-      </v-btn>
-      <v-btn color="success" density="compact" @click="openCreateEventDialog">
-        <v-icon>mdi-calendar-plus</v-icon>
-        Schedule Event
-      </v-btn>
-      <v-btn density="compact" v-if="!hasReadPermission(recipe.recipeAccess?.permissionLevel) && !recipe.recipeAccess" color="primary" @click="handleRequestAccess" :loading="requestingAccess">
-        <v-icon>mdi-account-plus</v-icon>Request Access
-      </v-btn>
-      <v-btn v-if="hasWritePermission(recipe.recipeAccess?.permissionLevel) && recipe.visibility !== 'VISIBILITY_LEVEL_HIDDEN'" color="primary" density="compact" @click="showShareDialog = true">
-        <v-icon>mdi-share-variant</v-icon>
-        Manage Access
-      </v-btn>
-      <v-btn density="compact" v-if="recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING' && recipe.recipeAccess?.acceptTarget !== 'ACCEPT_TARGET_RECIPIENT'" color="warning" @click="showCancelRequestDialog = true">
-          <v-icon>mdi-close</v-icon>Cancel Request
-        </v-btn>
-      <v-btn v-if="!hasAdminPermission(recipe.recipeAccess?.permissionLevel) && recipe.recipeAccess?.state === 'ACCESS_STATE_ACCEPTED'" color="warning" density="compact" @click="showRemoveAccessDialog = true">
-        <v-icon>mdi-link-variant-off</v-icon>
-        Remove Access
-      </v-btn>
-      <v-btn v-if="hasAdminPermission(recipe.recipeAccess?.permissionLevel)" color="error" density="compact" @click="showDeleteDialog = true">
-        <v-icon>mdi-delete</v-icon>
-        Delete
-      </v-btn>
-    </div>
-    <template v-if="recipe.recipeAccess?.acceptTarget === 'ACCEPT_TARGET_RECIPIENT' && recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING'">
-      <v-btn
-        color="success"
-        class="mb-2"
-        block
-        :loading="acceptingRecipe"
-        @click="acceptRecipe(recipe.recipeAccess?.name)"
-      >
+    <template
+      v-if="recipe.recipeAccess?.acceptTarget === 'ACCEPT_TARGET_RECIPIENT' && recipe.recipeAccess?.state === 'ACCESS_STATE_PENDING'">
+      <v-btn color="success" class="mb-2" block :loading="acceptingRecipe"
+        @click="acceptRecipe(recipe.recipeAccess?.name)">
         Accept Recipe
       </v-btn>
-      <v-btn
-        color="error"
-        class="mb-4"
-        block
-        :loading="decliningRecipe"
-        @click="declineRecipe"
-      >
+      <v-btn color="error" class="mb-4" block :loading="decliningRecipe" @click="declineRecipe">
         Decline
       </v-btn>
     </template>
 
     <!-- Share Dialog -->
-    <ShareDialog
-      v-model="showShareDialog"
-      title="Share Recipe"
-      :allowCircleShare="true"
-      :currentAccesses="currentAccesses"
-      :sharing="sharing"
-      :sharePermissionLoading="updatingPermission"
-      :userPermissionLevel="recipe.recipeAccess?.permissionLevel"
-      :allowPermissionOptions="allowPermissionOptions"
-      @share-user="shareWithUser"
-      @share-circle="shareWithCircle"
-      @remove-access="unshareRecipe"
-      @permission-change="updatePermission"
-      @approve-access="acceptRecipeFromShareDialog"
-    />
+    <ShareDialog v-model="showShareDialog" title="Share Recipe" :allowCircleShare="true"
+      :currentAccesses="currentAccesses" :sharing="sharing" :sharePermissionLoading="updatingPermission"
+      :userPermissionLevel="recipe.recipeAccess?.permissionLevel" :allowPermissionOptions="allowPermissionOptions"
+      @share-user="shareWithUser" @share-circle="shareWithCircle" @remove-access="unshareRecipe"
+      @permission-change="updatePermission" @approve-access="acceptRecipeFromShareDialog" />
 
     <!-- Event Create Dialog -->
-    <EventCreateDialog
-      v-model="showCreateEventDialog"
-      :calendars="writableCalendars"
-      @created="handleEventCreated"
-    />
+    <EventCreateDialog v-model="showCreateEventDialog" :calendars="writableCalendars" @created="handleEventCreated" />
   </div>
   <!-- Remove Access Dialog -->
   <v-dialog v-model="showRemoveAccessDialog" max-width="500">
@@ -369,24 +307,24 @@
   </v-dialog>
   <!-- Cancel Request Dialog -->
   <v-dialog v-model="showCancelRequestDialog" max-width="500">
-  <v-card>
-    <v-card-title class="text-h5">
-      Cancel Access Request
-    </v-card-title>
-    <v-card-text>
-      Are you sure you want to cancel your access request to this recipe?
-    </v-card-text>
-    <v-card-actions>
-      <v-spacer></v-spacer>
-      <v-btn color="grey" variant="text" @click="showCancelRequestDialog = false">
-        Cancel
-      </v-btn>
-      <v-btn color="error" @click="handleCancelRequest" :loading="cancelingRequest">
-        Cancel Request
-      </v-btn>
-    </v-card-actions>
-  </v-card>
-</v-dialog>
+    <v-card>
+      <v-card-title class="text-h5">
+        Cancel Access Request
+      </v-card-title>
+      <v-card-text>
+        Are you sure you want to cancel your access request to this recipe?
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="grey" variant="text" @click="showCancelRequestDialog = false">
+          Cancel
+        </v-btn>
+        <v-btn color="error" @click="handleCancelRequest" :loading="cancelingRequest">
+          Cancel Request
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 
   <!-- Add modal for generated image -->
   <v-dialog v-model="showGeneratedImageModal" max-width="600">
@@ -405,7 +343,8 @@
             <v-icon left>mdi-image-auto-adjust</v-icon>
             Generate Image
           </v-btn>
-          <v-btn v-if="generatedImageUrl" color="success" :disabled="!generatedImageBlob || updatingImage || generatingImage" @click="updateRecipeImage">
+          <v-btn v-if="generatedImageUrl" color="success"
+            :disabled="!generatedImageBlob || updatingImage || generatingImage" @click="updateRecipeImage">
             <v-icon left>mdi-check-circle</v-icon>
             Use Image
           </v-btn>
@@ -423,7 +362,7 @@
 import type { Recipe_MeasurementType, apitypes_VisibilityLevel, Recipe_Ingredient_MeasurementConjunction } from '@/genapi/api/meals/recipe/v1alpha1'
 import type { Access, CreateAccessRequest, ListAccessesRequest, DeleteAccessRequest } from '@/genapi/api/meals/recipe/v1alpha1'
 import type { PermissionLevel } from '@/genapi/api/types'
-import type { Calendar, Event } from '@/genapi/api/calendars/calendar/v1alpha1' 
+import type { Calendar, Event } from '@/genapi/api/calendars/calendar/v1alpha1'
 import { useRecipesStore } from '@/stores/recipes'
 import { useRecipeFormStore } from '@/stores/recipeForm'
 import { storeToRefs } from 'pinia'
@@ -682,11 +621,11 @@ async function handleRemoveAccess() {
     const deleteRequest: DeleteAccessRequest = {
       name: recipe.value.recipeAccess.name
     }
-    
+
     await recipeAccessService.DeleteAccess(deleteRequest)
     router.push(route.params.circleId ? { name: 'circle', params: { circleId: route.params.circleId } } : { name: 'recipes' })
   } catch (error) {
-    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
   } finally {
     removingAccess.value = false
     showRemoveAccessDialog.value = false
@@ -706,7 +645,7 @@ async function handleCancelRequest() {
     const deleteRequest: DeleteAccessRequest = {
       name: recipe.value.recipeAccess.name
     }
-    
+
     await recipeAccessService.DeleteAccess(deleteRequest)
     await recipesStore.loadRecipe(recipe.value.name!)
     alertsStore.addAlert('Access request cancelled.', 'info')
@@ -733,7 +672,7 @@ async function handleDelete() {
     })
     router.push({ name: 'recipes' })
   } catch (error) {
-    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
   } finally {
     deleting.value = false
     showDeleteDialog.value = false
@@ -760,7 +699,7 @@ async function acceptRecipe(recipeAccessName: string | undefined) {
     await recipesStore.acceptRecipe(recipeAccessName)
     recipesStore.loadRecipe(recipe.value?.name ?? '')
   } catch (error) {
-    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
   } finally {
     acceptingRecipe.value = false
   }
@@ -773,7 +712,7 @@ async function declineRecipe() {
     await recipesStore.deleteRecipeAccess(recipe.value.recipeAccess.name)
     router.push(route.params.circleId ? { name: 'circle', params: { circleId: route.params.circleId } } : { name: 'recipes' })
   } catch (error) {
-    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
   } finally {
     decliningRecipe.value = false
   }
@@ -865,9 +804,9 @@ function formatAmountDisplay(val: number): string {
 
 const showGeneratedImageModal = ref(false)
 const generatingImage = ref(false)
-const generatedImageBlob = ref<Blob|null>(null)
-const generatedImageUrl = ref<string|null>(null)
-const generateImageError = ref<string|null>(null)
+const generatedImageBlob = ref<Blob | null>(null)
+const generatedImageUrl = ref<string | null>(null)
+const generateImageError = ref<string | null>(null)
 
 function openGenerateImageModal() {
   generateImageError.value = null
@@ -1013,7 +952,7 @@ async function unshareRecipe(accessName: string) {
     const request: DeleteAccessRequest = {
       name: accessName
     }
-    
+
     await recipeAccessService.DeleteAccess(request)
     await fetchRecipeRecipients()
   } catch (error) {
@@ -1068,9 +1007,9 @@ async function shareWithCircle({ circleName, permission }: { circleName: string,
   try {
     const access: Access = {
       recipient: {
-        circle: { 
-          name: circleName, 
-          title: undefined, 
+        circle: {
+          name: circleName,
+          title: undefined,
           handle: undefined,
         }
       },
@@ -1111,14 +1050,14 @@ onMounted(async () => {
   }
 
   await recipesStore.loadRecipe(trimmedRecipeName.value)
-  
+
   // Load writable calendars for event creation
   await loadWritableCalendars()
 })
 
 async function loadWritableCalendars() {
   if (!authStore.user?.name) return
-  
+
   try {
     await calendarsStore.loadMyCalendars(authStore.user.name)
     // Get the calendars from the store after loading
@@ -1127,9 +1066,9 @@ async function loadWritableCalendars() {
       // Check if user has write permission to this specific calendar
       const calendarAccess = calendar.calendarAccess
       if (!calendarAccess?.permissionLevel) return false
-      
-      return calendarAccess.permissionLevel === 'PERMISSION_LEVEL_WRITE' || 
-             calendarAccess.permissionLevel === 'PERMISSION_LEVEL_ADMIN'
+
+      return calendarAccess.permissionLevel === 'PERMISSION_LEVEL_WRITE' ||
+        calendarAccess.permissionLevel === 'PERMISSION_LEVEL_ADMIN'
     })
   } catch (error) {
     console.error('Error loading writable calendars:', error)
@@ -1143,7 +1082,7 @@ function openCreateEventDialog() {
 
 async function handleEventCreated(event: Event) {
   if (!recipe.value?.name || !event?.name) return
-  
+
   try {
     // Create event_recipe relationship
     await eventRecipeService.CreateEventRecipe({
@@ -1154,7 +1093,7 @@ async function handleEventCreated(event: Event) {
         createTime: undefined, // Will be set by server
       }
     })
-    
+
     alertsStore.addAlert('Event created and linked to recipe successfully!', 'success')
   } catch (error) {
     console.error('Error creating event-recipe relationship:', error)
@@ -1165,11 +1104,11 @@ async function handleEventCreated(event: Event) {
 async function handleRequestAccess() {
   if (!recipe.value?.name) return
   if (!authStore.user?.name) return
-  
+
   requestingAccess.value = true
   try {
     const access: Access = {
-       recipient: {
+      recipient: {
         user: {
           name: authStore.user?.name,
           username: undefined,
@@ -1226,7 +1165,7 @@ function parseDuration(duration: string): number {
   if (!duration) return 0;
 
   if (duration.endsWith('s')) {
-    return parseInt(duration.slice(0, -1))/60;
+    return parseInt(duration.slice(0, -1)) / 60;
   }
   return 0;
 }
@@ -1237,28 +1176,22 @@ function parseDuration(duration: string): number {
 .image-container {
   position: relative;
 }
+
 .generate-image-btn {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
+
 .ingredient-item {
   min-height: auto;
 }
 
-.fab-container {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 1000;
-}
-
 .favorite-heart {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 4px !important;
   position: absolute;
   top: 8px;
   right: 8px;
-  z-index: 10000000;
+  z-index: 2;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
   /* background-color: rgba(255, 255, 255, 0.9); */
   border-radius: 50%;

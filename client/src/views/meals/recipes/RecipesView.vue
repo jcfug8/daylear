@@ -7,7 +7,7 @@
     <template #filter>
       <v-row class="align-center" style="max-width: 600px; margin: 0 auto;">
         <!-- Left: Search -->
-        <v-col cols="3" class="pa-0 d-flex align-center justify-start">
+        <v-col cols="8" class="pa-0 d-flex align-center justify-start">
           <template v-if="searchExpanded || searchQuery">
             <v-text-field
               v-model="searchQuery"
@@ -31,20 +31,9 @@
             </v-btn>
           </template>
         </v-col>
-        <!-- Center: Active account title/name -->
-        <v-col cols="6" class="pa-0 d-flex align-center justify-center">
-          <div
-            class="active-account-title clickable text-center"
-            style="cursor: pointer; user-select: none; font-weight: 500; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; gap: 4px;"
-            @click="showFilterModal = true"
-          >
-            <v-icon size="18">{{ selectedAccount?.icon || 'mdi-account-circle' }}</v-icon>
-            <span class="account-title-ellipsis">{{ selectedAccount?.label || 'My Recipes' }}</span>
-          </div>
-        </v-col>
         <!-- Right: Filter button -->
-        <v-col cols="3" class="pa-0 d-flex align-center justify-end">
-          <v-btn class="filter-button mr-2" :color="selectedCuisines.length === 0 && selectedCategories.length === 0 ? 'white' : 'grey'" variant="flat" @click="showFilterModal = true" title="Filter recipes">
+        <v-col cols="4" class="pa-0 d-flex align-center justify-end">
+          <v-btn class="filter-button" variant="text" @click="showFilterModal = true" title="Filter recipes">
             <v-icon>mdi-filter-variant</v-icon>
           </v-btn>
         </v-col>
@@ -66,7 +55,7 @@
           v-if="selectedAccount?.value === authStore.user.name"
           color="primary"
           density="compact"
-          style="position: fixed; bottom: 16px; right: 16px"
+          style="position: fixed; bottom: 56px; right: 16px"
           :to="{ name: 'recipeCreate' }"
         >
           <v-icon>mdi-plus</v-icon>

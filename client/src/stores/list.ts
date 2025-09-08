@@ -1,11 +1,18 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import { listService } from '@/api/api'
+import { listService, listItemService } from '@/api/api'
 import type {
   List,
   ListListsRequest,
   ListListsResponse,
   apitypes_VisibilityLevel,
+  ListItem,
+  CreateListItemRequest,
+  ListListItemsRequest,
+  ListListItemsResponse,
+  UpdateListItemRequest,
+  DeleteListItemRequest,
+  GetListItemRequest,
 } from '@/genapi/api/lists/list/v1alpha1'
 import { listAccessService } from '@/api/api'
 
@@ -16,6 +23,9 @@ export const useListStore = defineStore('list', () => {
   const sharedAcceptedLists = ref<List[]>([])
   const sharedPendingLists = ref<List[]>([])
   const publicLists = ref<List[]>([])
+  
+  // List items state
+  const listItems = ref<Record<string, ListItem[]>>({})
 
   async function loadLists(parent: string, filter?: string): Promise<List[]> {
     try {
@@ -183,6 +193,149 @@ export const useListStore = defineStore('list', () => {
     }
   }
 
+  // *** List Item Methods ***
+
+  // Get list items for a specific list
+  function getListItems(listName: string): ListItem[] {
+    return listItems.value[listName] || []
+  }
+
+  // Load list items from the server
+  async function loadListItems(listName: string): Promise<ListItem[]> {
+    try {
+      const request: ListListItemsRequest = {
+        parent: listName,
+        pageSize: undefined,
+        pageToken: undefined,
+        filter: undefined,
+      }
+      
+      const response: ListListItemsResponse = await listItemService.ListListItems(request)
+      const items = response.listItems || []
+      
+      // Store items in state
+      listItems.value[listName] = items
+      
+      return items
+    } catch (error) {
+      console.error('Failed to load list items:', error)
+      return []
+    }
+  }
+
+  // Create a new list item
+  async function createListItem(
+    listName: string, 
+    title: string, 
+    listSection?: string, 
+    points: number = 0,
+    recurrenceRule?: string
+  ): Promise<ListItem> {
+    try {
+      const request: CreateListItemRequest = {
+        parent: listName,
+        listItem: {
+          name: undefined, // Will be set by server
+          title,
+          listSection,
+          points,
+          recurrenceRule,
+          createTime: undefined, // OUTPUT_ONLY
+          updateTime: undefined, // OUTPUT_ONLY
+        },
+      }
+      
+      const newItem = await listItemService.CreateListItem(request)
+      
+      // Add to local state
+      if (!listItems.value[listName]) {
+        listItems.value[listName] = []
+      }
+      listItems.value[listName].push(newItem)
+      
+      return newItem
+    } catch (error) {
+      console.error('Failed to create list item:', error)
+      throw error
+    }
+  }
+
+  // Update an existing list item
+  async function updateListItem(
+    itemName: string, 
+    updates: Partial<Pick<ListItem, 'title' | 'listSection' | 'points' | 'recurrenceRule'>>
+  ): Promise<ListItem> {
+    try {
+      const request: UpdateListItemRequest = {
+        listItem: {
+          name: itemName,
+          title: updates.title,
+          listSection: updates.listSection,
+          points: updates.points,
+          recurrenceRule: updates.recurrenceRule,
+          createTime: undefined, // OUTPUT_ONLY
+          updateTime: undefined, // OUTPUT_ONLY
+        },
+        updateMask: Object.keys(updates).join(','),
+      }
+      
+      const updatedItem = await listItemService.UpdateListItem(request)
+      
+      // Update local state
+      const listName = itemName.split('/').slice(0, -1).join('/')
+      if (listItems.value[listName]) {
+        const index = listItems.value[listName].findIndex(item => item.name === itemName)
+        if (index !== -1) {
+          listItems.value[listName][index] = updatedItem
+        }
+      }
+      
+      return updatedItem
+    } catch (error) {
+      console.error('Failed to update list item:', error)
+      throw error
+    }
+  }
+
+  // Delete a list item
+  async function deleteListItem(itemName: string): Promise<void> {
+    try {
+      const request: DeleteListItemRequest = {
+        name: itemName,
+      }
+      
+      await listItemService.DeleteListItem(request)
+      
+      // Remove from local state
+      const listName = itemName.split('/').slice(0, -1).join('/')
+      if (listItems.value[listName]) {
+        listItems.value[listName] = listItems.value[listName].filter(item => item.name !== itemName)
+      }
+    } catch (error) {
+      console.error('Failed to delete list item:', error)
+      throw error
+    }
+  }
+
+  // Get a specific list item
+  async function getListItem(itemName: string): Promise<ListItem | undefined> {
+    try {
+      const request: GetListItemRequest = {
+        name: itemName,
+      }
+      
+      return await listItemService.GetListItem(request)
+    } catch (error) {
+      console.error('Failed to get list item:', error)
+      return undefined
+    }
+  }
+
+  // Clear list items for a specific list (useful when switching lists)
+  function clearListItems(listName: string) {
+    delete listItems.value[listName]
+  }
+
   return {
     loadMyLists,
     loadPendingLists,
@@ -195,10 +348,20 @@ export const useListStore = defineStore('list', () => {
     deleteListAccess,
     favoriteList,
     unfavoriteList,
+    // List item methods
+    getListItems,
+    loadListItems,
+    createListItem,
+    updateListItem,
+    deleteListItem,
+    getListItem,
+    clearListItems,
+    // State
     list,
     myLists,
     sharedAcceptedLists,
     sharedPendingLists,
     publicLists,
+    listItems,
   }
 })

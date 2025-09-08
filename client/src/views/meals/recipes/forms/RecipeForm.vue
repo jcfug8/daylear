@@ -36,7 +36,7 @@
     <v-btn
       color="error"
       density="compact"
-      style="position: fixed; bottom: 16px; left: 16px"
+      style="position: fixed; bottom: 56px; left: 16px"
       @click="$emit('close')"
     >
       <v-icon>mdi-close</v-icon>
@@ -47,7 +47,7 @@
     <v-btn
       color="success"
       density="compact"
-      style="position: fixed; bottom: 16px; right: 16px"
+      style="position: fixed; bottom: 56px; right: 16px"
       @click="handleSave"
     >
       <v-icon>mdi-content-save</v-icon>

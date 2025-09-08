@@ -812,7 +812,7 @@ const file_api_lists_list_v1alpha1_list_proto_rawDesc = "" +
 	" \x03(\v2).api.lists.list.v1alpha1.List.ListSectionB\x03\xe0A\x03R\bsections\x1aA\n" +
 	"\vListSection\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x03R\x04name\x12\x19\n" +
-	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x03R\x05title\x1a\xe7\x01\n" +
+	"\x05title\x18\x02 \x01(\tB\x03\xe0A\x02R\x05title\x1a\xe7\x01\n" +
 	"\n" +
 	"ListAccess\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x03R\x04name\x12J\n" +

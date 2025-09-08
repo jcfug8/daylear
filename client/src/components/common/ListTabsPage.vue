@@ -1,38 +1,39 @@
 <template>
 
-    <v-app-bar elevation="0" density="compact">
-        <v-tabs v-model="internalActiveTab" align-tabs="center" color="primary" grow>
-          <v-tab density="compact" v-for="tab in tabs" :key="tab.value" :value="tab.value">
-            <template v-if="!tab.disabled">
-              <v-icon v-if="tab.icon" left>{{ tab.icon }}</v-icon>
-              <span class="text-caption">{{ tab.label }}</span>
-            </template>
-          </v-tab>
+  <v-system-bar elevation="0" height="35" color="white" v-if="slots.filter">
+    <div style="width: 100%;">
+      <slot name="filter" />
+    </div>
+  </v-system-bar>
+  <v-system-bar elevation="0" color="white" height="40">
+    <v-tabs v-model="internalActiveTab" align-tabs="center" color="primary" grow>
+      <v-tab density="compact" v-for="tab in tabs" :key="tab.value" :value="tab.value">
+        <template v-if="!tab.disabled">
+          <v-icon v-if="tab.icon" left>{{ tab.icon }}</v-icon>
+          <span class="text-caption">{{ tab.label }}</span>
+        </template>
+      </v-tab>
+    </v-tabs>
+  </v-system-bar>
+  <v-tabs-window v-model="internalActiveTab">
+    <v-tabs-window-item v-for="tab in tabs" :key="tab.value" :value="tab.value">
+      <template v-if="tab.subTabs">
+        <v-tabs v-model="subTab[tab.value]" density="compact" color="secondary">
+          <v-tab v-for="sub in tab.subTabs" :key="sub.value" :value="sub.value">{{ sub.label }}</v-tab>
         </v-tabs>
-      </v-app-bar>
-      <v-app-bar density="compact" v-if="slots.filter">
-        <div style="width: 100%;">
-          <slot name="filter" />
-        </div>
-    </v-app-bar>
-      <v-tabs-window v-model="internalActiveTab">
-        <v-tabs-window-item v-for="tab in tabs" :key="tab.value" :value="tab.value">
-          <template v-if="tab.subTabs">
-            <v-tabs v-model="subTab[tab.value]" density="compact" color="secondary">
-              <v-tab v-for="sub in tab.subTabs" :key="sub.value" :value="sub.value">{{ sub.label }}</v-tab>
-            </v-tabs>
-            <v-tabs-window v-model="subTab[tab.value]">
-              <v-tabs-window-item v-for="sub in tab.subTabs" :key="sub.value" :value="sub.value">
-                <slot :name="`${tab.value}-${sub.value}`" :items="getItems(tab.value, sub.value)" :loading="getLoading(tab.value, sub.value)" />
-              </v-tabs-window-item>
-            </v-tabs-window>
-          </template>
-          <template v-else>
-            <slot :name="tab.value" :items="getItems(tab.value)" :loading="getLoading(tab.value)" />
-          </template>
-        </v-tabs-window-item>
-      </v-tabs-window>
-    <slot name="fab" :tab="internalActiveTab" />
+        <v-tabs-window v-model="subTab[tab.value]">
+          <v-tabs-window-item v-for="sub in tab.subTabs" :key="sub.value" :value="sub.value">
+            <slot :name="`${tab.value}-${sub.value}`" :items="getItems(tab.value, sub.value)"
+              :loading="getLoading(tab.value, sub.value)" />
+          </v-tabs-window-item>
+        </v-tabs-window>
+      </template>
+      <template v-else>
+        <slot :name="tab.value" :items="getItems(tab.value)" :loading="getLoading(tab.value)" />
+      </template>
+    </v-tabs-window-item>
+  </v-tabs-window>
+  <slot name="fab" :tab="internalActiveTab" />
 
 </template>
 
@@ -98,17 +99,17 @@ function loadTab(tabValue: string) {
     if (!subTab.value[tabValue]) subTab.value[tabValue] = tab.subTabs[0].value
     for (const sub of tab.subTabs) {
       if (sub.loader) {
-         if (typeof loading.value[tabValue] !== 'object') {
-           loading.value[tabValue] = {}
-         }
-         ;(loading.value[tabValue] as Record<string, boolean>)[sub.value] = true
+        if (typeof loading.value[tabValue] !== 'object') {
+          loading.value[tabValue] = {}
+        }
+        ; (loading.value[tabValue] as Record<string, boolean>)[sub.value] = true
         sub.loader().then(data => {
-           if (typeof items.value[tabValue] !== 'object') {
-             items.value[tabValue] = {}
-           }
-           ;(items.value[tabValue] as Record<string, unknown>)[sub.value] = data
+          if (typeof items.value[tabValue] !== 'object') {
+            items.value[tabValue] = {}
+          }
+          ; (items.value[tabValue] as Record<string, unknown>)[sub.value] = data
         }).finally(() => {
-           ;(loading.value[tabValue] as Record<string, boolean>)[sub.value] = false
+          ; (loading.value[tabValue] as Record<string, boolean>)[sub.value] = false
         })
       }
     }
@@ -144,14 +145,14 @@ watch(subTab, (newSubTabs) => {
       if (typeof loading.value[internalActiveTab.value] !== 'object') {
         loading.value[internalActiveTab.value] = {}
       }
-      ;(loading.value[internalActiveTab.value] as Record<string, boolean>)[subValue] = true
+      ; (loading.value[internalActiveTab.value] as Record<string, boolean>)[subValue] = true
       sub.loader().then(data => {
         if (typeof items.value[internalActiveTab.value] !== 'object') {
           items.value[internalActiveTab.value] = {}
         }
-        ;(items.value[internalActiveTab.value] as Record<string, unknown>)[subValue] = data
+        ; (items.value[internalActiveTab.value] as Record<string, unknown>)[subValue] = data
       }).finally(() => {
-        ;(loading.value[internalActiveTab.value] as Record<string, boolean>)[subValue] = false
+        ; (loading.value[internalActiveTab.value] as Record<string, boolean>)[subValue] = false
       })
     }
   }
@@ -168,14 +169,14 @@ function reloadActiveTab() {
       if (typeof loading.value[internalActiveTab.value] !== 'object') {
         loading.value[internalActiveTab.value] = {}
       }
-      ;(loading.value[internalActiveTab.value] as Record<string, boolean>)[subValue] = true
+      ; (loading.value[internalActiveTab.value] as Record<string, boolean>)[subValue] = true
       sub.loader().then(data => {
         if (typeof items.value[internalActiveTab.value] !== 'object') {
           items.value[internalActiveTab.value] = {}
         }
-        ;(items.value[internalActiveTab.value] as Record<string, unknown>)[subValue] = data
+        ; (items.value[internalActiveTab.value] as Record<string, unknown>)[subValue] = data
       }).finally(() => {
-        ;(loading.value[internalActiveTab.value] as Record<string, boolean>)[subValue] = false
+        ; (loading.value[internalActiveTab.value] as Record<string, boolean>)[subValue] = false
       })
     }
   } else {
@@ -192,14 +193,14 @@ function reloadTab(tabValue: string, subTabValue?: string) {
       if (typeof loading.value[tabValue] !== 'object') {
         loading.value[tabValue] = {}
       }
-      ;(loading.value[tabValue] as Record<string, boolean>)[subTabValue] = true
+      ; (loading.value[tabValue] as Record<string, boolean>)[subTabValue] = true
       sub.loader().then(data => {
         if (typeof items.value[tabValue] !== 'object') {
           items.value[tabValue] = {}
         }
-        ;(items.value[tabValue] as Record<string, unknown>)[subTabValue] = data
+        ; (items.value[tabValue] as Record<string, unknown>)[subTabValue] = data
       }).finally(() => {
-        ;(loading.value[tabValue] as Record<string, boolean>)[subTabValue] = false
+        ; (loading.value[tabValue] as Record<string, boolean>)[subTabValue] = false
       })
     }
   } else {
@@ -207,4 +208,4 @@ function reloadTab(tabValue: string, subTabValue?: string) {
   }
 }
 defineExpose({ reloadActiveTab, reloadTab, activeTab: internalActiveTab })
-</script> 
+</script>

@@ -780,11 +780,13 @@
         },
         "title": {
           "type": "string",
-          "title": "the name of the list section",
-          "readOnly": true
+          "title": "the name of the list section"
         }
       },
-      "title": "the details for a list section"
+      "title": "the details for a list section",
+      "required": [
+        "title"
+      ]
     },
     "ListServiceFavoriteListBody": {
       "type": "object",

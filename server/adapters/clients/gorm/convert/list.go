@@ -75,6 +75,9 @@ func ListToCoreModel(m gmodel.List) (cmodel.List, error) {
 		if err != nil {
 			return cmodel.List{}, err
 		}
+		for i := range list.Sections {
+			list.Sections[i].ListId = m.ListId
+		}
 	}
 
 	return list, nil

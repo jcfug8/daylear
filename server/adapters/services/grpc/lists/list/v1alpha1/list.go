@@ -7,6 +7,7 @@ import (
 	"github.com/jcfug8/daylear/server/adapters/services/http/libs/headers"
 	"github.com/jcfug8/daylear/server/core/logutil"
 	"github.com/jcfug8/daylear/server/core/model"
+	"github.com/jcfug8/daylear/server/core/namer"
 	pb "github.com/jcfug8/daylear/server/genapi/api/lists/list/v1alpha1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -404,7 +405,7 @@ func (s *ListService) SectionToProto(section model.ListSection) (*pb.List_ListSe
 		Title: section.Title,
 	}
 	if section.Id != 0 {
-		name, err := s.listSectionNamer.Format(section)
+		name, err := s.listSectionNamer.Format(section, namer.AsPatternIndex(-1))
 		if err != nil {
 			return proto, err
 		}

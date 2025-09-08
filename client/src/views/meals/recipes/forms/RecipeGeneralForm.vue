@@ -712,7 +712,7 @@ function handleSaveAfterImport() {
 
 .image-upload-btn {
   position: absolute;
-  bottom: 16px;
+  bottom: 56px;
   right: 16px;
 }
 .image-x-btn, .image-undo-btn {

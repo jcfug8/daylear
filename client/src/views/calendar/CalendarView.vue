@@ -624,7 +624,7 @@ async function toggleFavorite() {
 
 .fab-container {
   position: fixed;
-  bottom: 16px;
+  bottom: 56px;
   right: 16px;
   display: flex;
   flex-direction: column;

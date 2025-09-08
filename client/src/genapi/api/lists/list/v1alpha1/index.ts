@@ -119,7 +119,7 @@ export type List_ListSection = {
   name: string | undefined;
   // the name of the list section
   //
-  // Behaviors: OUTPUT_ONLY
+  // Behaviors: REQUIRED
   title: string | undefined;
 };
 
@@ -759,7 +759,7 @@ export type ListItem = {
   listSection: string | undefined;
   // points
   //
-  // Behaviors: REQUIRED
+  // Behaviors: OPTIONAL
   points: number | undefined;
   // the recurrence rule of the listItem
   //

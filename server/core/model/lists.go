@@ -45,9 +45,9 @@ type List struct {
 }
 
 type ListSection struct {
-	ListId int64 `aip_pattern:"key=list"`
-	Id     int64 `aip_pattern:"key=list_section"`
-	Title  string
+	ListId int64  `aip_pattern:"key=list"`
+	Id     int64  `aip_pattern:"key=list_section"`
+	Title  string `json:"omitempty"`
 }
 
 // ListId defines the name for a list.

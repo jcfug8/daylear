@@ -18,9 +18,6 @@
           <div v-if="list.showCompleted !== undefined">
             <strong>Show Completed Items:</strong> {{ list.showCompleted ? 'Yes' : 'No' }}
           </div>
-          <div v-if="list.sections && list.sections.length">
-            <strong>Sections:</strong> {{ list.sections.length }} section(s)
-          </div>
         </v-col>
       </v-row>
 
@@ -29,12 +26,8 @@
         <v-col cols="12">
           <div>
             <div v-if="selectedVisibilityDescription">
-              <v-alert
-                :icon="selectedVisibilityIcon"
-                density="compact"
-                variant="tonal"
-                :color="selectedVisibilityColor"
-              >
+              <v-alert :icon="selectedVisibilityIcon" density="compact" variant="tonal"
+                :color="selectedVisibilityColor">
                 <div class="text-body-2">
                   <strong>{{ selectedVisibilityLabel }}:</strong> {{ selectedVisibilityDescription }}
                 </div>
@@ -44,171 +37,138 @@
         </v-col>
       </v-row>
 
-      <!-- List Items and Sections -->
-      <v-row>
+      <!-- Mixed List Items and Sections -->
+      <v-row v-if="mixedListElements.length > 0 || loadingListItems">
         <v-col cols="12">
-          <!-- Items Without Section -->
-          <div v-if="itemsWithoutSection.length > 0 || (hasWritePermission(list.listAccess?.permissionLevel) && !isCreatingNewItem)">
-            <h3 class="text-h6 mt-6 mb-4">Items</h3>
-            
-            <!-- Existing Items Without Section -->
-            <div v-for="(item, itemIndex) in itemsWithoutSection" :key="itemIndex" class="mb-2">
-              <div class="d-flex align-center">
-                <v-checkbox class="mr-2" hide-details density="compact" />
-                <span>{{ item.title }}</span>
-                <span v-if="item.points && item.points > 0" class="text-caption text-grey ml-2">
-                  - {{ item.points }} points
-                </span>
-              </div>
-            </div>
-            
-            <!-- Add New Item (without section) -->
-            <div v-if="hasWritePermission(list.listAccess?.permissionLevel)" class="mt-4">
-              <div v-if="!isCreatingNewItem" class="d-flex align-center text-grey cursor-pointer" @click="startCreatingItem">
-                <v-icon class="mr-2">mdi-plus</v-icon>
-                <span>Add new item...</span>
-              </div>
-              
-              <v-text-field
-                v-else
-                ref="newItemInputRef"
-                v-model="newItemText"
-                placeholder="Enter item title..."
-                variant="outlined"
-                density="compact"
-                @keydown="handleItemInputKeydown"
-                @blur="handleItemInputBlur"
-                autofocus
-              />
-            </div>
+          <!-- Loading State -->
+          <div v-if="loadingListItems" class="text-center py-4">
+            <v-progress-circular indeterminate color="primary"></v-progress-circular>
+            <div class="text-body-2 mt-2">Loading items...</div>
           </div>
 
-          <!-- New Section Button -->
-          <div v-if="hasWritePermission(list.listAccess?.permissionLevel)" class="mb-4">
-            <v-btn
-              v-if="!isCreatingNewSection"
-              color="primary"
-              variant="outlined"
-              prepend-icon="mdi-plus"
-              @click="startCreatingSection"
-            >
-              New Section
-            </v-btn>
-            
-            <!-- New Section Input -->
-            <v-text-field
-              v-else
-              ref="newSectionInputRef"
-              v-model="newSectionText"
-              placeholder="Enter section title..."
-              variant="outlined"
-              density="compact"
-              @blur="handleSectionInputBlur"
-              autofocus
-            />
-          </div>
+          <!-- Mixed List Elements -->
+          <div v-else>
+            <v-list density="compact">
+              <template v-for="element in mixedListElements">
+                <!-- Individual List Item -->
+                <v-list-item :key="`item-${element.data.name || element.data.title}`" v-if="element.type === 'item'"
+                  :title="element.data.title" prepend-icon="mdi-checkbox-blank-outline" class="px-0">
+                </v-list-item>
 
-          <!-- Sections with their Items -->
-          <div v-for="(section, sectionIndex) in list.sections" :key="sectionIndex" class="mb-6">
-            <div class="text-h6 mb-3">{{ section.title || 'Untitled Section' }}</div>
-            
-            <!-- Items in this section -->
-            <div v-if="itemsBySection[section.name || ''] && itemsBySection[section.name || ''].length > 0" class="ml-4">
-              <div v-for="(item, itemIndex) in itemsBySection[section.name || '']" :key="itemIndex" class="mb-2">
-                <div class="d-flex align-center">
-                  <v-checkbox class="mr-2" hide-details density="compact" />
-                  <span>{{ item.title }}</span>
-                  <span v-if="item.points && item.points > 0" class="text-caption text-grey ml-2">
-                    - {{ item.points }} points
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Empty section message -->
-            <div v-else class="ml-4 text-body-2 text-grey">
-              No items in this section yet.
-            </div>
+                <!-- List Section with Items -->
+                <v-list-group :key="`section-${element.data.name || element.data.title || 'untitled'}`"
+                  v-else-if="element.type === 'section'"
+                  :value="`section-${element.data.name || element.data.title || 'untitled'}`">
+                  <template v-slot:activator="{ props }">
+                    <v-list-item v-bind="props" prepend-icon="mdi-folder-outline"
+                      :title="element.data.title || 'Untitled Section'"></v-list-item>
+                  </template>
+                  <v-list-item v-for="item in element.items" prepend-icon="mdi-checkbox-blank-outline" :key="`item-${item.name || item.title}`" class="px-0" :title="item.title">
+                  </v-list-item>
+                  <v-list-item v-if="hasWritePermission(list?.listAccess?.permissionLevel)" class="px-0"
+                    @click="startCreatingItem(element.data.name)"
+                    :key="`create-${element.data.name || element.data.title || 'untitled'}`">
+                    <template #prepend>
+                      <v-icon color="grey" size="small" class="mr-2">mdi-plus</v-icon>
+                    </template>
+
+                    <v-list-item-title class="text-grey">
+                      <template v-if="isCreatingItem && creatingItemSection === element.data.name">
+                        <v-text-field ref="inlineItemInputRef" v-model="inlineItemText"
+                          placeholder="Enter item title..." variant="outlined" density="compact"
+                          @keydown="handleInlineItemInputKeydown" @blur="handleInlineItemInputBlur(element.data.name)" autofocus />
+                      </template>
+                      <template v-else>
+                        Add new item...
+                      </template>
+                    </v-list-item-title>
+                  </v-list-item>
+                </v-list-group>
+              </template>
+              <v-list-item v-if="hasWritePermission(list?.listAccess?.permissionLevel)" class="px-0"
+                @click="startCreatingItem(null)"
+                :key="`create-list-item`">
+                <template #prepend>
+                  <v-icon color="grey" size="small" class="mr-2">mdi-plus</v-icon>
+                </template>
+
+                <v-list-item-title class="text-grey">
+                  <template v-if="isCreatingItem && creatingItemSection === null">
+                    <v-text-field ref="inlineItemInputRef" v-model="inlineItemText"
+                      placeholder="Enter item title..." variant="outlined" density="compact"
+                      @keydown="handleInlineItemInputKeydown" @blur="handleInlineItemInputBlur()" autofocus />
+                  </template>
+                  <template v-else>
+                    Add new item...
+                  </template>
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
           </div>
         </v-col>
       </v-row>
+
+
     </v-container>
 
-    <v-icon 
-      size="24" 
-      :color="list.favorited ? 'red' : 'black'"
-      class="favorite-heart"
-      @click="toggleFavorite"
-      style="cursor: pointer;"
-    >
+    <v-icon size="24" :color="list.favorited ? 'red' : 'black'" class="favorite-heart" @click="toggleFavorite"
+      style="cursor: pointer;">
       {{ list.favorited ? 'mdi-heart' : 'mdi-heart-outline' }}
     </v-icon>
 
     <!-- Floating action buttons container -->
     <div class="fab-container">
-      <v-btn v-if="hasWritePermission(list.listAccess?.permissionLevel)" color="primary" density="compact" :to="'/'+list.name+'/edit'">
+      <v-btn v-if="hasWritePermission(list.listAccess?.permissionLevel)" color="primary" density="compact"
+        :to="'/' + list.name + '/edit'">
         <v-icon>mdi-pencil</v-icon>
         Edit
       </v-btn>
-      <v-btn density="compact" v-if="!hasReadPermission(list.listAccess?.permissionLevel) && !list.listAccess" color="primary" @click="handleRequestAccess" :loading="requestingAccess">
+      <v-btn density="compact" v-if="!hasReadPermission(list.listAccess?.permissionLevel) && !list.listAccess"
+        color="primary" @click="handleRequestAccess" :loading="requestingAccess">
         <v-icon>mdi-account-plus</v-icon>Request Access
       </v-btn>
-      <v-btn v-if="hasWritePermission(list.listAccess?.permissionLevel) && list.visibility !== 'VISIBILITY_LEVEL_HIDDEN'" color="primary" density="compact" @click="showShareDialog = true">
+      <v-btn
+        v-if="hasWritePermission(list.listAccess?.permissionLevel) && list.visibility !== 'VISIBILITY_LEVEL_HIDDEN'"
+        color="primary" density="compact" @click="showShareDialog = true">
         <v-icon>mdi-share-variant</v-icon>
         Manage Access
       </v-btn>
-      <v-btn density="compact" v-if="list.listAccess?.state === 'ACCESS_STATE_PENDING' && list.listAccess?.acceptTarget !== 'ACCEPT_TARGET_RECIPIENT'" color="warning" @click="showCancelRequestDialog = true">
+      <v-btn density="compact"
+        v-if="list.listAccess?.state === 'ACCESS_STATE_PENDING' && list.listAccess?.acceptTarget !== 'ACCEPT_TARGET_RECIPIENT'"
+        color="warning" @click="showCancelRequestDialog = true">
         <v-icon>mdi-close</v-icon>Cancel Request
       </v-btn>
-      <v-btn v-if="!hasAdminPermission(list.listAccess?.permissionLevel) && list.listAccess?.state === 'ACCESS_STATE_ACCEPTED'" color="warning" density="compact" @click="showRemoveAccessDialog = true">
+      <v-btn
+        v-if="!hasAdminPermission(list.listAccess?.permissionLevel) && list.listAccess?.state === 'ACCESS_STATE_ACCEPTED'"
+        color="warning" density="compact" @click="showRemoveAccessDialog = true">
         <v-icon>mdi-link-variant-off</v-icon>
         Remove Access
       </v-btn>
-      <v-btn v-if="hasAdminPermission(list.listAccess?.permissionLevel)" color="error" density="compact" @click="showDeleteDialog = true">
+      <v-btn v-if="hasAdminPermission(list.listAccess?.permissionLevel)" color="error" density="compact"
+        @click="showDeleteDialog = true">
         <v-icon>mdi-delete</v-icon>
         Delete
       </v-btn>
     </div>
-    
-    <template v-if="list.listAccess?.acceptTarget === 'ACCEPT_TARGET_RECIPIENT' && list.listAccess?.state === 'ACCESS_STATE_PENDING'">
-      <v-btn
-        color="success"
-        class="mb-2"
-        block
-        :loading="acceptingList"
-        @click="acceptList(list.listAccess?.name)"
-      >
+
+    <template
+      v-if="list.listAccess?.acceptTarget === 'ACCEPT_TARGET_RECIPIENT' && list.listAccess?.state === 'ACCESS_STATE_PENDING'">
+      <v-btn color="success" class="mb-2" block :loading="acceptingList" @click="acceptList(list.listAccess?.name)">
         Accept List
       </v-btn>
-      <v-btn
-        color="error"
-        class="mb-4"
-        block
-        :loading="decliningList"
-        @click="declineList"
-      >
+      <v-btn color="error" class="mb-4" block :loading="decliningList" @click="declineList">
         Decline
       </v-btn>
     </template>
 
     <!-- Share Dialog -->
-    <ShareDialog
-      v-model="showShareDialog"
-      title="Share List"
-      :allowCircleShare="true"
-      :currentAccesses="currentAccesses"
-      :sharing="sharing"
-      :sharePermissionLoading="updatingPermission"
-      :userPermissionLevel="list.listAccess?.permissionLevel"
-      :allowPermissionOptions="allowPermissionOptions"
-      @share-user="shareWithUser"
-      @share-circle="shareWithCircle"
-      @remove-access="unshareList"
-      @permission-change="updatePermission"
-      @approve-access="acceptListFromShareDialog"
-    />
+    <ShareDialog v-model="showShareDialog" title="Share List" :allowCircleShare="true"
+      :currentAccesses="currentAccesses" :sharing="sharing" :sharePermissionLoading="updatingPermission"
+      :userPermissionLevel="list.listAccess?.permissionLevel" :allowPermissionOptions="allowPermissionOptions"
+      @share-user="shareWithUser" @share-circle="shareWithCircle" @remove-access="unshareList"
+      @permission-change="updatePermission" @approve-access="acceptListFromShareDialog" />
   </div>
-  
+
   <!-- Remove Access Dialog -->
   <v-dialog v-model="showRemoveAccessDialog" max-width="500">
     <v-card>
@@ -251,7 +211,7 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  
+
   <!-- Cancel Request Dialog -->
   <v-dialog v-model="showCancelRequestDialog" max-width="500">
     <v-card>
@@ -275,15 +235,14 @@
 </template>
 
 <script setup lang="ts">
-import type { apitypes_VisibilityLevel } from '@/genapi/api/lists/list/v1alpha1'
+import type { apitypes_VisibilityLevel, ListItem, List_ListSection } from '@/genapi/api/lists/list/v1alpha1'
 import type { Access, CreateAccessRequest, ListAccessesRequest, DeleteAccessRequest } from '@/genapi/api/lists/list/v1alpha1'
-import type { ListItem, CreateListItemRequest, ListListItemsRequest, ListListItemsResponse } from '@/genapi/api/lists/list/v1alpha1'
 import type { PermissionLevel } from '@/genapi/api/types'
 import { useListStore } from '@/stores/list'
 import { storeToRefs } from 'pinia'
-import { onMounted, watch, computed, ref } from 'vue'
+import { onMounted, computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { listService, listAccessService, listItemService } from '@/api/api'
+import { listService, listAccessService } from '@/api/api'
 import { useAuthStore } from '@/stores/auth'
 import { hasWritePermission, hasAdminPermission, hasReadPermission } from '@/utils/permissions'
 import ShareDialog from '@/components/common/ShareDialog.vue'
@@ -301,37 +260,67 @@ const trimmedListName = computed(() => {
 
 const { list } = storeToRefs(listStore)
 
-// List items state
-const listItems = ref<ListItem[]>([])
+// Types for mixed list structure
+type MixedListItem = {
+  type: 'item'
+  data: ListItem
+}
+
+type MixedListSection = {
+  type: 'section'
+  data: List_ListSection
+  items: ListItem[]
+}
+
+type MixedListElement = MixedListItem | MixedListSection
+
+// List items state and computed properties
 const loadingListItems = ref(false)
 
-// Computed properties for grouping items
-const itemsWithoutSection = computed(() => {
-  return listItems.value.filter(item => !item.listSection)
+// Inline item creation state
+const isCreatingItem = ref(false)
+const creatingItemSection = ref<string | undefined | null>(undefined)
+const inlineItemText = ref('')
+const inlineItemInputRef = ref()
+
+// Get list items for the current list
+const currentListItems = computed(() => {
+  if (!list.value?.name) return []
+  return listStore.getListItems(list.value.name)
 })
 
-const itemsBySection = computed(() => {
-  const grouped: Record<string, ListItem[]> = {}
-  
-  listItems.value.forEach(item => {
-    if (item.listSection) {
-      if (!grouped[item.listSection]) {
-        grouped[item.listSection] = []
-      }
-      grouped[item.listSection].push(item)
+// Create mixed list structure with items and sections
+const mixedListElements = computed((): MixedListElement[] => {
+  const elements: MixedListElement[] = []
+
+  if (!list.value) return elements
+
+  const allItems = currentListItems.value
+
+
+  const mappedSections: Map<string, MixedListElement> = new Map()
+
+  list.value.sections?.forEach(section => {
+    const sectionElement: MixedListSection = {
+      type: 'section',
+      data: section,
+      items: []
+    }
+    mappedSections.set(section.name ?? '', sectionElement)
+    elements.push(sectionElement)
+  })
+
+  allItems.forEach(item => {
+    const mappedSection = mappedSections.get(item.listSection ?? '')
+    if (item.listSection && mappedSection && mappedSection.type === 'section') {
+      mappedSection.items.push(item)
+    } else {
+      elements.push({ type: 'item', data: item })
     }
   })
-  
-  return grouped
-})
 
-// Editing state
-const isCreatingNewItem = ref(false)
-const isCreatingNewSection = ref(false)
-const newItemText = ref('')
-const newSectionText = ref('')
-const newItemInputRef = ref()
-const newSectionInputRef = ref()
+  return elements
+})
 
 // *** Visibility ***
 
@@ -399,11 +388,11 @@ async function handleRemoveAccess() {
     const deleteRequest: DeleteAccessRequest = {
       name: list.value.listAccess.name
     }
-    
+
     await listAccessService.DeleteAccess(deleteRequest)
     router.push(route.params.circleId ? { name: 'circle', params: { circleId: route.params.circleId } } : { name: 'lists' })
   } catch (error) {
-    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
   } finally {
     removingAccess.value = false
     showRemoveAccessDialog.value = false
@@ -422,7 +411,7 @@ async function handleCancelRequest() {
     const deleteRequest: DeleteAccessRequest = {
       name: list.value.listAccess.name
     }
-    
+
     await listAccessService.DeleteAccess(deleteRequest)
     await listStore.loadList(list.value.name!)
     alertsStore.addAlert('Access request cancelled.', 'info')
@@ -448,7 +437,7 @@ async function handleDelete() {
     })
     router.push({ name: 'lists' })
   } catch (error) {
-    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
   } finally {
     deleting.value = false
     showDeleteDialog.value = false
@@ -474,7 +463,7 @@ async function acceptList(listAccessName: string | undefined) {
     await listStore.acceptList(listAccessName)
     listStore.loadList(list.value?.name ?? '')
   } catch (error) {
-    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
   } finally {
     acceptingList.value = false
   }
@@ -487,7 +476,7 @@ async function declineList() {
     await listStore.deleteListAccess(list.value.listAccess.name)
     router.push(route.params.circleId ? { name: 'circle', params: { circleId: route.params.circleId } } : { name: 'lists' })
   } catch (error) {
-    alertsStore.addAlert(error instanceof Error ? error.message : String(error),'error')
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
   } finally {
     decliningList.value = false
   }
@@ -575,7 +564,7 @@ async function unshareList(accessName: string) {
     const request: DeleteAccessRequest = {
       name: accessName
     }
-    
+
     await listAccessService.DeleteAccess(request)
     await fetchListRecipients()
   } catch (error) {
@@ -629,9 +618,9 @@ async function shareWithCircle({ circleName, permission }: { circleName: string,
   try {
     const access: Access = {
       recipient: {
-        circle: { 
-          name: circleName, 
-          title: undefined, 
+        circle: {
+          name: circleName,
+          title: undefined,
           handle: undefined,
         }
       },
@@ -661,11 +650,11 @@ const requestingAccess = ref(false)
 async function handleRequestAccess() {
   if (!list.value?.name) return
   if (!authStore.user?.name) return
-  
+
   requestingAccess.value = true
   try {
     const access: Access = {
-       recipient: {
+      recipient: {
         user: {
           name: authStore.user?.name,
           username: undefined,
@@ -710,144 +699,91 @@ async function toggleFavorite() {
   }
 }
 
+// Load list items when list changes
+watch(list, async (newList) => {
+  if (newList?.name) {
+    await loadListItems()
+  }
+}, { immediate: true })
+
 // Load list items
 async function loadListItems() {
   if (!list.value?.name) return
-  
+
   loadingListItems.value = true
   try {
-    const request: ListListItemsRequest = {
-      parent: list.value.name,
-      pageSize: undefined,
-      pageToken: undefined,
-      filter: undefined,
-    }
-    
-    const response: ListListItemsResponse = await listItemService.ListListItems(request)
-    listItems.value = response.listItems ?? []
+    await listStore.loadListItems(list.value.name)
   } catch (error) {
-    console.error('Error loading list items:', error)
+    console.error('Failed to load list items:', error)
     alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
   } finally {
     loadingListItems.value = false
   }
 }
 
-// Create new list item
-async function createListItem() {
-  if (!list.value?.name || !newItemText.value.trim()) return
-  
-  try {
-    const request: CreateListItemRequest = {
-      parent: list.value.name,
-      listItem: {
-        name: undefined, // Will be set by server
-        title: newItemText.value.trim(),
-        listSection: undefined,
-        points: 0,
-        recurrenceRule: undefined,
-        createTime: undefined,
-        updateTime: undefined,
-      }
-    }
-    
-    const newItem = await listItemService.CreateListItem(request)
-    listItems.value.push(newItem)
-    newItemText.value = ''
-    isCreatingNewItem.value = false
-  } catch (error) {
-    console.error('Error creating list item:', error)
-    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
-  }
-}
-
-// Create new section
-async function createSection() {
-  if (!newSectionText.value.trim()) return
-  
-  try {
-    // Add new section to the list
-    const newSection = {
-      name: undefined, // Will be set by server
-      title: newSectionText.value.trim(),
-    }
-    
-    // Update the list with the new section
-    if (list.value) {
-      list.value.sections = [...(list.value.sections || []), newSection]
-    }
-    
-    await listStore.updateList()
-    newSectionText.value = ''
-    isCreatingNewSection.value = false
-  } catch (error) {
-    console.error('Error creating section:', error)
-    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
-  }
-}
-
-// Handle new item input
-function startCreatingItem() {
-  isCreatingNewItem.value = true
-  newItemText.value = ''
+// Inline item creation methods
+function startCreatingItem(sectionName?: string | null) {
+  isCreatingItem.value = true
+  creatingItemSection.value = sectionName
+  inlineItemText.value = ''
   setTimeout(() => {
-    newItemInputRef.value?.focus()
+    inlineItemInputRef.value?.focus()
   }, 100)
 }
 
-function handleItemInputKeydown(event: KeyboardEvent) {
+async function createInlineItem(sectionName?: string | null) {
+  if (!inlineItemText.value.trim() || !list.value?.name) return
+
+  try {
+    await listStore.createListItem(
+      list.value.name,
+      inlineItemText.value.trim(),
+      sectionName || undefined,
+      0 // Default points
+    )
+
+    cancelInlineCreation()
+  } catch (error) {
+    console.error('Failed to create inline item:', error)
+    alertsStore.addAlert(error instanceof Error ? error.message : String(error), 'error')
+  }
+}
+
+function cancelInlineCreation() {
+  isCreatingItem.value = false
+  creatingItemSection.value = undefined
+  inlineItemText.value = ''
+}
+
+function handleInlineItemInputKeydown(event: KeyboardEvent) {
   if (event.key === 'Enter') {
     event.preventDefault()
-    createListItem()
+      // Trigger blur to reuse the existing blur logic
+      ; (event.target as HTMLInputElement)?.blur()
+  } else if (event.key === 'Escape') {
+    event.preventDefault()
+    cancelInlineCreation()
   }
 }
 
-function handleItemInputBlur() {
-  if (newItemText.value.trim()) {
-    createListItem()
+function handleInlineItemInputBlur(sectionName?: string | null) {
+  if (inlineItemText.value.trim()) {
+    createInlineItem(sectionName)
   } else {
-    isCreatingNewItem.value = false
-    newItemText.value = ''
-  }
-}
-
-// Handle new section input
-function startCreatingSection() {
-  isCreatingNewSection.value = true
-  newSectionText.value = ''
-  setTimeout(() => {
-    newSectionInputRef.value?.focus()
-  }, 100)
-}
-
-function handleSectionInputBlur() {
-  if (newSectionText.value.trim()) {
-    createSection()
-  } else {
-    isCreatingNewSection.value = false
-    newSectionText.value = ''
+    cancelInlineCreation()
   }
 }
 
 // Load list on mount
 onMounted(async () => {
   await listStore.loadList(trimmedListName.value)
-  await loadListItems()
 })
 </script>
 
 <style scoped>
-.list-item {
-  min-height: auto;
-}
-
-.cursor-pointer {
-  cursor: pointer;
-}
-
 .fab-container {
   position: fixed;
-  bottom: 16px;
+  bottom: 56px;
   right: 16px;
   display: flex;
   flex-direction: column;
