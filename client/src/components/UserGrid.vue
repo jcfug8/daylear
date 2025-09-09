@@ -31,11 +31,6 @@
               mdi-heart
               </v-icon>
           </v-card-title>
-          <v-card-subtitle style="font-size: 0.8rem;">
-            <div v-if="user.bio" class="text-body-2 mb-1" style="max-height: 2.5em; overflow: hidden; text-overflow: ellipsis; white-space: pre-line;">
-              {{ user.bio.length > 80 ? user.bio.slice(0, 80) + '…' : user.bio }}
-            </div>
-          </v-card-subtitle>
           <v-img
             class="mt-2"
             style="background-color: lightgray"
@@ -126,7 +121,7 @@ function isRequester(user: User) {
 
 .favorite-heart {
   position: absolute;
-  top: 8px;
+  bottom: 8px;
   right: 8px;
   z-index: 2;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));

@@ -49,7 +49,7 @@
           <template v-if="(isMyTab && viewMode === 'schedule')">
             <v-menu v-model="settingsOpen" :close-on-content-click="false">
               <template #activator="{ props }">
-                <v-btn density="compact" icon="mdi-cog" v-bind="props" />
+                <v-btn density="compact" variant="flat" icon="mdi-cog" v-bind="props" />
               </template>
               <v-list>
                 <v-list-item

@@ -1,12 +1,12 @@
 <template>
 
-  <v-system-bar elevation="0" height="35" color="white" v-if="slots.filter">
+  <v-system-bar elevation="0" height="30" color="white" v-if="slots.filter">
     <div style="width: 100%;">
       <slot name="filter" />
     </div>
   </v-system-bar>
-  <v-system-bar elevation="0" color="white" height="40">
-    <v-tabs center-active v-model="internalActiveTab" align-tabs="center" color="primary" grow>
+  <v-system-bar elevation="0" color="white" height="30">
+    <v-tabs height="30" center-active v-model="internalActiveTab" align-tabs="center" color="primary" grow>
       <v-tab min-width="50" density="compact" v-for="tab in tabs" :key="tab.value" :value="tab.value">
         <template v-if="!tab.disabled">
           <v-icon v-if="tab.icon" left>{{ tab.icon }}</v-icon>
