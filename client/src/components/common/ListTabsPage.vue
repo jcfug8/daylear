@@ -6,8 +6,8 @@
     </div>
   </v-system-bar>
   <v-system-bar elevation="0" color="white" height="40">
-    <v-tabs v-model="internalActiveTab" align-tabs="center" color="primary" grow>
-      <v-tab density="compact" v-for="tab in tabs" :key="tab.value" :value="tab.value">
+    <v-tabs center-active v-model="internalActiveTab" align-tabs="center" color="primary" grow>
+      <v-tab min-width="50" density="compact" v-for="tab in tabs" :key="tab.value" :value="tab.value">
         <template v-if="!tab.disabled">
           <v-icon v-if="tab.icon" left>{{ tab.icon }}</v-icon>
           <span class="text-caption">{{ tab.label }}</span>
@@ -41,7 +41,7 @@
 import { ref, watch, onMounted, defineExpose, useSlots } from 'vue'
 
 interface TabDef {
-  label: string
+  label: string | undefined
   value: string
   loader?: () => Promise<unknown>
   subTabs?: Array<{ label: string; value: string; loader?: () => Promise<unknown> }>

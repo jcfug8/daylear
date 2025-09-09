@@ -94,7 +94,7 @@ func (d *Domain) UpdateUser(ctx context.Context, authAccount model.AuthAccount, 
 	}
 
 	_, err = d.determineUserAccess(
-		ctx, authAccount, model.UserId{UserId: authAccount.UserId},
+		ctx, authAccount, user.Id,
 		withMinimumPermissionLevel(types.PermissionLevel_PERMISSION_LEVEL_ADMIN),
 	)
 	if err != nil {

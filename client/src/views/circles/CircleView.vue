@@ -1,123 +1,130 @@
 <template>
-  <v-container v-if="circle" class="pb-16">
+  <v-container v-if="circle" max-width="600" class="pa-1">
     <ListTabsPage
       :tabs="tabs"
       ref="tabsPage"
     >
       <template #general>
-        <v-container max-width="600" class="pa-1">
-          <v-row>
-            <v-col class="pt-5">
-              <div class="text-h4">
-                {{ circle.title }}
-              </div>
-              <div class="bio-section pa-2">
-                <div class="text-subtitle-1 font-weight-bold mb-1">Description</div>
-                <div class="text-body-1" style="white-space: pre-line;">
-                  {{ circle.description || 'No description set.' }}
-                </div>
-              </div>
-              <div v-if="circle.handle" class="text-body-2 mt-1">
-                <strong>Handle:</strong> <code>{{ circle.handle }}</code>
-              </div>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-spacer></v-spacer>
-            <v-col align-self="auto" cols="12" sm="8">
-              <div class="image-container">
-                <v-img 
-                  v-if="circle.imageUri" 
-                  class="mt-1" 
-                  style="background-color: lightgray" 
-                  :src="circle.imageUri" 
-                  cover
-                  height="300"
-                ></v-img>
-                <div 
-                  v-else 
-                  class="mt-1 d-flex align-center justify-center"
-                  style="background-color: lightgray; height: 300px; border-radius: 4px;"
-                >
-                  <div class="text-center">
-                    <v-icon size="64" color="grey-darken-1">mdi-image-outline</v-icon>
-                    <div class="text-grey-darken-1 mt-2">No image available</div>
-                  </div>
-                </div>
-              </div>
-            </v-col>
-            <v-spacer></v-spacer>
-          </v-row>
-          <!-- Visibility Section -->
-          <v-row>
-            <v-col cols="12">
-              <div class="mt-4">
-                <div v-if="selectedVisibilityDescription" class="mt-2">
-                  <v-alert
-                    :icon="selectedVisibilityIcon"
-                    density="compact"
-                    variant="tonal"
-                    :color="selectedVisibilityColor"
-                  >
-                    <div class="text-body-2">
-                      <strong>{{ selectedVisibilityLabel }}:</strong> {{ selectedVisibilityDescription }}
-                    </div>
-                  </v-alert>
-                </div>
-              </div>
-            </v-col>
-          </v-row>
-          <!-- Accept/Decline Buttons for Pending Access -->
-          <v-row v-if="circle.circleAccess?.acceptTarget === 'ACCEPT_TARGET_RECIPIENT' && circle.circleAccess?.state === 'ACCESS_STATE_PENDING'">
-            <v-col cols="12">
-              <v-btn
-                color="success"
-                class="mb-2"
-                block
-                :loading="acceptingCircle"
-                @click="acceptCircle(circle.circleAccess?.name)"
+        <v-row no-gutters>
+          <v-col cols="10">
+            <div class="text-h5">
+              {{ circle.title }}
+            </div>
+            <div v-if="circle.handle" class="text-caption text-grey">
+              @{{ circle.handle }}
+            </div>
+          </v-col>
+          <v-col cols="2" class="text-right">
+            <v-btn class="text-h5" id="circle-menu-btn" variant="text">
+              <v-icon>mdi-dots-vertical</v-icon>
+            </v-btn>
+            <v-menu activator="#circle-menu-btn">
+              <v-list>
+                <v-list-item v-if="hasWritePermission(circle.circleAccess?.permissionLevel)" color="primary"
+                  density="compact" :to="'/'+circle.name+'/edit'">
+                  <v-icon>mdi-pencil</v-icon>
+                  Edit
+                </v-list-item>
+                <v-list-item v-if="!hasReadPermission(circle.circleAccess?.permissionLevel) && !circle.circleAccess" 
+                  color="primary" @click="handleRequestAccess" :loading="requestingAccess">
+                  <v-icon>mdi-account-plus</v-icon>Request Access
+                </v-list-item>
+                <v-list-item v-if="circle.circleAccess?.state === 'ACCESS_STATE_PENDING' && circle.circleAccess?.acceptTarget !== 'ACCEPT_TARGET_RECIPIENT'" 
+                  color="warning" @click="showCancelRequestDialog = true">
+                  <v-icon>mdi-close</v-icon>Cancel Request
+                </v-list-item>
+                <v-list-item v-if="!hasAdminPermission(circle.circleAccess?.permissionLevel) && circle.circleAccess?.state === 'ACCESS_STATE_ACCEPTED'" 
+                  color="warning" @click="showRemoveAccessDialog = true">
+                  <v-icon>mdi-link-variant-off</v-icon>Remove Access
+                </v-list-item>
+                <v-list-item v-if="hasAdminPermission(circle.circleAccess?.permissionLevel)" color="error"
+                  @click="showDeleteDialog = true">
+                  <v-icon>mdi-delete</v-icon>
+                  Delete
+                </v-list-item>
+              </v-list>
+            </v-menu>
+          </v-col>
+          <v-col cols="12">
+            <div class="image-container">
+              <v-icon 
+                size="24" 
+                :color="circle.favorited ? 'red' : 'black'"
+                class="favorite-heart"
+                @click="toggleFavorite"
+                style="cursor: pointer;"
               >
-                Accept Circle
-              </v-btn>
-              <v-btn
-                color="error"
-                class="mb-4"
-                block
-                :loading="decliningCircle"
-                @click="declineCircle"
+                {{ circle.favorited ? 'mdi-heart' : 'mdi-heart-outline' }}
+              </v-icon>
+              <v-img 
+                v-if="circle.imageUri" 
+                style="background-color: lightgray" 
+                :src="circle.imageUri" 
+                cover
+                height="300"
+              ></v-img>
+              <div 
+                v-else 
+                class="d-flex align-center justify-center"
+                style="background-color: lightgray; height: 300px; border-radius: 4px;"
               >
-                Decline
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-container>
-        <!-- Floating action buttons container -->
-        <div class="fab-container">
-          <v-btn density="compact" v-if="hasWritePermission(circle.circleAccess?.permissionLevel)" color="primary" :to="'/'+circle.name+'/edit'">
-            <v-icon>mdi-pencil</v-icon>Edit
-          </v-btn>
-          <v-btn density="compact" v-if="!hasReadPermission(circle.circleAccess?.permissionLevel) && !circle.circleAccess" color="primary" @click="handleRequestAccess" :loading="requestingAccess">
-            <v-icon>mdi-account-plus</v-icon>Request Access
-          </v-btn>
-          <v-btn density="compact" v-if="circle.circleAccess?.state === 'ACCESS_STATE_PENDING' && circle.circleAccess?.acceptTarget !== 'ACCEPT_TARGET_RECIPIENT'" color="warning" @click="showCancelRequestDialog = true">
-            <v-icon>mdi-close</v-icon>Cancel Request
-          </v-btn>
-          <v-btn density="compact" v-if="!hasAdminPermission(circle.circleAccess?.permissionLevel) && circle.circleAccess?.state === 'ACCESS_STATE_ACCEPTED'" color="warning" @click="showRemoveAccessDialog = true">
-            <v-icon>mdi-link-variant-off</v-icon>Remove Access
-          </v-btn>
-          <v-btn density="compact" v-if="hasAdminPermission(circle.circleAccess?.permissionLevel)" color="error" @click="showDeleteDialog = true">
-            <v-icon>mdi-delete</v-icon>Delete
-          </v-btn>
-        </div>
-        <v-icon 
-          size="24" 
-          :color="circle.favorited ? 'red' : 'black'"
-          class="favorite-heart"
-          @click="toggleFavorite"
-          style="cursor: pointer;"
-        >
-        {{ circle.favorited ? 'mdi-heart' : 'mdi-heart-outline' }}
-        </v-icon>
+                <div class="text-center">
+                  <v-icon size="64" color="grey-darken-1">mdi-image-outline</v-icon>
+                  <div class="text-grey-darken-1 mt-2">No image available</div>
+                </div>
+              </div>
+            </div>
+          </v-col>
+        </v-row>
+        <v-row no-gutters v-if="circle.description">
+          <v-col cols="12">
+            <div class="text-body-2 mt-2" style="white-space: pre-line;">
+              {{ circle.description }}
+            </div>
+          </v-col>
+        </v-row>
+        <!-- Visibility Section -->
+        <v-row no-gutters v-if="selectedVisibilityDescription">
+          <v-col cols="12">
+            <div class="mt-4">
+              <v-alert
+                :icon="selectedVisibilityIcon"
+                density="compact"
+                variant="tonal"
+                :color="selectedVisibilityColor"
+              >
+                <div class="text-body-2">
+                  <strong>{{ selectedVisibilityLabel }}:</strong> {{ selectedVisibilityDescription }}
+                </div>
+              </v-alert>
+            </div>
+          </v-col>
+        </v-row>
+        <!-- Accept/Decline Buttons for Pending Access -->
+        <v-row no-gutters v-if="circle.circleAccess?.acceptTarget === 'ACCEPT_TARGET_RECIPIENT' && circle.circleAccess?.state === 'ACCESS_STATE_PENDING'">
+          <v-col cols="12">
+            <v-btn
+              color="success"
+              class="mb-2"
+              block
+              :loading="acceptingCircle"
+              @click="acceptCircle(circle.circleAccess?.name)"
+            >
+              Accept Circle
+            </v-btn>
+          </v-col>
+          <v-col cols="12">
+            <v-btn
+              color="error"
+              class="mb-4"
+              block
+              :loading="decliningCircle"
+              @click="declineCircle"
+            >
+              Decline
+            </v-btn>
+          </v-col>
+        </v-row>
       </template>
       <template #recipes-circleRecipes="{ items, loading }">
         <RecipeGrid :recipes="(items as Recipe[])" :loading="(loading as boolean)" />
@@ -326,12 +333,14 @@ watch(
 const tabsPage = ref()
 const tabs = computed(() => [
   {
-    label: 'General',
+    icon: 'mdi-home',
     value: 'general',
+    label: undefined,
   },
   {
-    label: 'Recipes',
+    icon: 'mdi-food-apple-outline',
     value: 'recipes',
+    label: undefined,
     loader: async () => {
       if (!circle.value?.name) return []
       // Admin recipes for this circle
@@ -340,7 +349,7 @@ const tabs = computed(() => [
     },
     subTabs: hasWritePermission(circle.value?.circleAccess?.permissionLevel) ? [
       {
-        label: 'Circle Recipes',
+        label: undefined,
         value: 'circleRecipes',
         loader: async () => {
           if (!circle.value?.name) return []
@@ -350,7 +359,7 @@ const tabs = computed(() => [
         },
       },
       {
-        label: 'Pending Recipes',
+        label: undefined,
         value: 'pending',
         loader: async () => {
           if (!circle.value?.name) return []
@@ -362,8 +371,9 @@ const tabs = computed(() => [
     ] : undefined,
   },
   {
-    label: 'Members',
+    icon: 'mdi-account-multiple',
     value: 'members',
+    label: undefined,
     loader: async () => {
       if (!circle.value?.name) return []
       await usersStore.loadFriends(circle.value.name)
@@ -371,8 +381,9 @@ const tabs = computed(() => [
     },
   },
   {
-    label: 'Calendars',
+    icon: 'mdi-calendar',
     value: 'calendars',
+    label: undefined,
     loader: async () => {
       if (!circle.value?.name) return []
       await calendarsStore.loadMyCalendars(circle.value.name)
@@ -792,23 +803,14 @@ async function toggleFavorite() {
   position: relative;
 }
 
-.fab-container {
-  position: fixed;
-  bottom: 56px;
-  right: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 1000;
-}
-
 .favorite-heart {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 4px !important;
   position: absolute;
   top: 8px;
   right: 8px;
-  z-index: 10000000;
+  z-index: 2;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
-  /* background-color: rgba(255, 255, 255, 0.9); */
   border-radius: 50%;
   padding: 4px;
   transition: all 0.2s ease-in-out;

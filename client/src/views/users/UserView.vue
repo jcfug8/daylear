@@ -1,27 +1,34 @@
 <template>
-  <v-container v-if="user" class="pb-16">
+  <v-container v-if="user" max-width="600" class="pa-1">
     <ListTabsPage :tabs="tabs" ref="tabsPage">
       <template #general>
          <!-- Access Request Section -->
-         <v-card v-if="showAccessRequest" class="mx-auto mt-4 mb-2" max-width="600">
-          <v-card-title class="text-h6">
-            <v-icon left>mdi-account-clock</v-icon>
-            Pending Friend Request
-          </v-card-title>
-          <v-card-text>
-            <p class="text-body-1 mb-4">
-              You have a pending friend request from this user. Would you like to accept or decline?
-            </p>
-            
+         <v-container v-if="showAccessRequest" max-width="600" class="pa-1">
+          <v-row no-gutters>
+            <v-col cols="12">
+              <div class="text-h6 mb-2">
+                <v-icon left>mdi-account-clock</v-icon>
+                Pending Friend Request
+              </div>
+            </v-col>
+            <v-col cols="12">
+              <p class="text-body-1 mb-4">
+                You have a pending friend request from this user. Would you like to accept or decline?
+              </p>
+            </v-col>
+            <v-col cols="12">
               <v-btn
                 color="success"
                 @click="handleAcceptRequest"
                 :loading="acceptingRequest"
                 block
+                class="mb-2"
               >
                 <v-icon left>mdi-check</v-icon>
                 Accept
               </v-btn>
+            </v-col>
+            <v-col cols="12">
               <v-btn
                 color="error"
                 @click="handleDeclineRequest"
@@ -30,88 +37,82 @@
               >
                 <v-icon left>mdi-close</v-icon>
                 Decline
-            </v-btn>
-          </v-card-text>
-        </v-card>
-        <v-card class="mx-auto" max-width="600">
-          <div class="image-container">
-            <v-img
-              v-if="user.imageUri"
-              class="mt-1"
-              style="background-color: lightgray"
-              :src="user.imageUri"
-              cover
-              height="300"
-            ></v-img>
-            <div v-else class="mt-1 d-flex align-center justify-center" style="background-color: lightgray; height: 300px; border-radius: 4px;">
-              <div class="text-center">
-                <v-icon size="64" color="grey-darken-1">mdi-image-outline</v-icon>
-                <div class="text-grey-darken-1 mt-2">No image available</div>
+              </v-btn>
+            </v-col>
+          </v-row>
+        </v-container>
+        
+        <v-container max-width="600" class="pa-1">
+          <v-row no-gutters>
+            <v-col cols="10">
+              <div class="text-h5">
+                {{ displayName }}
               </div>
-            </div>
-          </div>
-          <div class="bio-section pa-4">
-            <div class="text-subtitle-1 font-weight-bold mb-1">Bio</div>
-            <div class="text-body-1" style="white-space: pre-line;">
-              {{ user.bio || 'No bio set.' }}
-            </div>
-          </div>
-          <v-card-title>User Settings</v-card-title>
-          <v-card-text>
-            <v-list>
-              <v-list-item>
-                <template v-slot:prepend>
-                  <v-icon icon="mdi-account"></v-icon>
-                </template>
-                <v-list-item-title>Given Name</v-list-item-title>
-                <v-list-item-subtitle>{{ user.givenName || 'Not set' }}</v-list-item-subtitle>
-              </v-list-item>
-
-              <v-list-item>
-                <template v-slot:prepend>
-                  <v-icon icon="mdi-account"></v-icon>
-                </template>
-                <v-list-item-title>Family Name</v-list-item-title>
-                <v-list-item-subtitle>{{ user.familyName || 'Not set' }}</v-list-item-subtitle>
-              </v-list-item>
-
-              <v-list-item>
-                <template v-slot:prepend>
-                  <v-icon icon="mdi-account-circle"></v-icon>
-                </template>
-                <v-list-item-title>Username</v-list-item-title>
-                <v-list-item-subtitle>{{ user.username }}</v-list-item-subtitle>
-              </v-list-item>
-            </v-list>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-          </v-card-actions>
-        </v-card>
-        <!-- Floating action buttons container -->
-        <div class="fab-container">
-          <v-btn density="compact" v-if="hasAdminPermission(user.access?.permissionLevel)" color="primary" :to="'/'+user.name+'/edit'">
-            <v-icon>mdi-pencil</v-icon>Edit
-          </v-btn>
-          <v-btn density="compact" v-if="!hasWritePermission(user.access?.permissionLevel)" color="primary"  @click="handleConnect" :loading="connecting">
-            <v-icon>mdi-account-plus</v-icon>Friend Request
-          </v-btn>
-          <v-btn density="compact" v-if="user.access?.state === 'ACCESS_STATE_PENDING'" color="warning" @click="showCancelRequestDialog = true">
-            <v-icon>mdi-close</v-icon>Cancel Request
-          </v-btn>
-          <v-btn density="compact" v-if="hasWriteOnlyPermission(user.access?.permissionLevel) && user.access?.state === 'ACCESS_STATE_ACCEPTED'" color="warning" @click="showRemoveAccessDialog = true">
-            <v-icon>mdi-account-remove</v-icon>Remove Access
-          </v-btn>
-        </div>
-        <v-icon 
-          size="24" 
-          :color="user.favorited ? 'red' : 'black'"
-          class="favorite-heart"
-          @click="toggleFavorite"
-          style="cursor: pointer;"
-        >
-        {{ user.favorited ? 'mdi-heart' : 'mdi-heart-outline' }}
-        </v-icon>
+              <div v-if="showUsernameAsCaption" class="text-caption text-grey">
+                @{{ user.username }}
+              </div>
+            </v-col>
+            <v-col cols="2" class="text-right">
+              <v-btn class="text-h5" id="user-menu-btn" variant="text">
+                <v-icon>mdi-dots-vertical</v-icon>
+              </v-btn>
+              <v-menu activator="#user-menu-btn">
+                <v-list>
+                  <v-list-item v-if="hasAdminPermission(user.access?.permissionLevel)" color="primary"
+                    density="compact" :to="'/'+user.name+'/edit'">
+                    <v-icon>mdi-pencil</v-icon>
+                    Edit
+                  </v-list-item>
+                  <v-list-item v-if="!hasWritePermission(user.access?.permissionLevel)" color="primary" 
+                    @click="handleConnect" :loading="connecting">
+                    <v-icon>mdi-account-plus</v-icon>Friend Request
+                  </v-list-item>
+                  <v-list-item v-if="user.access?.state === 'ACCESS_STATE_PENDING'" color="warning" 
+                    @click="showCancelRequestDialog = true">
+                    <v-icon>mdi-close</v-icon>Cancel Request
+                  </v-list-item>
+                  <v-list-item v-if="hasWriteOnlyPermission(user.access?.permissionLevel) && user.access?.state === 'ACCESS_STATE_ACCEPTED'" 
+                    color="warning" @click="showRemoveAccessDialog = true">
+                    <v-icon>mdi-account-remove</v-icon>Remove Access
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+            </v-col>
+            <v-col cols="12">
+              <div class="image-container">
+                <v-icon 
+                  size="24" 
+                  :color="user.favorited ? 'red' : 'black'"
+                  class="favorite-heart"
+                  @click="toggleFavorite"
+                  style="cursor: pointer;"
+                >
+                  {{ user.favorited ? 'mdi-heart' : 'mdi-heart-outline' }}
+                </v-icon>
+                <v-img
+                  v-if="user.imageUri"
+                  style="background-color: lightgray"
+                  :src="user.imageUri"
+                  cover
+                  height="300"
+                ></v-img>
+                <div v-else class="d-flex align-center justify-center" style="background-color: lightgray; height: 300px; border-radius: 4px;">
+                  <div class="text-center">
+                    <v-icon size="64" color="grey-darken-1">mdi-image-outline</v-icon>
+                    <div class="text-grey-darken-1 mt-2">No image available</div>
+                  </div>
+                </div>
+              </div>
+            </v-col>
+          </v-row>
+          <v-row no-gutters v-if="user.bio">
+            <v-col cols="12">
+              <div class="text-body-2 mt-2" style="white-space: pre-line;">
+                {{ user.bio }}
+              </div>
+            </v-col>
+          </v-row>
+        </v-container>
       </template>
       <template #accessKeys="{ items, loading }">
         <v-container>
@@ -522,6 +523,25 @@ const trimmedUserName = computed(() => {
   return route.path.substring(route.path.indexOf('users/'))
 })
 
+// Computed properties for name display
+const displayName = computed(() => {
+  if (!user.value) return ''
+  if (user.value.givenName && user.value.familyName) {
+    return `${user.value.givenName} ${user.value.familyName}`
+  } else if (user.value.givenName) {
+    return user.value.givenName
+  } else if (user.value.familyName) {
+    return user.value.familyName
+  } else {
+    return user.value.username
+  }
+})
+
+const showUsernameAsCaption = computed(() => {
+  if (!user.value) return false
+  return !!(user.value.givenName || user.value.familyName)
+})
+
 async function loadUser() {
   await Promise.all([
     usersStore.loadUser(trimmedUserName.value),
@@ -561,14 +581,16 @@ async function onEventDeleted() {
 }
 
 const tabs = computed(() => {
-  const baseTabs: any[] = [
+  const baseTabs: Array<{value: string, label: string | undefined, icon: string, loader?: () => Promise<unknown[]>}> = [
     {
-      label: 'General',
       value: 'general',
+      icon: 'mdi-home',
+      label: undefined,
     },
     {
-      label: 'Recipes',
+      icon: 'mdi-food-apple-outline',
       value: 'recipes',
+      label: undefined,
       loader: async () => {
         if (!user.value?.name) return []
         // The parent resource for user recipes is the user's resource name
@@ -581,8 +603,9 @@ const tabs = computed(() => {
   // Only show Access Keys tab if user has admin permissions
   if (hasAdminPermission(user.value?.access?.permissionLevel)) {
     baseTabs.splice(1, 0, {
-      label: 'Access Keys',
+      icon: 'mdi-key-outline',
       value: 'accessKeys',
+      label: undefined,
       loader: async () => {
         if (!user.value?.name) return []
         await usersStore.loadAccessKeys(user.value.name)
@@ -594,8 +617,9 @@ const tabs = computed(() => {
   // Add remaining tabs
   baseTabs.push(
     {
-      label: 'Friends',
+      icon: 'mdi-account-multiple',
       value: 'friends',
+      label: undefined,
     loader: async () => {
       if (!user.value?.name) return []
       await usersStore.loadFriends(user.value.name)
@@ -603,8 +627,9 @@ const tabs = computed(() => {
     },
   },
   {
-    label: 'Circles',
+    icon: 'mdi-account-group',
     value: 'circles',
+    label: undefined,
     loader: async () => {
       if (!user.value?.name) return []
       await circlesStore.loadMyCircles(user.value.name)
@@ -612,8 +637,9 @@ const tabs = computed(() => {
     },
   },
   {
-    label: 'Calendars',
+    icon: 'mdi-calendar',
     value: 'calendars',
+    label: undefined,
     loader: async () => {
       if (!user.value?.name) return []
       await calendarsStore.loadMyCalendars(user.value.name)
@@ -1081,23 +1107,18 @@ async function toggleFavorite() {
 </script>
 
 <style scoped>
-.fab-container {
-  position: fixed;
-  bottom: 56px;
-  right: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 1000;
+.image-container {
+  position: relative;
 }
 
 .favorite-heart {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 4px !important;
   position: absolute;
   top: 8px;
   right: 8px;
-  z-index: 10000000;
+  z-index: 2;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
-  /* background-color: rgba(255, 255, 255, 0.9); */
   border-radius: 50%;
   padding: 4px;
   transition: all 0.2s ease-in-out;

@@ -13,7 +13,7 @@
         density="compact"
         :to="{ name: 'recipes' }"
       >
-        <v-icon>mdi-book-open-page-variant</v-icon>
+        <v-icon>mdi-food-apple-outline</v-icon>
       </v-btn>
       <v-btn
         density="compact"
@@ -78,11 +78,6 @@ const logOut = () => {
   accountDrawer.value = false
   authStore.logOut()
   router.push({ name: 'login' })
-}
-
-const toggleNavDrawer = () => {
-  navDrawer.value = !navDrawer.value
-  accountDrawer.value = false
 }
 
 const toggleAccountDrawer = () => {

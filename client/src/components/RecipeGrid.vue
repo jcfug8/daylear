@@ -24,7 +24,6 @@
             </template>
           </v-img>
 
-          <!-- Permission level indicator -->
           <v-icon v-if="recipe.favorited" size="24" class="favorite-heart">
             mdi-heart
           </v-icon>
