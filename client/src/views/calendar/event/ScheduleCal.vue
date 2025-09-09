@@ -521,7 +521,7 @@ const calendarChoices = computed(() => {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  max-height: calc(100dvh - var(--v-layout-top, 0px));
+  max-height: calc(100dvh - var(--v-layout-top, 0px) - var(--v-layout-bottom, 0px));
   overflow: auto;
   overflow-x: hidden;
 }
@@ -532,6 +532,20 @@ const calendarChoices = computed(() => {
   max-width: 100%;
   max-height: 100%;
   min-height: 0;
+}
+
+.sx__view-container{
+  padding-bottom: 50px;
+}
+
+.sx__week-grid__date {
+    flex-flow: row;
+    justify-content: center;
+}
+
+.sx__calendar {
+  border-top: var(--sx-border);
+  border-radius: 0;
 }
 </style>
 
