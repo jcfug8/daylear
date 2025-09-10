@@ -104,7 +104,7 @@
     <v-btn
       color="error"
       density="compact"
-      style="position: fixed; bottom: 56px; left: 16px"
+      style="position: fixed; bottom: 46px; left: 16px"
       @click="handleCancel"
     >
       <v-icon>mdi-close</v-icon>
@@ -115,7 +115,7 @@
     <v-btn
       color="success"
       density="compact"
-      style="position: fixed; bottom: 56px; right: 16px"
+      style="position: fixed; bottom: 46px; right: 16px"
       :loading="saving"
       @click="handleSave"
     >

@@ -116,7 +116,7 @@
   <v-btn
     color="error"
     density="compact"
-    style="position: fixed; bottom: 56px; left: 16px; z-index: 10;"
+    style="position: fixed; bottom: 46px; left: 16px; z-index: 10;"
     @click="navigateBack"
   >
     <v-icon>mdi-close</v-icon>
@@ -125,7 +125,7 @@
   <v-btn
     color="success"
     density="compact"
-    style="position: fixed; bottom: 56px; right: 16px; z-index: 10;"
+    style="position: fixed; bottom: 46px; right: 16px; z-index: 10;"
     @click="saveSettings"
   >
     <v-icon>mdi-content-save</v-icon>
@@ -253,7 +253,7 @@ onMounted(async () => {
 }
 .image-upload-btn {
   position: absolute;
-  bottom: 56px;
+  bottom: 46px;
   right: 16px;
 }
 .image-x-btn, .image-undo-btn {

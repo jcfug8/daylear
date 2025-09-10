@@ -1,5 +1,5 @@
 <template>
-  <v-app-bar id="top-nav" color="primary" elevation="0" density="compact">
+  <v-app-bar height="48" id="top-nav" color="primary" elevation="0" density="compact">
     <v-app-bar-title >
       Daylear
     </v-app-bar-title>
@@ -8,7 +8,7 @@
       </v-app-bar-nav-icon>
     </template>
   </v-app-bar>
-  <v-bottom-navigation bg-color="primary" id="bottom-nav" v-if="isLoggedIn" density="compact">
+  <v-bottom-navigation height="48" bg-color="primary" id="bottom-nav" v-if="isLoggedIn" density="compact">
       <v-btn
         density="compact"
         :to="{ name: 'recipes' }"

@@ -85,7 +85,7 @@
         color="primary"
         density="compact"
         class="text-none"
-        style="position: fixed; bottom: 56px; left: 16px; z-index: 10;"
+        style="position: fixed; bottom: 46px; left: 16px; z-index: 10;"
         @click="toggleViewMode"
       >
         <v-icon class="mr-1">{{ viewMode === 'grid' ? 'mdi-calendar-month' : 'mdi-view-grid' }}</v-icon>
@@ -106,7 +106,7 @@
           v-if="selectedAccount?.value === authStore.user.name && viewMode === 'grid'"
           color="primary"
           density="compact"
-          style="position: fixed; bottom: 56px; right: 16px"
+          style="position: fixed; bottom: 46px; right: 16px"
           :to="{ name: 'calendarCreate' }"
         >
           <v-icon>mdi-plus</v-icon>

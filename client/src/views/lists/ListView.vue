@@ -783,7 +783,7 @@ onMounted(async () => {
 <style scoped>
 .fab-container {
   position: fixed;
-  bottom: 56px;
+  bottom: 46px;
   right: 16px;
   display: flex;
   flex-direction: column;

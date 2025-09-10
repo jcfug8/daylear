@@ -7,7 +7,7 @@
         color="primary" 
         density="compact"
         prepend-icon="mdi-plus"
-        style="position: fixed; bottom: 56px; right: 16px;z-index: 1000;"
+        style="position: fixed; bottom: 46px; right: 16px;z-index: 1000;"
         @click="showCreateEventDialog(new Date())"
       >
         Create Event

@@ -66,7 +66,7 @@
           v-if="selectedAccount?.value === authStore.user.name"
           color="primary"
           density="compact"
-          style="position: fixed; bottom: 56px; right: 16px"
+          style="position: fixed; bottom: 46px; right: 16px"
           :to="{ name: 'listCreate' }"
         >
           <v-icon>mdi-plus</v-icon>
