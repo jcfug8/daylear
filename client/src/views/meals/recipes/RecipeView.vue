@@ -136,7 +136,7 @@
       </v-row>
     </v-container>
     <v-divider></v-divider>
-    <v-tabs class="position-sticky" style="width: 100%;z-index: 2;top: 48px;" bg-color="white" v-model="tab" center-active show-arrows fixed-tabs>
+    <v-tabs class="position-sticky" style="width: 100%;z-index: 2;top: var(--v-layout-top, 40px);" bg-color="white" v-model="tab" center-active show-arrows fixed-tabs>
       <v-tab value="ingredients">
         <v-icon>mdi-food-apple-outline</v-icon>
         <span class="text-caption">Ingredients</span>
